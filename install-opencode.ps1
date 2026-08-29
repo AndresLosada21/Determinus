@@ -945,7 +945,17 @@ function Get-ManagedAmbientCandidate([string]$Existing, [string]$Block) {
     return $prefix + [Environment]::NewLine + [Environment]::NewLine + $Block.Trim() + [Environment]::NewLine
 }
 
-$PackageVersion = "4.1.1"
+$VersionPath = Join-Path $PackageRoot "VERSION"
+if (-not (Test-Path -LiteralPath $VersionPath)) {
+    throw "Arquivo VERSION ausente: $VersionPath"
+}
+$PackageVersion = (Read-Utf8File $VersionPath).Trim()
+if ([string]::IsNullOrWhiteSpace($PackageVersion)) {
+    throw "Arquivo VERSION vazio: $VersionPath"
+}
+if ($PackageVersion -notmatch '^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$') {
+    throw "Versão inválida em VERSION: $PackageVersion"
+}
 Write-Host "Instalando AI-Driven Engineering v$PackageVersion em: $Target"
 
 $AgentSource = Join-Path $PackageRoot "agents"

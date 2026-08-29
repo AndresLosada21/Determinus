@@ -1,4 +1,4 @@
-# OpenCode AI-Driven Engineering v4.1.1
+# OpenCode AI-Driven Engineering
 
 Um **AI-Driven Engineering Operating Model para OpenCode V2**: stack/model/provider agnostic, com separação explícita entre Produto, Entrega e Engenharia, subagents especializados, contratos persistentes, permissions com least privilege, gates e estado canônico validável.
 
@@ -30,6 +30,10 @@ Autoridade não é hierarquia de cargo: cada plano tem decisões que os outros n
 `implemented != validated != ENGINEERING_ACCEPTED != DELIVERY_ACCEPTED != PRODUCT_ACCEPTED`.
 
 
+
+## Correção v4.1.3 — package version source of truth
+
+A versão exibida pelo instalador e gravada no manifesto vem exclusivamente do arquivo `VERSION`. O instalador falha cedo se `VERSION` estiver ausente, vazio ou fora do formato esperado, evitando drift entre release, banner e manifesto.
 
 ## Correção v4.1.1 — config migration gate
 

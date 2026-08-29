@@ -29,6 +29,11 @@ try {
     if (-not (Test-Path -LiteralPath (Join-Path $tmp 'agents/orchestrator.md'))) { throw 'orchestrator não instalado' }
     if (-not (Test-Path -LiteralPath (Join-Path $tmp 'skills/ai-driven-engineering/SKILL.md'))) { throw 'skill não instalada' }
     if (-not (Test-Path -LiteralPath (Join-Path $tmp 'ai-driven-engineering/runtime/set-ai-state.ps1'))) { throw 'runtime não instalado' }
+    $manifestPath = Join-Path $tmp 'ai-driven-engineering-install.json'
+    if (-not (Test-Path -LiteralPath $manifestPath)) { throw 'manifesto não instalado' }
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    $expectedVersion = ([System.IO.File]::ReadAllText((Join-Path $root 'VERSION'))).Trim()
+    if ([string]$manifest.package_version -ne $expectedVersion) { throw "manifest package_version divergente: $($manifest.package_version) != $expectedVersion" }
     $ambient = [System.IO.File]::ReadAllText($agentsFile)
     if ($ambient -notmatch 'AI-DRIVEN-ENGINEERING:BEGIN v4') { throw 'bloco AGENTS.md não instalado' }
     if ($ambient -notmatch 'Existing guidance') { throw 'AGENTS.md existente foi perdido' }

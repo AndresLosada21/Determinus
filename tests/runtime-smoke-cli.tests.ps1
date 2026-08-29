@@ -22,4 +22,14 @@ if ($policyText -notmatch '\$\{name\}: permissions ausentes') {
     throw 'static-policy-check deve usar ${name}: em mensagens interpoladas'
 }
 
+
+$installer = Join-Path $root 'install-opencode.ps1'
+$installerText = [System.IO.File]::ReadAllText($installer)
+if ($installerText -match '\$PackageVersion\s*=\s*"[0-9]+\.[0-9]+\.[0-9]+"') {
+    throw 'installer não deve hardcodar PackageVersion'
+}
+if ($installerText -notmatch 'Join-Path \$PackageRoot "VERSION"') {
+    throw 'installer deve usar VERSION como fonte de verdade'
+}
+
 Write-Host 'Runtime smoke CLI/static policy regressions: OK'

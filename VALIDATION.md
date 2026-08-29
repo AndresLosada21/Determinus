@@ -1,4 +1,4 @@
-# Validation Report — v4.1.1
+# Validation Report — v4.1.3
 
 Gerado em 2026-08-29 durante a montagem do pacote.
 
@@ -41,3 +41,8 @@ Observed on a real Windows/OpenCode setup:
 - The previous static policy script contained `"$name: ..."` strings that can fail PowerShell parsing; v4.1.2 uses `"${name}: ..."`.
 
 Local package checks confirm the regression guards are present. Full PowerShell runtime execution still requires a Windows/PowerShell/OpenCode environment.
+
+## v4.1.3 release metadata regression
+
+- Installer reads package version from `VERSION`; no hardcoded release number remains in the installer banner path.
+- Integration coverage checks manifest `package_version` against `VERSION`.

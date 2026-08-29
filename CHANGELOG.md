@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.1.3 — 2026-08-29
+
+Patch release focused on release metadata correctness discovered during real installation validation.
+
+### Fixed
+- `install-opencode.ps1` no longer hardcodes `4.1.1`; `VERSION` is now the single source of truth for the installer banner and installation manifest.
+- Installer aborts if `VERSION` is missing, empty, or malformed.
+- README title no longer embeds a stale package version.
+
+### Tests
+- Installer integration now verifies that the manifest `package_version` matches the repository `VERSION`.
+
 ## 4.1.2 — 2026-08-29
 
 Patch release based on runtime validation against a real OpenCode V2 installation.
