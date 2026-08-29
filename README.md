@@ -1,4 +1,4 @@
-# Entrega de Produto com IA para OpenCode V2
+# Entrega de Produto com IA para OpenCode
 
 Organização multi-plano para **Produto**, **Entrega** e **Engenharia** com contratos explícitos e gates de evidência.
 
