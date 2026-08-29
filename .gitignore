@@ -1,0 +1,30 @@
+# OpenCode runtime
+.ai/
+.opencode/
+opencode.json
+opencode.jsonc
+!opencode-fragment.jsonc
+
+# Backups
+*.ai-driven-backup-*
+*.bak-*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp
+tmp/
+temp/
