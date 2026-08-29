@@ -331,7 +331,7 @@ function Write-InstallManifest(
     $runtimeDirs = @(Get-DirectoryRelativePaths $RuntimeSource)
     $manifest = [ordered]@{
         schema_version = 4
-        package_version = "4.1.0"
+        package_version = $PackageVersion
         agents = $agents
         skill = [ordered]@{ files = $skillFiles; directories = $skillDirs }
         runtime = [ordered]@{ files = $runtimeFiles; directories = $runtimeDirs }
@@ -837,9 +837,29 @@ function Remove-LegacyExperimentalSubagentDepth([string]$Text) {
     $experimental = $null
     foreach ($property in $properties) { if ($property.Name -eq "experimental") { $experimental = $property } }
     if ($null -eq $experimental -or $Text[$experimental.ValueStart] -ne '{') { return $Text }
+
     $close = Find-MatchingJsoncBrace $Text $experimental.ValueStart
     if ($close -lt 0) { return $Text }
-    return Remove-JsoncObjectProperty $Text $experimental.ValueStart $close "subagent_depth"
+
+    # Remove only the legacy nested key first.
+    $updated = Remove-JsoncObjectProperty $Text $experimental.ValueStart $close "subagent_depth"
+
+    # Re-parse after mutation. If experimental became empty (comments/trivia only),
+    # remove the whole top-level object. OpenCode V2 rejects an empty experimental object.
+    $root2 = Get-JsoncRootObject $updated
+    $properties2 = @(Get-JsoncObjectProperties $updated $root2.Open $root2.Close)
+    $experimental2 = $null
+    foreach ($property in $properties2) { if ($property.Name -eq "experimental") { $experimental2 = $property } }
+    if ($null -eq $experimental2 -or $updated[$experimental2.ValueStart] -ne '{') { return $updated }
+
+    $close2 = Find-MatchingJsoncBrace $updated $experimental2.ValueStart
+    if ($close2 -lt 0) { return $updated }
+    $experimentalProperties = @(Get-JsoncObjectProperties $updated $experimental2.ValueStart $close2)
+    if ($experimentalProperties.Count -eq 0) {
+        return Remove-JsoncObjectProperty $updated $root2.Open $root2.Close "experimental"
+    }
+
+    return $updated
 }
 
 function Set-V2SubagentDepth(
@@ -847,6 +867,67 @@ function Set-V2SubagentDepth(
     [int]$Depth
 ) {
     return Set-TopLevelJsoncScalar $Text "subagent_depth" "$Depth"
+}
+
+function Get-OpenCodeCli {
+    foreach ($name in @("opencode2", "opencode")) {
+        $command = Get-Command $name -ErrorAction SilentlyContinue
+        if ($null -ne $command) { return $command }
+    }
+    return $null
+}
+
+function Invoke-OpenCodeDebugConfig(
+    $Cli,
+    [string]$ConfigDir
+) {
+    $previousConfigDir = $env:OPENCODE_CONFIG_DIR
+    try {
+        $env:OPENCODE_CONFIG_DIR = $ConfigDir
+        $output = & $Cli.Source debug config 2>&1
+        $exitCode = $LASTEXITCODE
+        return [PSCustomObject]@{
+            ExitCode = $exitCode
+            Output = @($output)
+        }
+    } catch {
+        return [PSCustomObject]@{
+            ExitCode = 1
+            Output = @($_.Exception.Message)
+        }
+    } finally {
+        $env:OPENCODE_CONFIG_DIR = $previousConfigDir
+    }
+}
+
+function Test-ConfigCandidateWithOpenCode(
+    $Cli,
+    [string]$ConfigFileName,
+    [string]$Candidate
+) {
+    if ($null -eq $Cli) { return $null }
+
+    $staging = Join-Path ([IO.Path]::GetTempPath()) ("ai-driven-config-preflight-" + [Guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $staging -Force | Out-Null
+    try {
+        $stagedConfig = Join-Path $staging $ConfigFileName
+        Write-Utf8File $stagedConfig $Candidate
+        return Invoke-OpenCodeDebugConfig $Cli $staging
+    } finally {
+        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Restore-ConfigAfterValidationFailure(
+    [string]$ConfigPath,
+    [bool]$OriginalExists,
+    [string]$OriginalContent
+) {
+    if ($OriginalExists) {
+        Write-Utf8File $ConfigPath $OriginalContent
+    } elseif (Test-Path -LiteralPath $ConfigPath) {
+        Remove-Item -LiteralPath $ConfigPath -Force
+    }
 }
 
 function Get-ManagedAmbientCandidate([string]$Existing, [string]$Block) {
@@ -864,7 +945,8 @@ function Get-ManagedAmbientCandidate([string]$Existing, [string]$Block) {
     return $prefix + [Environment]::NewLine + [Environment]::NewLine + $Block.Trim() + [Environment]::NewLine
 }
 
-Write-Host "Instalando AI-Driven Engineering v4 em: $Target"
+$PackageVersion = "4.1.1"
+Write-Host "Instalando AI-Driven Engineering v$PackageVersion em: $Target"
 
 $AgentSource = Join-Path $PackageRoot "agents"
 $AgentTarget = Join-Path $Target "agents"
@@ -895,6 +977,7 @@ $ConfigOriginalExists = $false
 $ConfigCandidate = $null
 $ConfigNeedsUpdate = $false
 $ConfigBackupPath = $null
+$OpenCodeCli = if ($SkipRuntimeCheck) { $null } else { Get-OpenCodeCli }
 
 if (-not $NoConfigPatch) {
     $jsonc = Join-Path $Target "opencode.jsonc"
@@ -934,6 +1017,20 @@ if (-not $NoConfigPatch) {
         $ConfigNeedsUpdate = -not $candidate.Equals($ConfigOriginalContent, [StringComparison]::Ordinal)
     } else {
         $ConfigNeedsUpdate = $true
+    }
+
+    # Runtime schema gate before mutating the installation. This catches V2-invalid
+    # migrations such as a legacy experimental object becoming empty.
+    if (-not $SkipRuntimeCheck -and $null -ne $OpenCodeCli) {
+        $configName = Split-Path -Leaf $ConfigPathSelected
+        $preflight = Test-ConfigCandidateWithOpenCode $OpenCodeCli $configName $ConfigCandidate
+        if ($null -eq $preflight -or $preflight.ExitCode -ne 0) {
+            $details = if ($null -ne $preflight) { ($preflight.Output -join [Environment]::NewLine) } else { "sem saída" }
+            throw "OpenCode rejeitou a configuração candidata antes da instalação.`n$details"
+        }
+        Write-Host "OpenCode config preflight: OK ($($OpenCodeCli.Name))"
+    } elseif (-not $SkipRuntimeCheck -and $null -eq $OpenCodeCli) {
+        Write-Host "WARN: OpenCode CLI (opencode2/opencode) não encontrado no PATH; o gate runtime será adiado."
     }
 }
 
@@ -1062,6 +1159,18 @@ if (-not $NoConfigPatch -and $ConfigNeedsUpdate) {
     Write-Host "Configuração já está atualizada: $ConfigPathSelected"
 }
 
+# Mandatory runtime gate when an OpenCode CLI is available. Never leave a config
+# produced by this installer in an invalid state.
+if (-not $NoConfigPatch -and -not $SkipRuntimeCheck -and $null -ne $OpenCodeCli) {
+    $postValidation = Invoke-OpenCodeDebugConfig $OpenCodeCli $Target
+    if ($postValidation.ExitCode -ne 0) {
+        Restore-ConfigAfterValidationFailure $ConfigPathSelected $ConfigOriginalExists $ConfigOriginalContent
+        $details = $postValidation.Output -join [Environment]::NewLine
+        throw "INSTALLATION_FAILED: OpenCode debug config rejeitou a configuração instalada. A configuração anterior foi restaurada.`n$details"
+    }
+    Write-Host "OpenCode debug config: OK ($($OpenCodeCli.Name))"
+}
+
 if (-not $NoAmbientInstructions -and $AmbientNeedsUpdate) {
     if ($AmbientOriginalExists) {
         $AmbientBackupPath = Backup-File $AmbientPath
@@ -1137,26 +1246,12 @@ Write-Host "Bootstrap opcional do projeto:"
 $PowerShellExecutable = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { "powershell" } else { "pwsh" }
 $BootstrapScript = Join-Path $RuntimeTarget "bootstrap-project.ps1"
 Write-Host "  $PowerShellExecutable -ExecutionPolicy Bypass -File `"$BootstrapScript`""
-if (-not $SkipRuntimeCheck) {
-    $oc = Get-Command opencode -ErrorAction SilentlyContinue
-    if ($null -ne $oc) {
-        $previousConfigDir = $env:OPENCODE_CONFIG_DIR
-        try {
-            $env:OPENCODE_CONFIG_DIR = $Target
-            $debugOutput = & opencode debug config 2>&1
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "OpenCode debug config: OK"
-            } else {
-                Write-Host "WARN: OpenCode debug config falhou. Rode runtime-smoke.ps1 para diagnóstico."
-            }
-        } catch {
-            Write-Host "WARN: não foi possível executar OpenCode debug config: $($_.Exception.Message)"
-        } finally {
-            $env:OPENCODE_CONFIG_DIR = $previousConfigDir
-        }
-    } else {
-        Write-Host "OpenCode CLI não encontrado no PATH; validação runtime foi adiada."
-    }
+if ($SkipRuntimeCheck) {
+    Write-Host "Validação runtime ignorada por -SkipRuntimeCheck."
+} elseif ($null -eq $OpenCodeCli) {
+    Write-Host "OpenCode CLI não encontrado; execute depois: opencode2 debug config (ou opencode debug config)."
+} else {
+    Write-Host "Gate de configuração concluído com sucesso usando $($OpenCodeCli.Name)."
 }
 
 Write-Host ""

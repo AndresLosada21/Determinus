@@ -24,3 +24,6 @@ jobs:
       - name: Installer integration
         shell: pwsh
         run: ./tests/installers.integration.ps1
+      - name: Runtime config gate rollback
+        shell: pwsh
+        run: ./tests/runtime-config-gate.tests.ps1

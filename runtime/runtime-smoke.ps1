@@ -14,18 +14,25 @@ foreach ($name in $requiredAgents) {
 $skill = Join-Path (Join-Path (Join-Path $Target "skills") "ai-driven-engineering") "SKILL.md"
 if (-not (Test-Path -LiteralPath $skill)) { throw "Skill ausente: $skill" }
 
-$oc = Get-Command opencode -ErrorAction SilentlyContinue
+# Preferir o CLI V2 (opencode2) quando disponível; o binário `opencode` V1 não entende
+# a config V2 (ex.: subagent_depth na raiz) e reportaria "Configuration is invalid".
+$oc = Get-Command opencode2 -ErrorAction SilentlyContinue
+$ocName = "opencode2"
+if ($null -eq $oc) {
+    $oc = Get-Command opencode -ErrorAction SilentlyContinue
+    $ocName = "opencode"
+}
 if ($null -eq $oc) {
     Write-Host "OpenCode CLI não encontrado; layout local OK, config/runtime não puderam ser exercitados."
     exit 0
 }
 
-Write-Host "OpenCode: $(& opencode --version)"
+Write-Host "OpenCode: $(& $ocName --version)"
 $previous = $env:OPENCODE_CONFIG_DIR
 try {
     $env:OPENCODE_CONFIG_DIR = $Target
-    $resolved = & opencode debug config 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "opencode debug config falhou: $resolved" }
+    $resolved = & $ocName debug config 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "$ocName debug config falhou: $resolved" }
     $joined = ($resolved | Out-String)
     if ($joined -notmatch 'orchestrator') { throw "Config resolvida não referencia orchestrator" }
     if ($joined -notmatch 'subagent_depth') { Write-Host "WARN: saída de debug config não expôs subagent_depth textualmente." }
@@ -34,7 +41,7 @@ try {
         $args = @('run','--agent','orchestrator','--dir',$ProjectRoot,'--format','json')
         if (-not [string]::IsNullOrWhiteSpace($Model)) { $args += @('--model',$Model) }
         $args += @('Responda somente com RUNTIME_OK e não use ferramentas.')
-        & opencode @args
+        & $ocName @args
         if ($LASTEXITCODE -ne 0) { throw "Probe do orchestrator falhou" }
     }
 } finally {

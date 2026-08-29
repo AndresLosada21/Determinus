@@ -1,5 +1,23 @@
 # Changelog
 
+## 4.1.1 — 2026-08-29
+
+Patch release focused on the real migration failure observed on Windows/OpenCode V2.
+
+### Fixed
+- Removes the top-level `experimental` object when legacy `experimental.subagent_depth` was its only property.
+- Adds candidate config preflight through the installed OpenCode CLI before mutating the target.
+- Detects `opencode2` first and falls back to `opencode`.
+- Makes `debug config` a hard gate when a CLI is available.
+- Restores the exact previous config and aborts with `INSTALLATION_FAILED` if post-write validation fails.
+- Does not write the installation manifest after a failed runtime config gate.
+- Installer output now reports the actual package version from `VERSION`.
+
+### Tests
+- Added regression coverage for legacy configs containing only `experimental.subagent_depth`.
+- Added runtime gate rollback coverage with a synthetic `opencode2`.
+- CI now runs the rollback test on Windows, Linux, and macOS.
+
 ## 4.1.0 — 2026-08-29
 
 ### Routing enforcement

@@ -1,4 +1,4 @@
-# OpenCode AI-Driven Engineering v4.1
+# OpenCode AI-Driven Engineering v4.1.1
 
 Um **AI-Driven Engineering Operating Model para OpenCode V2**: stack/model/provider agnostic, com separação explícita entre Produto, Entrega e Engenharia, subagents especializados, contratos persistentes, permissions com least privilege, gates e estado canônico validável.
 
@@ -29,6 +29,11 @@ Autoridade não é hierarquia de cargo: cada plano tem decisões que os outros n
 
 `implemented != validated != ENGINEERING_ACCEPTED != DELIVERY_ACCEPTED != PRODUCT_ACCEPTED`.
 
+
+
+## Correção v4.1.1 — config migration gate
+
+A v4.1.1 corrige a migração real observada de `experimental.subagent_depth` para `subagent_depth` na raiz. Quando `experimental` fica vazio, o objeto inteiro é removido. O instalador detecta `opencode2`/`opencode`, faz preflight da configuração candidata e só conclui a instalação se `debug config` passar. Se a validação pós-escrita falhar, a configuração anterior é restaurada e o manifesto não é gravado.
 
 ## Correção v4.1 — routing enforcement
 

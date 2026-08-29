@@ -33,6 +33,27 @@ try {
     if ($ambient -notmatch 'AI-DRIVEN-ENGINEERING:BEGIN v4') { throw 'bloco AGENTS.md não instalado' }
     if ($ambient -notmatch 'Existing guidance') { throw 'AGENTS.md existente foi perdido' }
 
+
+    # regressão v4.1.1: instalação legada em que experimental contém SOMENTE subagent_depth
+    $legacyOnly = Join-Path $tmp 'legacy-only'
+    New-Item -ItemType Directory -Path $legacyOnly -Force | Out-Null
+    $legacyConfig = Join-Path $legacyOnly 'opencode.json'
+    $legacyOriginal = @'
+{
+  "default_agent": "orchestrator",
+  "experimental": {
+    "subagent_depth": 2
+  },
+  "$schema": "https://opencode.ai/config.json"
+}
+'@
+    [System.IO.File]::WriteAllText($legacyConfig, $legacyOriginal, (New-Object System.Text.UTF8Encoding($false)))
+    & $exe -NoProfile -File (Join-Path $root 'install-opencode.ps1') -Target $legacyOnly -SkipRuntimeCheck -NoAmbientInstructions
+    if ($LASTEXITCODE -ne 0) { throw 'migração legacy-only falhou' }
+    $legacyPatched = [System.IO.File]::ReadAllText($legacyConfig)
+    if ($legacyPatched -match '"experimental"\s*:') { throw 'experimental vazio permaneceu após remover subagent_depth legado' }
+    if ($legacyPatched -notmatch '"subagent_depth"\s*:\s*2') { throw 'subagent_depth raiz ausente no caso legacy-only' }
+
     # idempotência
     & $exe -NoProfile -File (Join-Path $root 'install-opencode.ps1') -Target $tmp -SkipRuntimeCheck
     if ($LASTEXITCODE -ne 0) { throw 'segunda instalação falhou' }

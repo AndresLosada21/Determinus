@@ -1,4 +1,4 @@
-# Validation Report — v4.1
+# Validation Report — v4.1.1
 
 Gerado em 2026-08-29 durante a montagem do pacote.
 
@@ -25,3 +25,9 @@ A validação realizada aqui é estrutural/estática: YAML de agents, policies, 
 - Orchestrator contém markers `DELEGATE_FIRST`, `FORBIDDEN_WHEN_EXECUTABLE`, `NOT_REQUIRED` e `ROUTING_BLOCKED`.
 - Engineer contém os mesmos invariantes e roteamento explícito para Explorer/Implementer/Verifier.
 - Behavioral evals cobrem hand-back, confirmação desnecessária e delegation-first.
+
+## v4.1.1 migration regression
+
+Static review confirms the installer now removes an empty legacy `experimental` object, supports both `opencode2` and `opencode`, performs preflight plus post-write `debug config` gates, restores the previous config on post-write rejection, and defers manifest creation until after successful validation. New regression tests cover the exact legacy-only shape observed in production and the rollback path.
+
+Runtime PowerShell/OpenCode execution was not available in the artifact-generation environment, so the included PowerShell tests were inspected but not executed here.
