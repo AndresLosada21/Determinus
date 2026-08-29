@@ -9,3 +9,10 @@
 
 ## Regra de contradição
 Uma decisão de um plano que muda a responsabilidade de outro plano vira gate explícito. O owner impactado precisa aceitar, rejeitar ou reformular.
+
+
+## Delivery execution operator
+
+`tracker-operator` is a leaf execution role under `project-manager`.
+
+It may materialize authorized Delivery decisions in GitHub Projects, Jira or Linear, but it owns no Product, Delivery or Engineering decision. External tracker state never creates internal acceptance.

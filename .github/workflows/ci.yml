@@ -30,3 +30,26 @@ jobs:
       - name: Runtime smoke CLI precedence
         shell: pwsh
         run: ./tests/runtime-smoke-cli.tests.ps1
+
+      - name: Work management contract
+        shell: pwsh
+        run: ./tests/work-management-contract.tests.ps1
+      - name: Work management terminal gate
+        shell: pwsh
+        run: ./tests/work-management-terminal.tests.ps1
+      - name: Traceability and audit
+        shell: pwsh
+        run: ./tests/traceability.tests.ps1
+      - name: Evidence hardening
+        shell: pwsh
+        run: ./tests/evidence-hardening.tests.ps1
+
+      - name: Git readonly cross-workspace
+        shell: pwsh
+        run: ./tests/git-readonly.tests.ps1
+      - name: Project check execution policy
+        shell: pwsh
+        run: ./tests/project-check-policy.tests.ps1
+      - name: Legacy bootstrap compatibility
+        shell: pwsh
+        run: ./tests/legacy-bootstrap-shim.tests.ps1

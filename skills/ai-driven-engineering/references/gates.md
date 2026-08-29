@@ -27,3 +27,8 @@
 
 ## Global
 Um plano com `required: false` não participa do gate. `global_status` é `DONE` somente quando todos os planos requeridos estão nos estados finais de aceitação; caso contrário é `NOT_DONE`.
+
+
+## External work-management gate
+
+Status de GitHub Projects, Jira ou Linear não altera os estados internos acima. Por padrão, uma transição externa para o estado terminal configurado só é permitida quando `global_status == DONE`. Estados externos intermediários podem refletir progresso de Delivery, mas nunca criam acceptance.

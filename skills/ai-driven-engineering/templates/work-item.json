@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "internal_id": "WI-001",
+  "title": "",
+  "type": "task",
+  "priority": "",
+  "dependencies": [],
+  "provider": "none",
+  "external_id": "",
+  "external_key": "",
+  "url": "",
+  "external_status": "",
+  "assignee": "",
+  "links": {
+    "branch": "",
+    "pull_request": "",
+    "commits": []
+  },
+  "sync": {
+    "last_synced_at": "",
+    "status": "NOT_SYNCED"
+  }
+}

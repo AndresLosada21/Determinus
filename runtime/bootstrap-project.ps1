@@ -34,7 +34,10 @@ $map = [ordered]@{
     "checkpoint.md"           = "checkpoint.md"
     "decision-log.md"         = "decision-log.md"
     "execution-policy.md"     = "execution-policy.md"
+    "execution-policy.json"   = "execution-policy.json"
     "control.json"            = "control.json"
+    "integrations.json"       = "integrations.json"
+    "traceability.json"       = "traceability.json"
 }
 
 foreach ($entry in $map.GetEnumerator()) {
@@ -60,6 +63,17 @@ foreach ($entry in $map.GetEnumerator()) {
     }
     Write-Utf8NoBom $dst $content
     Write-Host "Criado: $dst"
+}
+
+$workItems = Join-Path $ai "work-items"
+if (-not (Test-Path -LiteralPath $workItems)) {
+    New-Item -ItemType Directory -Path $workItems -Force | Out-Null
+    Write-Host "Criado: $workItems"
+}
+$audit = Join-Path $ai "audit.jsonl"
+if (-not (Test-Path -LiteralPath $audit)) {
+    Write-Utf8NoBom $audit ""
+    Write-Host "Criado: $audit"
 }
 
 $delegations = Join-Path $ai "delegations"

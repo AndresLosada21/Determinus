@@ -27,8 +27,10 @@ try {
     if ($patched -notmatch 'preserve-me') { throw 'comentário JSONC foi perdido' }
     if ($patched -notmatch 'provider/example') { throw 'provider/model existente foi perdido' }
     if (-not (Test-Path -LiteralPath (Join-Path $tmp 'agents/orchestrator.md'))) { throw 'orchestrator não instalado' }
+    if (-not (Test-Path -LiteralPath (Join-Path $tmp 'agents/tracker-operator.md'))) { throw 'tracker-operator não instalado' }
     if (-not (Test-Path -LiteralPath (Join-Path $tmp 'skills/ai-driven-engineering/SKILL.md'))) { throw 'skill não instalada' }
     if (-not (Test-Path -LiteralPath (Join-Path $tmp 'ai-driven-engineering/runtime/set-ai-state.ps1'))) { throw 'runtime não instalado' }
+    if (-not (Test-Path -LiteralPath (Join-Path $tmp 'ai-driven-engineering/runtime/work-management.ps1'))) { throw 'work-management runtime não instalado' }
     $manifestPath = Join-Path $tmp 'ai-driven-engineering-install.json'
     if (-not (Test-Path -LiteralPath $manifestPath)) { throw 'manifesto não instalado' }
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json

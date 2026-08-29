@@ -2,8 +2,13 @@
 
 Profile: STANDARD
 
+## Human-reviewed machine policy
+O arquivo `.ai/execution-policy.json` é a policy machine-readable usada por `run-project-check.ps1`. Ele nasce com `authorized: false` e não deve ser modificado por workers de implementação. Revise os checks antes de autorizar.
+
+Use `runtime/register-project-check.ps1` para registrar um check de forma estruturada.
+
 ## Approved project commands
-Document commands the human/Engineering Lead considers safe and expected for this repository. This file is guidance; OpenCode tool permissions remain the enforcement boundary.
+Documente aqui a intenção e contexto humano dos checks esperados para este repositório. Este Markdown é explicativo; o JSON é a fonte executável.
 
 - test:
 - lint:
@@ -15,4 +20,6 @@ Document commands the human/Engineering Lead considers safe and expected for thi
 - destructive filesystem operations
 - credential/secret access
 - git push/force-push
-- production deployment without explicit human authority
+- produção/deploy sem autoridade explícita
+- `docker run*` genérico em agent permissions
+- privileged containers, host network ou host/device mounts fora do wrapper estruturado

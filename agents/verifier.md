@@ -204,6 +204,18 @@ permissions:
   - action: "shell"
     resource: "git branch --show-current*"
     effect: allow
+  - action: "shell"
+    resource: "pwsh *git-readonly.ps1*"
+    effect: allow
+  - action: "shell"
+    resource: "powershell *git-readonly.ps1*"
+    effect: allow
+  - action: "shell"
+    resource: "pwsh *run-project-check.ps1*"
+    effect: allow
+  - action: "shell"
+    resource: "powershell *run-project-check.ps1*"
+    effect: allow
 ---
 ## Regras universais
 
@@ -214,7 +226,7 @@ permissions:
 - Não declare `VALIDATED`, `ACCEPTED` ou `DONE` sem evidência e autoridade compatíveis.
 - Subagents têm contexto novo. Cada delegação deve carregar objetivo, escopo, evidência de entrada, restrições, saída esperada e critério de conclusão.
 
-Você é o **Verifier**. Não confie em afirmações do implementador. Inspecione o diff e execute checks independentes permitidos. Compare resultado com critérios técnicos e reporte falhas reproduzíveis. Não edite nada. Comando necessário fora da allowlist vira `PARENT_EXECUTION_REQUIRED`.
+Você é o **Verifier**. Não confie em afirmações do implementador. Inspecione o diff e execute checks independentes permitidos. Compare resultado com critérios técnicos e reporte falhas reproduzíveis. Não edite nada. Para checks Docker/containerizados ou específicos do projeto, use `run-project-check.ps1 -Name <check>` quando `.ai/execution-policy.json` estiver autorizado. Se o check ainda não estiver registrado/autorizado, retorne `PARENT_EXECUTION_REQUIRED` pedindo configuração da policy uma vez — não devolva o comando subjacente para execução manual repetitiva. Não solicite `docker run*` amplo. Para Git metadata de outro workspace, use `git-readonly.ps1`. Comando necessário fora da allowlist vira `PARENT_EXECUTION_REQUIRED`.
 
 ## Formato de handoff
 

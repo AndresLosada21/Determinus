@@ -5,7 +5,10 @@ param(
     [string]$OutDir = (Join-Path (Get-Location).Path ".ai/eval-results")
 )
 $ErrorActionPreference = "Stop"
-if ($null -eq (Get-Command opencode -ErrorAction SilentlyContinue)) { throw "OpenCode CLI não encontrado" }
+. (Join-Path $PSScriptRoot "runtime-common.ps1")
+$cli = Resolve-OpenCodeCli
+if ($null -eq $cli) { throw "OpenCode CLI não encontrado" }
+$cliName = $cli.Name
 $scenarioRoot = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "evals"
 $scenarios = Join-Path $scenarioRoot "scenarios.jsonl"
 if (-not (Test-Path -LiteralPath $scenarios)) { throw "Cenários não encontrados: $scenarios" }
@@ -20,8 +23,10 @@ foreach ($line in Get-Content -LiteralPath $scenarios) {
     $args = @('run','--agent',[string]$s.agent,'--dir',$ProjectRoot,'--format','json')
     if (-not [string]::IsNullOrWhiteSpace($Model)) { $args += @('--model',$Model) }
     $args += @([string]$s.prompt)
-    & opencode @args | Out-File -LiteralPath $path -Encoding utf8
-    if ($LASTEXITCODE -ne 0) { throw "Eval falhou: $($s.id)" }
+    $output = @(& $cliName @args 2>&1)
+    $exitCode = $LASTEXITCODE
+    $output | Out-File -LiteralPath $path -Encoding utf8
+    if ($exitCode -ne 0) { throw "Eval falhou (exit=$exitCode): $($s.id)" }
     Write-Host "Salvo: $path"
 }
 Write-Host "Evals executados. Compare saídas com runtime/evals/RUBRIC.md."

@@ -11,7 +11,7 @@ if (-not (Test-Path -LiteralPath $StatePath)) { throw "Estado canônico ausente:
 $state = [System.IO.File]::ReadAllText($StatePath) | ConvertFrom-Json
 $errors = New-Object System.Collections.Generic.List[string]
 
-if ([int]$state.schema_version -ne 1) { $errors.Add("schema_version deve ser 1") }
+if (@(1,2) -notcontains [int]$state.schema_version) { $errors.Add("schema_version deve ser 1 ou 2") }
 if ([string]::IsNullOrWhiteSpace([string]$state.work_item_id)) { $errors.Add("work_item_id é obrigatório") }
 if (@("LEAN","STANDARD","HIGH_ASSURANCE") -notcontains [string]$state.profile) { $errors.Add("profile inválido: $($state.profile)") }
 
@@ -26,6 +26,13 @@ foreach ($plane in @("product","delivery","engineering")) {
     if ($node.required -isnot [bool]) { $errors.Add("$plane.required deve ser boolean") }
     if ($allowed[$plane] -notcontains [string]$node.status) { $errors.Add("$plane.status inválido: $($node.status)") }
     if ([int]$node.revision -lt 0) { $errors.Add("$plane.revision não pode ser negativo") }
+}
+
+
+if ([int]$state.schema_version -ge 2) {
+    if ($null -eq $state.work_management) { $errors.Add("work_management ausente no schema v2") }
+    if ($null -eq $state.traceability -or [string]::IsNullOrWhiteSpace([string]$state.traceability.file)) { $errors.Add("traceability.file obrigatório no schema v2") }
+    if ($null -eq $state.audit -or [string]::IsNullOrWhiteSpace([string]$state.audit.file)) { $errors.Add("audit.file obrigatório no schema v2") }
 }
 
 $accepted = $true

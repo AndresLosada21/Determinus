@@ -10,6 +10,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "runtime-common.ps1")
 $ProjectRoot = [IO.Path]::GetFullPath($ProjectRoot)
 $StatePath = Join-Path (Join-Path $ProjectRoot ".ai") "control.json"
 if (-not (Test-Path -LiteralPath $StatePath)) { throw "Estado canônico ausente: $StatePath" }
@@ -80,5 +81,6 @@ $tmp = "$StatePath.tmp-$([Guid]::NewGuid().ToString('N'))"
 [System.IO.File]::WriteAllText($tmp, $json, $encoding)
 Move-Item -LiteralPath $tmp -Destination $StatePath -Force
 
+Add-AuditEvent -ProjectRoot $ProjectRoot -EventType "state.transition" -Actor "state-runtime" -Plane $Plane -Action "$current->$target" -Status "OBSERVED" -EvidenceRefs @($Evidence) -Metadata @{ global_status=[string]$state.global_status; note=$Note } | Out-Null
 Write-Host "$Plane: $current -> $target"
 Write-Host "global_status: $($state.global_status)"

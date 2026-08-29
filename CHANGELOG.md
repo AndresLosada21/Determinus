@@ -1,5 +1,62 @@
 # Changelog
 
+## 4.2.1 — 2026-08-29
+
+Patch release de ergonomia segura para shell, informado por um `Permission denied: shell` observado **antes da v4.2**. Não é uma regressão comprovada da v4.2.0.
+
+### Added
+- `runtime/git-readonly.ps1`: metadata Git cross-workspace sem shell livre (`status`, `log`, `rev-parse`, `branch`, `diff-stat`, `diff-names`).
+- `runtime/run-project-check.ps1`: execução de checks humanos pré-autorizados por `.ai/execution-policy.json`.
+- `runtime/register-project-check.ps1`: ferramenta administrativa para registrar checks `process` ou `docker`.
+- `.ai/execution-policy.json` nasce com `authorized: false`; workers não podem alterá-lo.
+- `scripts/bootstrap-project.ps1` volta como compatibility shim e encaminha para `runtime/bootstrap-project.ps1`.
+- regressões para Git cross-workspace, policy de checks e bootstrap legado.
+
+### Security / Routing
+- `engineer`, `explorer` e `verifier` usam wrapper para Git metadata cross-workspace em vez de `git -C ...` raw.
+- `verifier` pode executar checks específicos/containerizados somente pelo wrapper estruturado.
+- nenhum agent recebe `docker run*` amplo. Docker `network=host` é rejeitado; mount `rw` exige opt-in explícito na policy humana.
+- `implementer` recebe deny explícito para `.ai/execution-policy.json`.
+
+### DeepSeek review incorporated
+- Mantido o diagnóstico correto de que o deny observado podia ser consequência do raw command não casar com a allowlist e de que o Engineer deve delegar antes de hand-back.
+- Não adotada a sugestão ampla de liberar `docker run*`; na v4.2 o Verifier já permite `phpunit*`/`vendor/bin/phpunit*`, e checks Docker passam por wrapper controlado.
+
+## 4.2.0 — 2026-08-29
+
+Minor release consolidating the path to a production-grade AI Engineering Operating Model with explicit Work Management, end-to-end traceability, auditability and evidence hardening.
+
+### Work Management
+- Adds `tracker-operator` as a leaf Delivery subagent under `project-manager`.
+- Adds provider abstraction for GitHub Issues/Projects (`gh`), Jira Cloud REST API v3 and Linear GraphQL.
+- Adds `.ai/integrations.json` for non-secret provider configuration.
+- Adds normalized `.ai/work-items/*.json` state and `sync` operation.
+- External terminal status is blocked by default until `.ai/control.json.global_status == DONE`.
+
+### Traceability & observability
+- Adds `.ai/traceability.json` linking external issue, branch, commit, PR and evidence.
+- Adds `.ai/audit.jsonl` structured execution journal with known-token redaction.
+- State transitions now append audit events.
+- Adds `traceability.ps1` and `audit-log.ps1`.
+
+### Evidence hardening
+- `runtime-smoke.ps1` now hard-fails when `default_agent != orchestrator` or `subagent_depth != 2`.
+- Adds `run-regression.ps1` with explicit exit-code preservation.
+- Adds `verify-git-push.ps1` to require local HEAD == remote branch SHA before `PUSH_VALIDATED`.
+- `run-evals.ps1` now preserves the OpenCode process exit code before writing output.
+
+### Tests
+- Adds Work Management contract and terminal-gate tests.
+- Adds traceability/audit tests.
+- Adds evidence-hardening tests.
+- Package layout now expects 17 agents.
+- CI runs new coverage on Windows, Linux and macOS.
+
+### Security
+- Tracker credentials remain outside `.ai/`: GitHub uses `gh auth`; Jira and Linear use environment variables.
+- `tracker-operator` has no direct edit permission and can execute only controlled runtime scripts.
+- External tracker state never creates Product, Delivery, Engineering or Global acceptance.
+
 ## 4.1.3 — 2026-08-29
 
 Patch release focused on release metadata correctness discovered during real installation validation.

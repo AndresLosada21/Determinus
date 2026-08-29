@@ -1235,6 +1235,12 @@ foreach ($name in @("orchestrator","product-owner","project-manager","engineer")
 }
 
 Write-Host ""
+Write-Host "Operadores do Delivery Plane instalados:"
+foreach ($name in @("tracker-operator")) {
+    Write-Host "  - $name"
+}
+
+Write-Host ""
 Write-Host "Especialistas de engenharia instalados:"
 foreach ($name in @(
     "explorer","researcher","modeler","engineering-planner",

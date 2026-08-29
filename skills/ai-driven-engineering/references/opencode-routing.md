@@ -2,11 +2,12 @@
 
 Grafo principal:
 `orchestrator -> product-owner | project-manager | engineer`
-`engineer -> specialists`
+`engineer -> engineering specialists`
+`project-manager -> tracker-operator`
 
-`orchestrator` é primary. `product-owner`, `project-manager` e `engineer` são `all`. Especialistas são `subagent`.
+`orchestrator` é primary. `product-owner`, `project-manager` e `engineer` são `all`. Especialistas e `tracker-operator` são `subagent` leaf agents.
 
-A raiz precisa de `subagent_depth: 2` para Engineer delegar do nível 1 para especialistas no nível 2. Especialistas não possuem permissão `subagent`.
+A raiz precisa de `subagent_depth: 2` para Engineer delegar do nível 1 para especialistas no nível 2 e para Project Manager delegar ao `tracker-operator` no nível 2. Especialistas não possuem permissão `subagent`.
 
 Não use fan-out indiscriminado: até 3 especialistas simultâneos por onda por padrão.
 

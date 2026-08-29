@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "work_item_id": "WORK-001",
   "revision": 0,
   "profile": "STANDARD",
@@ -24,5 +24,17 @@
     "revision": 0
   },
   "evidence": [],
-  "notes": []
+  "notes": [],
+  "work_management": {
+    "provider": "none",
+    "sync_status": "NOT_CONFIGURED",
+    "last_sync_at": "",
+    "external_refs": []
+  },
+  "traceability": {
+    "file": ".ai/traceability.json"
+  },
+  "audit": {
+    "file": ".ai/audit.jsonl"
+  }
 }

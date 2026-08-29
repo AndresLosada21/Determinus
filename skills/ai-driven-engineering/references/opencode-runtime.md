@@ -16,3 +16,9 @@ Rode `runtime/runtime-smoke.ps1`. Ele verifica layout, config resolvida quando o
 4. use `orchestrator` para gates globais.
 
 O fallback preserva autoridade e evidência mesmo sem coordenação nested automática.
+
+
+## v4.2.1 — shell ergonomics sem privilege widening
+Permissions `shell` casam contra o comando raw completo. Por isso `git log*` não equivale a `git -C <repo> log*`. Use `git-readonly.ps1` para metadata cross-workspace.
+
+Checks Docker/projeto não recebem `docker run*` amplo. O Verifier usa `run-project-check.ps1` e `.ai/execution-policy.json` autorizada pelo humano.

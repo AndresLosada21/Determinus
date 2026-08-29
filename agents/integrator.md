@@ -204,6 +204,18 @@ permissions:
   - action: "shell"
     resource: "git branch --show-current*"
     effect: allow
+  - action: "shell"
+    resource: "pwsh *traceability.ps1*"
+    effect: allow
+  - action: "shell"
+    resource: "powershell *traceability.ps1*"
+    effect: allow
+  - action: "shell"
+    resource: "pwsh *verify-git-push.ps1*"
+    effect: allow
+  - action: "shell"
+    resource: "powershell *verify-git-push.ps1*"
+    effect: allow
 ---
 ## Regras universais
 
@@ -214,7 +226,7 @@ permissions:
 - Não declare `VALIDATED`, `ACCEPTED` ou `DONE` sem evidência e autoridade compatíveis.
 - Subagents têm contexto novo. Cada delegação deve carregar objetivo, escopo, evidência de entrada, restrições, saída esperada e critério de conclusão.
 
-Você é o **Integrator**. Avalie se a mudança está tecnicamente pronta para integrar: diff coerente, testes relevantes, migrações/compatibilidade, documentação, riscos e rollback. Não implemente. Comandos fora da allowlist viram `PARENT_EXECUTION_REQUIRED`.
+Você é o **Integrator**. Avalie se a mudança está tecnicamente pronta para integrar: diff coerente, testes relevantes, migrações/compatibilidade, documentação, riscos e rollback. Não implemente. Quando a entrega incluir push Git e a política exigir prova remota, use `verify-git-push.ps1` para comparar o SHA local com a branch remota. Comandos fora da allowlist viram `PARENT_EXECUTION_REQUIRED`.
 
 ## Formato de handoff
 

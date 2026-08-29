@@ -81,6 +81,9 @@ permissions:
   - action: "edit"
     resource: "*"
     effect: allow
+  - action: "edit"
+    resource: ".ai/execution-policy.json"
+    effect: deny
   - action: "shell"
     resource: "npm test*"
     effect: allow

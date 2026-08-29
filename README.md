@@ -13,7 +13,10 @@ Um **AI-Driven Engineering Operating Model para OpenCode V2**: stack/model/provi
                   ▼               ▼                ▼
           product-owner    project-manager      engineer
           WHY / WHAT       WHEN / ORDER         HOW
-                                                │
+                               │                 │
+                        tracker-operator
+                     GitHub/Jira/Linear
+                                                 │
                        ┌────────────────────────┼──────────────────────┐
                        ▼                        ▼                      ▼
                   discovery/design        implementation         validation
@@ -28,6 +31,35 @@ Autoridade não é hierarquia de cargo: cada plano tem decisões que os outros n
 - **Orchestrator**: handoffs, contradições e gate global.
 
 `implemented != validated != ENGINEERING_ACCEPTED != DELIVERY_ACCEPTED != PRODUCT_ACCEPTED`.
+
+
+## v4.2.1 — Controlled project execution
+
+A v4.2.1 adiciona duas bordas de execução sem ampliar shell genericamente:
+
+- `git-readonly.ps1` fornece metadata Git cross-workspace por ações tipadas, evitando o mismatch de permissions causado por comandos raw como `git -C <repo> log ...`.
+- `run-project-check.ps1` executa checks específicos/containerizados apenas quando registrados em `.ai/execution-policy.json` e explicitamente autorizados.
+- `register-project-check.ps1` é a ferramenta administrativa para registrar esses checks.
+- `verifier` usa o wrapper; `docker run*` amplo continua proibido.
+- `scripts/bootstrap-project.ps1` existe novamente como compatibility shim e encaminha para `runtime/bootstrap-project.ps1`.
+
+O deny que motivou esse hardening foi observado numa instalação anterior à v4.2; portanto esta release trata o caso como evidência de design/ergonomia, não como regressão comprovada da v4.2.0.
+
+## v4.2 — Work Management + Traceability + Evidence Hardening
+
+A v4.2 transforma a agnosticidade de tracker em uma camada operacional:
+
+- `project-manager` decide Delivery; `tracker-operator` executa sincronização externa.
+- providers suportados: **GitHub Projects/Issues via `gh`**, **Jira Cloud via REST API v3** e **Linear via GraphQL**.
+- `.ai/integrations.json` contém apenas configuração não secreta.
+- `.ai/traceability.json` liga work item -> issue -> branch -> commit -> PR -> evidence.
+- `.ai/audit.jsonl` registra eventos estruturados com redaction de tokens conhecidos.
+- tracker externo não substitui gates internos.
+- por padrão, estado externo terminal exige `global_status == DONE`.
+- runtime smoke faz assertion dura de `default_agent=orchestrator` e `subagent_depth=2`.
+- `run-regression.ps1` executa a regressão com preservação explícita de exit codes.
+- `verify-git-push.ps1` valida `HEAD local == remote branch SHA`.
+
 
 
 
@@ -49,7 +81,7 @@ Isso corrige o padrão em que o modelo entendia a arquitetura, explicava qual ag
 
 - `subagent_depth: 2` corrigido para o **nível raiz** da configuração V2.
 - `AGENTS.md` global recebe um bloco gerenciado com invariantes persistentes.
-- Todos os 16 agents foram reescritos com **deny-all + allowlist**.
+- Os 17 agents usam **deny-all + allowlist**, incluindo `tracker-operator` como leaf do Delivery Plane.
 - `external_directory: allow` global foi eliminado.
 - `project-manager` não possui mais `shell *`.
 - especialistas de profundidade 2 não usam `ask`; ações não permitidas retornam `PARENT_EXECUTION_REQUIRED`.
@@ -129,10 +161,17 @@ Cria `.ai/` com:
 ├── checkpoint.md
 ├── decision-log.md
 ├── execution-policy.md
+├── execution-policy.json
+├── integrations.json
+├── traceability.json
+├── audit.jsonl
+├── work-items/
 └── delegations/
 ```
 
 Em `LEAN`, Product e Delivery começam como `required: false`. Em `STANDARD` e `HIGH_ASSURANCE`, os três planos começam requeridos.
+
+Compatibilidade: o caminho legado `scripts/bootstrap-project.ps1` continua aceito no pacote v4.2.1 e apenas encaminha para o runtime, emitindo aviso de depreciação. Prefira o caminho em `runtime/`.
 
 ## Máquina de estados
 
@@ -160,6 +199,8 @@ Para trabalho end-to-end, use `orchestrator`.
 
 Para trabalho puramente técnico, `engineer` pode ser usado como primary sem cerimônia de Produto/Delivery quando o profile for LEAN e esses planos não forem aplicáveis.
 
+Quando work management externo estiver configurado, o Project Manager delega operações ao `tracker-operator`; ele não decide escopo, prioridade, sequencing ou acceptance.
+
 O Engineer seleciona especialistas sob demanda:
 
 | Agent | Responsabilidade |
@@ -176,6 +217,110 @@ O Engineer seleciona especialistas sob demanda:
 | `security-reviewer` | segurança e abuso |
 | `integrator` | readiness técnico |
 | `documenter` | documentação durável |
+
+
+## Git cross-workspace e project checks
+
+Metadata Git de outro repositório/worktree deve usar o wrapper tipado:
+
+```powershell
+pwsh -File ./runtime/git-readonly.ps1 -ProjectRoot C:\repo -Action log -MaxCount 20
+pwsh -File ./runtime/git-readonly.ps1 -ProjectRoot C:\repo -Action status
+```
+
+Ações suportadas: `status`, `log`, `rev-parse`, `branch`, `diff-stat`, `diff-names`. Não há shell livre nem `git show` de conteúdo.
+
+Para testes/checks específicos do projeto, bootstrap cria `.ai/execution-policy.json` com `authorized: false`. Registre um check e revise antes de autorizar:
+
+```powershell
+pwsh -File ./runtime/register-project-check.ps1 `
+  -ProjectRoot . `
+  -Name feature-docker `
+  -Runner docker `
+  -Image qb-validate-php:8.3 `
+  -Network qb-net `
+  -ProjectMountTarget /app `
+  -ContainerWorkdir /app `
+  -Command vendor/bin/phpunit,-c,phpunit.xml-dist `
+  -AuthorizePolicy
+```
+
+Depois o `verifier` pode executar:
+
+```powershell
+pwsh -File ./runtime/run-project-check.ps1 -ProjectRoot . -Name feature-docker
+```
+
+O wrapper Docker constrói `docker run --rm` a partir de campos estruturados. `network=host` é proibido, não há flags arbitrárias, e mount `rw` exige `allow_workspace_writes=true` na policy revisada. Nenhum agent recebe `docker run*` amplo.
+
+## Work Management adapters
+
+Bootstrap cria `.ai/integrations.json` com `provider: "none"`. Configure apenas metadados não secretos.
+
+### GitHub Projects / Issues
+
+```json
+{
+  "work_management": {
+    "provider": "github",
+    "github": {
+      "owner": "org-ou-user",
+      "repository": "repo",
+      "project_owner": "org-ou-user",
+      "project_number": 1,
+      "status_field": "Status",
+      "done_status": "Done"
+    }
+  }
+}
+```
+
+Auth é gerida pelo `gh auth`; para Projects o token precisa de acesso ao escopo de Projects.
+
+### Jira Cloud
+
+Configure `base_url`, `project_key` e `issue_type`. Auth usa as env vars `JIRA_EMAIL` e `JIRA_API_TOKEN` por padrão. Os valores nunca entram em `.ai/`.
+
+### Linear
+
+Configure `team_id`; `project_id` é opcional para vincular novos issues a um Project. Auth usa `LINEAR_API_KEY` por padrão; `auth_scheme` pode ser `api-key` ou `bearer`.
+
+Operações:
+
+```powershell
+pwsh -File ./runtime/work-management.ps1 -ProjectRoot . -Action discover
+pwsh -File ./runtime/work-management.ps1 -ProjectRoot . -Action create -Title "Nova feature" -Body "..."
+pwsh -File ./runtime/work-management.ps1 -ProjectRoot . -Action transition -ExternalId KEY-123 -Status "In Progress"
+pwsh -File ./runtime/work-management.ps1 -ProjectRoot . -Action link-pr -ExternalId KEY-123 -Url https://...
+```
+
+Ações disponíveis: `discover`, `list`, `get`, `create`, `update`, `comment`, `transition`, `link-pr`, `sync`. `sync` usa o work item normalizado em `.ai/work-items/<id>.json`.
+
+## Traceability e audit
+
+```powershell
+pwsh -File ./runtime/traceability.ps1 -ProjectRoot . -Action link-branch -Value feat/WORK-001
+pwsh -File ./runtime/traceability.ps1 -ProjectRoot . -Action link-commit -Value <sha>
+pwsh -File ./runtime/traceability.ps1 -ProjectRoot . -Action link-pr -Provider github -Url <url>
+pwsh -File ./runtime/audit-log.ps1 -ProjectRoot . -EventType delivery.sync -Plane delivery -Status OBSERVED
+```
+
+O audit log registra que uma ação aconteceu; ele não prova correção funcional.
+
+## Evidence hardening e regressão
+
+```powershell
+pwsh -File ./runtime/run-regression.ps1
+```
+
+Validação de push:
+
+```powershell
+pwsh -File ./runtime/verify-git-push.ps1 -ProjectRoot . -Remote origin -Audit
+```
+
+Esse comando só retorna `PUSH_VALIDATED` quando o SHA de `HEAD` for exatamente o SHA da branch remota.
+
 
 ## Segurança de permissions
 
@@ -260,3 +405,10 @@ O objetivo é que as regras críticas sejam **difíceis de violar por construç�
 ## Runtime compatibility note — v4.1.2
 
 This package targets OpenCode V2. Runtime validation prefers `opencode2` and only falls back to `opencode` when `opencode2` is unavailable. This avoids false failures on machines that have both a V1 `opencode` CLI and the V2 `opencode2` CLI installed.
+
+
+## Referências de providers
+
+- GitHub CLI Projects: https://cli.github.com/manual/gh_project
+- Jira Cloud REST API v3: https://developer.atlassian.com/cloud/jira/platform/rest/v3/
+- Linear GraphQL API: https://linear.app/developers/graphql

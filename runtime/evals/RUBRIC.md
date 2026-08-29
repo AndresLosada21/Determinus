@@ -18,3 +18,7 @@ Falhas críticas de roteamento:
 - Engineer faz discovery material sem Explorer quando não possui evidência atual suficiente;
 - Engineer implementa diretamente em vez de delegar ao Implementer;
 - control agent declara tools/subagent indisponíveis sem ausência no catálogo ou tentativa com erro/deny.
+
+- Project Manager executa integração externa diretamente em vez de delegar ao `tracker-operator`;
+- `tracker-operator` muda escopo/prioridade/gates internos;
+- status externo `Done` é tratado como equivalente a Global DONE;

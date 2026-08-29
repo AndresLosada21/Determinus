@@ -4,7 +4,7 @@ description: Operating model para entrega de software orientada por agentes no O
 compatibility: Projetado para OpenCode V2; requer permissions V2 e subagent_depth >= 2 para o fluxo nested Engineer -> specialists.
 ---
 
-# AI-Driven Engineering v4.1
+# AI-Driven Engineering v4.2.1
 
 Esta skill é a constituição operacional para trabalho de software/produto coordenado no OpenCode. Ela é **agnóstica de stack, provider, model, tracker e MCP**, mas é deliberadamente opinativa sobre processo e usa OpenCode V2 como runtime.
 
@@ -45,6 +45,9 @@ Leia `references/organization.md` para a matriz de autoridade completa.
 8. Paralelismo só quando tarefas são independentes; fan-out padrão <= 3 por onda.
 9. Estado global canônico é `.ai/control.json`; Markdown explica, mas não substitui o estado validável.
 10. `DONE` somente quando todos os planos `required: true` estão aceitos.
+11. Tracker externo é execution surface, nunca fonte canônica de Product/Delivery/Engineering Acceptance.
+12. Estado externo terminal (`Done`/equivalente) exige `global_status == DONE` por padrão.
+13. Toda sincronização externa relevante deve ser rastreável e auditável sem persistir segredos.
 
 ## 3. Roteamento é execução, não recomendação
 
@@ -130,8 +133,12 @@ Artefatos padrão do projeto:
 - `.ai/engineering-contract.md`
 - `.ai/checkpoint.md`
 - `.ai/decision-log.md`
-- `.ai/execution-policy.md`
+- `.ai/execution-policy.md` — contexto humano da policy
+- `.ai/execution-policy.json` — checks machine-readable, inicialmente não autorizados
 - `.ai/control.json` — estado canônico e validável
+- `.ai/integrations.json` — provider/config não secreta de work management
+- `.ai/traceability.json` — vínculos issue/branch/commit/PR/evidence
+- `.ai/audit.jsonl` — journal estruturado de execução
 
 Use o bootstrap do runtime para criar esses arquivos. Estados e transições válidos estão em `references/gates.md`.
 
@@ -144,22 +151,41 @@ Use especialistas por necessidade, não por ritual:
 - `engineering-planner`: decomposição técnica;
 - `tester`: especificação/testes executáveis;
 - `implementer`: mutação de código/config;
-- `verifier`: validação independente executada;
+- `verifier`: validação independente executada; para checks containerizados/específicos use `run-project-check.ps1` com policy humana autorizada;
 - `debugger`: causa raiz;
 - `reviewer`: correção/regressão/manutenibilidade;
 - `security-reviewer`: riscos de segurança;
 - `integrator`: readiness técnico de integração;
 - `documenter`: documentação durável.
 
-Leia `references/opencode-routing.md` e `references/parallelism.md`.
+Leia `references/opencode-routing.md`, `references/project-execution.md` e `references/parallelism.md`.
 
-## 10. Runtime OpenCode
+## 10. Work Management, traceability e audit
+
+O Delivery Plane pode usar GitHub Projects, Jira Cloud ou Linear sem acoplar a constituição a um provider.
+
+- `project-manager` continua sendo authority de Delivery.
+- `tracker-operator` é leaf subagent de execução externa.
+- provider/config ficam em `.ai/integrations.json`.
+- vínculos ficam em `.ai/traceability.json`.
+- journal fica em `.ai/audit.jsonl`.
+- work items normalizados podem ficar em `.ai/work-items/*.json`.
+
+A cadeia recomendada é:
+
+`Product Contract -> Delivery Work Item -> External Issue -> Engineering Contract -> Branch -> Commit -> PR -> Evidence -> Acceptance`
+
+O tracker nunca promove gates internos. Por padrão, `external Done` requer `global_status == DONE`.
+
+Leia `references/work-management.md`, `references/traceability.md` e `references/observability.md`.
+
+## 11. Runtime OpenCode
 
 A v4 assume `subagent_depth: 2` na raiz da config. O fluxo nested é `orchestrator -> engineer -> specialist`. Como permissões de subagents são próprias e subagents têm contexto novo, cada agente carrega sua policy e deve carregar esta skill em trabalho não trivial.
 
-A v4 evita `ask` em especialistas de profundidade 2. Se o OpenCode/runtime não suportar nesting de forma saudável, use o fallback operacional documentado em `references/opencode-runtime.md` e rode o smoke test.
+A v4 evita `ask` em especialistas de profundidade 2. Para Git metadata cross-workspace use `git-readonly.ps1`; para checks específicos/containerizados use `run-project-check.ps1` em vez de ampliar `shell` com `git -C *` ou `docker run*`. Se o OpenCode/runtime não suportar nesting de forma saudável, use o fallback operacional documentado em `references/opencode-runtime.md` e rode o smoke test.
 
-## 11. Definição de DONE
+## 12. Definição de DONE
 
 `DONE` é um estado derivado, não uma frase do modelo. Para cada plano com `required: true`:
 - Product deve estar `PRODUCT_ACCEPTED`;
