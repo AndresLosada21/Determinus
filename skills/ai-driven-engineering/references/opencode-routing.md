@@ -1,41 +1,22 @@
-# OpenCode V2 Routing
+# Roteamento OpenCode
 
-Recommended graph:
+Grafo principal:
+`orchestrator -> product-owner | project-manager | engineer`
+`engineer -> specialists`
 
-```text
-orchestrator [primary]
-├── product-owner [all]
-├── project-manager [all]
-└── engineer [all]
-    ├── explorer
-    ├── researcher
-    ├── modeler
-    ├── engineering-planner
-    ├── tester
-    ├── implementer
-    ├── verifier
-    ├── debugger
-    ├── reviewer
-    ├── security-reviewer
-    ├── integrator
-    └── documenter
-```
+`orchestrator` é primary. `product-owner`, `project-manager` e `engineer` são `all`. Especialistas são `subagent`.
 
-For OpenCode V2 beta use:
+A raiz precisa de `subagent_depth: 2` para Engineer delegar do nível 1 para especialistas no nível 2. Especialistas não possuem permissão `subagent`.
 
-```json
-{
-  "default_agent": "orchestrator",
-  "experimental": {
-    "subagent_depth": 2
-  }
-}
-```
+Não use fan-out indiscriminado: até 3 especialistas simultâneos por onda por padrão.
 
-V2's migration guide explicitly places nested subagent depth under `experimental.subagent_depth`.
-Depth 2 enables `orchestrator → engineer → specialist`.
 
-The top-level plane agents use `mode: all`, so the human can also select them directly.
+## Enforcement
 
-Do not allow technical specialists to recursively orchestrate other agents. Centralize engineering orchestration in
-`engineer` and cross-plane orchestration in `orchestrator`.
+O grafo acima é executável. Control agents não devem apenas explicar o grafo: devem chamar `subagent` quando o owner é necessário e permitido.
+
+- Orchestrator não pede confirmação para chamar PO/PM/Engineer.
+- Engineer não pede confirmação para chamar specialists.
+- Se a chamada estiver disponível, hand-back manual é proibido.
+- Se a chamada falhar, use `ROUTING_BLOCKED` com evidência da tentativa.
+- Continue handoffs automaticamente até gate material, blocker real ou conclusão.

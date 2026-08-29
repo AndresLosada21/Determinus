@@ -1,28 +1,16 @@
 # Delivery Checkpoint
 
-## Timestamp
--
+Work-Item: {{WORK_ITEM_ID}}
+Updated: {{TIMESTAMP}}
 
-## Product
-- Contract status:
-- Pending product decisions:
+## Current state
 
-## Delivery
-- Contract status:
-- READY:
-- BLOCKED:
+## Ready
 
-## Engineering
-- Contract status:
-- Completed:
-- In progress:
-- Validation:
-- Known failures:
+## Blocked
 
-## Repository State
-| Repository | Branch | Revision | Dirty |
-|---|---|---|---|
-| | | | |
+## Dependencies / Decisions
 
-## Next Safe Action
-1.
+## Evidence received
+
+## Next safe wave

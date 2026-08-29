@@ -1,42 +1,21 @@
 # Product Contract
 
+Contract-ID: {{WORK_ITEM_ID}}-product
+Revision: 1
 Status: DRAFT
-Authorization: UNSET
 
-## Problem / Opportunity
--
+## Outcome
 
-## Target Outcome
--
+## User / Problem
 
-## Product Value
--
+## In scope
 
-## Users / Stakeholders
--
+## Out of scope
 
-## In Scope
--
+## Product acceptance criteria
 
-## Out of Scope
--
+## Constraints / Decisions
 
-## Product Constraints
--
+## Evidence
 
-## Acceptance Criteria
-- [ ]
-
-## Success Indicators
--
-
-## Priority
-- Human-set / delegated / proposal:
-
-## Unresolved Product Decisions
--
-
-## Product Acceptance
-Status: PENDING
-Evidence:
--
+## Open decisions

@@ -1,42 +1,23 @@
 # Engineering Contract
 
+Contract-ID: {{WORK_ITEM_ID}}-engineering
+Revision: 1
 Status: DISCOVERING
-Delivery Contract Reference:
--
 
-## Observed Current System
--
+## Delivery input
 
-## Technical Interpretation of Acceptance Criteria
--
+## Observed system context
 
-## Technical Scope
--
+## Technical outcome
 
-## Protected Contracts
--
+## Design / Interfaces / Invariants
 
-## Architecture / Change Impact
--
+## Change boundaries
 
-## Engineering Work Units
-| ID | Objective | Write Surface | Dependencies | Validation |
-|---|---|---|---|---|
-| | | | | |
+## Verification plan
 
-## Technical Risks
--
+## Security / Reliability considerations
 
-## Test / Validation Plan
--
+## Rollback
 
-## Integration Strategy
--
-
-## Replanning Triggers
--
-
-## Engineering Acceptance
-Status: PENDING
-Evidence:
--
+## Engineering acceptance criteria

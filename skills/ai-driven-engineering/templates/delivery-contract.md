@@ -1,39 +1,21 @@
 # Delivery Contract
 
+Contract-ID: {{WORK_ITEM_ID}}-delivery
+Revision: 1
 Status: DRAFT
-Product Contract Reference:
--
 
-## Delivery Objective
--
+## Authorized product input
 
-## Work Items
-| ID | Outcome | State | Dependencies |
-|---|---|---|---|
-| | | | |
+## Work items
 
-## Readiness
-- READY:
-- BLOCKED:
-- NEEDS_DECISION:
-- NEEDS_DISCOVERY:
+## Dependencies
 
-## Execution Waves
--
+## Readiness criteria
 
-## Delivery Risks
--
+## Execution waves
 
-## External Prerequisites
--
+## Delivery gates
 
-## Work Management Mapping
--
+## Risks / Rollback coordination
 
-## Required Delivery / Release Gates
-- [ ]
-
-## Delivery Acceptance
-Status: PENDING
-Evidence:
--
+## Evidence required for Delivery Acceptance

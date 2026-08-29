@@ -1,261 +1,249 @@
-# Entrega de Produto com IA para OpenCode
+# OpenCode AI-Driven Engineering v4.1
 
-Organização multi-plano para **Produto**, **Entrega** e **Engenharia** com contratos explícitos e gates de evidência.
+Um **AI-Driven Engineering Operating Model para OpenCode V2**: stack/model/provider agnostic, com separação explícita entre Produto, Entrega e Engenharia, subagents especializados, contratos persistentes, permissions com least privilege, gates e estado canônico validável.
 
-Compatível com [OpenCode V2](https://opencode.ai/v2/docs/) (`opencode2`). Coexiste com os agentes nativos `build` e `plan` — este pacote define `orchestrator` como padrão sem desabilitar nenhum agente existente.
+## Arquitetura
 
-## Como funciona
-
-```mermaid
-flowchart TD
-    A[Intenção humana] --> B[Product Owner<br/>POR QUE / O QUÊ]
-    B --> C[Project Manager<br/>QUANDO / ORDEM]
-    C --> D[Engineering Lead<br/>COMO / EVIDÊNCIA]
-    D --> E[Especialistas<br/>explorer • planner • tester • implementer<br/>verifier • reviewer • ...]
-    E --> F[Engineering Acceptance]
-    F --> G[Delivery Acceptance]
-    G --> H[Product Acceptance]
-    H --> I[GLOBAL DONE]
+```text
+                         ┌──────────────────┐
+                         │   orchestrator   │
+                         │ coordena gates   │
+                         └────────┬─────────┘
+                  ┌───────────────┼────────────────┐
+                  ▼               ▼                ▼
+          product-owner    project-manager      engineer
+          WHY / WHAT       WHEN / ORDER         HOW
+                                                │
+                       ┌────────────────────────┼──────────────────────┐
+                       ▼                        ▼                      ▼
+                  discovery/design        implementation         validation
+                  explorer/researcher      tester/implementer    verifier/reviewer/...
 ```
 
-A cerimônia escala com o risco: correções triviais passam direto pelo `engineer`; funcionalidades transversais usam o fluxo completo de contratos. Ciclo completo em `skills/ai-driven-engineering/SKILL.md`.
+Autoridade não é hierarquia de cargo: cada plano tem decisões que os outros não podem sobrescrever.
 
-## Organização
+- **Product**: outcome, escopo, critérios, Product Acceptance.
+- **Delivery**: readiness, dependências, ondas, Delivery Acceptance.
+- **Engineering**: design técnico, execução, evidência, Engineering Acceptance.
+- **Orchestrator**: handoffs, contradições e gate global.
 
-```mermaid
-graph TD
-    ORC[orchestrator<br/>Coordenação — handoffs, gates, status final]
+`implemented != validated != ENGINEERING_ACCEPTED != DELIVERY_ACCEPTED != PRODUCT_ACCEPTED`.
 
-    ORC --> PO[product-owner<br/>Produto]
-    ORC --> PM[project-manager<br/>Entrega]
-    ORC --> ENG[engineer<br/>Engenharia Lead]
 
-    ENG --> EX[explorer<br/>descoberta de repositório e runtime]
-    ENG --> RES[researcher<br/>pesquisa técnica]
-    ENG --> MOD[modeler<br/>arquitetura e impacto]
-    ENG --> PLAN[engineering-planner<br/>decomposição]
-    ENG --> TST[tester<br/>especificação executável]
-    ENG --> IMP[implementer<br/>implementação]
-    ENG --> VER[verifier<br/>validação independente]
-    ENG --> DBG[debugger<br/>diagnóstico]
-    ENG --> REV[reviewer<br/>revisão de corretude]
-    ENG --> SREV[security-reviewer<br/>revisão de segurança]
-    ENG --> INT[integrator<br/>prontidão de integração]
-    ENG --> DOC[documenter<br/>documentação técnica]
-```
+## Correção v4.1 — routing enforcement
 
-| Plano | Agente | Responsabilidade |
-|---|---|---|
-| **Coordenação** | `orchestrator` | Orquestra handoffs entre planos e sintetiza o status final. Não edita código nem contratos. |
-| **Produto** | `product-owner` | Define problema, outcome, valor, escopo e critérios de aceite. |
-| **Entrega** | `project-manager` | Define dependências, ondas de execução, prontidão e gates de entrega. |
-| **Engenharia** | `engineer` | Define contrato técnico, delega para especialistas e concede `ENGINEERING_ACCEPTED`. |
+A v4.1 transforma o grafo de agentes em política de execução: Orchestrator e Engineer operam em `DELEGATE_FIRST`, não pedem confirmação para delegação interna já permitida, não devolvem trabalho manual ao usuário quando o runtime pode executá-lo e só declaram `ROUTING_BLOCKED` após falha/deny real de uma chamada. O Engineer usa `explorer` como default de discovery material e delega mutação a `implementer`, com evidência independente via `verifier`/review conforme risco.
 
-O `engineer` atua como **Engineering Lead** — delega implementação para especialistas para manter planejamento, execução e verificação independentes.
+Isso corrige o padrão em que o modelo entendia a arquitetura, explicava qual agente deveria atuar, mas esperava o usuário mandar explicitamente “invoque os agents”.
 
-## Contratos
+## O que mudou na v4
 
-Contratos são a única forma de comunicação entre planos — não há suposição implícita.
-
-```mermaid
-flowchart LR
-    subgraph Produto["Plano de Produto"]
-        PC[".ai/product-contract.md<br/>dono: product-owner"]
-    end
-    subgraph Entrega["Plano de Entrega"]
-        DC[".ai/delivery-contract.md<br/>dono: project-manager"]
-    end
-    subgraph Engenharia["Plano de Engenharia"]
-        EC[".ai/engineering-contract.md<br/>dono: engineer"]
-    end
-    subgraph Estado["Estado"]
-        CK[".ai/checkpoint.md"]
-        DL[".ai/decision-log.md"]
-    end
-
-    PC -->|autorizado| DC
-    DC -->|READY| EC
-    EC -->|evidência técnica| DC
-    DC -->|entregue| PC
-    DC -.-> CK
-    PC -.-> DL
-    DC -.-> DL
-    EC -.-> DL
-```
-
-| Contrato | Dono | Conteúdo |
-|---|---|---|
-| **Contrato de Produto** | `product-owner` | Problema, outcome, valor, stakeholders, escopo In/Out, restrições, critérios de aceite, autorização. |
-| **Contrato de Entrega** | `project-manager` | Grafo de trabalho, dependências, ondas, riscos, pré-requisitos externos, gates de entrega. |
-| **Contrato de Engenharia** | `engineer` | Sistema atual observado, escopo técnico, impacto arquitetural, superfícies de escrita, plano de validação. |
-
-Templates em `skills/ai-driven-engineering/templates/`. Cada contrato possui ciclo de status próprio (ex.: Produto `DRAFT → NEEDS_HUMAN_DECISION → APPROVED → PRODUCT_ACCEPTED`).
-
-## Ciclo de vida completo
-
-```mermaid
-flowchart TD
-    A[Intenção humana] --> B{Produto}
-    B -->|define| B1[Contrato de Produto<br/>WHY / WHAT]
-    B1 --> C{Entrega}
-    C -->|converte| C1[Contrato de Entrega<br/>WHEN / ORDER]
-    C1 --> D{Engenharia}
-    D -->|converte| D1[Contrato de Engenharia<br/>HOW / EVIDÊNCIA]
-
-    D1 --> E1[DISCOVER<br/>explorer / researcher]
-    E1 --> E2[MODEL<br/>modeler]
-    E2 --> E3[PLAN<br/>engineering-planner]
-    E3 --> E4[SPEC / TEST<br/>tester]
-    E4 --> E5[IMPLEMENT<br/>implementer]
-    E5 --> E6[VERIFY<br/>verifier]
-    E6 --> E7[REVIEW<br/>reviewer / security-reviewer]
-    E7 --> E8[INTEGRATE<br/>integrator]
-
-    E8 --> F[ENGINEERING_ACCEPTED]
-    F --> G[DELIVERY_ACCEPTED<br/>project-manager]
-    G --> H[PRODUCT_ACCEPTED<br/>product-owner]
-    H --> I[GLOBAL DONE]
-
-    E5 -.->|falha incerta| DBG[debugger<br/>REPRODUCE → MINIMIZE → HYPOTHESIZE]
-    DBG -.-> E5
-    E6 -.->|não validado| E5
-```
-
- Gates preservados: `product-owner` e `project-manager` não chamam especialistas de código; `orchestrator` coordena como siblings.
-
-## Triple Definition of Done
-
-`GLOBAL DONE` só existe quando os três planos aceitam — implementação sem validação ou entrega sem aceite de produto **não** é DONE.
-
-```mermaid
-graph TD
-    EA["ENGINEERING_ACCEPTED<br/>dono: engineer<br/>escopo técnico + validação + review + integração"]
-    DA["DELIVERY_ACCEPTED<br/>dono: project-manager<br/>dependências + gates + CI/release"]
-    PA["PRODUCT_ACCEPTED<br/>dono: product-owner<br/>comportamento entregue = critérios do Contrato de Produto"]
-
-    EA --> DONE
-    DA --> DONE
-    PA --> DONE
-
-    DONE{{"GLOBAL DONE"}}
-
-    EA -.->|pendente| P1["ENGINEERING_ACCEPTED / DELIVERY_PENDING"]
-    DA -.->|pendente| P2["DELIVERY_ACCEPTED / PRODUCT_PENDING"]
-    EA -.->|bloqueado| B["BLOCKED / PARTIAL / IMPLEMENTED_NOT_VALIDATED"]
-```
-
-Estados parciais (`ENGINEERING_ACCEPTED / DELIVERY_PENDING`, `BLOCKED`, `IMPLEMENTED_NOT_VALIDATED`) são reportados explicitamente — nunca forçar confiança além da evidência.
+- `subagent_depth: 2` corrigido para o **nível raiz** da configuração V2.
+- `AGENTS.md` global recebe um bloco gerenciado com invariantes persistentes.
+- Todos os 16 agents foram reescritos com **deny-all + allowlist**.
+- `external_directory: allow` global foi eliminado.
+- `project-manager` não possui mais `shell *`.
+- especialistas de profundidade 2 não usam `ask`; ações não permitidas retornam `PARENT_EXECUTION_REQUIRED`.
+- `patch-permissions.ps1` foi removido.
+- `.ai/control.json` é o estado canônico; `set-ai-state.ps1` aplica transições e `validate-ai-state.ps1` valida gates.
+- contratos continuam Markdown, mas não são mais a única fonte de verdade de estado.
+- delegação tipada e profiles `LEAN`, `STANDARD`, `HIGH_ASSURANCE`.
+- fan-out operacional padrão limitado a 3 especialistas por onda.
+- smoke test de runtime e behavioral eval harness.
+- CI preparada para Windows, Linux e macOS.
+- uninstall v4 restaura config/AGENTS.md quando é seguro e preserva alterações posteriores do usuário.
 
 ## Requisitos
 
-- OpenCode V2 (`opencode2`) — [instalação](https://opencode.ai/v2/docs/)
-- PowerShell 5.1+ / PowerShell 7+ (Windows) ou `pwsh` (macOS/Linux)
+- OpenCode V2 compatível com `permissions` V2 e `subagent_depth`.
+- PowerShell 5.1+ no Windows ou PowerShell 7 (`pwsh`) em qualquer plataforma.
+- um provider/model configurado no OpenCode para executar os agents.
+
+A v4 não fixa provider nem modelo nos agents: eles herdam a seleção/configuração do OpenCode.
 
 ## Instalação
 
-Na raiz do pacote:
+### Windows
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install-opencode.ps1
 ```
 
+### Linux / macOS
+
+```bash
+pwsh -File ./install-opencode.ps1
+```
+
+O destino padrão é `~/.config/opencode`.
+
 O instalador:
 
-1. Copia os agentes para `~/.config/opencode/agents/`
-2. Copia a skill para `~/.config/opencode/skills/ai-driven-engineering/`
-3. Cria backup com timestamp de `opencode.json` / `opencode.jsonc`
-4. Define `default_agent: "orchestrator"`
-5. Define `experimental.subagent_depth: 2` (necessário para `orchestrator → engineer → specialist`)
-6. Preserva providers, modelos e definições de MCP existentes
+1. copia os agents para `~/.config/opencode/agents/`;
+2. instala a skill em `~/.config/opencode/skills/ai-driven-engineering/`;
+3. instala runtime determinístico em `~/.config/opencode/ai-driven-engineering/runtime/`;
+4. faz merge não destrutivo da config e define `subagent_depth: 2` e `default_agent: "orchestrator"`;
+5. adiciona um bloco gerenciado ao `AGENTS.md` global sem apagar instruções existentes;
+6. cria backups antes de alterar arquivos existentes;
+7. tenta `opencode debug config` quando o CLI está disponível.
 
-Opções:
-
-```powershell
-# Apenas agentes e skill, sem alterar config
-.\install-opencode.ps1 -NoConfigPatch
-
-# Mantém o default_agent atual
-.\install-opencode.ps1 -NoDefaultAgent
-```
-
-Reinicie o OpenCode após instalar para que a descoberta recarregue os novos agentes e a skill.
-
-Para remover:
+Flags úteis:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\uninstall-opencode.ps1
+-NoDefaultAgent          # não troca default_agent
+-NoConfigPatch           # não altera opencode.json/jsonc
+-NoAmbientInstructions   # não altera AGENTS.md global
+-SkipRuntimeCheck        # pula opencode debug config
+-Force                   # permite substituir arquivos gerenciados alterados
+-Target <path>           # instala em outro config dir
 ```
 
-## Bootstrap do projeto
+## Bootstrap de um projeto
 
-Inicializa os templates de contrato em qualquer projeto:
+Depois da instalação:
 
 ```powershell
-# Cria .ai/ no projeto atual (não sobrescreve existentes)
-powershell -ExecutionPolicy Bypass -File <pacote>\scripts\bootstrap-project.ps1
-
-# Sobrescreve arquivos existentes
-powershell -ExecutionPolicy Bypass -File <pacote>\scripts\bootstrap-project.ps1 -Force
+pwsh -File ~/.config/opencode/ai-driven-engineering/runtime/bootstrap-project.ps1 \
+  -ProjectRoot /caminho/do/projeto \
+  -WorkItemId FEATURE-001 \
+  -Profile STANDARD
 ```
 
-Estrutura criada:
+Cria `.ai/` com:
 
-```
+```text
 .ai/
-├── product-contract.md        Contrato de Produto
-├── delivery-contract.md       Contrato de Entrega
-├── engineering-contract.md    Contrato de Engenharia
-├── checkpoint.md              Estado da entrega
-└── decision-log.md            Decisões entre planos
+├── control.json
+├── product-contract.md
+├── delivery-contract.md
+├── engineering-contract.md
+├── checkpoint.md
+├── decision-log.md
+├── execution-policy.md
+└── delegations/
 ```
 
-Use `bootstrap` quando for iniciar um delivery estruturado. Para correções triviais, chame `engineer` ou `build` direto sem `.ai`.
+Em `LEAN`, Product e Delivery começam como `required: false`. Em `STANDARD` e `HIGH_ASSURANCE`, os três planos começam requeridos.
 
-## Roteamento no OpenCode V2
+## Máquina de estados
 
-O aninhamento ponta a ponta exige profundidade 2:
+Atualização válida:
 
-```mermaid
-flowchart TD
-    O["orchestrator<br/>primary"]
-    E["engineer<br/>child"]
-    S["specialist<br/>grandchild<br/>tester / implementer / verifier / ..."]
-
-    O --> E --> S
+```powershell
+pwsh -File ~/.config/opencode/ai-driven-engineering/runtime/set-ai-state.ps1 \
+  -ProjectRoot . \
+  -Plane engineering \
+  -Status READY_FOR_IMPLEMENTATION \
+  -Evidence "engineering-contract.md revisado"
 ```
 
-```json
-{
-  "experimental": {
-    "subagent_depth": 2
-  }
-}
+Validação:
+
+```powershell
+pwsh -File ~/.config/opencode/ai-driven-engineering/runtime/validate-ai-state.ps1 -ProjectRoot .
 ```
 
-`product-owner`, `project-manager` e `engineer` usam `mode: all` e podem ser selecionados diretamente no TUI. `orchestrator` é `mode: primary`; especialistas são `mode: subagent`.
+`global_status` só pode ser `DONE` quando todos os planos `required: true` estão em seu estado final de acceptance.
 
-## Agentes nativos
+## Roteamento
 
-Este pacote **não desabilita** `build` ou `plan`. Ambos continuam disponíveis — troque de agente no TUI ou defina `default_agent` de volta para `build` se preferir. Veja o [guia de Agents](https://opencode.ai/v2/docs/agents).
+Para trabalho end-to-end, use `orchestrator`.
 
-| Agente nativo | Uso recomendado |
+Para trabalho puramente técnico, `engineer` pode ser usado como primary sem cerimônia de Produto/Delivery quando o profile for LEAN e esses planos não forem aplicáveis.
+
+O Engineer seleciona especialistas sob demanda:
+
+| Agent | Responsabilidade |
 |---|---|
-| `build` | Codificação rápida, sem cerimônia |
-| `plan` | Planejamento sem implementação (gera `plan/*.md`) |
-| `orchestrator` | Delivery ponta a ponta com contratos (padrão deste pacote) |
+| `explorer` | fatos do repositório/runtime |
+| `researcher` | pesquisa técnica autoritativa |
+| `modeler` | arquitetura, fluxos, estados e contratos |
+| `engineering-planner` | decomposição técnica |
+| `tester` | testes/especificação executável |
+| `implementer` | código/config de produto |
+| `verifier` | validação independente executada |
+| `debugger` | causa raiz |
+| `reviewer` | correção/regressões/manutenibilidade |
+| `security-reviewer` | segurança e abuso |
+| `integrator` | readiness técnico |
+| `documenter` | documentação durável |
 
-## Modelos e MCPs
+## Segurança de permissions
 
-A configuração de providers e MCPs **não é alterada**. Seleção de modelos e roteamento de MCPs são adaptadores sobre a organização e podem ser ajustados por papel sem mudar os contratos.
+A v4 não concede acesso a diretórios externos. Arquivos típicos de segredo são `deny` explícito. Workers aninhados não recebem `shell *`.
 
-Exemplos de roteamento (configuração por projeto): design/UI → `implementer`/`verifier`; browser/E2E → `verifier`; infra/cloud → `integrator`; docs → `researcher`/`documenter`; gestão de projeto → `project-manager`.
+Allowlist de execução cobre comandos comuns de teste/build/lint/format e Git somente leitura. Quando um projeto exige outro comando, o specialist **não deve contornar a policy**: ele retorna `PARENT_EXECUTION_REQUIRED` para que o Engineering Lead/Humano decida.
 
-A skill funciona corretamente mesmo sem nenhum MCP instalado.
+Isso é intencional: a v4 prefere uma escalada explícita a um sub-subagent bloqueado em approval invisível.
 
-## Desinstalação
+## Runtime smoke
 
-Remove agentes e skill instalados. Chaves de configuração (`default_agent` / `subagent_depth`) não são revertidas automaticamente — restaure a partir do backup com timestamp se necessário.
+```powershell
+pwsh -File ~/.config/opencode/ai-driven-engineering/runtime/runtime-smoke.ps1
+```
 
-## Licença
+Opcionalmente, um probe real de modelo:
 
-MIT — veja [LICENSE](LICENSE).
+```powershell
+pwsh -File ~/.config/opencode/ai-driven-engineering/runtime/runtime-smoke.ps1 \
+  -RunAgentProbe \
+  -Model provider/model
+```
+
+O probe real consome uso do provider.
+
+## Behavioral evals
+
+```powershell
+pwsh -File ./runtime/run-evals.ps1 \
+  -ProjectRoot /caminho/do/projeto \
+  -Model provider/model
+```
+
+Os cenários ficam em `runtime/evals/scenarios.jsonl` e a avaliação em `runtime/evals/RUBRIC.md`. O harness salva a saída bruta; não mascara avaliação qualitativa como teste determinístico.
+
+## Testes do pacote
+
+```powershell
+pwsh -File ./tests/package-layout.tests.ps1
+pwsh -File ./tests/static-policy.tests.ps1
+pwsh -File ./tests/state-machine.tests.ps1
+pwsh -File ./tests/installers.integration.ps1
+```
+
+O workflow `.github/workflows/ci.yml` roda a suíte em Windows, Ubuntu e macOS.
+
+## Uninstall
+
+```powershell
+pwsh -File ./uninstall-opencode.ps1
+```
+
+Arquivos gerenciados que foram modificados localmente são preservados por padrão. Para a config, a v4 só restaura o backup automaticamente se o arquivo ainda tiver exatamente o hash escrito pelo instalador; se o usuário alterou a config depois, ela é preservada. O bloco da v4 em `AGENTS.md` pode ser removido de forma localizada.
+
+## Compatibilidade de nesting
+
+O fluxo principal é:
+
+```text
+orchestrator (depth 0)
+  -> engineer (depth 1)
+      -> specialist (depth 2)
+```
+
+Se a versão local do OpenCode apresentar problemas com nesting, use o fallback documentado em `skills/ai-driven-engineering/references/opencode-runtime.md`: Engineer como primary, specialists em sessões explícitas usando Delegation Contracts, e Orchestrator para fechamento dos gates.
+
+## Filosofia
+
+A v4 não tenta fazer um prompt “parecer” uma organização. Ela transforma a organização em:
+
+- autoridade explícita;
+- permissions de runtime;
+- contratos persistentes;
+- estados e transições verificáveis;
+- evidence discipline;
+- delegações auto-suficientes;
+- verificação independente;
+- evals e smoke tests.
+
+O objetivo é que as regras críticas sejam **difíceis de violar por construção**, e não apenas recomendadas em texto.

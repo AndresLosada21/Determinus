@@ -1,5 +1,14 @@
 # Decision Log
 
-| Date | Plane/Owner | Decision | Alternatives | Rationale | Evidence | Status |
-|---|---|---|---|---|---|---|
-| | | | | | | |
+## Entries
+
+<!--
+### DEC-001 — title
+- Date:
+- Owner: Product | Delivery | Engineering | Human
+- Status: PROPOSED | ACCEPTED | REJECTED | SUPERSEDED
+- Context:
+- Decision:
+- Evidence:
+- Consequences:
+-->

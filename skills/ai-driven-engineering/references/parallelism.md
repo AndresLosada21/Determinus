@@ -1,23 +1,7 @@
-# Parallelism
+# Paralelismo
 
-## Cross-plane
+Paralelize somente trabalho independente: pesquisa de fontes distintas, exploração de áreas desacopladas, reviews independentes.
 
-Do not parallelize work that depends on an unapproved upstream contract.
+Não paralelize mutações concorrentes nos mesmos arquivos nem decisões que dependem do resultado umas das outras.
 
-Safe examples:
-- Product Owner clarifies acceptance while Engineering Explorer performs read-only discovery needed to estimate feasibility,
-  as long as no implementation commitment is inferred.
-- Independent delivery-risk research may occur beside technical discovery.
-
-## Engineering
-
-Read-only discovery is the default parallelizable work.
-
-Concurrent writers require:
-- no predecessor dependency;
-- disjoint write/behavior surface or isolated workspaces;
-- no unsafe shared-state collision;
-- no common unresolved decision;
-- explicit integration ownership.
-
-Parallelism exists to reduce latency, not to simulate organizational complexity.
+Padrão: no máximo 3 especialistas concorrentes por onda. Mais do que isso exige justificativa porque aumenta custo, duplicação e risco de conflito.

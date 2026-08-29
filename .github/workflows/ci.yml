@@ -1,0 +1,26 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  powershell:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package layout
+        shell: pwsh
+        run: ./tests/package-layout.tests.ps1
+      - name: Static permissions
+        shell: pwsh
+        run: ./tests/static-policy.tests.ps1
+      - name: State machine
+        shell: pwsh
+        run: ./tests/state-machine.tests.ps1
+      - name: Installer integration
+        shell: pwsh
+        run: ./tests/installers.integration.ps1
