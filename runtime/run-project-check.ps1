@@ -40,7 +40,7 @@ $root = [IO.Path]::GetFullPath($ProjectRoot)
 if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw "Projeto não encontrado: $root" }
 $policyPath = Join-Path (Join-Path $root '.ai') 'execution-policy.json'
 if (-not (Test-Path -LiteralPath $policyPath)) {
-    throw "Execution policy machine-readable ausente: $policyPath. Rode bootstrap v4.2.1 e configure um check autorizado."
+    throw "Execution policy machine-readable ausente: $policyPath. Rode bootstrap-project.ps1 e configure um check autorizado."
 }
 $policy = Read-JsonFile $policyPath
 if ((Get-Property $policy 'authorized' $false) -ne $true) {

@@ -1,4 +1,4 @@
-# Validation Report — v4.2.1
+# Validation Report — v4.2.2
 
 Gerado em 2026-08-29 durante a montagem do pacote.
 
@@ -20,16 +20,14 @@ Gerado em 2026-08-29 durante a montagem do pacote.
 | PASS | JSON templates | parseáveis |
 | PASS | UTF-8 | arquivos textuais revisados |
 
-## O que NÃO foi alegado como validado neste ambiente
+## Evidência executada da release v4.2.2
 
-Este ambiente de empacotamento não possui PowerShell/OpenCode configurado com suas credenciais de GitHub Projects, Jira e Linear. Portanto:
+- `runtime/run-regression.ps1` executou os 13 grupos previstos e retornou `REGRESSION_OK` no Windows.
+- `runtime/runtime-smoke.ps1` confirmou OpenCode V2, `default_agent=orchestrator` e `subagent_depth=2`.
+- `runtime/work-management.ps1 -Action discover` acessou GitHub Projects via `gh`, sem criar, editar ou mover objetos externos.
+- `runtime/verify-git-push.ps1 -Audit` confirmou que HEAD local e SHA remoto coincidem.
 
-- a suíte `.ps1` foi revisada estruturalmente, mas não executada aqui;
-- chamadas reais aos providers não foram feitas;
-- autenticação, permissões e workflows específicos de cada workspace devem ser exercitados no ambiente do usuário;
-- `runtime/work-management.ps1 -Action discover` é o primeiro smoke recomendado para o provider configurado.
-
-A CI incluída executa testes determinísticos cross-platform. Operações reais de provider continuam sendo integration tests dependentes do ambiente, de propósito.
+Jira e Linear permanecem validados por contrato e testes determinísticos. Sua integração real depende de um projeto autorizado e das credenciais do provider correspondente.
 
 ## Evidência arquitetural v4.2/v4.2.1
 
@@ -48,4 +46,4 @@ A CI incluída executa testes determinísticos cross-platform. Operações reais
 - `tests/legacy-bootstrap-shim.tests.ps1`: caminho legado `scripts/bootstrap-project.ps1` continua funcional por forwarding e cria `execution-policy.json` não autorizado por default.
 - static policy proíbe `docker run*` amplo e exige wrappers nos agents relevantes.
 
-Neste ambiente de geração não há `pwsh`, `powershell` ou `opencode2`; portanto os testes PowerShell/runtime devem ser executados no ambiente real antes de marcar a release como runtime-VALIDATED.
+Os testes PowerShell/runtime foram executados no ambiente real desta release antes de marcar a linha v4.2.2 como runtime-VALIDATED.

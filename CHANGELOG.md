@@ -1,5 +1,21 @@
 # Changelog
 
+## 4.2.2 — 2026-08-29
+
+Release imutável derivada de `4aec5ac`, após validação runtime completa em Windows/OpenCode V2.
+
+### Fixed
+- `set-ai-state.ps1` usa interpolação `${Plane}` válida para mensagens de transição PowerShell.
+- `run-regression.ps1` preserva o gate por exit code quando testes exercitam falhas deliberadas no stderr.
+- Harnesses de state machine, work management terminal e project checks capturam corretamente falhas esperadas.
+- Mensagem de bootstrap de project checks não fixa uma versão de pacote.
+
+### Validation
+- `run-regression.ps1`: 13 grupos de regressão executados com `REGRESSION_OK`.
+- `runtime-smoke.ps1`: OpenCode V2, `default_agent=orchestrator` e `subagent_depth=2` validados.
+- GitHub Projects: `work-management.ps1 -Action discover` executado contra um Project configurado, sem mutação externa.
+- Jira e Linear permanecem validados por contrato; não foram chamados contra providers reais nesta release.
+
 ## 4.2.1 — 2026-08-29
 
 Patch release de ergonomia segura para shell, informado por um `Permission denied: shell` observado **antes da v4.2**. Não é uma regressão comprovada da v4.2.0.

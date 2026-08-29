@@ -4,7 +4,7 @@ description: Operating model para entrega de software orientada por agentes no O
 compatibility: Projetado para OpenCode V2; requer permissions V2 e subagent_depth >= 2 para o fluxo nested Engineer -> specialists.
 ---
 
-# AI-Driven Engineering v4.2.1
+# AI-Driven Engineering v4.2.2
 
 Esta skill é a constituição operacional para trabalho de software/produto coordenado no OpenCode. Ela é **agnóstica de stack, provider, model, tracker e MCP**, mas é deliberadamente opinativa sobre processo e usa OpenCode V2 como runtime.
 

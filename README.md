@@ -33,6 +33,10 @@ Autoridade não é hierarquia de cargo: cada plano tem decisões que os outros n
 `implemented != validated != ENGINEERING_ACCEPTED != DELIVERY_ACCEPTED != PRODUCT_ACCEPTED`.
 
 
+## v4.2.2 — Runtime-validated release
+
+A v4.2.2 congela a linha v4.2 sobre a regressão completa executada em Windows/OpenCode V2 e um smoke read-only real de GitHub Projects. O release não cria ou altera work items externos durante essa validação; Jira e Linear permanecem certificados por contrato até seu primeiro uso autorizado.
+
 ## v4.2.1 — Controlled project execution
 
 A v4.2.1 adiciona duas bordas de execução sem ampliar shell genericamente:
@@ -171,7 +175,7 @@ Cria `.ai/` com:
 
 Em `LEAN`, Product e Delivery começam como `required: false`. Em `STANDARD` e `HIGH_ASSURANCE`, os três planos começam requeridos.
 
-Compatibilidade: o caminho legado `scripts/bootstrap-project.ps1` continua aceito no pacote v4.2.1 e apenas encaminha para o runtime, emitindo aviso de depreciação. Prefira o caminho em `runtime/`.
+Compatibilidade: o caminho legado `scripts/bootstrap-project.ps1` continua aceito no pacote v4.2.2 e apenas encaminha para o runtime, emitindo aviso de depreciação. Prefira o caminho em `runtime/`.
 
 ## Máquina de estados
 

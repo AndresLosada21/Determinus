@@ -1,5 +1,5 @@
 <!-- AI-DRIVEN-ENGINEERING:BEGIN v4 -->
-## AI-Driven Engineering Runtime v4.2.1
+## AI-Driven Engineering Runtime v4.2.2
 
 Para trabalho de software/produto não trivial, use a skill `ai-driven-engineering` e preserve separação de autoridade:
 
