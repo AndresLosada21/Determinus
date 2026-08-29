@@ -26,8 +26,17 @@ try {
     $state = Get-Content -LiteralPath (Join-Path $tmp '.ai/control.json') -Raw | ConvertFrom-Json
     if ($state.global_status -ne 'DONE') { throw "global_status deveria ser DONE" }
 
-    & $exe -NoProfile -File (Join-Path $root 'runtime/set-ai-state.ps1') -ProjectRoot $tmp -Plane engineering -Status IMPLEMENTING 2>$null
-    if ($LASTEXITCODE -eq 0) { throw 'transição inválida após acceptance deveria falhar' }
+    # A recusa da transição é o comportamento esperado; capture o exit code sem
+    # transformar o stderr do processo filho em erro terminante deste harness.
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $exe -NoProfile -File (Join-Path $root 'runtime/set-ai-state.ps1') -ProjectRoot $tmp -Plane engineering -Status IMPLEMENTING 2>$null
+        $invalidTransitionExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($invalidTransitionExitCode -eq 0) { throw 'transição inválida após acceptance deveria falhar' }
     Write-Host 'State machine: OK'
 } finally {
     Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue

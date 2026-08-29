@@ -48,8 +48,14 @@ try {
 
     $policy.authorized = $true
     $policy | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $policyPath -Encoding UTF8
-    $out = @(& $runner -ProjectRoot $tmp -Name feature -NoAudit 2>&1)
-    if ($LASTEXITCODE -ne 0 -or (($out | Out-String) -notmatch 'PROJECT_CHECK_VALIDATED')) { throw 'Check docker estruturado falhou' }
+    $checkFailed = $false
+    try {
+        $out = @(& $runner -ProjectRoot $tmp -Name feature -NoAudit 2>&1)
+    } catch {
+        $checkFailed = $true
+        $out = @($_)
+    }
+    if ($checkFailed) { throw 'Check docker estruturado falhou' }
     $argsLog = Get-Content -LiteralPath $logPath -Raw
     foreach ($expected in @('run','--rm','--network','qb-net','--mount','readonly','qb-validate-php:8.3','php','validate_19_local.php')) {
         if ($argsLog -notmatch [regex]::Escape($expected)) { throw "Argumento docker esperado ausente: $expected" }

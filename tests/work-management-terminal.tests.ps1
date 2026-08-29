@@ -15,8 +15,17 @@ try {
     $cfg.work_management.github.done_status = 'Done'
     $cfg | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $path -Encoding UTF8
 
-    & $exe -NoProfile -File (Join-Path $root 'runtime/work-management.ps1') -ProjectRoot $tmp -Action transition -ExternalId 1 -Status Done -DryRun 2>$null
-    if ($LASTEXITCODE -eq 0) { throw 'external Done deveria bloquear quando global_status != DONE' }
+    # A promoção externa terminal deve falhar enquanto o estado canônico não
+    # estiver DONE; capture o exit code sem abortar este teste negativo.
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $exe -NoProfile -File (Join-Path $root 'runtime/work-management.ps1') -ProjectRoot $tmp -Action transition -ExternalId 1 -Status Done -DryRun 2>$null
+        $terminalTransitionExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($terminalTransitionExitCode -eq 0) { throw 'external Done deveria bloquear quando global_status != DONE' }
 
     Write-Host 'Work management terminal gate: OK'
 } finally {

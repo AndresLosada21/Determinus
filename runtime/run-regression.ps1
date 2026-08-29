@@ -27,8 +27,17 @@ foreach ($rel in $tests) {
     $path = Join-Path $PackageRoot $rel
     if (-not (Test-Path -LiteralPath $path)) { throw "Teste ausente: $rel" }
     Write-Host "=== $rel ==="
-    $out = @(& $hostExe -NoProfile -ExecutionPolicy Bypass -File $path 2>&1)
-    $code = $LASTEXITCODE
+    # Alguns testes exercitam falhas deliberadas e capturam seu exit code.
+    # Não deixe o stderr desses subprocessos interromper o runner antes da
+    # decisão explícita baseada no código de saída.
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $out = @(& $hostExe -NoProfile -ExecutionPolicy Bypass -File $path 2>&1)
+        $code = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     $out | ForEach-Object { Write-Host $_ }
     $summary += [pscustomobject]@{ test=$rel; exit_code=$code; passed=($code -eq 0) }
     if ($code -ne 0) {

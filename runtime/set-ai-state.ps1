@@ -49,10 +49,10 @@ $node = $state.$Plane
 if ($null -eq $node) { throw "Plano ausente: $Plane" }
 $current = [string]$node.status
 $target = $Status.ToUpperInvariant()
-if (-not $transitions[$Plane].ContainsKey($current)) { throw "Estado atual desconhecido para $Plane: $current" }
+if (-not $transitions[$Plane].ContainsKey($current)) { throw "Estado atual desconhecido para ${Plane}: $current" }
 if ($target -eq $current) { throw "Transição no-op não permitida: $Plane já está em $target" }
 if ($transitions[$Plane][$current] -notcontains $target) {
-    throw "Transição inválida em $Plane: $current -> $target"
+    throw "Transição inválida em ${Plane}: $current -> $target"
 }
 
 $node.status = $target
@@ -82,5 +82,5 @@ $tmp = "$StatePath.tmp-$([Guid]::NewGuid().ToString('N'))"
 Move-Item -LiteralPath $tmp -Destination $StatePath -Force
 
 Add-AuditEvent -ProjectRoot $ProjectRoot -EventType "state.transition" -Actor "state-runtime" -Plane $Plane -Action "$current->$target" -Status "OBSERVED" -EvidenceRefs @($Evidence) -Metadata @{ global_status=[string]$state.global_status; note=$Note } | Out-Null
-Write-Host "$Plane: $current -> $target"
+Write-Host "${Plane}: $current -> $target"
 Write-Host "global_status: $($state.global_status)"
