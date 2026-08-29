@@ -252,3 +252,7 @@ A v4 não tenta fazer um prompt “parecer” uma organização. Ela transforma 
 - evals e smoke tests.
 
 O objetivo é que as regras críticas sejam **difíceis de violar por construção**, e não apenas recomendadas em texto.
+
+## Runtime compatibility note — v4.1.2
+
+This package targets OpenCode V2. Runtime validation prefers `opencode2` and only falls back to `opencode` when `opencode2` is unavailable. This avoids false failures on machines that have both a V1 `opencode` CLI and the V2 `opencode2` CLI installed.

@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.1.2 — 2026-08-29
+
+Patch release based on runtime validation against a real OpenCode V2 installation.
+
+### Fixed
+- `runtime/runtime-smoke.ps1` now prefers `opencode2` and falls back to `opencode` only when V2 CLI is unavailable.
+- Runtime smoke no longer falsely reports a valid V2 config as invalid by invoking an installed V1 `opencode` binary first.
+- `runtime/static-policy-check.ps1` now uses `${name}: ...` interpolation so PowerShell does not parse `$name:` as a drive-qualified variable reference.
+
+### Tests
+- Added `tests/runtime-smoke-cli.tests.ps1` to prevent regression in CLI precedence and PowerShell interpolation.
+
 ## 4.1.1 — 2026-08-29
 
 Patch release focused on the real migration failure observed on Windows/OpenCode V2.

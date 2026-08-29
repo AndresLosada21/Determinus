@@ -14,25 +14,29 @@ foreach ($name in $requiredAgents) {
 $skill = Join-Path (Join-Path (Join-Path $Target "skills") "ai-driven-engineering") "SKILL.md"
 if (-not (Test-Path -LiteralPath $skill)) { throw "Skill ausente: $skill" }
 
-# Preferir o CLI V2 (opencode2) quando disponível; o binário `opencode` V1 não entende
-# a config V2 (ex.: subagent_depth na raiz) e reportaria "Configuration is invalid".
-$oc = Get-Command opencode2 -ErrorAction SilentlyContinue
-$ocName = "opencode2"
-if ($null -eq $oc) {
-    $oc = Get-Command opencode -ErrorAction SilentlyContinue
-    $ocName = "opencode"
+function Resolve-OpenCodeCli {
+    foreach ($candidate in @("opencode2", "opencode")) {
+        $cmd = Get-Command $candidate -ErrorAction SilentlyContinue
+        if ($null -ne $cmd) {
+            return [pscustomobject]@{ Name = $candidate; Command = $cmd }
+        }
+    }
+    return $null
 }
-if ($null -eq $oc) {
+
+$cli = Resolve-OpenCodeCli
+if ($null -eq $cli) {
     Write-Host "OpenCode CLI não encontrado; layout local OK, config/runtime não puderam ser exercitados."
     exit 0
 }
 
-Write-Host "OpenCode: $(& $ocName --version)"
+$cliName = $cli.Name
+Write-Host "OpenCode: $(& $cliName --version)"
 $previous = $env:OPENCODE_CONFIG_DIR
 try {
     $env:OPENCODE_CONFIG_DIR = $Target
-    $resolved = & $ocName debug config 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "$ocName debug config falhou: $resolved" }
+    $resolved = & $cliName debug config 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "$cliName debug config falhou: $resolved" }
     $joined = ($resolved | Out-String)
     if ($joined -notmatch 'orchestrator') { throw "Config resolvida não referencia orchestrator" }
     if ($joined -notmatch 'subagent_depth') { Write-Host "WARN: saída de debug config não expôs subagent_depth textualmente." }
@@ -41,7 +45,7 @@ try {
         $args = @('run','--agent','orchestrator','--dir',$ProjectRoot,'--format','json')
         if (-not [string]::IsNullOrWhiteSpace($Model)) { $args += @('--model',$Model) }
         $args += @('Responda somente com RUNTIME_OK e não use ferramentas.')
-        & $ocName @args
+        & $cliName @args
         if ($LASTEXITCODE -ne 0) { throw "Probe do orchestrator falhou" }
     }
 } finally {

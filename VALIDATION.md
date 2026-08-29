@@ -31,3 +31,13 @@ A validação realizada aqui é estrutural/estática: YAML de agents, policies, 
 Static review confirms the installer now removes an empty legacy `experimental` object, supports both `opencode2` and `opencode`, performs preflight plus post-write `debug config` gates, restores the previous config on post-write rejection, and defers manifest creation until after successful validation. New regression tests cover the exact legacy-only shape observed in production and the rollback path.
 
 Runtime PowerShell/OpenCode execution was not available in the artifact-generation environment, so the included PowerShell tests were inspected but not executed here.
+
+## v4.1.2 runtime regressions
+
+Observed on a real Windows/OpenCode setup:
+
+- `opencode2 debug config` returned exit code 0 while legacy `opencode` V1 rejected the same V2 config.
+- The previous smoke script selected `opencode` first, creating a false negative. v4.1.2 resolves `opencode2` first.
+- The previous static policy script contained `"$name: ..."` strings that can fail PowerShell parsing; v4.1.2 uses `"${name}: ..."`.
+
+Local package checks confirm the regression guards are present. Full PowerShell runtime execution still requires a Windows/PowerShell/OpenCode environment.

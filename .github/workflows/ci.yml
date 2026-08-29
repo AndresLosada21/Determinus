@@ -27,3 +27,6 @@ jobs:
       - name: Runtime config gate rollback
         shell: pwsh
         run: ./tests/runtime-config-gate.tests.ps1
+      - name: Runtime smoke CLI precedence
+        shell: pwsh
+        run: ./tests/runtime-smoke-cli.tests.ps1
