@@ -2,15 +2,15 @@
 
 ## v3
 
-- Added Product Plane with `product-owner`.
-- Added Delivery Plane with `project-manager`.
-- Added `orchestrator` for end-to-end cross-plane coordination.
-- Reframed `engineer` as Engineering Lead rather than coding worker.
-- Renamed technical planner to `engineering-planner`.
-- Added Product, Delivery, and Engineering Contracts.
-- Added Engineering, Delivery, and Product acceptance gates.
-- Added Triple Definition of Done.
-- Added project `.ai/` contract templates and bootstrap script.
-- Added OpenCode global installer with timestamped config backup.
-- Installer preserves existing providers/MCP content.
-- Corrected V2 beta nesting to `experimental.subagent_depth: 2`.
+- Adiciona Plano de Produto com `product-owner`.
+- Adiciona Plano de Entrega com `project-manager`.
+- Adiciona `orchestrator` para coordenação ponta a ponta entre planos.
+- Reenquadra `engineer` como Engineering Lead, não como executor direto de código.
+- Renomeia planejador técnico para `engineering-planner`.
+- Adiciona Contratos de Produto, Entrega e Engenharia.
+- Adiciona gates de aceite de Engenharia, Entrega e Produto.
+- Adiciona Triple Definition of Done.
+- Adiciona templates de contrato em `.ai/` e script de bootstrap do projeto.
+- Adiciona instalador global do OpenCode com backup de config com timestamp.
+- Instalador preserva providers e conteúdo de MCP existentes.
+- Corrige aninhamento do beta V2 para `experimental.subagent_depth: 2`.
