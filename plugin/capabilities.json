@@ -1,0 +1,328 @@
+{
+  "schema_version": 1,
+  "plugin_id": "ai-driven-engineering.native",
+  "version": "5.2.0",
+  "tools": {
+    "ade_status": {
+      "capability": "STATUS_READ",
+      "authority": "OBSERVE"
+    },
+    "ade_doctor": {
+      "capability": "RUNTIME_DOCTOR",
+      "authority": "OBSERVE"
+    },
+    "ade_vcs_status": {
+      "capability": "READ_GIT_METADATA",
+      "authority": "OBSERVE"
+    },
+    "ade_vcs_diff": {
+      "capability": "READ_GIT_METADATA",
+      "authority": "OBSERVE"
+    },
+    "ade_vcs_branches": {
+      "capability": "READ_GIT_METADATA",
+      "authority": "OBSERVE"
+    },
+    "ade_runtime_observe": {
+      "capability": "RUNTIME_OBSERVE",
+      "authority": "OBSERVE"
+    },
+    "ade_self_check": {
+      "capability": "SELF_CHECK",
+      "authority": "SELF_CHECK",
+      "acceptance_authority": false
+    },
+    "ade_project_check": {
+      "capability": "VERIFY_PROJECT",
+      "authority": "VALIDATE",
+      "acceptance_authority": false,
+      "validation_authority": true
+    },
+    "ade_state_get": {
+      "capability": "STATE_READ",
+      "authority": "OBSERVE"
+    },
+    "ade_product_transition": {
+      "capability": "PRODUCT_STATE_WRITE",
+      "authority": "PRODUCT",
+      "acceptance_authority": true
+    },
+    "ade_delivery_transition": {
+      "capability": "DELIVERY_STATE_WRITE",
+      "authority": "DELIVERY",
+      "acceptance_authority": true
+    },
+    "ade_engineering_transition": {
+      "capability": "ENGINEERING_STATE_WRITE",
+      "authority": "ENGINEERING",
+      "acceptance_authority": true
+    },
+    "ade_evidence_record": {
+      "capability": "EVIDENCE_WRITE",
+      "authority": "EVIDENCE"
+    },
+    "ade_evidence_query": {
+      "capability": "EVIDENCE_READ",
+      "authority": "OBSERVE"
+    },
+    "ade_vcs_stage": {
+      "capability": "VCS_STAGE",
+      "authority": "VCS_OPERATOR"
+    },
+    "ade_vcs_commit": {
+      "capability": "VCS_COMMIT",
+      "authority": "VCS_OPERATOR"
+    },
+    "ade_vcs_push": {
+      "capability": "VCS_PUSH",
+      "authority": "VCS_OPERATOR"
+    },
+    "ade_pr_create": {
+      "capability": "PR_CREATE",
+      "authority": "VCS_OPERATOR"
+    },
+    "ade_tracker_read": {
+      "capability": "TRACKER_READ",
+      "authority": "DELIVERY_OPERATOR",
+      "acceptance_authority": false
+    },
+    "ade_tracker_write": {
+      "capability": "TRACKER_WRITE",
+      "authority": "DELIVERY_OPERATOR",
+      "acceptance_authority": false
+    },
+    "ade_diagnostic_check": {
+      "capability": "DIAGNOSTIC_CHECK",
+      "authority": "DIAGNOSE",
+      "acceptance_authority": false
+    },
+    "ade_product_validation_record": {
+      "capability": "PRODUCT_VALIDATE",
+      "authority": "PRODUCT_VALIDATION",
+      "acceptance_authority": false,
+      "validation_authority": true
+    },
+    "ade_delivery_validation_record": {
+      "capability": "DELIVERY_VALIDATE",
+      "authority": "DELIVERY_VALIDATION",
+      "acceptance_authority": false,
+      "validation_authority": true
+    },
+    "ade_engineering_validation_record": {
+      "capability": "ENGINEERING_VALIDATE",
+      "authority": "ENGINEERING_VALIDATION",
+      "acceptance_authority": false,
+      "validation_authority": true
+    },
+    "ade_route_snapshot": {
+      "capability": "ROUTING_SNAPSHOT",
+      "authority": "ORCHESTRATE"
+    }
+  },
+  "agents": {
+    "orchestrator": [
+      "ade_status",
+      "ade_route_snapshot"
+    ],
+    "product-owner": [
+      "ade_status",
+      "ade_state_get",
+      "ade_product_transition",
+      "ade_evidence_record",
+      "ade_evidence_query",
+      "ade_product_validation_record"
+    ],
+    "project-manager": [
+      "ade_status",
+      "ade_state_get",
+      "ade_delivery_transition",
+      "ade_evidence_record",
+      "ade_evidence_query",
+      "ade_delivery_validation_record"
+    ],
+    "engineer": [
+      "ade_status",
+      "ade_state_get",
+      "ade_engineering_transition",
+      "ade_evidence_record",
+      "ade_evidence_query",
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_vcs_branches"
+    ],
+    "explorer": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_vcs_branches",
+      "ade_runtime_observe",
+      "ade_evidence_record"
+    ],
+    "researcher": [
+      "ade_evidence_record"
+    ],
+    "modeler": [
+      "ade_evidence_record"
+    ],
+    "engineering-planner": [
+      "ade_evidence_record"
+    ],
+    "tester": [
+      "ade_vcs_diff",
+      "ade_self_check",
+      "ade_evidence_record"
+    ],
+    "implementer": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_self_check",
+      "ade_evidence_record"
+    ],
+    "verifier": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_project_check",
+      "ade_evidence_record",
+      "ade_evidence_query",
+      "ade_engineering_validation_record"
+    ],
+    "debugger": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_self_check",
+      "ade_evidence_record",
+      "ade_diagnostic_check"
+    ],
+    "reviewer": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_evidence_record",
+      "ade_evidence_query"
+    ],
+    "security-reviewer": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_evidence_record",
+      "ade_evidence_query"
+    ],
+    "integrator": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_evidence_query"
+    ],
+    "documenter": [
+      "ade_vcs_diff",
+      "ade_evidence_record"
+    ],
+    "tracker-operator": [
+      "ade_evidence_record",
+      "ade_evidence_query",
+      "ade_tracker_read",
+      "ade_tracker_write"
+    ],
+    "vcs-operator": [
+      "ade_vcs_status",
+      "ade_vcs_diff",
+      "ade_vcs_branches",
+      "ade_vcs_stage",
+      "ade_vcs_commit",
+      "ade_vcs_push",
+      "ade_pr_create",
+      "ade_evidence_record",
+      "ade_evidence_query"
+    ]
+  },
+  "hide_core_tools": {
+    "orchestrator": [
+      "shell",
+      "execute"
+    ],
+    "product-owner": [
+      "shell",
+      "execute"
+    ],
+    "project-manager": [
+      "shell",
+      "execute"
+    ],
+    "engineer": [
+      "shell",
+      "execute"
+    ],
+    "explorer": [
+      "shell",
+      "execute"
+    ],
+    "researcher": [
+      "shell",
+      "execute"
+    ],
+    "modeler": [
+      "shell",
+      "execute"
+    ],
+    "engineering-planner": [
+      "shell",
+      "execute"
+    ],
+    "tester": [
+      "shell",
+      "execute"
+    ],
+    "implementer": [
+      "shell",
+      "execute"
+    ],
+    "verifier": [
+      "shell",
+      "execute"
+    ],
+    "debugger": [
+      "shell",
+      "execute"
+    ],
+    "reviewer": [
+      "shell",
+      "execute"
+    ],
+    "security-reviewer": [
+      "shell",
+      "execute"
+    ],
+    "integrator": [
+      "shell",
+      "execute"
+    ],
+    "documenter": [
+      "shell",
+      "execute"
+    ],
+    "tracker-operator": [
+      "shell",
+      "execute"
+    ],
+    "vcs-operator": [
+      "shell",
+      "execute"
+    ]
+  },
+  "generation_max_tokens": {
+    "orchestrator": 1200,
+    "product-owner": 900,
+    "project-manager": 1000,
+    "engineer": 1400,
+    "explorer": 800,
+    "researcher": 900,
+    "modeler": 900,
+    "engineering-planner": 900,
+    "tester": 1000,
+    "implementer": 1200,
+    "verifier": 1000,
+    "debugger": 1000,
+    "reviewer": 900,
+    "security-reviewer": 1000,
+    "integrator": 900,
+    "documenter": 900,
+    "tracker-operator": 700,
+    "vcs-operator": 700
+  }
+}

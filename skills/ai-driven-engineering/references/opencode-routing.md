@@ -1,23 +1,11 @@
-# Roteamento OpenCode
+# Routing ADE v5.2
 
-Grafo principal:
-`orchestrator -> product-owner | project-manager | engineer`
-`engineer -> engineering specialists`
-`project-manager -> tracker-operator`
+`STATE_DRIVEN` substitui `DELEGATE_FIRST` como regra principal.
 
-`orchestrator` é primary. `product-owner`, `project-manager` e `engineer` são `all`. Especialistas e `tracker-operator` são `subagent` leaf agents.
-
-A raiz precisa de `subagent_depth: 2` para Engineer delegar do nível 1 para especialistas no nível 2 e para Project Manager delegar ao `tracker-operator` no nível 2. Especialistas não possuem permissão `subagent`.
-
-Não use fan-out indiscriminado: até 3 especialistas simultâneos por onda por padrão.
-
-
-## Enforcement
-
-O grafo acima é executável. Control agents não devem apenas explicar o grafo: devem chamar `subagent` quando o owner é necessário e permitido.
-
-- Orchestrator não pede confirmação para chamar PO/PM/Engineer.
-- Engineer não pede confirmação para chamar specialists.
-- Se a chamada estiver disponível, hand-back manual é proibido.
-- Se a chamada falhar, use `ROUTING_BLOCKED` com evidência da tentativa.
-- Continue handoffs automaticamente até gate material, blocker real ou conclusão.
+- Orchestrator chama PO/PM/Engineer apenas quando a autoridade daquele plano é necessária.
+- PM chama `tracker-operator` somente para operação real de tracker.
+- Engineer chama leafs apenas quando discovery/implementação/verificação/review realmente exigem.
+- Não reconfirmar owner sem mudança relevante de revision/inputs.
+- Erro determinístico idêntico não deve gerar retry de subagent sem estratégia diferente.
+- `experimental.subagent_depth: 2` permite owner -> leaf.
+- Handoffs são compactos; audit detalhado fica fora da conversa principal.

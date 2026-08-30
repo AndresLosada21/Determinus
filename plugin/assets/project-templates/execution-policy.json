@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "authorized": false,
+  "policy_owner": "human",
+  "cross_workspace_git_metadata": true,
+  "checks": {}
+}

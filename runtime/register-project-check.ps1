@@ -2,6 +2,7 @@ param(
     [string]$ProjectRoot = (Get-Location).Path,
     [Parameter(Mandatory=$true)][string]$Name,
     [Parameter(Mandatory=$true)][ValidateSet('process','docker')][string]$Runner,
+    [ValidateSet('verifier','debugger')][string]$Owner = 'verifier',
     [string]$Executable = '',
     [string[]]$Arguments = @(),
     [string]$WorkingDirectory = '.',
@@ -29,7 +30,7 @@ if (Test-Path -LiteralPath $path) {
 }
 if ($null -eq $policy.PSObject.Properties['checks']) { $policy | Add-Member -NotePropertyName checks -NotePropertyValue ([pscustomobject]@{}) }
 
-$entry = [ordered]@{ owner='verifier'; non_destructive=$true; runner=$Runner; allowed_exit_codes=@($AllowedExitCodes) }
+$entry = [ordered]@{ owner=$Owner; non_destructive=$true; runner=$Runner; allowed_exit_codes=@($AllowedExitCodes) }
 if ($Runner -eq 'process') {
     if ([string]::IsNullOrWhiteSpace($Executable)) { throw '-Executable é obrigatório para runner=process.' }
     $entry.working_directory = $WorkingDirectory
@@ -53,6 +54,6 @@ if ($null -ne $policy.checks.PSObject.Properties[$Name]) {
 $policy.checks | Add-Member -NotePropertyName $Name -NotePropertyValue ([pscustomobject]$entry)
 if ($AuthorizePolicy) { $policy.authorized = $true }
 Write-JsonFile $path $policy
-Write-Host "Check registrado: $Name ($Runner)"
+Write-Host "Check registrado: $Name ($Runner, owner=$Owner)"
 Write-Host "Policy autorizada: $($policy.authorized)"
 Write-Host "Revise: $path"

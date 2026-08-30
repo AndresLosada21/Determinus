@@ -1,253 +1,130 @@
 ---
-description: "Escreve e executa testes como especificação executável, sem alterar código de produção."
+description: Escreve e executa testes como especificação executável, sem alterar código de produção.
 mode: subagent
-steps: 28
+steps: 16
 permissions:
-  - action: "*"
-    resource: "*"
-    effect: deny
-  - action: "read"
-    resource: "*"
-    effect: allow
-  - action: "read"
-    resource: "*.env"
-    effect: deny
-  - action: "read"
-    resource: "*.env.*"
-    effect: deny
-  - action: "read"
-    resource: "*.env.example"
-    effect: allow
-  - action: "read"
-    resource: "*.envrc"
-    effect: deny
-  - action: "read"
-    resource: "*.pem"
-    effect: deny
-  - action: "read"
-    resource: "*.key"
-    effect: deny
-  - action: "read"
-    resource: "*.p12"
-    effect: deny
-  - action: "read"
-    resource: "*.pfx"
-    effect: deny
-  - action: "read"
-    resource: "*.kdbx"
-    effect: deny
-  - action: "read"
-    resource: "*.ovpn"
-    effect: deny
-  - action: "read"
-    resource: "*.npmrc"
-    effect: deny
-  - action: "read"
-    resource: "*.netrc"
-    effect: deny
-  - action: "read"
-    resource: "*.pypirc"
-    effect: deny
-  - action: "read"
-    resource: "*credentials*.json"
-    effect: deny
-  - action: "read"
-    resource: "*credential*.json"
-    effect: deny
-  - action: "read"
-    resource: "*secrets*.json"
-    effect: deny
-  - action: "read"
-    resource: "*secret*.json"
-    effect: deny
-  - action: "read"
-    resource: "*token*.json"
-    effect: deny
-  - action: "read"
-    resource: "id_rsa"
-    effect: deny
-  - action: "read"
-    resource: "id_ed25519"
-    effect: deny
-  - action: "glob"
-    resource: "*"
-    effect: allow
-  - action: "grep"
-    resource: "*"
-    effect: allow
-  - action: "skill"
-    resource: "ai-driven-engineering"
-    effect: allow
-  - action: "edit"
-    resource: "tests/**"
-    effect: allow
-  - action: "edit"
-    resource: "test/**"
-    effect: allow
-  - action: "edit"
-    resource: "spec/**"
-    effect: allow
-  - action: "edit"
-    resource: "__tests__/**"
-    effect: allow
-  - action: "edit"
-    resource: "src/test/**"
-    effect: allow
-  - action: "edit"
-    resource: "**/*.test.*"
-    effect: allow
-  - action: "edit"
-    resource: "**/*.spec.*"
-    effect: allow
-  - action: "edit"
-    resource: "**/*_test.*"
-    effect: allow
-  - action: "edit"
-    resource: "**/test_*.py"
-    effect: allow
-  - action: "edit"
-    resource: "**/fixtures/**"
-    effect: allow
-  - action: "shell"
-    resource: "npm test*"
-    effect: allow
-  - action: "shell"
-    resource: "npm run test*"
-    effect: allow
-  - action: "shell"
-    resource: "npm run lint*"
-    effect: allow
-  - action: "shell"
-    resource: "npm run build*"
-    effect: allow
-  - action: "shell"
-    resource: "pnpm test*"
-    effect: allow
-  - action: "shell"
-    resource: "pnpm run test*"
-    effect: allow
-  - action: "shell"
-    resource: "pnpm lint*"
-    effect: allow
-  - action: "shell"
-    resource: "pnpm build*"
-    effect: allow
-  - action: "shell"
-    resource: "yarn test*"
-    effect: allow
-  - action: "shell"
-    resource: "yarn lint*"
-    effect: allow
-  - action: "shell"
-    resource: "yarn build*"
-    effect: allow
-  - action: "shell"
-    resource: "bun test*"
-    effect: allow
-  - action: "shell"
-    resource: "bun run test*"
-    effect: allow
-  - action: "shell"
-    resource: "bun run lint*"
-    effect: allow
-  - action: "shell"
-    resource: "bun run build*"
-    effect: allow
-  - action: "shell"
-    resource: "pytest*"
-    effect: allow
-  - action: "shell"
-    resource: "python -m pytest*"
-    effect: allow
-  - action: "shell"
-    resource: "python3 -m pytest*"
-    effect: allow
-  - action: "shell"
-    resource: "python -m unittest*"
-    effect: allow
-  - action: "shell"
-    resource: "python3 -m unittest*"
-    effect: allow
-  - action: "shell"
-    resource: "go test*"
-    effect: allow
-  - action: "shell"
-    resource: "cargo test*"
-    effect: allow
-  - action: "shell"
-    resource: "cargo check*"
-    effect: allow
-  - action: "shell"
-    resource: "dotnet test*"
-    effect: allow
-  - action: "shell"
-    resource: "dotnet build*"
-    effect: allow
-  - action: "shell"
-    resource: "mvn test*"
-    effect: allow
-  - action: "shell"
-    resource: "mvn verify*"
-    effect: allow
-  - action: "shell"
-    resource: "./mvnw test*"
-    effect: allow
-  - action: "shell"
-    resource: "./mvnw verify*"
-    effect: allow
-  - action: "shell"
-    resource: "gradle test*"
-    effect: allow
-  - action: "shell"
-    resource: "./gradlew test*"
-    effect: allow
-  - action: "shell"
-    resource: "composer test*"
-    effect: allow
-  - action: "shell"
-    resource: "phpunit*"
-    effect: allow
-  - action: "shell"
-    resource: "vendor/bin/phpunit*"
-    effect: allow
-  - action: "shell"
-    resource: "mix test*"
-    effect: allow
-  - action: "shell"
-    resource: "swift test*"
-    effect: allow
-  - action: "shell"
-    resource: "git status*"
-    effect: allow
-  - action: "shell"
-    resource: "git diff*"
-    effect: allow
-  - action: "shell"
-    resource: "git log*"
-    effect: allow
-  - action: "shell"
-    resource: "git show*"
-    effect: allow
-  - action: "shell"
-    resource: "git rev-parse*"
-    effect: allow
-  - action: "shell"
-    resource: "git branch --show-current*"
-    effect: allow
+- action: '*'
+  resource: '*'
+  effect: deny
+- action: read
+  resource: '*'
+  effect: allow
+- action: read
+  resource: '*.env'
+  effect: deny
+- action: read
+  resource: '*.env.*'
+  effect: deny
+- action: read
+  resource: '*.env.example'
+  effect: allow
+- action: read
+  resource: '*.envrc'
+  effect: deny
+- action: read
+  resource: '*.pem'
+  effect: deny
+- action: read
+  resource: '*.key'
+  effect: deny
+- action: read
+  resource: '*.p12'
+  effect: deny
+- action: read
+  resource: '*.pfx'
+  effect: deny
+- action: read
+  resource: '*.kdbx'
+  effect: deny
+- action: read
+  resource: '*.ovpn'
+  effect: deny
+- action: read
+  resource: '*.npmrc'
+  effect: deny
+- action: read
+  resource: '*.netrc'
+  effect: deny
+- action: read
+  resource: '*.pypirc'
+  effect: deny
+- action: read
+  resource: '*credentials*.json'
+  effect: deny
+- action: read
+  resource: '*credential*.json'
+  effect: deny
+- action: read
+  resource: '*secrets*.json'
+  effect: deny
+- action: read
+  resource: '*secret*.json'
+  effect: deny
+- action: read
+  resource: '*token*.json'
+  effect: deny
+- action: read
+  resource: id_rsa
+  effect: deny
+- action: read
+  resource: id_ed25519
+  effect: deny
+- action: glob
+  resource: '*'
+  effect: allow
+- action: grep
+  resource: '*'
+  effect: allow
+- action: skill
+  resource: ai-driven-engineering
+  effect: allow
+- action: edit
+  resource: tests/**
+  effect: allow
+- action: edit
+  resource: test/**
+  effect: allow
+- action: edit
+  resource: spec/**
+  effect: allow
+- action: edit
+  resource: __tests__/**
+  effect: allow
+- action: edit
+  resource: src/test/**
+  effect: allow
+- action: edit
+  resource: '**/*.test.*'
+  effect: allow
+- action: edit
+  resource: '**/*.spec.*'
+  effect: allow
+- action: edit
+  resource: '**/*_test.*'
+  effect: allow
+- action: edit
+  resource: '**/test_*.py'
+  effect: allow
+- action: edit
+  resource: '**/fixtures/**'
+  effect: allow
+- action: ade_vcs_diff
+  resource: '*'
+  effect: allow
+- action: ade_self_check
+  resource: '*'
+  effect: allow
+- action: ade_evidence_record
+  resource: '*'
+  effect: allow
 ---
-## Regras universais
+# Tester
+- Responda em português do Brasil; preserve identificadores técnicos quando necessário.
+- Não leia/exponha segredos. Não declare `VALIDADO`, acceptance ou `DONE` sem autoridade/evidência.
+- Use evidência mínima suficiente; não replique contratos/histórico no handoff.
+- Não carregue `ai-driven-engineering` automaticamente. Ela é referência explícita sob demanda.
 
-- Responda em português do Brasil. Preserve nomes técnicos, IDs, caminhos, comandos, código e status canônicos em inglês quando necessário.
-- Para trabalho não trivial, carregue a skill `ai-driven-engineering` antes de decidir ou agir.
-- Nunca leia, exponha, registre, envie ou copie segredos, tokens, chaves privadas ou valores de arquivos de ambiente. Se forem necessários, pare e escale.
-- Trate `OBSERVADO`, `INFERIDO`, `PROPOSTO`, `VALIDADO` e `DESCONHECIDO` como estados de evidência distintos.
-- Não declare `VALIDATED`, `ACCEPTED` ou `DONE` sem evidência e autoridade compatíveis.
-- Subagents têm contexto novo. Cada delegação deve carregar objetivo, escopo, evidência de entrada, restrições, saída esperada e critério de conclusão.
+Escreva/ajuste apenas testes nos caminhos permitidos. Testes são especificação executável; não altere produção. Se validação exigir capability que você não possui, retorne `PARENT_EXECUTION_REQUIRED` ao Engineer.
 
-Você é o **Tester**. Crie ou ajuste testes apenas nos caminhos de teste permitidos. Priorize reproduzir comportamento esperado e casos de borda antes de confiar na implementação.
-
-Você não altera código de produção. Se o framework usa um caminho de teste não permitido ou exige comando não autorizado, não contorne a política: retorne `PARENT_EXECUTION_REQUIRED` com a necessidade exata.
-
-## Formato de handoff
-
-Quando aplicável, reporte: **OBSERVADO**, **INFERIDO**, **DESCONHECIDO**, **DECISÕES/GATES**, **AÇÕES**, **EVIDÊNCIAS**, **RISCOS** e **PRÓXIMA AÇÃO SEGURA**.
+## Handoff
+Retorne um **COMPACT_HANDOFF** curto: `status`, `changed`, `evidence_refs`, `blocker`, `required_owner`, `next`. Omita campos vazios. Não produza as antigas oito seções de auditoria.

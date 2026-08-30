@@ -49,7 +49,7 @@ foreach ($required in @(
 }
 if ($implementer -match 'action:\s+shell[\s\S]{0,120}resource:\s+"\*"[\s\S]{0,80}effect:\s+allow') { throw 'Implementer não pode receber shell *' }
 if ($implementer -match 'resource:\s+"git (?:commit|push|add)\*"[\s\S]{0,80}effect:\s+allow') { throw 'Implementer não pode receber Git mutation authority' }
-foreach ($required in @('requested_evidence','run-project-check.ps1','reinterprete o deny original como indisponibilidade global')) {
+foreach ($required in @('requested_evidence','run-project-check.ps1','não reinterprete o deny original como indisponibilidade global')) {
     if ($verifier -notmatch [regex]::Escape($required)) { throw "Verifier não contém routed-evidence recovery: $required" }
 }
 

@@ -1,0 +1,29 @@
+{
+  "schema_version": 3,
+  "version": "5.2.0",
+  "release_state": "SOURCE_VALIDATED_RUNTIME_PENDING",
+  "source_tree_hash_excludes": [
+    "RELEASE.json"
+  ],
+  "source_tree_sha256": "77869770891c9c582acb25f8eb7ca97b8a0e9772977096bbe4fa54c9e58bffeb",
+  "target": {
+    "opencode": "V2 Promise plugin API",
+    "observed_windows_build": "0.0.0-beta-18684"
+  },
+  "validation": {
+    "python_regression_groups": 32,
+    "plugin_tests": 24,
+    "typescript_typecheck": "passed",
+    "v2_lifecycle_mock": "passed",
+    "install_simulation": "passed",
+    "manifest_schema": 7,
+    "agents": 18,
+    "typed_tools": 25,
+    "runtime_opencode_windows": "pending",
+    "behavioral_provider_eval": "pending"
+  },
+  "notes": [
+    "Core runtime validation is deterministic and separate from strict optional behavioral evals.",
+    "Provider auto-only tool_choice retry is bounded mitigation, not request rewriting."
+  ]
+}

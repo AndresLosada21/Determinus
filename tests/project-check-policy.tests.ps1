@@ -39,6 +39,19 @@ try {
                 command = @('php','validate_19_local.php')
                 allowed_exit_codes = @(0)
             }
+            diagnostic = [ordered]@{
+                owner = 'debugger'
+                non_destructive = $true
+                runner = 'docker'
+                image = 'qb-validate-php:8.3'
+                network = 'qb-net'
+                project_mount_target = '/app'
+                project_mount_mode = 'ro'
+                allow_workspace_writes = $false
+                workdir = '/app'
+                command = @('php','diagnose_local.php')
+                allowed_exit_codes = @(0)
+            }
         }
     }
     $policy | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $policyPath -Encoding UTF8
@@ -60,6 +73,23 @@ try {
     foreach ($expected in @('run','--rm','--network','qb-net','--mount','readonly','qb-validate-php:8.3','php','validate_19_local.php')) {
         if ($argsLog -notmatch [regex]::Escape($expected)) { throw "Argumento docker esperado ausente: $expected" }
     }
+
+
+    # Debugger checks are explicitly separate from Verifier validation authority.
+    $blocked = $false
+    try { & $runner -ProjectRoot $tmp -Name diagnostic -NoAudit 2>$null | Out-Null } catch { $blocked = $true }
+    if (-not $blocked) { throw 'Debugger-owned check deveria bloquear quando ExpectedOwner=verifier' }
+
+    $diagnosticFailed = $false
+    try {
+        $diagOut = @(& $runner -ProjectRoot $tmp -Name diagnostic -ExpectedOwner debugger -NoAudit 6>&1 2>&1)
+    } catch {
+        $diagnosticFailed = $true
+        $diagOut = @($_)
+    }
+    if ($diagnosticFailed) { throw 'Check diagnóstico debugger falhou' }
+    if ((($diagOut | Out-String) -match 'PROJECT_CHECK_VALIDATED')) { throw 'Debugger não pode emitir PROJECT_CHECK_VALIDATED' }
+    if ((($diagOut | Out-String) -notmatch 'DIAGNOSTIC_CHECK_COMPLETED')) { throw 'Debugger deve emitir DIAGNOSTIC_CHECK_COMPLETED' }
 
     $policy.checks.feature.network = 'host'
     $policy | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $policyPath -Encoding UTF8
