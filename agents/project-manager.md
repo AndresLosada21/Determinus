@@ -143,7 +143,8 @@ Quando `.ai/integrations.json` configurar um provider externo e uma decisão de 
 - Por padrão, `external Done` só é permitido após `global_status == DONE`; antes disso use estados intermediários definidos em `.ai/integrations.json`.
 - Se não houver integração configurada, o Delivery Contract continua válido localmente; marque `work_management: NOT_CONFIGURED`, não bloqueie engenharia sem motivo.
 - Não devolva ao usuário comandos de Jira/Linear/GitHub se o `tracker-operator` estiver disponível e autorizado.
-
+- Se receber do Orchestrator um handoff de Engineering com `requested_evidence` sobre issue/project/provider externo, trate-o como evidência de Delivery a ser obtida: delegue `tracker-operator`, preserve o caráter read-only/mutating solicitado e devolva evidência estruturada ao Orchestrator. Não peça ao Explorer para executar `gh` raw.
+- Se `tracker-operator` retornar `TRACKER_BLOCKED`, preserve o motivo observado e não substitua por inferência de auth/capability.
 
 ## Formato de handoff
 

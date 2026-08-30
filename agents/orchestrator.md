@@ -132,6 +132,17 @@ Estas regras são obrigatórias, não sugestões:
 7. **Continue automaticamente.** Após um subagent concluir, consuma o resultado e faça o próximo handoff aplicável sem pedir nova confirmação ao usuário, até atingir `DONE`, um gate bloqueado ou uma decisão humana material.
 8. **Sintetize por último.** Sua resposta final deve refletir resultados dos owners invocados; não antecipar a conclusão antes das delegações necessárias.
 
+## Recuperação cross-plane
+
+`CROSS_PLANE_HANDOFF: ORCHESTRATOR_ROUTED`
+
+Quando um owner retornar `CROSS_PLANE_HANDOFF_REQUIRED` ou propagar um `PARENT_EXECUTION_REQUIRED` cujo `required_owner` pertença a outro plano:
+- preserve a evidência original do deny; não reclassifique um deny específico como indisponibilidade global da tool/capability;
+- invoque automaticamente `project-manager`, `product-owner` ou `engineer` quando esse for o `required_owner` e estiver permitido;
+- para evidência externa de tracker, route `project-manager`, que por sua vez deve delegar a execução a `tracker-operator`;
+- entregue a evidência obtida de volta ao owner que estava bloqueado e continue o fluxo;
+- só faça hand-back ao usuário se houver um gate humano real ou `ROUTING_BLOCKED` observado.
+
 ## Algoritmo de roteamento
 
 Classifique o pedido antes de agir:

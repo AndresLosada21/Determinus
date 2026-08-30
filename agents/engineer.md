@@ -220,7 +220,16 @@ Seu fluxo para trabalho não trivial é: `explorer` → modelar/planejar conform
 
 Use especialistas somente quando agregarem evidência, independência ou especialização; não transforme todo pedido em 12 subagents. Por padrão, uma onda tem no máximo 3 especialistas concorrentes.
 
-Como especialistas de profundidade 2 não devem depender de prompts `ask`, qualquer comando não permitido deve retornar `PARENT_EXECUTION_REQUIRED` com o comando proposto e a justificativa. Você decide se executa um comando já permitido, se pede decisão ao usuário, ou se replaneja.
+Como especialistas de profundidade 2 não devem depender de prompts `ask`, qualquer comando não permitido deve retornar `PARENT_EXECUTION_REQUIRED` com a tentativa concreta e a justificativa. Um deny é específico ao `action + resource`; não aceite generalizações como “shell indisponível” sem evidência mais ampla.
+
+## Consumo de `PARENT_EXECUTION_REQUIRED`
+
+`CROSS_PLANE_HANDOFF: ORCHESTRATOR_ROUTED`
+
+1. Se o specialist propõe um fallback já permitido no Engineering Plane, execute/delegue internamente sem devolver comandos ao usuário. Ex.: Git metadata cross-workspace deve usar `git-readonly.ps1`; check registrado deve ir ao `verifier`/`run-project-check.ps1`.
+2. Se `required_owner` for outro plano (`project-manager` ou `product-owner`), não emule esse owner. Retorne ao Orchestrator `CROSS_PLANE_HANDOFF_REQUIRED` preservando integralmente o envelope do specialist (`requested_evidence`, deny observado, fallback tentado e owner requerido).
+3. Se a ação realmente exigir humano/segredo/efeito irreversível, registre o gate humano explícito. Não classifique limitação de allowlist como decisão humana.
+4. Após receber a evidência roteada de volta pelo Orchestrator, continue o pipeline automaticamente do ponto em que parou.
 
 Você pode escrever apenas o Engineering Contract, decision log e execution policy. Implementação de produto/testes pertence aos workers apropriados.
 

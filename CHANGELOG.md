@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.2.4 — 2026-08-29
+
+Patch sobre a release runtime-validada `v4.2.3` (`436707d`) para corrigir capability-denial recovery sem ampliar permissions.
+
+### Fixed
+- `Permission denied` passa a ser tratado como evidência scoped ao `action + resource`; um deny específico não pode virar “shell/tool/capability indisponível”.
+- `explorer` tenta `git-readonly.ps1` quando Git raw não casa com a allowlist; não improvisa `git -C ...`.
+- Evidência de GitHub/Jira/Linear solicitada durante Engineering discovery sobe por `PARENT_EXECUTION_REQUIRED` e é roteada `Engineer -> Orchestrator -> Project Manager -> Tracker Operator`.
+- Necessidade de runtime/container check sobe ao Engineer/Verifier e usa `run-project-check.ps1` quando autorizado; não amplia `docker *`.
+- `engineer` não transforma deny de specialist em comandos manuais para o usuário e não emula authority de Product/Delivery.
+- Deny de check de validação no `implementer` mantém `IMPLEMENTED_NOT_VALIDATED` e escala `required_owner: engineer` + `execution_owner: verifier`; o Implementer não ganha shell amplo nem valida a própria mudança.
+
+### Added
+- `references/capability-recovery.md` com recovery matrix e envelope canônico de escalada.
+- `tests/capability-denial-recovery.tests.ps1` para proteger deny scoping, authorized fallback e cross-plane routing.
+- `runtime/capability-recovery-smoke.ps1`: probe model-driven sem provider externo com dois cenários obrigatórios: Explorer deny -> PM/tracker-operator e Implementer validation-deny -> Engineer/Verifier; ambos rejeitam generalização global e hand-back manual.
+- `runtime/engineering-recovery-routing-smoke.ps1`: prova comportamental de continuação real `Implementer escalation -> Engineer -> Verifier`, inspecionando a child session do Verifier e proibindo qualquer tool fora de `skill`/`subagent` no sandbox.
+- `runtime/release-assurance.ps1`: gate agregador da release; só emite `RELEASE_ASSURANCE_VALIDATED` após regression, runtime config, nested delegation, capability classification e Engineering recovery routing passarem. Provider externo continua gate separado.
+- Full regression passa de 15 para 16 grupos.
+
+### Security
+- Nenhuma nova allowlist de `gh`, `curl`, `docker`, shell genérico ou provider externo foi adicionada ao Explorer.
+- Least privilege é preservado: recovery acontece por wrappers tipados e owners existentes.
+
 ## 4.2.3 — 2026-08-29
 
 Patch derivado diretamente do commit `1d0814dd3aaceb88f4153f6de038fd570b0cff40` (tag `v4.2.2`) para corrigir a divergência entre `subagent_depth` configurado e nesting efetivo observada em `project-manager -> tracker-operator`.
@@ -11,7 +35,6 @@ Patch derivado diretamente do commit `1d0814dd3aaceb88f4153f6de038fd570b0cff40` 
 - `runtime-smoke.ps1` deixa de confundir configuração aceita com nesting validado: emite `SUBAGENT_DEPTH_CONFIGURED`; `SUBAGENT_DEPTH_VALIDATED` exige prova comportamental.
 - Corrige a disciplina de evidência da v4.2.2: o smoke GitHub Projects não é considerado validado enquanto `project-manager -> tracker-operator -> work-management discover` não concluir numa sessão nova.
 - O probe nested usa sandbox temporário vazio, JSONL/exports estruturais e nonce por execução; texto de prompt ou transcript não é aceito como prova de handoff.
-- O probe nested permite somente `skill(ai-driven-engineering)` como prerequisite não mutante opcional, porque os próprios agents podem ser obrigados a carregar a skill antes da delegação; qualquer outra tool continua bloqueando o gate.
 - Upgrade sem mudança de config preserva os metadados de uninstall no manifesto e atualiza somente `config.subagent_depth_mode`.
 - O installer não executa mais probe nested inline: a prova operacional só pode ser rodada após reiniciar ou abrir uma sessão nova.
 

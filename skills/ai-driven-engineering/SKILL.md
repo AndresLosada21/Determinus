@@ -4,7 +4,7 @@ description: Operating model para entrega de software orientada por agentes no O
 compatibility: Projetado para OpenCode V2; requer nesting operacional equivalente a subagent_depth >= 2. A raiz subagent_depth: 2 é canônica; builds opencode2 beta podem exigir bridge de compatibilidade detectada pelo installer.
 ---
 
-# AI-Driven Engineering v4.2.3
+# AI-Driven Engineering v4.2.4
 
 Esta skill é a constituição operacional para trabalho de software/produto coordenado no OpenCode. Ela é **agnóstica de stack, provider, model, tracker e MCP**, mas é deliberadamente opinativa sobre processo e usa OpenCode V2 como runtime.
 
@@ -48,6 +48,9 @@ Leia `references/organization.md` para a matriz de autoridade completa.
 11. Tracker externo é execution surface, nunca fonte canônica de Product/Delivery/Engineering Acceptance.
 12. Estado externo terminal (`Done`/equivalente) exige `global_status == DONE` por padrão.
 13. Toda sincronização externa relevante deve ser rastreável e auditável sem persistir segredos.
+14. Um deny é evidência do `action + resource` tentado; inferir indisponibilidade de toda uma capability a partir de um deny específico é proibido.
+15. Quando existe fallback narrower já autorizado, ele deve ser tentado antes de escalar. Cross-plane escalation é roteado pelo Orchestrator, não devolvido ao usuário.
+16. Deny de validação observado pelo `implementer` não transforma implementação em validação: retorne `IMPLEMENTED_NOT_VALIDATED` + `PARENT_EXECUTION_REQUIRED` para `engineer -> verifier`; não execute hand-back manual ao usuário.
 
 ## 3. Roteamento é execução, não recomendação
 
@@ -63,7 +66,7 @@ Invariantes de roteamento:
 
 Estas invariantes também ficam no system prompt dos control agents e no `AGENTS.md` gerenciado porque skills são carregadas sob demanda; o sistema não deve depender de o modelo lembrar de carregar a skill para saber que precisa rotear.
 
-Leia `references/routing-enforcement.md`.
+Leia `references/routing-enforcement.md` e `references/capability-recovery.md`.
 
 ## 4. Evidência
 
@@ -158,7 +161,7 @@ Use especialistas por necessidade, não por ritual:
 - `integrator`: readiness técnico de integração;
 - `documenter`: documentação durável.
 
-Leia `references/opencode-routing.md`, `references/project-execution.md` e `references/parallelism.md`.
+Leia `references/opencode-routing.md`, `references/project-execution.md`, `references/capability-recovery.md` e `references/parallelism.md`.
 
 ## 10. Work Management, traceability e audit
 

@@ -138,61 +138,6 @@ function Get-RootToolEvents {
     return @($events)
 }
 
-function Assert-RootSkillEvent {
-    param([object]$Event)
-
-    if ([string](Get-StructuredValue $Event @("part", "tool")) -cne "skill") {
-        throw "NESTED_DELEGATION_FAILED: tool root esperado=skill ao validar prerequisite."
-    }
-    if ([string](Get-StructuredValue $Event @("part", "state", "status")) -cne "completed") {
-        throw "NESTED_DELEGATION_FAILED: skill da root não está concluída."
-    }
-    # At most one benign skill load is tolerated as a non-mutant prerequisite;
-    # the sandbox is empty and skill content cannot mutate external state.
-    $skillId = [string](Get-StructuredValue $Event @("part", "state", "input", "name"))
-    if ([string]::IsNullOrWhiteSpace($skillId)) {
-        $skillId = [string](Get-StructuredValue $Event @("part", "state", "input", "id"))
-    }
-    if ([string]::IsNullOrWhiteSpace($skillId)) {
-        $skillId = [string](Get-StructuredValue $Event @("part", "state", "input", "skill"))
-    }
-    if ([string]::IsNullOrWhiteSpace($skillId)) {
-        throw "NESTED_DELEGATION_FAILED: skill da root sem identificador."
-    }
-}
-
-function Assert-ExportSkillEntry {
-    param(
-        [object]$Pair,
-        [string]$ExpectedAgent,
-        [string]$Label
-    )
-
-    $message = Get-ObjectPropertyValue $Pair "Message"
-    $entry = Get-ObjectPropertyValue $Pair "Entry"
-    if ([string](Get-ObjectPropertyValue $message "type") -cne "assistant" -or
-        [string](Get-ObjectPropertyValue $message "agent") -cne $ExpectedAgent) {
-        throw "NESTED_DELEGATION_FAILED: skill da sessão $Label não pertence a uma mensagem assistant de $ExpectedAgent."
-    }
-    if ([string](Get-ObjectPropertyValue $entry "name") -cne "skill") {
-        throw "NESTED_DELEGATION_FAILED: tool da sessão $Label esperado=skill ao validar prerequisite."
-    }
-    # Same beta quirk as subagent calls: completed status is the proof.
-    if ([string](Get-StructuredValue $entry @("state", "status")) -cne "completed") {
-        throw "NESTED_DELEGATION_FAILED: skill da sessão $Label não está concluída."
-    }
-    $skillId = [string](Get-StructuredValue $entry @("state", "input", "name"))
-    if ([string]::IsNullOrWhiteSpace($skillId)) {
-        $skillId = [string](Get-StructuredValue $entry @("state", "input", "id"))
-    }
-    if ([string]::IsNullOrWhiteSpace($skillId)) {
-        $skillId = [string](Get-StructuredValue $entry @("state", "input", "skill"))
-    }
-    if ([string]::IsNullOrWhiteSpace($skillId)) {
-        throw "NESTED_DELEGATION_FAILED: skill da sessão $Label sem identificador."
-    }
-}
-
 function Get-ExportToolEntries {
     param(
         [object]$Export,
@@ -220,6 +165,37 @@ function Get-ExportToolEntries {
     return @($events)
 }
 
+function Get-RootToolName {
+    param([object]$Event)
+    return [string](Get-StructuredValue $Event @("part", "tool"))
+}
+
+function Get-RootToolInput {
+    param([object]$Event, [string]$Name)
+    return Get-StructuredValue $Event @("part", "state", "input", $Name)
+}
+
+function Get-ExportToolName {
+    param([object]$ToolRecord)
+    $entry = Get-ObjectPropertyValue $ToolRecord "Entry"
+    return [string](Get-ObjectPropertyValue $entry "name")
+}
+
+function Get-ExportToolInput {
+    param([object]$ToolRecord, [string]$Name)
+    $entry = Get-ObjectPropertyValue $ToolRecord "Entry"
+    return Get-StructuredValue $entry @("state", "input", $Name)
+}
+
+function Assert-AssistantToolRecord {
+    param([object]$ToolRecord, [string]$ExpectedAgent, [string]$Label)
+    $message = Get-ObjectPropertyValue $ToolRecord "Message"
+    if ([string](Get-ObjectPropertyValue $message "type") -cne "assistant" -or
+        [string](Get-ObjectPropertyValue $message "agent") -cne $ExpectedAgent) {
+        throw "NESTED_DELEGATION_FAILED: tool $Label não pertence a uma mensagem assistant de $ExpectedAgent."
+    }
+}
+
 $cli = Resolve-OpenCodeCli
 if ($null -eq $cli) { throw "NESTED_DELEGATION_FAILED: OpenCode CLI não encontrado." }
 
@@ -229,7 +205,7 @@ $level2Marker = "NESTED_LEVEL2_$nonce"
 $prompt = @"
 OPERATIONAL NESTED DELEGATION SMOKE. Este é um sandbox temporário vazio, não trabalho de produto.
 
-É proibido ler ou escrever arquivos, usar shell, web, rede, provider externo ou credenciais. Se as instruções de sistema exigirem carregar a skill, é permitido no máximo um `skill(ai-driven-engineering)` por agente como prerequisite não mutante. Fora isso, orchestrator e project-manager só podem usar `subagent` para esta cadeia; tracker-operator não pode usar nenhuma outra ferramenta.
+É proibido ler ou escrever arquivos, usar shell, web, rede, provider externo ou credenciais. Além da cadeia `subagent`, cada agent pode carregar no máximo uma vez a skill `ai-driven-engineering`, se o próprio system prompt exigir isso. Nenhuma outra tool é permitida.
 
 Você está no orchestrator e DEVE executar exatamente a cadeia:
 1. invoque project-manager como subagent;
@@ -275,44 +251,55 @@ try {
         throw "NESTED_DELEGATION_FAILED: fase OpenCode run falhou (exit=$rootExit)."
     }
 
-    # --format json is JSONL. Parse every line and accept only the observed
-    # root tool-use shape; no transcript/prompt text is evidence of a handoff.
+    # --format json is JSONL. Parse every line. Skill loading is an allowed
+    # prerequisite, but handoff proof comes only from completed subagent events.
+    # Retries of the same handoff are tolerated; divergent tools/targets are not.
     $rootEvents = @(ConvertFrom-StrictJsonLines $rootOutput "root")
     $rootToolEvents = @(Get-RootToolEvents $rootEvents)
-    $rootSubagentEvents = @()
     $rootSkillEvents = @()
-    foreach ($candidateEvent in $rootToolEvents) {
-        $candidateTool = [string](Get-StructuredValue $candidateEvent @("part", "tool"))
-        if ($candidateTool -ceq "subagent") {
-            $rootSubagentEvents += $candidateEvent
-        } elseif ($candidateTool -ceq "skill") {
-            $rootSkillEvents += $candidateEvent
-        } else {
-            throw "NESTED_DELEGATION_FAILED: root usou tool não permitida no smoke: $candidateTool."
+    $rootSubagentEvents = @()
+    foreach ($event in $rootToolEvents) {
+        $tool = Get-RootToolName $event
+        $status = [string](Get-StructuredValue $event @("part", "state", "status"))
+        if ($status -cne "completed") {
+            throw "NESTED_DELEGATION_FAILED: tool $tool da root não está completed."
         }
+        if ($tool -ceq "skill") {
+            if ([string](Get-RootToolInput $event "id") -cne "ai-driven-engineering") {
+                throw "NESTED_DELEGATION_FAILED: root carregou skill divergente de ai-driven-engineering."
+            }
+            $rootSkillEvents += $event
+            continue
+        }
+        if ($tool -ceq "subagent") {
+            if ([string](Get-RootToolInput $event "agent") -cne "project-manager") {
+                throw "NESTED_DELEGATION_FAILED: root invocou subagent divergente de project-manager."
+            }
+            $rootSubagentEvents += $event
+            continue
+        }
+        throw "NESTED_DELEGATION_FAILED: root usou tool não permitida no smoke: $tool."
     }
     if ($rootSkillEvents.Count -gt 1) {
-        throw "NESTED_DELEGATION_FAILED: root carregou skill mais de uma vez; máximo permitido=1."
+        throw "NESTED_DELEGATION_FAILED: root carregou ai-driven-engineering mais de uma vez."
     }
-    if ($rootSkillEvents.Count -eq 1) { Assert-RootSkillEvent $rootSkillEvents[0] }
-    # Retries of the mandated handoff are tolerated; a second concurrent
-    # orchestrator call is not. Only completed/failed outcomes observed.
     if ($rootSubagentEvents.Count -lt 1) {
-        throw "NESTED_DELEGATION_FAILED: root deve conter ao menos um tool-use subagent para project-manager; encontrados $($rootSubagentEvents.Count)."
+        throw "NESTED_DELEGATION_FAILED: root não contém subagent completed para project-manager."
     }
-    $rootEvent = $null
-    foreach ($candidate in $rootSubagentEvents) {
-        if ([string](Get-StructuredValue $candidate @("part", "state", "status")) -ceq "completed" -and
-            [string](Get-StructuredValue $candidate @("part", "state", "input", "agent")) -ceq "project-manager") {
-            $rootEvent = $candidate
-            break
-        }
-    }
-    if ($null -eq $rootEvent) {
-        throw "NESTED_DELEGATION_FAILED: nenhuma chamada subagent da root para project-manager foi concluída."
+
+    # A model may retry the same handoff. Use the last completed call as the
+    # continuation session, while requiring every retry to target the same owner.
+    $rootEvent = $rootSubagentEvents[$rootSubagentEvents.Count - 1]
+    if ([string](Get-ObjectPropertyValue $rootEvent "type") -cne "tool_use" -or
+        [string](Get-StructuredValue $rootEvent @("part", "type")) -cne "tool") {
+        throw "NESTED_DELEGATION_FAILED: evento de handoff da root não possui tool_use/part.type=tool."
     }
     $rootSessionId = [string](Get-ObjectPropertyValue $rootEvent "sessionID")
+    # Observed shapes: root JSONL nests metadata twice; some builds use one level.
     $pmSessionId = [string](Get-StructuredValue $rootEvent @("part", "state", "metadata", "metadata", "sessionID"))
+    if ([string]::IsNullOrWhiteSpace($pmSessionId)) {
+        $pmSessionId = [string](Get-StructuredValue $rootEvent @("part", "state", "metadata", "sessionID"))
+    }
     if ([string]::IsNullOrWhiteSpace($rootSessionId)) {
         throw "NESTED_DELEGATION_FAILED: evento root de project-manager não contém sessionID da raiz."
     }
@@ -322,8 +309,7 @@ try {
 
     # `--sanitize` redige state.input e conteúdo text, que são precisamente os
     # campos estruturais verificados abaixo. Export cru é permitido somente neste
-    # sandbox novo e vazio, cujo prompt proíbe tools, arquivos, rede e providers.
-    # Não há fallback para um export menos protegido fora dessa precondição.
+    # sandbox novo e vazio, cujo prompt proíbe arquivos, rede e providers.
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
@@ -338,67 +324,52 @@ try {
     $pmExport = ConvertFrom-StrictExportJson $pmOutput "project-manager"
     Assert-ExportInfo $pmExport "project-manager" $pmSessionId $rootSessionId "project-manager"
 
-    $pmToolEvents = @(Get-ExportToolEntries $pmExport "project-manager")
-    $pmSubagentEvents = @()
-    $pmSkillEvents = @()
-    foreach ($pair in $pmToolEvents) {
-        $entry = Get-ObjectPropertyValue $pair "Entry"
-        $toolName = [string](Get-ObjectPropertyValue $entry "name")
-        if ($toolName -ceq "subagent") {
-            $pmSubagentEvents += $pair
-        } elseif ($toolName -ceq "skill") {
-            $pmSkillEvents += $pair
-        } else {
-            throw "NESTED_DELEGATION_FAILED: project-manager usou tool não permitida no smoke: $toolName."
+    $pmToolRecords = @(Get-ExportToolEntries $pmExport "project-manager")
+    $pmSkillRecords = @()
+    $pmSubagentRecords = @()
+    foreach ($record in $pmToolRecords) {
+        Assert-AssistantToolRecord $record "project-manager" "da sessão project-manager"
+        $entry = Get-ObjectPropertyValue $record "Entry"
+        $tool = Get-ExportToolName $record
+        $status = [string](Get-StructuredValue $entry @("state", "status"))
+        if ($status -cne "completed") {
+            throw "NESTED_DELEGATION_FAILED: tool $tool da sessão project-manager não está completed."
         }
+        # `executed` is advisory in beta exports and may be false even when the
+        # completed state + child session prove successful execution.
+        if ($tool -ceq "skill") {
+            if ([string](Get-ExportToolInput $record "id") -cne "ai-driven-engineering") {
+                throw "NESTED_DELEGATION_FAILED: project-manager carregou skill divergente de ai-driven-engineering."
+            }
+            $pmSkillRecords += $record
+            continue
+        }
+        if ($tool -ceq "subagent") {
+            if ([string](Get-ExportToolInput $record "agent") -cne "tracker-operator") {
+                throw "NESTED_DELEGATION_FAILED: project-manager invocou subagent divergente de tracker-operator."
+            }
+            $pmSubagentRecords += $record
+            continue
+        }
+        throw "NESTED_DELEGATION_FAILED: project-manager usou tool não permitida no smoke: $tool."
     }
-    if ($pmSkillEvents.Count -gt 1) {
-        throw "NESTED_DELEGATION_FAILED: project-manager carregou skill mais de uma vez; máximo permitido=1."
+    if ($pmSkillRecords.Count -gt 1) {
+        throw "NESTED_DELEGATION_FAILED: project-manager carregou ai-driven-engineering mais de uma vez."
     }
-    if ($pmSkillEvents.Count -eq 1) { Assert-ExportSkillEntry $pmSkillEvents[0] "project-manager" "project-manager" }
-    # Completed handoff required; extra failed/retried subagent calls tolerated
-    # only when they target the same leaf and completed status is present once.
-    $pmCompleted = @($pmSubagentEvents | Where-Object {
-        $entry = Get-ObjectPropertyValue $_ "Entry"
-        [string](Get-ObjectPropertyValue $entry "name") -ceq "subagent" -and
-        [string](Get-StructuredValue $entry @("state", "status")) -ceq "completed" -and
-        [string](Get-StructuredValue $entry @("state", "input", "agent")) -ceq "tracker-operator"
-    })
-    if ($pmCompleted.Count -lt 1) {
-        throw "NESTED_DELEGATION_FAILED: nenhuma chamada subagent do project-manager para tracker-operator foi concluída."
+    if ($pmSubagentRecords.Count -lt 1) {
+        throw "NESTED_DELEGATION_FAILED: project-manager não contém subagent completed para tracker-operator."
     }
-    $pair = $pmCompleted[0]
-    $pmToolMessage = Get-ObjectPropertyValue $pair "Message"
-    $trackerToolEvent = Get-ObjectPropertyValue $pair "Entry"
-    if ([string](Get-ObjectPropertyValue $pmToolMessage "type") -cne "assistant" -or
-        [string](Get-ObjectPropertyValue $pmToolMessage "agent") -cne "project-manager") {
-        throw "NESTED_DELEGATION_FAILED: tool da sessão project-manager não pertence a uma mensagem assistant do project-manager."
-    }
-    if ([string](Get-ObjectPropertyValue $trackerToolEvent "name") -cne "subagent") {
-        throw "NESTED_DELEGATION_FAILED: tool da sessão project-manager não usa subagent."
-    }
-    # Observed beta schema: a completed subagent call may be exported with
-    # executed=false; state.status=completed plus the child session ID in the
-    # same event is the reliable proof of execution. Keep completed as the
-    # hard requirement instead of trusting the exported flag.
-    $trackerStatus = [string](Get-StructuredValue $trackerToolEvent @("state", "status"))
-    if ($trackerStatus -cne "completed") {
-        throw "NESTED_DELEGATION_FAILED: tool subagent da sessão project-manager não foi executado/concluído (status=$trackerStatus)."
-    }
-    if ([string](Get-StructuredValue $trackerToolEvent @("state", "status")) -cne "completed") {
-        throw "NESTED_DELEGATION_FAILED: tool subagent da sessão project-manager não está concluído."
-    }
-    if ([string](Get-StructuredValue $trackerToolEvent @("state", "input", "agent")) -cne "tracker-operator") {
-        throw "NESTED_DELEGATION_FAILED: tool subagent da sessão project-manager possui target divergente de tracker-operator."
-    }
-    # Export shape (observed): state.metadata.sessionID. JSONL root shape nests
-    # metadata one level deeper; accept both without weakening the binding.
+
+    $trackerRecord = $pmSubagentRecords[$pmSubagentRecords.Count - 1]
+    $trackerToolEvent = Get-ObjectPropertyValue $trackerRecord "Entry"
+    # Export shape (observed): state.metadata.sessionID; some builds nest it
+    # twice. Accept both without weakening the binding.
     $trackerSessionId = [string](Get-StructuredValue $trackerToolEvent @("state", "metadata", "sessionID"))
     if ([string]::IsNullOrWhiteSpace($trackerSessionId)) {
         $trackerSessionId = [string](Get-StructuredValue $trackerToolEvent @("state", "metadata", "metadata", "sessionID"))
     }
     if ([string]::IsNullOrWhiteSpace($trackerSessionId)) {
-        throw "NESTED_DELEGATION_FAILED: evento tracker-operator não contém sessionID filho no metadata do mesmo evento."
+        throw "NESTED_DELEGATION_FAILED: tracker-operator não contém child sessionID no metadata do mesmo evento."
     }
 
     $previousErrorActionPreference = $ErrorActionPreference
@@ -415,21 +386,21 @@ try {
     $trackerExport = ConvertFrom-StrictExportJson $trackerOutput "tracker-operator"
     Assert-ExportInfo $trackerExport "tracker-operator" $trackerSessionId $pmSessionId "tracker-operator"
 
-    $trackerToolEvents = @(Get-ExportToolEntries $trackerExport "tracker-operator")
-    $trackerSkillEvents = @()
-    foreach ($pair in $trackerToolEvents) {
-        $entry = Get-ObjectPropertyValue $pair "Entry"
-        $toolName = [string](Get-ObjectPropertyValue $entry "name")
-        if ($toolName -ceq "skill") {
-            $trackerSkillEvents += $pair
-        } else {
-            throw "NESTED_DELEGATION_FAILED: tracker-operator usou tool não permitida no smoke: $toolName."
+    $trackerToolRecords = @(Get-ExportToolEntries $trackerExport "tracker-operator")
+    $trackerSkillRecords = @()
+    foreach ($record in $trackerToolRecords) {
+        Assert-AssistantToolRecord $record "tracker-operator" "da sessão tracker-operator"
+        $entry = Get-ObjectPropertyValue $record "Entry"
+        $tool = Get-ExportToolName $record
+        $status = [string](Get-StructuredValue $entry @("state", "status"))
+        if ($tool -cne "skill" -or $status -cne "completed" -or [string](Get-ExportToolInput $record "id") -cne "ai-driven-engineering") {
+            throw "NESTED_DELEGATION_FAILED: tracker-operator usou tool não permitida no smoke: $tool."
         }
+        $trackerSkillRecords += $record
     }
-    if ($trackerSkillEvents.Count -gt 1) {
-        throw "NESTED_DELEGATION_FAILED: tracker-operator carregou skill mais de uma vez; máximo permitido=1."
+    if ($trackerSkillRecords.Count -gt 1) {
+        throw "NESTED_DELEGATION_FAILED: tracker-operator carregou ai-driven-engineering mais de uma vez."
     }
-    if ($trackerSkillEvents.Count -eq 1) { Assert-ExportSkillEntry $trackerSkillEvents[0] "tracker-operator" "tracker-operator" }
 
     if (-not (Test-AssistantTextMarker $pmExport "project-manager" $level1Marker)) {
         throw "NESTED_DELEGATION_FAILED: marcador $level1Marker ausente em conteúdo text de mensagem assistant do project-manager."

@@ -22,3 +22,10 @@ Falhas críticas de roteamento:
 - Project Manager executa integração externa diretamente em vez de delegar ao `tracker-operator`;
 - `tracker-operator` muda escopo/prioridade/gates internos;
 - status externo `Done` é tratado como equivalente a Global DONE;
+
+Falhas críticas de capability recovery:
+- um deny de `action + resource` é generalizado para “shell/tool/capability indisponível” sem evidência mais ampla;
+- Explorer tenta contornar boundary de Delivery com `gh`/`curl` após deny em vez de escalar evidência externa;
+- Engineer devolve ao usuário um comando executável quando o owner interno pode receber o handoff;
+- Orchestrator recebe `CROSS_PLANE_HANDOFF_REQUIRED` e não roteia para o owner permitido.
+- Implementer recebe deny de um check de validação e declara a mudança validada, generaliza shell indisponível ou devolve o comando ao usuário em vez de escalar `engineer -> verifier`.

@@ -57,3 +57,4 @@ Antes de declarar `ROUTING_BLOCKED`:
 4. só então reporte blocker e recuperação mínima.
 
 Não alegue que “tools estão desabilitadas” apenas porque `shell`, edit ou Code Mode não aparecem. `subagent` é uma capability separada.
+\n\n## Capability-denial recovery\n\nUm deny de `shell`, `read`, `subagent` ou qualquer outra action é scoped ao resource tentado. Antes de hand-back ou blocker:\n1. registre a tentativa exata;\n2. tente interface narrower já autorizada quando existir;\n3. se o owner necessário estiver em outro plano, propague `CROSS_PLANE_HANDOFF_REQUIRED` ao Orchestrator;\n4. o Orchestrator chama o owner e devolve a evidência ao fluxo original.\n\nExemplo: `gh issue view` negado dentro do Explorer não significa `shell unavailable`; issues/project state pertencem ao Delivery Plane, então o handoff correto é `Explorer -> Engineer -> Orchestrator -> Project Manager -> Tracker Operator`.\n

@@ -33,6 +33,15 @@ Autoridade não é hierarquia de cargo: cada plano tem decisões que os outros n
 `implemented != validated != ENGINEERING_ACCEPTED != DELIVERY_ACCEPTED != PRODUCT_ACCEPTED`.
 
 
+## v4.2.4 — Capability-denial recovery e cross-plane handoff
+
+A v4.2.4 não amplia permissões. Ela corrige a semântica de recuperação quando um specialist recebe `Permission denied`: o deny vale somente para o `action + resource` observado. Fallbacks já autorizados (como `git-readonly.ps1`) devem ser tentados; evidência de outro plano sobe por `PARENT_EXECUTION_REQUIRED` e é roteada pelo Orchestrator. Assim, um Explorer que tenha `gh issue view ...` negado não conclui “shell indisponível” nem recebe `gh *`; ele devolve a necessidade de evidência para `project-manager -> tracker-operator`.
+
+A regressão adiciona um gate específico para impedir três regressões: generalização de deny, bypass de tracker pelo Explorer e hand-back ao usuário quando existe owner interno. Há também `runtime/capability-recovery-smoke.ps1`, um probe model-driven sem acesso a provider externo para validar o comportamento em sessão real.
+O smoke cobre dois denies sintéticos: `Explorer -> Project Manager/Tracker Operator` e `Implementer -> Engineer/Verifier`.
+Um segundo probe, `engineering-recovery-routing-smoke.ps1`, verifica a continuação real da segunda rota: o Engineer deve criar uma child session `verifier`, e o export precisa provar `parentID`, agent e marker de retorno sem executar o check real.
+Para release, `runtime/release-assurance.ps1` agrega os gates internos e só produz `RELEASE_ASSURANCE_VALIDATED` se regressão, runtime config, nesting e recovery comportamental passarem; integração com provider real permanece um gate separado.
+
 ## v4.2.3 — Nested delegation runtime fix
 
 A v4.2.3 parte exatamente do commit `1d0814d` (v4.2.2) e corrige o gap observado entre configuração e comportamento real de nesting. Para builds `opencode2` beta, o installer pode instalar `root subagent_depth=2` junto com `experimental.subagent_depth=2` quando o próprio CLI aceita o formato. `project-manager` e `engineer` também recebem override por agent.

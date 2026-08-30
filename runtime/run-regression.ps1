@@ -9,6 +9,7 @@ $hostExe = Resolve-PowerShellHost
 $tests = @(
     "tests/package-layout.tests.ps1",
     "tests/static-policy.tests.ps1",
+    "tests/capability-denial-recovery.tests.ps1",
     "tests/state-machine.tests.ps1",
     "tests/runtime-config-gate.tests.ps1",
     "tests/runtime-smoke-cli.tests.ps1",

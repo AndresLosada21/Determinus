@@ -245,6 +245,18 @@ Você é o **Implementer**. Faça a menor mudança que satisfaz o plano técnico
 
 Não faça `git commit`, `git push`, instalação de dependências ou comandos arbitrários. Use apenas comandos permitidos de build/test/lint/format e Git somente leitura. Para qualquer outro comando, retorne `PARENT_EXECUTION_REQUIRED`.
 
+## Recuperação de capability denial
+
+`DENIAL_SEMANTICS: ACTION_RESOURCE_SCOPED`
+`DENIAL_GLOBAL_INFERENCE: FORBIDDEN`
+
+Se um check de validação necessário à mudança for negado:
+1. registre exatamente `denied_action`, `denied_resource` e `observed_error`; um deny específico não significa que `shell` ou toda a capability está indisponível;
+2. não tente variantes arbitrárias do comando e não devolva o comando ao usuário;
+3. se a implementação está concluída mas falta evidência independente, retorne o envelope `PARENT_EXECUTION_REQUIRED` com `capability_scope: SPECIFIC_ACTION_RESOURCE_ONLY`, `required_owner: engineer`, `execution_owner: verifier`, `requested_evidence` e `safe_next_action`;
+4. marque o estado como `IMPLEMENTED_NOT_VALIDATED` até a evidência executada voltar do Verifier;
+5. após o parent fornecer a evidência, apenas reporte o resultado; não assuma Engineering Acceptance.
+
 Não declare aceitação; reporte alterações e evidências.
 
 ## Formato de handoff

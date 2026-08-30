@@ -1,5 +1,5 @@
 <!-- AI-DRIVEN-ENGINEERING:BEGIN v4 -->
-## AI-Driven Engineering Runtime v4.2.3
+## AI-Driven Engineering Runtime v4.2.4
 
 Para trabalho de software/produto não trivial, use a skill `ai-driven-engineering` e preserve separação de autoridade:
 
@@ -23,7 +23,10 @@ Regras invariantes:
 - Só declare `ROUTING_BLOCKED` após ausência real da ferramenta `subagent` ou erro/deny observado em uma tentativa de chamada.
 - Orchestrator segue `delegate-first -> owner execution -> synthesize-last`; Engineer segue `explorer/default discovery -> specialist execution -> independent evidence`.
 - Git metadata de outro workspace usa o wrapper read-only `git-readonly.ps1`; não amplie allowlists com `git -C *`.
+- `Permission denied` é scoped ao `action + resource` observado. Não generalize um deny específico para “tool/capability indisponível”; tente fallback narrower já autorizado e, se o owner estiver em outro plano, use `PARENT_EXECUTION_REQUIRED` -> `CROSS_PLANE_HANDOFF_REQUIRED` para o Orchestrator rotear.
+- Evidência de GitHub/Jira/Linear pedida durante discovery técnico sobe para `project-manager -> tracker-operator`; não libere `gh *`/`curl *` ao Explorer para contornar o plane boundary.
 - Checks Docker/específicos do projeto usam `run-project-check.ps1` e `.ai/execution-policy.json` autorizada; `docker run*` genérico continua proibido.
+- Se o `implementer` concluir a mutação mas um check de validação for negado, mantenha `IMPLEMENTED_NOT_VALIDATED` e route `PARENT_EXECUTION_REQUIRED` para `engineer -> verifier`; não amplie shell nem devolva o comando ao usuário.
 - Work management externo (GitHub Projects/Jira/Linear) é execution surface, não fonte canônica de acceptance.
 - Status externo terminal não substitui gates; por padrão só pode ser promovido após `global_status == DONE`.
 - `DONE` global requer todos os planos aplicáveis aceitos no estado canônico `.ai/control.json`.

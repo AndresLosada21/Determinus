@@ -57,6 +57,14 @@ foreach ($file in Get-ChildItem -LiteralPath $agents -Filter "*.md" -File) {
     }
 
     if ($name -eq 'explorer' -and $text -notmatch 'git-readonly\.ps1') { $errors.Add('explorer: git-readonly.ps1 ausente') }
+    if ($name -eq 'explorer') {
+        foreach ($required in @('DENIAL_SEMANTICS: ACTION_RESOURCE_SCOPED','DENIAL_GLOBAL_INFERENCE: FORBIDDEN','AUTHORIZED_FALLBACK: REQUIRED_WHEN_AVAILABLE','PARENT_EXECUTION_REQUIRED','required_owner: project-manager','execution_owner: tracker-operator')) {
+            if ($text -notmatch [regex]::Escape($required)) { $errors.Add("explorer: capability recovery ausente: $required") }
+        }
+        foreach ($forbidden in @('gh \*','curl \*','docker \*')) {
+            if ($text -match ('action:\s+shell[\s\S]{0,120}resource:\s+"' + $forbidden + '"[\s\S]{0,80}effect:\s+allow')) { $errors.Add("explorer: shell amplo proibido: $forbidden") }
+        }
+    }
     if ($name -eq 'verifier') {
         if ($text -notmatch 'run-project-check\.ps1') { $errors.Add('verifier: run-project-check.ps1 ausente') }
         if ($text -notmatch 'git-readonly\.ps1') { $errors.Add('verifier: git-readonly.ps1 ausente') }

@@ -3,13 +3,14 @@ $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $required = @(
     'VERSION','README.md','install-opencode.ps1','uninstall-opencode.ps1','AGENTS.managed.md','opencode-fragment.jsonc',
     'skills/ai-driven-engineering/SKILL.md',
+    'skills/ai-driven-engineering/references/capability-recovery.md',
     'skills/ai-driven-engineering/templates/integrations.json',
     'skills/ai-driven-engineering/templates/traceability.json',
     'skills/ai-driven-engineering/templates/work-item.json',
     'skills/ai-driven-engineering/templates/execution-policy.json',
     'runtime/runtime-common.ps1','runtime/bootstrap-project.ps1','runtime/set-ai-state.ps1','runtime/validate-ai-state.ps1',
     'runtime/runtime-smoke.ps1','runtime/work-management.ps1','runtime/traceability.ps1','runtime/audit-log.ps1',
-    'runtime/run-regression.ps1','runtime/nested-delegation-smoke.ps1','runtime/verify-git-push.ps1','runtime/git-readonly.ps1','runtime/run-project-check.ps1','runtime/register-project-check.ps1',
+    'runtime/run-regression.ps1','runtime/nested-delegation-smoke.ps1','runtime/capability-recovery-smoke.ps1','runtime/engineering-recovery-routing-smoke.ps1','runtime/release-assurance.ps1','runtime/verify-git-push.ps1','runtime/git-readonly.ps1','runtime/run-project-check.ps1','runtime/register-project-check.ps1',
     'scripts/bootstrap-project.ps1'
 )
 foreach ($rel in $required) {

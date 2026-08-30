@@ -100,11 +100,10 @@ if ([string]$arguments[0] -eq 'run') {
             tool = 'skill'
             state = [ordered]@{
                 status = 'completed'
-                input = [ordered]@{ name = 'ai-driven-engineering' }
+                input = [ordered]@{ id = 'ai-driven-engineering' }
             }
         }
     }
-    $rootSkillEvent | ConvertTo-Json -Depth 20 -Compress
     $rootEvent = [ordered]@{
         type = 'tool_use'
         sessionID = 'root-' + $nonce
@@ -114,11 +113,15 @@ if ([string]$arguments[0] -eq 'run') {
             state = [ordered]@{
                 status = 'completed'
                 input = [ordered]@{ agent = 'project-manager'; prompt = "$level1 $level2" }
-                metadata = [ordered]@{ metadata = [ordered]@{ sessionID = 'pm-' + $nonce } }
+                metadata = [ordered]@{ sessionID = 'pm-' + $nonce }
             }
         }
     }
+    $rootSkillEvent | ConvertTo-Json -Depth 20 -Compress
     $rootEvent | ConvertTo-Json -Depth 20 -Compress
+    if ($mode -eq 'root-retry') {
+        $rootEvent | ConvertTo-Json -Depth 20 -Compress
+    }
     if ($mode -eq 'root-extra-tool') {
         $extraRootEvent = [ordered]@{
             type = 'tool_use'
@@ -147,28 +150,28 @@ if ($sessionId -like 'pm-*') {
     $level1 = 'NESTED_LEVEL1_' + $nonce
     $level2 = 'NESTED_LEVEL2_' + $nonce
     $pmText = if ($mode -eq 'markers-in-input-only') { 'sem marcador assistant de nível 1' } else { $level1 }
-    $pmContent = @(
-        [ordered]@{
-            type = 'tool'
-            name = 'skill'
-            executed = $true
-            state = [ordered]@{
-                status = 'completed'
-                input = [ordered]@{ name = 'ai-driven-engineering' }
-            }
-        },
-        [ordered]@{
-            type = 'tool'
-            name = 'subagent'
-            executed = $true
-            state = [ordered]@{
-                status = 'completed'
-                input = [ordered]@{ agent = 'tracker-operator'; prompt = "$level1 $level2" }
-                metadata = [ordered]@{ metadata = [ordered]@{ sessionID = 'tracker-' + $nonce } }
-            }
-        },
-        [ordered]@{ type = 'text'; text = $pmText }
-    )
+    $pmSkill = [ordered]@{
+        type = 'tool'
+        name = 'skill'
+        executed = $false
+        state = [ordered]@{
+            status = 'completed'
+            input = [ordered]@{ id = 'ai-driven-engineering' }
+        }
+    }
+    $pmSubagent = [ordered]@{
+        type = 'tool'
+        name = 'subagent'
+        executed = $false
+        state = [ordered]@{
+            status = 'completed'
+            input = [ordered]@{ agent = 'tracker-operator'; prompt = "$level1 $level2" }
+            metadata = [ordered]@{ sessionID = 'tracker-' + $nonce }
+        }
+    }
+    $pmContent = @($pmSkill, $pmSubagent)
+    if ($mode -eq 'pm-retry') { $pmContent += $pmSubagent }
+    $pmContent += [ordered]@{ type = 'text'; text = $pmText }
     if ($mode -eq 'pm-extra-tool') {
         $pmContent += [ordered]@{
             type = 'tool'
@@ -207,15 +210,15 @@ if ($sessionId -like 'tracker-*') {
     $nonce = $sessionId.Substring(8)
     $level1 = 'NESTED_LEVEL1_' + $nonce
     $level2 = 'NESTED_LEVEL2_' + $nonce
-    $trackerText = if ($mode -eq 'success' -or $mode -eq 'tracker-tool') { $level2 } else { 'sem marcador assistant de nível 2' }
+    $trackerText = if ($mode -in @('success','tracker-tool','root-retry','pm-retry','root-extra-tool','pm-extra-tool')) { $level2 } else { 'sem marcador assistant de nível 2' }
     $trackerContent = @(
         [ordered]@{
             type = 'tool'
             name = 'skill'
-            executed = $true
+            executed = $false
             state = [ordered]@{
                 status = 'completed'
-                input = [ordered]@{ name = 'ai-driven-engineering' }
+                input = [ordered]@{ id = 'ai-driven-engineering' }
             }
         },
         [ordered]@{ type = 'text'; text = $trackerText }
@@ -290,6 +293,18 @@ exec "__PWSH_EXE__" -NoProfile -File "$(dirname "$0")/fake-opencode2.ps1" "$@"
     }
     Assert-FakeSandboxCleanup 'success' 3
 
+    $rootRetry = Invoke-FakeNestedProbe 'root-retry' $target
+    if ($rootRetry.ExitCode -ne 0 -or ($rootRetry.Output | Out-String) -notmatch 'NESTED_DELEGATION_OK') {
+        throw 'nested probe rejeitou retry idêntico do handoff root -> project-manager'
+    }
+    Assert-FakeSandboxCleanup 'root-retry' 3
+
+    $pmRetry = Invoke-FakeNestedProbe 'pm-retry' $target
+    if ($pmRetry.ExitCode -ne 0 -or ($pmRetry.Output | Out-String) -notmatch 'NESTED_DELEGATION_OK') {
+        throw 'nested probe rejeitou retry idêntico do handoff project-manager -> tracker-operator'
+    }
+    Assert-FakeSandboxCleanup 'pm-retry' 3
+
     # Both nonces occur in user/prompt/tool input, but neither assistant text
     # contains them. A raw transcript search would be a false positive.
     $inputOnly = Invoke-FakeNestedProbe 'markers-in-input-only' $target
@@ -315,7 +330,7 @@ exec "__PWSH_EXE__" -NoProfile -File "$(dirname "$0")/fake-opencode2.ps1" "$@"
     if ($rootExtraTool.ExitCode -eq 0) {
         throw 'nested probe aceitou tool extra na root'
     }
-    if (($rootExtraTool.Output | Out-String) -notmatch 'root usou tool não permitida no smoke: read') {
+    if (($rootExtraTool.Output | Out-String) -notmatch 'root usou tool não permitida no smoke') {
         throw 'falha negativa não rejeitou tool extra na root'
     }
     Assert-FakeSandboxCleanup 'root-extra-tool' 1
@@ -324,7 +339,7 @@ exec "__PWSH_EXE__" -NoProfile -File "$(dirname "$0")/fake-opencode2.ps1" "$@"
     if ($pmExtraTool.ExitCode -eq 0) {
         throw 'nested probe aceitou tool extra no project-manager'
     }
-    if (($pmExtraTool.Output | Out-String) -notmatch 'project-manager usou tool não permitida no smoke: read') {
+    if (($pmExtraTool.Output | Out-String) -notmatch 'project-manager usou tool não permitida no smoke') {
         throw 'falha negativa não rejeitou tool extra no project-manager'
     }
     Assert-FakeSandboxCleanup 'pm-extra-tool' 2
@@ -333,7 +348,7 @@ exec "__PWSH_EXE__" -NoProfile -File "$(dirname "$0")/fake-opencode2.ps1" "$@"
     if ($trackerTool.ExitCode -eq 0) {
         throw 'nested probe aceitou tool no tracker-operator'
     }
-    if (($trackerTool.Output | Out-String) -notmatch 'tracker-operator usou tool não permitida no smoke: read') {
+    if (($trackerTool.Output | Out-String) -notmatch 'tracker-operator usou tool não permitida no smoke') {
         throw 'falha negativa não rejeitou tool no tracker-operator'
     }
     Assert-FakeSandboxCleanup 'tracker-tool' 3
