@@ -1,15 +1,8 @@
-$ErrorActionPreference = "Stop"
-$root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$smoke = [System.IO.File]::ReadAllText((Join-Path $root 'runtime/runtime-smoke.ps1'))
-$regression = [System.IO.File]::ReadAllText((Join-Path $root 'runtime/run-regression.ps1'))
-$push = [System.IO.File]::ReadAllText((Join-Path $root 'runtime/verify-git-push.ps1'))
-
-if ($smoke -notmatch 'RUNTIME_INVARIANT_FAILED: subagent_depth esperado=2') { throw 'subagent_depth não é assertion dura' }
-if ($smoke -notmatch 'RUNTIME_INVARIANT_FAILED: default_agent esperado=orchestrator') { throw 'default_agent não é assertion dura' }
-if ($regression -notmatch '\$code = \$LASTEXITCODE') { throw 'regression runner não preserva exit code explicitamente' }
-if ($regression -notmatch 'REGRESSION_FAILED') { throw 'regression runner não possui failure gate' }
-if ($push -notmatch 'git.*ls-remote' -and $push -notmatch '"ls-remote"') { throw 'push verifier não consulta remote SHA' }
-if ($push -notmatch '\$local -ne \$remoteSha') { throw 'push verifier não compara SHA local/remoto' }
-if ($push -notmatch 'PUSH_VALIDATED') { throw 'push verifier não emite evidence status' }
-
-Write-Host 'Evidence hardening: OK'
+param([string]$Root = (Split-Path -Parent $PSScriptRoot))
+$ErrorActionPreference='Stop'
+$src=Get-Content (Join-Path $Root 'plugin/src/index.ts') -Raw
+foreach($m in @('normalizeEvidence','Array.isArray(value)','persistEvidence','evidence.jsonl','evidence_count','const limit=i.limit||5')){if(-not $src.Contains($m)){throw "evidence hardening ausente: $m"}}
+$c=Get-Content (Join-Path $Root 'plugin/assets/project-templates/control.json') -Raw | ConvertFrom-Json
+if([int]$c.schema_version -ne 3){throw 'control schema !=3'}
+if($null -eq $c.evidence -or @($c.evidence).Count -ne 0){throw 'control evidence template deve iniciar []'}
+'EVIDENCE_HARDENING_OK'

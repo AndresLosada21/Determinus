@@ -1,33 +1,18 @@
-<!-- AI-DRIVEN-ENGINEERING:BEGIN v4 -->
-## AI-Driven Engineering Runtime v4.2.4
+<!-- AI-DRIVEN-ENGINEERING:BEGIN v5 -->
+## AI-Driven Engineering Runtime v5.2.0
 
-Para trabalho de software/produto não trivial, use a skill `ai-driven-engineering` e preserve separação de autoridade:
+Use ADE como plano de controle, não como formato de conversa.
 
-- **Product Plane** decide WHY/WHAT.
-- **Delivery Plane** decide WHEN/ORDER/DEPENDENCIES/DELIVERY STATE; `tracker-operator` apenas materializa essas decisões em sistemas externos.
-- **Engineering Plane** decide HOW e Engineering Acceptance.
-- **Orchestration** coordena handoffs e gates, sem absorver a autoridade dos outros planos.
-
-Regras invariantes:
+Invariantes globais:
+- Product decide **WHY/WHAT**; Delivery decide **WHEN/ORDER/DELIVERY STATE**; Engineering decide **HOW/ENGINEERING ACCEPTANCE**; Orchestrator apenas roteia e sintetiza.
 - `implemented != validated != engineering accepted != delivery accepted != product accepted`.
-- Evidência deve distinguir `OBSERVADO`, `INFERIDO`, `PROPOSTO`, `VALIDADO`, `DESCONHECIDO`.
-- Segredos e credenciais não são conteúdo de trabalho; não leia nem replique valores sensíveis.
-- Subagents recebem contexto novo; delegações devem explicitar objetivo, escopo, evidências de entrada, restrições, saída e critério de conclusão.
-- `subagent_depth` configurado não é evidência suficiente de nesting operacional: trate como `SUBAGENT_DEPTH_CONFIGURED` até um probe real `orchestrator -> owner -> leaf` concluir com `SUBAGENT_DEPTH_VALIDATED`.
-- Se o runtime retornar `Subagent depth limit reached`, não recomende `experimental.subagent_depth` por inferência; reporte o erro observado e use o runtime de compatibilidade/probe do pacote.
-- Especialistas aninhados não devem depender de permission `ask`; ações fora da policy devem subir como `PARENT_EXECUTION_REQUIRED`.
-- Fan-out padrão: no máximo 3 especialistas simultâneos por onda, salvo justificativa explícita.
-- **Delegate-first:** quando um agente tem `subagent` permitido cujo papel é owner do trabalho, deve invocá-lo; descrever o que o subagent faria não substitui a chamada.
-- **No hand-back:** não peça ao usuário para executar comandos, testes, leituras ou invocações que o runtime/agents permitidos podem executar.
-- Delegação interna já autorizada não exige confirmação do usuário. Perguntas humanas são para decisões materiais/permissions reais, não para roteamento.
-- Só declare `ROUTING_BLOCKED` após ausência real da ferramenta `subagent` ou erro/deny observado em uma tentativa de chamada.
-- Orchestrator segue `delegate-first -> owner execution -> synthesize-last`; Engineer segue `explorer/default discovery -> specialist execution -> independent evidence`.
-- Git metadata de outro workspace usa o wrapper read-only `git-readonly.ps1`; não amplie allowlists com `git -C *`.
-- `Permission denied` é scoped ao `action + resource` observado. Não generalize um deny específico para “tool/capability indisponível”; tente fallback narrower já autorizado e, se o owner estiver em outro plano, use `PARENT_EXECUTION_REQUIRED` -> `CROSS_PLANE_HANDOFF_REQUIRED` para o Orchestrator rotear.
-- Evidência de GitHub/Jira/Linear pedida durante discovery técnico sobe para `project-manager -> tracker-operator`; não libere `gh *`/`curl *` ao Explorer para contornar o plane boundary.
-- Checks Docker/específicos do projeto usam `run-project-check.ps1` e `.ai/execution-policy.json` autorizada; `docker run*` genérico continua proibido.
-- Se o `implementer` concluir a mutação mas um check de validação for negado, mantenha `IMPLEMENTED_NOT_VALIDATED` e route `PARENT_EXECUTION_REQUIRED` para `engineer -> verifier`; não amplie shell nem devolva o comando ao usuário.
-- Work management externo (GitHub Projects/Jira/Linear) é execution surface, não fonte canônica de acceptance.
-- Status externo terminal não substitui gates; por padrão só pode ser promovido após `global_status == DONE`.
-- `DONE` global requer todos os planos aplicáveis aceitos no estado canônico `.ai/control.json`.
-<!-- AI-DRIVEN-ENGINEERING:END v4 -->
+- Evidência distingue `OBSERVADO`, `INFERIDO`, `PROPOSTO`, `VALIDADO`, `DESCONHECIDO`.
+- `.ai/control.json` é estado canônico atual; logs/audit guardam histórico. Tracker externo é execution surface, não fonte de acceptance.
+- Segredos, tokens, chaves e valores de arquivos de ambiente nunca entram em prompts, evidências ou handoffs.
+- `Permission denied` vale somente para o `action + resource` observado. Não generalize uma negação específica.
+- Subagents têm contexto novo: delegue apenas o contexto mínimo necessário. Não reconfirme owners cujo estado/revision relevante não mudou.
+- Routing é **state-driven**: invoque somente o owner cuja autoridade é necessária agora. Não percorra Product → Delivery → Engineering por ritual.
+- Leaf agents não pedem `ask`; capability ausente vira `PARENT_EXECUTION_REQUIRED` com blocker exato.
+- A resposta ao usuário é concisa por padrão. Detalhes completos ficam em `/ade-audit`, `/ade-trace` e evidências sob demanda.
+- Só declare `DONE` quando todos os planos aplicáveis estiverem aceitos no estado canônico.
+<!-- AI-DRIVEN-ENGINEERING:END v5 -->

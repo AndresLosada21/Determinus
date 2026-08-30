@@ -1,6 +1,7 @@
 param(
     [string]$ProjectRoot = (Get-Location).Path,
     [Parameter(Mandatory=$true)][string]$Name,
+    [ValidateSet('verifier','debugger')][string]$ExpectedOwner = 'verifier',
     [switch]$NoAudit
 )
 
@@ -52,7 +53,7 @@ $checkProp = $checks.PSObject.Properties[$Name]
 if ($null -eq $checkProp) { throw "Check não registrado: $Name" }
 $check = $checkProp.Value
 $owner = [string](Get-Property $check 'owner' '')
-if ($owner -ne 'verifier') { throw "Check '$Name' deve ter owner=verifier; atual=$owner" }
+if ($owner -ne $ExpectedOwner) { throw "Check '$Name' deve ter owner=$ExpectedOwner; atual=$owner" }
 if ((Get-Property $check 'non_destructive' $false) -ne $true) { throw "Check '$Name' precisa declarar non_destructive=true." }
 $runner = [string](Get-Property $check 'runner' '')
 $allowedExitCodes = @((Get-Property $check 'allowed_exit_codes' @(0)) | ForEach-Object { [int]$_ })
@@ -118,13 +119,13 @@ try {
     }
 
     if (-not $NoAudit) {
-        Add-AuditEvent -ProjectRoot $root -EventType 'engineering.project-check' -Actor 'verifier' -Plane 'engineering' -Action $Name -Status 'VALIDATED' -Metadata @{ runner=$runner; policy='execution-policy.json' } | Out-Null
+        Add-AuditEvent -ProjectRoot $root -EventType $(if ($ExpectedOwner -eq 'verifier') { 'engineering.project-check' } else { 'engineering.diagnostic-check' }) -Actor $ExpectedOwner -Plane 'engineering' -Action $Name -Status $(if ($ExpectedOwner -eq 'verifier') { 'VALIDATED' } else { 'OBSERVED' }) -Metadata @{ runner=$runner; policy='execution-policy.json' } | Out-Null
     }
     $out | ForEach-Object { Write-Output $_ }
-    Write-Host "PROJECT_CHECK_VALIDATED: $Name"
+    if ($ExpectedOwner -eq 'verifier') { Write-Host "PROJECT_CHECK_VALIDATED: $Name" } else { Write-Host "DIAGNOSTIC_CHECK_COMPLETED: $Name" }
 } catch {
     if (-not $NoAudit -and (Test-Path -LiteralPath (Join-Path $root '.ai'))) {
-        try { Add-AuditEvent -ProjectRoot $root -EventType 'engineering.project-check' -Actor 'verifier' -Plane 'engineering' -Action $Name -Status 'FAILED' -Metadata @{ error=$_.Exception.Message } | Out-Null } catch {}
+        try { Add-AuditEvent -ProjectRoot $root -EventType $(if ($ExpectedOwner -eq 'verifier') { 'engineering.project-check' } else { 'engineering.diagnostic-check' }) -Actor $ExpectedOwner -Plane 'engineering' -Action $Name -Status 'FAILED' -Metadata @{ error=$_.Exception.Message } | Out-Null } catch {}
     }
     throw
 }

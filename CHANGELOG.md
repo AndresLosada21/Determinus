@@ -1,5 +1,66 @@
 # Changelog
 
+## 5.2.0 — State-driven stabilization & efficiency
+
+- Replaces ritualistic `DELEGATE_FIRST` with `STATE_DRIVEN` routing and owner-revision reuse.
+- Adds `USER_BRIEF` and `COMPACT_HANDOFF`; removes eight-section audit responses from normal UX.
+- Makes `ai-driven-engineering` Skill explicit/lazy (`opencode/autoinvoke: false`) and shrinks persistent AGENTS context.
+- Moves V2 nesting to `experimental.subagent_depth=2`; removes top-level/per-agent depth.
+- Adds `ade_route_snapshot`; makes state compact by default and evidence query default 5.
+- Fixes legacy `evidence: {}` via normalization, control schema 3 and durable `.ai/evidence.jsonl`.
+- Adds bounded provider invalid-request retry for auto-only tool-choice paths.
+- Adds generation budgets, telemetry and `/ade-why`, `/ade-trace`, `/ade-metrics`; `/ade-doctor` is direct/non-LLM.
+- Improves project-check diagnostics with effective root/policy/request/available checks.
+- Separates deterministic core runtime validation from strict optional behavioral evals.
+- Restores strict nested delegation proof; alternative routes are no longer accepted as equivalent.
+- Installer manifest schema 7; migration supports v4/v5.0/v5.1.
+- Regression expanded to 32 Python groups; plugin suite to 24 Node tests.
+
+## 5.0.2 — Provider-safe ADE tool schemas
+
+Patch sobre a v5.0.1 após validação real no `opencode2 beta-18684`: o plugin carregava como `active`, mas sessões de agents que recebiam tools `ade_*` falhavam antes da inferência com `Schema validation failed`.
+
+### Fixed
+- Schemas raiz ADE que antes usavam `required: []` agora recebem o sentinela obrigatório `scope: "current_project"`; isso contorna gateways DeepSeek/OpenAI-compatible estritos que removem/rejeitam `required` vazio sem ampliar a superfície de argumentos.
+- O smoke de plugin separa `PROVIDER_BASELINE_VALIDATED` (agent `build`, sem tools ADE) de `PLUGIN_TOOL_EXECUTION_VALIDATED`; um erro de schema após baseline aprovado vira `PLUGIN_SCHEMA_COMPAT_FAILED`, não um erro genérico.
+- Cleanup de sandboxes no Windows é best-effort com retry; `WinError 32` não pode mais mascarar a causa primária do probe.
+- Migração aceita upgrade direto de `5.0.1 -> 5.0.2` e substitui arquivos gerenciados somente quando o hash em disco ainda corresponde ao manifesto anterior; customizações reais continuam bloqueadas.
+
+### Added
+- Gates Python `provider-wire-schema-compat` e `managed-upgrade-safety`; regressão passa de 20 para 22 grupos.
+- Plugin static tests passam de 14 para 15 com invariante explícita de `required` não vazio para schemas ADE opcionais.
+
+### Evidence
+- v5.0.1: `PLUGIN_LOADED_VALIDATED` e 18 surfaces configuradas, seguido de `Schema validation failed` ao iniciar `explorer` com catálogo ADE.
+- A correção é direcionada à fronteira provider/tool-schema e não altera capabilities, authority model, routing, tracker ou VCS policy.
+
+## 5.0.1 — Python-first release tooling
+
+A v5.0.1 supersede o bundle candidato v5.0.0 que foi rejeitado no preflight antes de alterar a instalação. O plugin TypeScript/capability model permanece; a cadeia de instalação, regressão e assurance deixa de depender da semântica/encoding do Windows PowerShell 5.1.
+
+### Fixed
+- Migração `v4 -> v5` não usa mais testes PowerShell com literais UTF-8; elimina falso negativo observado em `force push é proibido` interpretado pela code page legada.
+- Elimina dependência de `$LASTEXITCODE` stale e quoting de `powershell -Command` do release tooling.
+- Static policy não usa frases humanas como enforcement de segurança: verifica registry, ownership, schemas e código executável.
+- `source_tree_sha256` ignora artefatos de runtime (`__pycache__`, `.pyc`, etc.); importar o tooling não altera mais o digest de release.
+
+### Added
+- `tooling/ade.py` + pacote `ade_tooling`, Python 3.9+ **stdlib-only**.
+- Comandos Python: `regression`, `static-policy`, `install`, `migrate`, `uninstall`, `manifest-check`, `validate`, `assurance`, `plugin-smoke`, `runtime-smoke`, `nested-smoke`, `capability-smoke`, `engineering-recovery-smoke`.
+- Regressão Python com 20 gates estruturais/segurança, independente de PowerShell/Node para o preflight.
+- Manifesto de instalação schema 6 com hashes de agents/skill/runtime/tooling/plugin, backup map e rollback seguro.
+- Probes comportamentais portados para Python: plugin tool execution, nesting, capability recovery e Engineer -> Verifier.
+- `.ps1` de release/assurance viram apenas shims curtos para `py -3`/`python`.
+
+### Compatibility
+- Plugin runtime continua TypeScript/JavaScript nativo do OpenCode.
+- Scripts PowerShell de projeto da linha v4 permanecem como compatibility backend durante migração gradual; **não** são usados pelo preflight/regression/install/assurance da v5.0.2.
+- O typed tracker bridge ainda pode usar o backend compatível `work-management.ps1`; isso não afeta a certificação interna do plugin e será migrável separadamente.
+
+## 5.0.0 — Plugin-native foundation (candidate superseded)
+- Introduziu `ai-driven-engineering.native`, 18 agents, 24 tools tipadas, capability filtering, permission enforcement, validation authority, typed state/evidence, VCS Operator e tracker bridge.
+- Candidato não foi promovido: o primeiro migration preflight em Windows detectou um falso negativo do harness PowerShell 5.1. A implementação plugin-native foi preservada e o release tooling foi substituído na v5.0.2.
+
 ## 4.2.4 — 2026-08-29
 
 Patch sobre a release runtime-validada `v4.2.3` (`436707d`) para corrigir capability-denial recovery sem ampliar permissions.

@@ -38,6 +38,8 @@ $map = [ordered]@{
     "control.json"            = "control.json"
     "integrations.json"       = "integrations.json"
     "traceability.json"       = "traceability.json"
+    "vcs-policy.json"          = "vcs-policy.json"
+    "tracker-policy.json"      = "tracker-policy.json"
 }
 
 foreach ($entry in $map.GetEnumerator()) {
