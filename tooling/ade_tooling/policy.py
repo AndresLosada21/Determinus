@@ -63,11 +63,11 @@ def static_policy(root: Path | None = None) -> list[str]:
 
     pm_fm, pm_body = parse_frontmatter(agent_files["project-manager"])
     _expect("tracker-operator" in {p.get("resource") for p in pm_fm["permissions"] if p.get("action") == "subagent" and p.get("effect") == "allow"}, "project-manager: tracker-operator não permitido")
-    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "TRACKER_AUTHORITY: EXECUTION_ONLY", "Handoff canônico"):
+    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "TRACKER_AUTHORITY: EXECUTION_ONLY", "EXECUTION_POLICY: DELEGATION_DRIVEN", "Handoff canônico"):
         _expect(marker in pm_body, f"project-manager: marker ausente {marker}")
 
     eng_body = parse_frontmatter(agent_files["engineer"])[1]
-    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "HAND_BACK_POLICY: FORBIDDEN_WHEN_EXECUTABLE", "Handoff canônico"):
+    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "HAND_BACK_POLICY: FORBIDDEN_WHEN_EXECUTABLE", "EXECUTION_POLICY: DELEGATION_DRIVEN", "Handoff canônico"):
         _expect(marker in eng_body, f"engineer: marker ausente {marker}")
 
     orch_body = parse_frontmatter(agent_files["orchestrator"])[1]
@@ -134,6 +134,8 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect('DIAGNOSTIC_CHECK_COMPLETED' in src, "diagnostic marker ausente")
 
     _expect(cap["agents"]["tracker-operator"].count("ade_tracker_read") == 1 and cap["agents"]["tracker-operator"].count("ade_tracker_write") == 1, "tracker split inválido")
+    _expect(set(cap["agents"]["tracker-operator"]) == {"ade_tracker_read","ade_tracker_write","ade_handoff_submit"}, "tracker leaf surface não mínima")
+    _expect({"read","glob","grep","skill"}.issubset(set((cap.get("hide_core_tools") or {}).get("tracker-operator",[]))), "tracker workspace discovery não oculto")
     _expect("trackerPolicy=await readJson(trackerPolicyPath)" in src and 'mode==="write"&&!i.dry_run&&trackerPolicy.write?.authorized!==true' in src, "tracker write gate ausente")
 
     for marker in ("blockedExecutables", "powershell.exe", "cmd.exe", "bash", "docker", "podman", "git", 'args.some((x:string)=>x.includes("\\0"))'):

@@ -135,19 +135,7 @@ permissions:
 - action: subagent
   resource: vcs-operator
   effect: allow
-- action: ade_status
-  resource: '*'
-  effect: allow
-- action: ade_state_get
-  resource: '*'
-  effect: allow
 - action: ade_engineering_transition
-  resource: '*'
-  effect: allow
-- action: ade_evidence_record
-  resource: '*'
-  effect: allow
-- action: ade_evidence_query
   resource: '*'
   effect: allow
 - action: ade_vcs_status
@@ -182,6 +170,16 @@ Você decide o **HOW** e Engineering Acceptance. Coordene especialistas, mas nã
 - Máximo padrão: 3 leafs por onda; prefira sequência curta quando um resultado condiciona o próximo.
 - `PARENT_EXECUTION_REQUIRED` de um leaf deve ser resolvido pela capability/owner mais estreita disponível, sem devolver comandos ao usuário.
 - Erro determinístico idêntico não é motivo para repetir subagent.
+
+## Delegação Engineering one-shot
+Se o brief trouxer `REQUIRED_CHILD: <agent>`, invoque **exatamente o agent solicitado uma vez** quando ele estiver na sua autoridade, consuma o handoff tipado e publique o seu próprio handoff. Não faça discovery ou consultas de estado antes dessa delegação salvo `DISCOVERY_ALLOWED: true`.
+## Contrato de delegação
+`EXECUTION_POLICY: DELEGATION_DRIVEN`
+`DELEGATION_CONTEXT_MARKER: ADE_DELEGATION_CONTEXT: COMPLETE`
+
+Quando o brief contiver `ADE_DELEGATION_CONTEXT: COMPLETE`, trate `objective`, `authoritative_inputs`, `required_action`, `required_child` e `return_contract` como suficientes para **este escopo**. Não reidrate o plano por hábito: não consulte status/state/evidence, não carregue Skill e não releia arquivos apenas para reconfirmar dados já presentes no brief. Discovery adicional só é permitido se o brief declarar `DISCOVERY_ALLOWED: true` ou se faltar um dado concreto indispensável; nesse caso, faça a menor leitura possível e explique a lacuna no handoff.
+
+Não use `ade_evidence_record` para duplicar fatos recebidos no brief ou produzidos por uma child tool. Referencie-os em `evidence_refs`. Um deny vale apenas para a ação/recurso observado e não autoriza redescoberta global.
 
 ## Handoff canônico
 Antes da resposta final, publique **exatamente um** handoff via `ade_handoff_submit`. O registro tipado é a fonte canônica para routing; o texto livre é apenas UX.

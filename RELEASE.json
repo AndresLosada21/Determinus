@@ -1,17 +1,17 @@
 {
   "schema_version": 3,
-  "version": "5.2.2",
+  "version": "5.2.3",
   "release_state": "SOURCE_VALIDATED_RUNTIME_PENDING",
   "source_tree_hash_excludes": [
     "RELEASE.json"
   ],
-  "source_tree_sha256": "c5a3e6b34eb2c622a88f515b8ecb4fabd6ae8e94d52b93e779d1eb8011d02930",
+  "source_tree_sha256": "233ae790d08171ee87b364e08cb158730bf87ba9f0486342754f06465a27bf14",
   "target": {
     "opencode": "V2 Promise plugin API",
     "observed_windows_build": "0.0.0-beta-18684"
   },
   "validation": {
-    "python_regression_groups": 34,
+    "python_regression_groups": 35,
     "plugin_tests": 27,
     "typescript_typecheck": "passed",
     "v2_lifecycle_mock": "passed",
@@ -19,21 +19,25 @@
     "manifest_schema": 7,
     "agents": 18,
     "typed_tools": 26,
-    "runtime_opencode_windows": "pending_revalidation_for_5.2.2",
+    "runtime_opencode_windows": "pending_revalidation_for_5.2.3",
     "behavioral_provider_eval": "pending",
-    "contract_assurance": "passed",
+    "contract_assurance": "passed_after_migration",
     "structured_handoff_revision_neutrality": "passed",
-    "v5_2_1_to_v5_2_2_migration": "passed",
-    "v5_2_2_to_v5_2_1_rollback": "passed",
+    "v5_2_1_to_v5_2_3_migration": "passed",
+    "v5_2_3_to_v5_2_1_rollback": "passed",
     "plugin_definition_compat_adapter": "passed_local_mock",
     "state_driven_nested_fixture": "passed_static",
-    "plugin_list_bounded_retry": "passed_static"
+    "plugin_list_bounded_retry": "passed_static",
+    "v5_2_2_to_v5_2_3_migration": "passed_local_simulation",
+    "v5_2_3_to_v5_2_2_rollback": "passed_byte_identical_orchestrator_and_manifest_restore",
+    "delegation_driven_children": "passed_static",
+    "tracker_leaf_minimal_surface": "passed_static",
+    "behavioral_reliability_runner": "passed_static"
   },
   "notes": [
-    "v5.2.2 is a consolidation/reproducibility release; no hot-patching of the active install is part of the release procedure.",
-    "Promise plugin adapter uses Plugin.define when available and raw default compatibility only when the SDK lacks that named export.",
-    "Nested behavioral canary is state-driven: the fixture requires Delivery and the expected route remains strictly Project Manager -> Tracker Operator.",
-    "Plugin-list startup recovery is bounded and never treats a missing plugin as success.",
-    "Core Runtime, deterministic Contract Assurance, and strict model-driven Behavioral Canary remain separate validation layers."
+    "v5.2.3 hardens child-agent efficiency after v5.2.2 behavioral canaries exposed state/evidence rehydration.",
+    "Orchestrator remains STATE_DRIVEN; critical children use ADE_DELEGATION_CONTEXT: COMPLETE and DELEGATION_DRIVEN execution.",
+    "Behavioral canaries remain strict. Reliability trials repeat strict assertions and report flakiness without converting failures to success.",
+    "Runtime provider behavioral assurance remains pending until executed on the target OpenCode Windows installation."
   ]
 }

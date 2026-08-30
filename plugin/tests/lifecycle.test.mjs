@@ -155,9 +155,9 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const status = await state.tools.get("ade_status").execute({}, orchestratorContext)
     const statusValue = JSON.parse(status.content)
     assert.equal(path.resolve(statusValue.project_root), path.resolve(fx.project))
-    assert.equal(statusValue.plugin.version, "5.2.2")
+    assert.equal(statusValue.plugin.version, "5.2.3")
 
-    const evidenceContext = { sessionID: "ses_lifecycle", agent: "explorer", messageID: "msg", id: "call-evidence", async progress() {} }
+    const evidenceContext = { sessionID: "ses_lifecycle", agent: "researcher", messageID: "msg", id: "call-evidence", async progress() {} }
     const evidence = await state.tools.get("ade_evidence_record").execute({ plane: "engineering", state: "OBSERVADO", summary: "legacy evidence shape migration" }, evidenceContext)
     const evidenceValue = JSON.parse(evidence.content)
     assert.equal(evidenceValue.state, "OBSERVADO")

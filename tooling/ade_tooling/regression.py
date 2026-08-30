@@ -242,7 +242,28 @@ def _group_managed_upgrade_safety(root: Path) -> None:
     for marker in ("previous_manifest_data","previous_hashes: dict[str, str] | None","old_hash = previous_hashes.get(rel)",'previous_hashes=old_files("skill")','previous_hashes=old_files("runtime")','previous_hashes=old_files("tooling")','previous_hashes=old_files("plugin")'):_expect(marker in src,f"managed upgrade guard missing {marker}")
     _expect("current_hash != source_hash and not force" in src,"managed upgrade conflict guard missing")
     migrate=read_text(root/"tooling/ade_tooling/migrate.py")
-    _expect('"5.2.1"' in migrate and 'MIGRATION_TO_V5_2_2_OK' in migrate,"v5.2.1 -> v5.2.2 migration support missing")
+    _expect('"5.2.2"' in migrate and 'MIGRATION_TO_V5_2_3_OK' in migrate,"v5.2.2 -> v5.2.3 migration support missing")
+
+
+def _group_delegation_driven_children(root: Path) -> None:
+    cap=load_json(root/"plugin/capabilities.json")
+    delegated={"product-owner","project-manager","engineer","explorer","implementer","verifier","tracker-operator"}
+    for agent in delegated:
+        text=read_text(root/"agents"/f"{agent}.md")
+        _expect("EXECUTION_POLICY: DELEGATION_DRIVEN" in text,f"{agent}: delegation-driven marker missing")
+        _expect("ADE_DELEGATION_CONTEXT: COMPLETE" in text,f"{agent}: delegation context marker missing")
+    generic={"ade_status","ade_state_get","ade_evidence_record","ade_evidence_query"}
+    for agent in ("product-owner","project-manager","engineer"):
+        _expect(not (generic & set(cap["agents"][agent])),f"{agent}: generic rehydration capabilities still exposed")
+    _expect("ade_evidence_record" not in cap["agents"]["explorer"],"explorer: redundant evidence writer exposed")
+    _expect("ade_evidence_record" not in cap["agents"]["implementer"],"implementer: redundant evidence writer exposed")
+    _expect(not ({"ade_evidence_record","ade_evidence_query"} & set(cap["agents"]["verifier"])),"verifier: generic evidence tools exposed")
+    _expect(set(cap["agents"]["tracker-operator"])=={"ade_tracker_read","ade_tracker_write","ade_handoff_submit"},"tracker-operator: leaf capability surface not minimal")
+    hidden=set((cap.get("hide_core_tools") or {}).get("tracker-operator",[]))
+    _expect({"shell","execute","read","glob","grep","skill"}.issubset(hidden),"tracker-operator: workspace discovery tools not hidden")
+    smoke=read_text(root/"tooling/ade_tooling/smoke.py"); cli=read_text(root/"tooling/ade_tooling/cli.py")
+    for m in ("behavioral_reliability_report","BEHAVIORAL_RELIABILITY_SUMMARY","ADE_DELEGATION_CONTEXT: COMPLETE"):_expect(m in smoke,f"behavioral reliability/delegation marker missing {m}")
+    _expect("behavioral-reliability" in cli and '"--trials"' in cli and '"--strict"' in cli,"behavioral reliability CLI missing")
 
 
 def _group_config_fragment(root: Path) -> None:
@@ -286,7 +307,7 @@ GROUPS: list[tuple[str, Callable[[Path], None]]] = [
     ("project-check-bypass-guards",_group_project_check),("runtime-observe-redaction",_group_runtime_observe),("template-parity",_group_templates),
     ("opencode-v2-plugin-contract",_group_plugin_v2_contract),("session-scoped-location",_group_session_scoped_location),("v2-location-envelopes",_group_v2_location_envelopes),
     ("native-bootstrap",_group_bootstrap),("plugin-commands",_group_commands),("provider-wire-schema-compat",_group_provider_wire_schema),
-    ("behavioral-eval-separation",_group_behavioral_separation),("managed-upgrade-safety",_group_managed_upgrade_safety),("opencode-config-fragment",_group_config_fragment),
+    ("behavioral-eval-separation",_group_behavioral_separation),("delegation-driven-children",_group_delegation_driven_children),("managed-upgrade-safety",_group_managed_upgrade_safety),("opencode-config-fragment",_group_config_fragment),
     ("python-first-tooling",_group_python_tooling),("package-hygiene",_group_unwanted_artifacts),("release-integrity",_group_release),
 ]
 

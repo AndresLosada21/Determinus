@@ -1,6 +1,6 @@
-# AI-Driven Engineering v5.2.2 — Unified v5.2 Runtime
+# AI-Driven Engineering v5.2.3 — Unified v5.2 Runtime
 
-ADE v5.2.2 consolida na própria linha **v5.2** as duas evoluções que antes estavam separadas: **Structured Handoffs** e **Cost/Performance Intelligence**. A governança Product / Delivery / Engineering continua intacta, mas comunicação entre agents deixa de depender de texto livre como fonte canônica.
+ADE v5.2.3 consolida na própria linha **v5.2** as duas evoluções que antes estavam separadas: **Structured Handoffs** e **Cost/Performance Intelligence**. A governança Product / Delivery / Engineering continua intacta, mas comunicação entre agents deixa de depender de texto livre como fonte canônica.
 
 ## O que muda sobre v5.2.0
 
@@ -81,14 +81,14 @@ Comandos:
 
 18 agents, **26 typed ADE tools**. O Orchestrator continua mínimo: somente `ade_status` + `ade_route_snapshot`. `ade_handoff_submit` aparece apenas nos 17 agents que devolvem trabalho a um parent/control plane.
 
-## Upgrade recomendado: v5.2.0 → v5.2.2
+## Upgrade recomendado: v5.2.0 → v5.2.3
 
 No release bundle:
 
 ```powershell
-py -B .\migrate-opencode-v5.2.0-to-v5.2.2.py
+py -B .\migrate-opencode-v5.2.0-to-v5.2.3.py
 opencode2 service restart
-py -B .\validate-opencode-v5.2.2.py --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\validate-opencode-v5.2.3.py --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
 Esse primeiro validate deve incluir `CONTRACT_ASSURANCE_VALIDATED`.
@@ -96,13 +96,13 @@ Esse primeiro validate deve incluir `CONTRACT_ASSURANCE_VALIDATED`.
 Para provar comportamento real do provider/model:
 
 ```powershell
-py -B .\validate-opencode-v5.2.2.py --model "opencode/muse-spark-1.2-contributor-free" --behavioral
+py -B .\validate-opencode-v5.2.3.py --model "opencode/muse-spark-1.2-contributor-free" --behavioral
 ```
 
 Para release assurance completa:
 
 ```powershell
-py -B .\assure-opencode-v5.2.2.py --source --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\assure-opencode-v5.2.3.py --source --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
 `assure --model` roda o behavioral canary por padrão. `--core-only` existe apenas para diagnóstico e imprime explicitamente que release assurance **não** foi alegada.
@@ -114,4 +114,9 @@ py -B .\assure-opencode-v5.2.2.py --source --model "opencode/muse-spark-1.2-cont
 - Python 3.9+ tooling;
 - Windows pagefile diagnostic incluído para Bun `os error 1455`.
 
-Veja `STRUCTURED_HANDOFFS.md`, `COST_INTELLIGENCE.md`, `VALIDATION.md`, `COMPATIBILITY.md` e `RELEASE_NOTES_v5.2.2.md`.
+Veja `STRUCTURED_HANDOFFS.md`, `COST_INTELLIGENCE.md`, `VALIDATION.md`, `COMPATIBILITY.md` e `RELEASE_NOTES_v5.2.3.md`.
+
+
+## v5.2.3: Delegation-Driven Children
+
+O Orchestrator continua `STATE_DRIVEN`; owners e specialists críticos passam a `DELEGATION_DRIVEN`. Consulte `DELEGATION_DRIVEN.md`. O comando `behavioral-reliability` mede consistência do provider/model por múltiplos trials mantendo cada assert estrito.

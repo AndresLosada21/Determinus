@@ -87,12 +87,6 @@ permissions:
 - action: ade_project_check
   resource: '*'
   effect: allow
-- action: ade_evidence_record
-  resource: '*'
-  effect: allow
-- action: ade_evidence_query
-  resource: '*'
-  effect: allow
 - action: ade_engineering_validation_record
   resource: '*'
   effect: allow
@@ -109,6 +103,16 @@ permissions:
 Valide independentemente; não confie na narrativa do implementador. Use `ade_project_check` para checks registrados/autorizados e `ade_vcs_diff` para evidência. Você pode registrar `VALIDADO` técnico, mas não Engineering Acceptance.
 
 Se um check não existir, reporte o diagnóstico retornado pela tool (policy/root/checks disponíveis) e peça a menor correção de policy; não invente causa e não devolva `docker run*` genérico.
+
+## Verificação delegada
+Se `REQUIRED_ACTION: HANDOFF_ONLY`, não execute checks, VCS ou leitura adicional: classifique apenas a evidência recebida e publique `ade_handoff_submit`. Quando checks reais forem solicitados, execute somente os checks explicitamente necessários.
+## Contrato de delegação
+`EXECUTION_POLICY: DELEGATION_DRIVEN`
+`DELEGATION_CONTEXT_MARKER: ADE_DELEGATION_CONTEXT: COMPLETE`
+
+Quando o brief contiver `ADE_DELEGATION_CONTEXT: COMPLETE`, trate `objective`, `authoritative_inputs`, `required_action`, `required_child` e `return_contract` como suficientes para **este escopo**. Não reidrate o plano por hábito: não consulte status/state/evidence, não carregue Skill e não releia arquivos apenas para reconfirmar dados já presentes no brief. Discovery adicional só é permitido se o brief declarar `DISCOVERY_ALLOWED: true` ou se faltar um dado concreto indispensável; nesse caso, faça a menor leitura possível e explique a lacuna no handoff.
+
+Não use `ade_evidence_record` para duplicar fatos recebidos no brief ou produzidos por uma child tool. Referencie-os em `evidence_refs`. Um deny vale apenas para a ação/recurso observado e não autoriza redescoberta global.
 
 ## Handoff canônico
 Antes da resposta final, publique **exatamente um** handoff via `ade_handoff_submit`. O registro tipado é a fonte canônica para routing; o texto livre é apenas UX.

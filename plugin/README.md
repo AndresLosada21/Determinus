@@ -1,8 +1,8 @@
-# @ai-driven-engineering/opencode-plugin v5.2.2
+# @ai-driven-engineering/opencode-plugin v5.2.3
 
 OpenCode V2 Promise plugin implementing the ADE control plane.
 
-Key v5.2.2 surfaces:
+Key v5.2.3 surfaces:
 - 26 typed ADE tools;
 - `ade_handoff_submit` canonical structured handoff;
 - state-driven `ade_route_snapshot` + handoff advisory;

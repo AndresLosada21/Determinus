@@ -5,7 +5,7 @@ import { spawn } from "node:child_process"
 import crypto from "node:crypto"
 import { fileURLToPath } from "node:url"
 
-const VERSION = "5.2.2"
+const VERSION = "5.2.3"
 const PLUGIN_ID = "ai-driven-engineering.native"
 const TOOL_PREFIX = "ade_"
 const pluginDefine = typeof (OpenCodePlugin as any)?.Plugin?.define === "function"

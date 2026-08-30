@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-VERSION = "5.2.2"
+VERSION = "5.2.3"
 PLUGIN_ID = "ai-driven-engineering.native"
 AGENTS = [
     "orchestrator","product-owner","project-manager","engineer","explorer","researcher",

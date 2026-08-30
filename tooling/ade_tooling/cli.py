@@ -11,7 +11,7 @@ from .manifest import validate_installed_manifest
 from .migrate import migrate
 from .policy import static_policy
 from .regression import run_regression
-from .smoke import capability_recovery_smoke, contract_runtime_smoke, engineering_recovery_routing_smoke, nested_delegation_smoke, plugin_runtime_smoke, runtime_config_smoke
+from .smoke import behavioral_reliability_report, capability_recovery_smoke, contract_runtime_smoke, engineering_recovery_routing_smoke, nested_delegation_smoke, plugin_runtime_smoke, runtime_config_smoke
 from .uninstall import uninstall
 from .validate import validate
 
@@ -21,7 +21,7 @@ def _target(value: str | None) -> Path | None:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.2 state-driven runtime tooling")
+    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.3 state-driven runtime tooling")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -77,6 +77,10 @@ def parser() -> argparse.ArgumentParser:
     er.add_argument("--target"); er.add_argument("--model", required=True)
     cs = sub.add_parser("contract-smoke")
     cs.add_argument("--target")
+    br = sub.add_parser("behavioral-reliability")
+    br.add_argument("--target"); br.add_argument("--model", required=True)
+    br.add_argument("--trials", type=int, default=5)
+    br.add_argument("--strict", action="store_true", help="falha se qualquer trial estrito falhar")
     return p
 
 
@@ -114,6 +118,8 @@ def main(argv: list[str] | None = None) -> int:
             engineering_recovery_routing_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
         elif args.command == "contract-smoke":
             contract_runtime_smoke(_target(args.target) or (Path.home()/".config"/"opencode"))
+        elif args.command == "behavioral-reliability":
+            behavioral_reliability_report(_target(args.target) or (Path.home()/".config"/"opencode"), args.model, trials=args.trials, strict=args.strict)
         return 0
     except ADEError as exc:
         print(str(exc), file=sys.stderr)

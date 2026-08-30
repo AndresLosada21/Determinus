@@ -5,7 +5,7 @@ compatibility: OpenCode V2; experimental.subagent_depth >= 2 quando nesting owne
 metadata:
   opencode/autoinvoke: "false"
 ---
-# AI-Driven Engineering v5.2.2
+# AI-Driven Engineering v5.2.3
 
 Esta skill é **explícita e sob demanda**. Agents ADE já possuem seus contratos essenciais no próprio system prompt; não carregue esta skill em todo trabalho. Carregue-a quando o usuário pedir a metodologia, quando houver dúvida de governança/routing, ao depurar o ADE ou ao consultar uma referência detalhada abaixo.
 

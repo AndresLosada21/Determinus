@@ -1,4 +1,4 @@
-# Structured Handoffs — ADE v5.2.2
+# Structured Handoffs — ADE v5.2.3
 
 ## Objetivo
 

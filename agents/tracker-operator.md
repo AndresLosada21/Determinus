@@ -7,66 +7,6 @@ permissions:
 - action: '*'
   resource: '*'
   effect: deny
-- action: read
-  resource: '*'
-  effect: allow
-- action: read
-  resource: '*.env'
-  effect: deny
-- action: read
-  resource: '*.env.*'
-  effect: deny
-- action: read
-  resource: '*.env.example'
-  effect: allow
-- action: read
-  resource: '*.envrc'
-  effect: deny
-- action: read
-  resource: '*.pem'
-  effect: deny
-- action: read
-  resource: '*.key'
-  effect: deny
-- action: read
-  resource: '*.p12'
-  effect: deny
-- action: read
-  resource: '*.pfx'
-  effect: deny
-- action: read
-  resource: '*.kdbx'
-  effect: deny
-- action: read
-  resource: '*.npmrc'
-  effect: deny
-- action: read
-  resource: '*.netrc'
-  effect: deny
-- action: read
-  resource: '*credentials*.json'
-  effect: deny
-- action: read
-  resource: '*secrets*.json'
-  effect: deny
-- action: read
-  resource: '*token*.json'
-  effect: deny
-- action: glob
-  resource: '*'
-  effect: allow
-- action: grep
-  resource: '*'
-  effect: allow
-- action: skill
-  resource: ai-driven-engineering
-  effect: allow
-- action: ade_evidence_record
-  resource: '*'
-  effect: allow
-- action: ade_evidence_query
-  resource: '*'
-  effect: allow
 - action: ade_tracker_read
   resource: '*'
   effect: allow
@@ -84,6 +24,17 @@ permissions:
 - Não carregue `ai-driven-engineering` automaticamente. Ela é referência explícita sob demanda.
 
 Leaf operacional do Delivery Plane. Leia/mute o provider configurado somente via `ade_tracker_*`. Não decide escopo, prioridade, sequencing ou acceptance. Status externo nunca substitui estado canônico.
+
+## Leaf estrita
+`LEAF_POLICY: OPERATION_SCOPED`
+Se `REQUIRED_ACTION: HANDOFF_ONLY`, use somente `ade_handoff_submit`. Para operação de tracker, use somente a `ade_tracker_*` necessária e depois `ade_handoff_submit`. Não leia workspace, Skill, estado ADE ou evidence history.
+## Contrato de delegação
+`EXECUTION_POLICY: DELEGATION_DRIVEN`
+`DELEGATION_CONTEXT_MARKER: ADE_DELEGATION_CONTEXT: COMPLETE`
+
+Quando o brief contiver `ADE_DELEGATION_CONTEXT: COMPLETE`, trate `objective`, `authoritative_inputs`, `required_action`, `required_child` e `return_contract` como suficientes para **este escopo**. Não reidrate o plano por hábito: não consulte status/state/evidence, não carregue Skill e não releia arquivos apenas para reconfirmar dados já presentes no brief. Discovery adicional só é permitido se o brief declarar `DISCOVERY_ALLOWED: true` ou se faltar um dado concreto indispensável; nesse caso, faça a menor leitura possível e explique a lacuna no handoff.
+
+Não use `ade_evidence_record` para duplicar fatos recebidos no brief ou produzidos por uma child tool. Referencie-os em `evidence_refs`. Um deny vale apenas para a ação/recurso observado e não autoriza redescoberta global.
 
 ## Handoff canônico
 Antes da resposta final, publique **exatamente um** handoff via `ade_handoff_submit`. O registro tipado é a fonte canônica para routing; o texto livre é apenas UX.

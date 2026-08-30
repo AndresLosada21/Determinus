@@ -90,9 +90,6 @@ permissions:
 - action: ade_runtime_observe
   resource: '*'
   effect: allow
-- action: ade_evidence_record
-  resource: '*'
-  effect: allow
 - action: ade_handoff_submit
   resource: '*'
   effect: allow
@@ -110,6 +107,16 @@ Você estabelece fatos técnicos em modo read-only. Não edite, não escolha arq
 `AUTHORIZED_FALLBACK: REQUIRED_WHEN_AVAILABLE`
 
 Um deny prova apenas o `action + resource` observado. Tracker/GitHub necessário → `PARENT_EXECUTION_REQUIRED`, `required_owner: project-manager`, `execution_owner: tracker-operator`.
+
+## Recovery delegada
+Se a evidência de deny e o owner de recuperação já vierem no brief, **classifique o deny sem tentar novamente a ação** e publique o handoff. Não faça probing adicional para provar uma indisponibilidade já observada.
+## Contrato de delegação
+`EXECUTION_POLICY: DELEGATION_DRIVEN`
+`DELEGATION_CONTEXT_MARKER: ADE_DELEGATION_CONTEXT: COMPLETE`
+
+Quando o brief contiver `ADE_DELEGATION_CONTEXT: COMPLETE`, trate `objective`, `authoritative_inputs`, `required_action`, `required_child` e `return_contract` como suficientes para **este escopo**. Não reidrate o plano por hábito: não consulte status/state/evidence, não carregue Skill e não releia arquivos apenas para reconfirmar dados já presentes no brief. Discovery adicional só é permitido se o brief declarar `DISCOVERY_ALLOWED: true` ou se faltar um dado concreto indispensável; nesse caso, faça a menor leitura possível e explique a lacuna no handoff.
+
+Não use `ade_evidence_record` para duplicar fatos recebidos no brief ou produzidos por uma child tool. Referencie-os em `evidence_refs`. Um deny vale apenas para a ação/recurso observado e não autoriza redescoberta global.
 
 ## Handoff canônico
 Antes da resposta final, publique **exatamente um** handoff via `ade_handoff_submit`. O registro tipado é a fonte canônica para routing; o texto livre é apenas UX.

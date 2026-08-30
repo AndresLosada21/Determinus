@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "plugin_id": "ai-driven-engineering.native",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "tools": {
     "ade_status": {
       "capability": "STATUS_READ",
@@ -131,29 +131,17 @@
       "ade_route_snapshot"
     ],
     "product-owner": [
-      "ade_status",
-      "ade_state_get",
       "ade_product_transition",
-      "ade_evidence_record",
-      "ade_evidence_query",
       "ade_product_validation_record",
       "ade_handoff_submit"
     ],
     "project-manager": [
-      "ade_status",
-      "ade_state_get",
       "ade_delivery_transition",
-      "ade_evidence_record",
-      "ade_evidence_query",
       "ade_delivery_validation_record",
       "ade_handoff_submit"
     ],
     "engineer": [
-      "ade_status",
-      "ade_state_get",
       "ade_engineering_transition",
-      "ade_evidence_record",
-      "ade_evidence_query",
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_vcs_branches",
@@ -164,7 +152,6 @@
       "ade_vcs_diff",
       "ade_vcs_branches",
       "ade_runtime_observe",
-      "ade_evidence_record",
       "ade_handoff_submit"
     ],
     "researcher": [
@@ -189,15 +176,12 @@
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_self_check",
-      "ade_evidence_record",
       "ade_handoff_submit"
     ],
     "verifier": [
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_project_check",
-      "ade_evidence_record",
-      "ade_evidence_query",
       "ade_engineering_validation_record",
       "ade_handoff_submit"
     ],
@@ -235,8 +219,6 @@
       "ade_handoff_submit"
     ],
     "tracker-operator": [
-      "ade_evidence_record",
-      "ade_evidence_query",
       "ade_tracker_read",
       "ade_tracker_write",
       "ade_handoff_submit"
@@ -321,7 +303,11 @@
     ],
     "tracker-operator": [
       "shell",
-      "execute"
+      "execute",
+      "read",
+      "glob",
+      "grep",
+      "skill"
     ],
     "vcs-operator": [
       "shell",

@@ -1,4 +1,4 @@
-# Validation report — ADE v5.2.2 consolidation build
+# Validation report — ADE v5.2.3 consolidation build
 
 ## Source gates deste pacote
 
@@ -9,7 +9,7 @@
 - structured handoff schema/authority/limits e revision neutrality;
 - state-driven nested fixture (Delivery → Project Manager → Tracker Operator);
 - bounded plugin-list startup retry;
-- migration v5.2.1 → v5.2.2 e rollback simulados no lifecycle de empacotamento.
+- migration v5.2.1 → v5.2.3 e rollback simulados no lifecycle de empacotamento.
 
 ## Validation architecture
 
@@ -26,4 +26,4 @@ Estrita e model/provider-driven. O nested scenario constrói estado canônico qu
 
 ## Windows/OpenCode
 
-A v5.2.2 permanece `SOURCE_VALIDATED_RUNTIME_PENDING` até ser instalada no OpenCode V2 alvo. O pacote foi desenhado especificamente para cobrir os dois comportamentos observados na beta-18684: ausência do named export `Plugin` e race curta entre restart e `plugin list`. O runtime real continua sendo a autoridade final.
+A v5.2.3 permanece `SOURCE_VALIDATED_RUNTIME_PENDING` até ser instalada no OpenCode V2 alvo. O pacote foi desenhado especificamente para cobrir os dois comportamentos observados na beta-18684: ausência do named export `Plugin` e race curta entre restart e `plugin list`. O runtime real continua sendo a autoridade final.

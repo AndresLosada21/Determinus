@@ -243,8 +243,7 @@ def _assert_one_handoff(export: dict, agent: str, *, status: str, required_owner
     for _,entry in _records_for(export,agent):
         tool=str(entry.get("name",""))
         if tool=="ade_handoff_submit": handoffs.append(_handoff_input(entry))
-        elif tool=="skill":
-            if str(path_get(entry,"state","status",default=""))!="completed": extras.append(f"skill:{path_get(entry,'state','status',default='')}")
+        elif tool=="skill": extras.append("skill")
         elif tool=="subagent": extras.append("subagent")
         else: extras.append(tool)
     if len(handoffs)!=1: raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: {agent} handoff calls={len(handoffs)} esperado=1")
@@ -269,9 +268,17 @@ def nested_delegation_smoke(target: Path, model: str) -> None:
     cli=find_opencode_cli()
     if not cli: raise ADEError("NESTED_DELEGATION_FAILED: OpenCode CLI não encontrado")
     nonce=uuid.uuid4().hex
-    sandbox=Path(tempfile.mkdtemp(prefix="ade-v522-nested-")); _write_smoke_control(sandbox,f"NESTED-{nonce[:8]}",required_plane="delivery")
+    sandbox=Path(tempfile.mkdtemp(prefix="ade-v523-nested-")); _write_smoke_control(sandbox,f"NESTED-{nonce[:8]}",required_plane="delivery")
     prompt=f"""NESTED STRUCTURED HANDOFF CANARY {nonce}.
-Você é Orchestrator. Invoque EXATAMENTE project-manager. No brief, ordene que Project Manager invoque EXATAMENTE tracker-operator.
+Você é Orchestrator. Invoque EXATAMENTE project-manager com este envelope no início do brief:
+ADE_DELEGATION_CONTEXT: COMPLETE
+objective: provar delegação Delivery mínima
+authoritative_inputs: Delivery é o owner requerido neste fixture
+required_action: DELEGATE_ONCE
+required_child: tracker-operator
+DISCOVERY_ALLOWED: false
+return_contract: publicar exatamente um ade_handoff_submit e responder em até 3 linhas
+Project Manager deve invocar EXATAMENTE tracker-operator com `ADE_DELEGATION_CONTEXT: COMPLETE`, `REQUIRED_ACTION: HANDOFF_ONLY`, `DISCOVERY_ALLOWED: false` e return contract explícito.
 Tracker Operator não deve ler/escrever nada nem chamar outras tools; deve publicar exatamente um ade_handoff_submit com status=DONE, changed=[\"nested level2 completed\"], required_owner=project-manager, next contendo \"project-manager\", e finalizar em no máximo 3 linhas.
 Project Manager, após o child concluir, deve publicar exatamente um ade_handoff_submit com status=DONE, changed=[\"nested level1 completed\"], required_owner=orchestrator, next contendo \"orchestrator\", e finalizar em no máximo 3 linhas.
 Como o routing é STATE_DRIVEN, Orchestrator pode chamar ade_status e ade_route_snapshot no máximo uma vez cada antes da delegação. Não chame nenhuma outra ADE tool nem outro subagent. Finalize concisamente após o PM concluir.
@@ -288,7 +295,7 @@ Como o routing é STATE_DRIVEN, Orchestrator pode chamar ade_status e ade_route_
                 if status!="completed": extras.append(f"subagent:{status}")
                 else: sub.append(e)
             elif tool=="skill":
-                if status!="completed": extras.append(f"skill:{status}")
+                extras.append("skill")
             elif tool in control_calls:
                 control_calls[tool]+=1
                 if status!="completed": extras.append(f"{tool}:{status}")
@@ -303,7 +310,7 @@ Como o routing é STATE_DRIVEN, Orchestrator pode chamar ade_status e ade_route_
         pm=export_session(cli,pm_id,target); assert_export_info(pm,session_id=pm_id,parent_id=root_id,agent="project-manager",label="PM")
         pm_records=_records_for(pm,"project-manager"); pm_sub=[entry for _,entry in pm_records if str(entry.get("name",""))=="subagent"]
         pm_h=[entry for _,entry in pm_records if str(entry.get("name",""))=="ade_handoff_submit"]
-        pm_extra=[str(entry.get("name","")) for _,entry in pm_records if str(entry.get("name","")) not in {"subagent","ade_handoff_submit","skill"}]
+        pm_extra=[str(entry.get("name","")) for _,entry in pm_records if str(entry.get("name","")) not in {"subagent","ade_handoff_submit"}]
         if len(pm_sub)!=1 or len(pm_h)!=1 or pm_extra: raise ADEError(f"NESTED_DELEGATION_FAILED: PM sub={len(pm_sub)} handoff={len(pm_h)} extras={pm_extra}")
         tracker_id=_child_from_subagent(pm_sub[0],"tracker-operator")
         h1=_handoff_input(pm_h[0]);
@@ -324,10 +331,15 @@ def capability_recovery_smoke(target: Path, model: str) -> None:
       ("implementer","implementer-to-verifier","Implementação criada; Permission denied: shell para php -l; sintaxe independente continua necessária.","engineer","verifier"),
     ]
     for agent,name,evidence,owner,next_owner in scenarios:
-        sandbox=Path(tempfile.mkdtemp(prefix=f"ade-v522-cap-{name}-"));_write_smoke_control(sandbox,f"CAP-{name}")
-        prompt=f"""STRUCTURED CAPABILITY RECOVERY CANARY. Classifique somente esta evidência: {evidence}
-Não execute a ação negada, não devolva comando manual e não generalize indisponibilidade global.
-Use como única ADE tool `ade_handoff_submit` exatamente uma vez, com status=BLOCKED, blocker curto explicando a evidência faltante, required_owner={owner}, next contendo {next_owner}. Finalize em no máximo 3 linhas.
+        sandbox=Path(tempfile.mkdtemp(prefix=f"ade-v523-cap-{name}-"));_write_smoke_control(sandbox,f"CAP-{name}")
+        prompt=f"""STRUCTURED CAPABILITY RECOVERY CANARY.
+ADE_DELEGATION_CONTEXT: COMPLETE
+objective: classificar somente a evidência de capability já observada
+authoritative_inputs: {evidence}
+REQUIRED_ACTION: HANDOFF_ONLY
+DISCOVERY_ALLOWED: false
+return_contract: use como única ADE tool `ade_handoff_submit` exatamente uma vez, com status=BLOCKED, blocker curto explicando a evidência faltante, required_owner={owner}, next contendo {next_owner}; finalize em no máximo 3 linhas.
+Não execute novamente a ação negada, não devolva comando manual e não generalize indisponibilidade global.
 """
         try:
             rr=run_cmd([cli,"run","--agent",agent,"--format","json","--model",model,prompt],cwd=sandbox,env=config_env(target),timeout=180)
@@ -335,9 +347,8 @@ Use como única ADE tool `ade_handoff_submit` exatamente uma vez, com status=BLO
             events=parse_json_lines(rr.stdout,f"CAPABILITY[{name}]")
             tools=[]
             for e in root_tool_events(events): tools.append((str(path_get(e,"part","tool",default="")),e))
-            non_skill=[x for x in tools if x[0]!="skill"]
-            if len(non_skill)!=1 or non_skill[0][0]!="ade_handoff_submit": raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: tools={ [x[0] for x in tools] }")
-            h=path_get(non_skill[0][1],"part","state","input",default={})
+            if len(tools)!=1 or tools[0][0]!="ade_handoff_submit": raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: tools={ [x[0] for x in tools] }")
+            h=path_get(tools[0][1],"part","state","input",default={})
             if h.get("status")!="BLOCKED" or h.get("required_owner")!=owner or next_owner.lower() not in str(h.get("next") or "").lower() or not str(h.get("blocker") or "").strip(): raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: handoff={h}")
             text="\n".join(root_texts(events))
             if len(text)>1000: raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: resposta verbosa chars={len(text)}")
@@ -351,10 +362,17 @@ def engineering_recovery_routing_smoke(target: Path, model: str) -> None:
     cli=find_opencode_cli()
     if not cli: raise ADEError("ENGINEERING_RECOVERY_ROUTING_FAILED: OpenCode CLI não encontrado")
     nonce=uuid.uuid4().hex
-    sandbox=Path(tempfile.mkdtemp(prefix="ade-v522-eng-recovery-"));_write_smoke_control(sandbox,f"ENG-{nonce[:8]}")
+    sandbox=Path(tempfile.mkdtemp(prefix="ade-v523-eng-recovery-"));_write_smoke_control(sandbox,f"ENG-{nonce[:8]}")
     prompt=f"""ENGINEERING STRUCTURED RECOVERY CANARY {nonce}.
-Você é Engineer. Um Implementer informou BLOCKED porque validação independente é necessária. Invoque EXATAMENTE verifier.
-No brief, o Verifier deve usar somente ade_handoff_submit exatamente uma vez com status=DONE, changed=[\"verification evidence classified\"], required_owner=engineer, next contendo \"engineer\"; nenhuma validação real deve ser executada.
+Você é Engineer. Um Implementer informou BLOCKED porque validação independente é necessária.
+ADE_DELEGATION_CONTEXT: COMPLETE
+objective: rotear validação independente já classificada
+authoritative_inputs: Implementer exige Verifier; nenhuma validação real deve rodar neste canary
+required_action: DELEGATE_ONCE
+required_child: verifier
+DISCOVERY_ALLOWED: false
+return_contract: handoff PARTIAL após consumir o child
+Invoque EXATAMENTE verifier. No brief do Verifier inclua `ADE_DELEGATION_CONTEXT: COMPLETE`, `REQUIRED_ACTION: HANDOFF_ONLY`, `DISCOVERY_ALLOWED: false`; ele deve usar somente ade_handoff_submit exatamente uma vez com status=DONE, changed=[\"verification evidence classified\"], required_owner=engineer, next contendo \"engineer\".
 Após o Verifier concluir, publique você exatamente um ade_handoff_submit com status=PARTIAL, changed=[\"verifier handoff consumed\"], required_owner=none, next contendo \"continue engineering\". Finalize em no máximo 3 linhas.
 """
     try:
@@ -366,7 +384,7 @@ Após o Verifier concluir, publique você exatamente um ade_handoff_submit com s
             tool=str(path_get(e,"part","tool",default=""))
             if tool=="subagent":sub.append(e)
             elif tool=="ade_handoff_submit":handoffs.append(e)
-            elif tool=="skill":pass
+            elif tool=="skill":extras.append("skill")
             else:extras.append(tool)
         if len(sub)!=1 or len(handoffs)!=1 or extras: raise ADEError(f"ENGINEERING_RECOVERY_ROUTING_FAILED: sub={len(sub)} handoff={len(handoffs)} extras={extras}")
         verifier_id=str(path_get(sub[0],"part","state","metadata","sessionID",default="")) or str(path_get(sub[0],"part","state","metadata","metadata","sessionID",default=""))
@@ -380,3 +398,39 @@ Após o Verifier concluir, publique você exatamente um ade_handoff_submit com s
         print("ENGINEERING_RECOVERY_ROUTING_OK")
         print("ENGINEERING_RECOVERY_ROUTING_VALIDATED: engineer -> verifier + canonical handoffs")
     finally:_best_effort_cleanup(sandbox)
+
+def behavioral_reliability_report(target: Path, model: str, *, trials: int = 5, strict: bool = False) -> dict[str, Any]:
+    """Run repeated *strict* behavioral trials without weakening any individual assertion.
+
+    Reliability is reported statistically because model/provider execution is stochastic.
+    `strict=True` fails unless every trial of every scenario passes. No failed semantic
+    trial is silently retried or converted to success.
+    """
+    if trials < 1 or trials > 20:
+        raise ADEError(f"BEHAVIORAL_RELIABILITY_INVALID_TRIALS: {trials}; esperado 1..20")
+    scenarios=[
+        ("nested-delegation", nested_delegation_smoke),
+        ("capability-recovery", capability_recovery_smoke),
+        ("engineering-recovery", engineering_recovery_routing_smoke),
+    ]
+    summary: dict[str, Any]={"model":model,"trials":trials,"scenarios":{},"total_pass":0,"total_fail":0}
+    for name,fn in scenarios:
+        passes=0; failures=[]
+        for idx in range(1,trials+1):
+            try:
+                fn(target,model)
+                passes+=1
+                print(f"BEHAVIORAL_TRIAL: scenario={name} trial={idx}/{trials} result=PASS")
+            except ADEError as exc:
+                failures.append(str(exc))
+                print(f"BEHAVIORAL_TRIAL: scenario={name} trial={idx}/{trials} result=FAIL reason={exc}")
+        fails=trials-passes
+        summary["scenarios"][name]={"passed":passes,"failed":fails,"pass_rate":passes/trials,"failures":failures}
+        summary["total_pass"]+=passes; summary["total_fail"]+=fails
+        print(f"BEHAVIORAL_RELIABILITY: scenario={name} passed={passes}/{trials} pass_rate={passes/trials:.0%}")
+    total=trials*len(scenarios); summary["pass_rate"]=summary["total_pass"]/total
+    print(f"BEHAVIORAL_RELIABILITY_SUMMARY: model={model} passed={summary['total_pass']}/{total} pass_rate={summary['pass_rate']:.0%}")
+    if strict and summary["total_fail"]:
+        raise ADEError(f"BEHAVIORAL_RELIABILITY_FAILED: failures={summary['total_fail']}/{total}; veja os trials acima")
+    return summary
+

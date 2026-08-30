@@ -1,4 +1,4 @@
-# Validation — ADE v5.2.2
+# Validation — ADE v5.2.3
 
 ## A. Source/static — determinística
 
@@ -57,7 +57,7 @@ Falha é real behavioral regression para aquela combinação host/provider/model
 ## E. Release Assurance
 
 ```powershell
-py -B .\assure-opencode-v5.2.2.py --source --model "provider/model"
+py -B .\assure-opencode-v5.2.3.py --source --model "provider/model"
 ```
 
 Com `--model`, behavioral canary é executado por padrão. Só então sai:
@@ -67,3 +67,13 @@ RELEASE_ASSURANCE_VALIDATED: core + contract + behavioral canary
 ```
 
 `--core-only` é diagnóstico; imprime `RELEASE_ASSURANCE_NOT_CLAIMED`.
+
+## Delegation-driven behavioral reliability (v5.2.3)
+
+Behavioral canaries remain strict. To measure provider/model consistency across repeated trials without relaxing any assertion:
+
+```powershell
+py -B tooling/ade.py behavioral-reliability --model "provider/model" --trials 5
+```
+
+Add `--strict` to return a failing exit code if any trial fails. A reliability report is diagnostic and does not replace `assurance --model`.

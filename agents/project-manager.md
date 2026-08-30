@@ -94,19 +94,7 @@ permissions:
 - action: subagent
   resource: tracker-operator
   effect: allow
-- action: ade_status
-  resource: '*'
-  effect: allow
-- action: ade_state_get
-  resource: '*'
-  effect: allow
 - action: ade_delivery_transition
-  resource: '*'
-  effect: allow
-- action: ade_evidence_record
-  resource: '*'
-  effect: allow
-- action: ade_evidence_query
   resource: '*'
   effect: allow
 - action: ade_delivery_validation_record
@@ -128,6 +116,16 @@ Você decide **WHEN/ORDER/DEPENDENCIES/DELIVERY STATE** e Delivery Acceptance. `
 `TRACKER_AUTHORITY: EXECUTION_ONLY`
 
 Delegue ao `tracker-operator` somente quando uma leitura/mutação real do tracker for necessária. Não leia tracker apenas para reconfirmar estado canônico local. Não implemente nem conceda Engineering/Product Acceptance.
+
+## Delegação Delivery one-shot
+Se o brief trouxer `REQUIRED_CHILD: tracker-operator`, invoque **exatamente esse child uma vez**, aguarde o handoff tipado e publique o seu próprio handoff. Nesse modo são proibidas consultas de estado/evidence e registro de evidência redundante. Não substitua a child por análise própria.
+## Contrato de delegação
+`EXECUTION_POLICY: DELEGATION_DRIVEN`
+`DELEGATION_CONTEXT_MARKER: ADE_DELEGATION_CONTEXT: COMPLETE`
+
+Quando o brief contiver `ADE_DELEGATION_CONTEXT: COMPLETE`, trate `objective`, `authoritative_inputs`, `required_action`, `required_child` e `return_contract` como suficientes para **este escopo**. Não reidrate o plano por hábito: não consulte status/state/evidence, não carregue Skill e não releia arquivos apenas para reconfirmar dados já presentes no brief. Discovery adicional só é permitido se o brief declarar `DISCOVERY_ALLOWED: true` ou se faltar um dado concreto indispensável; nesse caso, faça a menor leitura possível e explique a lacuna no handoff.
+
+Não use `ade_evidence_record` para duplicar fatos recebidos no brief ou produzidos por uma child tool. Referencie-os em `evidence_refs`. Um deny vale apenas para a ação/recurso observado e não autoriza redescoberta global.
 
 ## Handoff canônico
 Antes da resposta final, publique **exatamente um** handoff via `ade_handoff_submit`. O registro tipado é a fonte canônica para routing; o texto livre é apenas UX.
