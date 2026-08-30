@@ -2,6 +2,7 @@
 description: "Dono do plano de Entrega: readiness, dependências, ordem, riscos, checkpoints e Delivery Acceptance sem desenhar software."
 mode: all
 steps: 24
+subagent_depth: 2
 permissions:
   - action: "*"
     resource: "*"

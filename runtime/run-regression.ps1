@@ -12,6 +12,8 @@ $tests = @(
     "tests/state-machine.tests.ps1",
     "tests/runtime-config-gate.tests.ps1",
     "tests/runtime-smoke-cli.tests.ps1",
+    "tests/nested-delegation-smoke.tests.ps1",
+    "tests/subagent-depth-compat.tests.ps1",
     "tests/work-management-contract.tests.ps1",
     "tests/work-management-terminal.tests.ps1",
     "tests/traceability.tests.ps1",
@@ -28,7 +30,7 @@ foreach ($rel in $tests) {
     if (-not (Test-Path -LiteralPath $path)) { throw "Teste ausente: $rel" }
     Write-Host "=== $rel ==="
     # Alguns testes exercitam falhas deliberadas e capturam seu exit code.
-    # Não deixe o stderr desses subprocessos interromper o runner antes da
+    # Não deixe stderr desses subprocessos interromper o runner antes da
     # decisão explícita baseada no código de saída.
     $previousErrorActionPreference = $ErrorActionPreference
     try {

@@ -1,7 +1,7 @@
 # Compatibilidade e runtime OpenCode
 
 ## Baseline
-A v4 usa config V2, `permissions` ordenadas, ação `shell`, ação `subagent`, agentes em `agents/`, skill em `skills/` e `subagent_depth: 2` no nível raiz.
+A v4 usa config V2, `permissions` ordenadas, ação `shell`, ação `subagent`, agentes em `agents/`, skill em `skills/` e `subagent_depth: 2` no nível raiz. `project-manager` e `engineer` também declaram `subagent_depth: 2` no frontmatter como defesa em profundidade em builds que suportam override por agente.
 
 ## Restrição operacional conhecida
 Prompts `ask` originados em sub-subagents podem não aparecer ao usuário em algumas versões. Por isso especialistas de profundidade 2 usam allow/deny determinístico e escalam ações fora da allowlist como `PARENT_EXECUTION_REQUIRED`.

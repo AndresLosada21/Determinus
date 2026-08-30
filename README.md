@@ -33,9 +33,17 @@ Autoridade não é hierarquia de cargo: cada plano tem decisões que os outros n
 `implemented != validated != ENGINEERING_ACCEPTED != DELIVERY_ACCEPTED != PRODUCT_ACCEPTED`.
 
 
-## v4.2.2 — Runtime-validated release
+## v4.2.3 — Nested delegation runtime fix
 
-A v4.2.2 congela a linha v4.2 sobre a regressão completa executada em Windows/OpenCode V2 e um smoke read-only real de GitHub Projects. O release não cria ou altera work items externos durante essa validação; Jira e Linear permanecem certificados por contrato até seu primeiro uso autorizado.
+A v4.2.3 parte exatamente do commit `1d0814d` (v4.2.2) e corrige o gap observado entre configuração e comportamento real de nesting. Para builds `opencode2` beta, o installer pode instalar `root subagent_depth=2` junto com `experimental.subagent_depth=2` quando o próprio CLI aceita o formato. `project-manager` e `engineer` também recebem override por agent.
+
+A release distingue explicitamente `SUBAGENT_DEPTH_CONFIGURED` de `SUBAGENT_DEPTH_VALIDATED`; o segundo só existe após o probe real `orchestrator -> project-manager -> tracker-operator`.
+
+O instalador não executa esse probe inline. Após instalar, reinicie/reabra o OpenCode e execute `nested-delegation-smoke.ps1` em uma sessão nova; a configuração instalada por uma sessão potencialmente cacheada é apenas `SUBAGENT_DEPTH_CONFIGURED`. O probe consome uma chamada de modelo e permite selecionar o modelo com `-Model provider/model`.
+
+## v4.2.2 — Immutable regression hotfix
+
+A v4.2.2 congelou os hotfixes encontrados pela regressão completa da v4.2.1. Um smoke posterior de `project-manager -> tracker-operator` observou `Subagent depth limit reached (1)`, portanto a alegação anterior de provider GitHub validado foi superada por evidência nova. O GitHub Projects permanece `NOT_VALIDATED` até o nested probe e o `discover` delegado concluírem numa sessão nova.
 
 ## v4.2.1 — Controlled project execution
 
@@ -175,7 +183,7 @@ Cria `.ai/` com:
 
 Em `LEAN`, Product e Delivery começam como `required: false`. Em `STANDARD` e `HIGH_ASSURANCE`, os três planos começam requeridos.
 
-Compatibilidade: o caminho legado `scripts/bootstrap-project.ps1` continua aceito no pacote v4.2.2 e apenas encaminha para o runtime, emitindo aviso de depreciação. Prefira o caminho em `runtime/`.
+Compatibilidade: o caminho legado `scripts/bootstrap-project.ps1` continua aceito desde a v4.2.1 e apenas encaminha para o runtime, emitindo aviso de depreciação. Prefira o caminho em `runtime/`.
 
 ## Máquina de estados
 

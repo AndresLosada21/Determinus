@@ -1,5 +1,30 @@
 # Changelog
 
+## 4.2.3 — 2026-08-29
+
+Patch derivado diretamente do commit `1d0814dd3aaceb88f4153f6de038fd570b0cff40` (tag `v4.2.2`) para corrigir a divergência entre `subagent_depth` configurado e nesting efetivo observada em `project-manager -> tracker-operator`.
+
+### Fixed
+- Mantém `subagent_depth: 2` na raiz como configuração canônica.
+- `project-manager` e `engineer` passam a declarar `subagent_depth: 2` no frontmatter como defesa em profundidade.
+- Em `opencode2` beta, o installer monta `root=2 + experimental.subagent_depth=2` quando o próprio CLI aceita essa forma; o modo efetivamente instalado é registrado no manifesto.
+- `runtime-smoke.ps1` deixa de confundir configuração aceita com nesting validado: emite `SUBAGENT_DEPTH_CONFIGURED`; `SUBAGENT_DEPTH_VALIDATED` exige prova comportamental.
+- Corrige a disciplina de evidência da v4.2.2: o smoke GitHub Projects não é considerado validado enquanto `project-manager -> tracker-operator -> work-management discover` não concluir numa sessão nova.
+- O probe nested usa sandbox temporário vazio, JSONL/exports estruturais e nonce por execução; texto de prompt ou transcript não é aceito como prova de handoff.
+- O probe nested permite somente `skill(ai-driven-engineering)` como prerequisite não mutante opcional, porque os próprios agents podem ser obrigados a carregar a skill antes da delegação; qualquer outra tool continua bloqueando o gate.
+- Upgrade sem mudança de config preserva os metadados de uninstall no manifesto e atualiza somente `config.subagent_depth_mode`.
+- O installer não executa mais probe nested inline: a prova operacional só pode ser rodada após reiniciar ou abrir uma sessão nova.
+
+### Added
+- `runtime/nested-delegation-smoke.ps1`: prova real `orchestrator -> project-manager -> tracker-operator`, incluindo evidência da child session antes de emitir `SUBAGENT_DEPTH_VALIDATED`.
+- `tests/subagent-depth-compat.tests.ps1`: cobre `dual-root+experimental` em beta compatível e fallback `canonical-root` quando o mirror é rejeitado.
+- `tests/nested-delegation-smoke.tests.ps1`: usa CLI fake para validar parser estrutural, isolamento/cleanup do sandbox e rejeição de markers presentes apenas em prompt/input.
+- Static policy exige `subagent_depth: 2` nos dois owners que criam leaf agents.
+- Full regression passa a ter 15 grupos.
+
+### Runtime evidence required
+Para fechar esta release no ambiente real: reinstalar, reiniciar/reabrir o OpenCode, executar `nested-delegation-smoke.ps1` numa sessão nova e só depois repetir o smoke read-only de GitHub Projects. `debug config` sozinho não prova nesting.
+
 ## 4.2.2 — 2026-08-29
 
 Release imutável derivada de `4aec5ac`, após validação runtime completa em Windows/OpenCode V2.

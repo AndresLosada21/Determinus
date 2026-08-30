@@ -2,6 +2,7 @@
 description: "Líder do plano de Engenharia: entendimento, contrato técnico, delegação especializada e Engineering Acceptance."
 mode: all
 steps: 40
+subagent_depth: 2
 permissions:
   - action: "*"
     resource: "*"

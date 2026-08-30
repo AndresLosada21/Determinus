@@ -1,49 +1,32 @@
-# Validation Report — v4.2.2
+# Validation — v4.2.3
 
-Gerado em 2026-08-29 durante a montagem do pacote.
+Base de origem: commit `1d0814dd3aaceb88f4153f6de038fd570b0cff40` (`v4.2.2`).
+
+## Validação estrutural deste artefato
 
 | Resultado | Check | Detalhe |
 |---|---|---|
-| PASS | Quantidade de arquivos | 87 arquivos |
+| PASS | Layout de pacote | arquivos obrigatórios presentes no teste de layout |
 | PASS | 17 agents | 4 control + 1 Delivery operator + 12 Engineering specialists |
-| PASS | Policies de agents | deny-all; sem external_directory allow; leaf agents sem ask/subagent |
-| PASS | Work Management authority | PM -> tracker-operator; tracker execution-only |
-| PASS | Providers | GitHub Projects/Issues, Jira Cloud REST v3, Linear GraphQL |
-| PASS | Secret handling | tokens não são persistidos em templates; env/gh auth |
-| PASS | Traceability | issue -> branch -> commit -> PR -> evidence |
-| PASS | Audit | JSONL estruturado + redaction de tokens conhecidos |
-| PASS | External terminal gate | estado terminal exige Global DONE por padrão |
-| PASS | Runtime invariants | default_agent=orchestrator e subagent_depth=2 são assertions |
-| PASS | Regression runner | exit codes preservados e failure gate explícito |
-| PASS | Push proof | local HEAD comparado com SHA remoto |
-| PASS | SKILL progressive disclosure | 195 linhas |
-| PASS | JSON templates | parseáveis |
-| PASS | UTF-8 | arquivos textuais revisados |
+| PASS | Nested owners | `project-manager` e `engineer` declaram `subagent_depth: 2` |
+| PASS | Config canônica | root `subagent_depth: 2` preservado |
+| PASS | Compatibilidade beta | installer possui candidato `dual-root+experimental` condicionado ao `opencode2` beta + preflight |
+| PASS | Manifest evidence | registra `config.subagent_depth_mode` |
+| PASS | Operational probe estrutural | `runtime/nested-delegation-smoke.ps1` exige JSONL/exports de PM e tracker-operator em sandbox isolado; só `skill(ai-driven-engineering)` é tolerada como prerequisite não mutante |
+| PASS | Regression contract | runner inclui `nested-delegation-smoke.tests.ps1` e totaliza 15 grupos |
+| PASS | Least privilege | não adiciona `docker run*`, shell irrestrito ou bypass de owner |
+| PASS | Evidence semantics | `CONFIGURED != VALIDATED`; nested runtime é obrigatório para `SUBAGENT_DEPTH_VALIDATED` |
 
-## Evidência executada da release v4.2.2
+## Correção de evidência da v4.2.2
 
-- `runtime/run-regression.ps1` executou os 13 grupos previstos e retornou `REGRESSION_OK` no Windows.
-- `runtime/runtime-smoke.ps1` confirmou OpenCode V2, `default_agent=orchestrator` e `subagent_depth=2`.
-- `runtime/work-management.ps1 -Action discover` acessou GitHub Projects via `gh`, sem criar, editar ou mover objetos externos.
-- `runtime/verify-git-push.ps1 -Audit` confirmou que HEAD local e SHA remoto coincidem.
+A v4.2.2 declarou GitHub Projects validado, porém evidência posterior mostrou que `project-manager -> tracker-operator` foi bloqueado com `Subagent depth limit reached (1)` antes de `work-management.ps1 -Action discover`. A v4.2.3 reclassifica corretamente o provider como **NOT_VALIDATED** até que o nested probe e o discover delegado passem em uma sessão nova.
 
-Jira e Linear permanecem validados por contrato e testes determinísticos. Sua integração real depende de um projeto autorizado e das credenciais do provider correspondente.
+## O que precisa ser executado no Windows/OpenCode real
 
-## Evidência arquitetural v4.2/v4.2.1
+1. Instalar a v4.2.3 e confirmar no manifesto `package_version=4.2.3` e `subagent_depth_mode`.
+2. Reiniciar o serviço/OpenCode ou iniciar uma sessão totalmente nova.
+3. Executar `runtime/run-regression.ps1`; esperado: `REGRESSION_OK: 15 testes.`
+4. Executar `runtime/nested-delegation-smoke.ps1`; esperado: `NESTED_DELEGATION_OK` + `SUBAGENT_DEPTH_VALIDATED`.
+5. Somente depois repetir `project-manager -> tracker-operator -> work-management.ps1 -Action discover` contra GitHub Project 4.
 
-- `project-manager` decide Delivery; `tracker-operator` apenas materializa decisões.
-- `.ai/control.json` continua canônico para gates.
-- `.ai/integrations.json` não contém credenciais.
-- `.ai/traceability.json` e `.ai/audit.jsonl` mantêm rastreabilidade sem criar acceptance.
-- status externo terminal não pode contornar o Triple DoD.
-- `verify-git-push.ps1` somente emite `PUSH_VALIDATED` quando HEAD local e SHA remoto coincidem.
-
-
-## v4.2.1 checks
-
-- `tests/git-readonly.tests.ps1`: Git metadata em worktree fora do Location sem `git -C` raw no agent.
-- `tests/project-check-policy.tests.ps1`: `authorized=false` bloqueia; Docker estruturado passa; `network=host` e `rw` sem opt-in bloqueiam.
-- `tests/legacy-bootstrap-shim.tests.ps1`: caminho legado `scripts/bootstrap-project.ps1` continua funcional por forwarding e cria `execution-policy.json` não autorizado por default.
-- static policy proíbe `docker run*` amplo e exige wrappers nos agents relevantes.
-
-Os testes PowerShell/runtime foram executados no ambiente real desta release antes de marcar a linha v4.2.2 como runtime-VALIDATED.
+Este ambiente de empacotamento não possui `pwsh`, `powershell` ou `opencode2`; portanto os testes PowerShell/model-driven não são alegados como executados aqui.

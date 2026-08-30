@@ -25,6 +25,34 @@ if ($smokeText -notmatch 'default_agent esperado=orchestrator') {
     throw 'runtime-smoke deve validar default_agent'
 }
 
+if ($smokeText -notmatch 'SUBAGENT_DEPTH_CONFIGURED') {
+    throw 'runtime-smoke deve distinguir configured de validated'
+}
+if ($smokeText -notmatch 'SUBAGENT_DEPTH_VALIDATED') {
+    throw 'runtime-smoke deve emitir VALIDATED somente após nested probe'
+}
+$nestedPath = Join-Path $root 'runtime/nested-delegation-smoke.ps1'
+if (-not (Test-Path -LiteralPath $nestedPath)) { throw 'nested-delegation-smoke.ps1 ausente' }
+$nestedText = [System.IO.File]::ReadAllText($nestedPath)
+if ($nestedText -notmatch 'project-manager' -or $nestedText -notmatch 'tracker-operator') {
+    throw 'nested-delegation-smoke deve provar orchestrator -> project-manager -> tracker-operator'
+}
+if ($nestedText -match '--dir' -or $nestedText -match '\$ProjectRoot') {
+    throw 'nested-delegation-smoke não pode usar --dir nem ProjectRoot como workspace do agent'
+}
+if ($nestedText -notmatch 'Push-Location -LiteralPath \$sandbox' -or $nestedText -notmatch 'Remove-Item -LiteralPath \$sandbox') {
+    throw 'nested-delegation-smoke deve isolar e remover o sandbox temporário'
+}
+if ($nestedText -notmatch 'ConvertFrom-StrictJsonLines' -or $nestedText -notmatch 'metadata", "metadata", "sessionID"') {
+    throw 'nested-delegation-smoke deve validar o JSONL e sessionID no evento estrutural'
+}
+
+$evals = Join-Path $root 'runtime/run-evals.ps1'
+$evalsText = [System.IO.File]::ReadAllText($evals)
+if ($smokeText -match '--dir' -or $evalsText -match '--dir') {
+    throw 'opencode2 run não aceita --dir; probes e evals devem usar Push-Location'
+}
+
 $policyText = [System.IO.File]::ReadAllText($policy)
 if ($policyText -match '"\$name:') {
     throw 'static-policy-check contém interpolação PowerShell inválida $name:'
@@ -40,6 +68,9 @@ if ($installerText -match '\$PackageVersion\s*=\s*"[0-9]+\.[0-9]+\.[0-9]+"') {
 }
 if ($installerText -notmatch 'Join-Path \$PackageRoot "VERSION"') {
     throw 'installer deve usar VERSION como fonte de verdade'
+}
+if ($installerText -match 'RunNestedDelegationProbe|ProbeModel') {
+    throw 'installer não pode executar probe nested inline antes de uma nova sessão'
 }
 
 Write-Host 'Runtime smoke CLI/evidence regressions: OK'

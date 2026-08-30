@@ -29,6 +29,7 @@ foreach ($file in Get-ChildItem -LiteralPath $agents -Filter "*.md" -File) {
     }
 
     if ($name -eq 'project-manager') {
+        if ($text -notmatch '(?m)^subagent_depth:\s*2\s*$') { $errors.Add("project-manager: subagent_depth: 2 ausente") }
         if ($text -match 'action:\s+shell\s*\r?\n\s+resource:\s+"\*"') { $errors.Add("project-manager: shell * proibido") }
         if ($text -notmatch 'resource:\s+"tracker-operator"[\s\S]{0,80}effect:\s+allow') { $errors.Add("project-manager: tracker-operator não permitido") }
         foreach ($required in @('ROUTING_POLICY: DELEGATE_FIRST','TRACKER_AUTHORITY: EXECUTION_ONLY')) {
@@ -49,6 +50,7 @@ foreach ($file in Get-ChildItem -LiteralPath $agents -Filter "*.md" -File) {
     }
 
     if ($name -eq 'engineer') {
+        if ($text -notmatch '(?m)^subagent_depth:\s*2\s*$') { $errors.Add("engineer: subagent_depth: 2 ausente") }
         foreach ($required in @('ROUTING_POLICY: DELEGATE_FIRST','HAND_BACK_POLICY: FORBIDDEN_WHEN_EXECUTABLE','explorer','implementer','verifier','git-readonly.ps1','run-project-check.ps1')) {
             if ($text -notmatch [regex]::Escape($required)) { $errors.Add("engineer: invariant de routing ausente: $required") }
         }

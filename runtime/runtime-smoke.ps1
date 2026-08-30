@@ -2,6 +2,7 @@ param(
     [string]$Target = (Join-Path $HOME ".config/opencode"),
     [string]$ProjectRoot = (Get-Location).Path,
     [switch]$RunAgentProbe,
+    [switch]$RunNestedDelegationProbe,
     [string]$Model
 )
 $ErrorActionPreference = "Stop"
@@ -21,6 +22,11 @@ if ([string]::IsNullOrWhiteSpace([string]$configPath)) { throw "Config OpenCode 
 $config = Read-JsoncFile $configPath
 if ([int]$config.subagent_depth -ne 2) { throw "RUNTIME_INVARIANT_FAILED: subagent_depth esperado=2; atual=$($config.subagent_depth)" }
 if ([string]$config.default_agent -ne "orchestrator") { throw "RUNTIME_INVARIANT_FAILED: default_agent esperado=orchestrator; atual=$($config.default_agent)" }
+$compatDepth = $null
+if ($null -ne $config.experimental -and $null -ne $config.experimental.subagent_depth) {
+    $compatDepth = [int]$config.experimental.subagent_depth
+    if ($compatDepth -ne 2) { throw "RUNTIME_INVARIANT_FAILED: experimental.subagent_depth presente mas divergente; esperado=2; atual=$compatDepth" }
+}
 
 $cli = Resolve-OpenCodeCli
 if ($null -eq $cli) {
@@ -40,14 +46,33 @@ try {
     if ($joined -notmatch 'orchestrator') { throw "Config resolvida não referencia orchestrator" }
 
     if ($RunAgentProbe) {
-        $args = @('run','--agent','orchestrator','--dir',$ProjectRoot,'--format','json')
-        if (-not [string]::IsNullOrWhiteSpace($Model)) { $args += @('--model',$Model) }
-        $args += @('Responda somente com RUNTIME_OK e não use ferramentas.')
-        & $cliName @args
-        if ($LASTEXITCODE -ne 0) { throw "Probe do orchestrator falhou" }
+        $agentProbeLocationPushed = $false
+        try {
+            Push-Location -LiteralPath $ProjectRoot
+            $agentProbeLocationPushed = $true
+            $args = @('run','--agent','orchestrator','--format','json')
+            if (-not [string]::IsNullOrWhiteSpace($Model)) { $args += @('--model',$Model) }
+            $args += @('Responda somente com RUNTIME_OK e não use ferramentas.')
+            & $cliName @args
+            if ($LASTEXITCODE -ne 0) { throw "Probe do orchestrator falhou" }
+        } finally {
+            if ($agentProbeLocationPushed) { Pop-Location }
+        }
+    }
+
+    if ($RunNestedDelegationProbe) {
+        $probe = Join-Path $PSScriptRoot "nested-delegation-smoke.ps1"
+        $probeArgs = @("-NoProfile","-ExecutionPolicy","Bypass","-File",$probe,"-Target",$Target)
+        if (-not [string]::IsNullOrWhiteSpace($Model)) { $probeArgs += @("-Model",$Model) }
+        $hostExe = Resolve-PowerShellHost
+        & $hostExe @probeArgs
+        if ($LASTEXITCODE -ne 0) { throw "NESTED_DELEGATION_FAILED: probe operacional falhou (exit=$LASTEXITCODE)" }
     }
 } finally {
     $env:OPENCODE_CONFIG_DIR = $previous
 }
-Write-Host "Runtime invariants: default_agent=orchestrator; subagent_depth=2"
+$compatLabel = if ($null -eq $compatDepth) { "none" } else { "experimental=2" }
+Write-Host "Runtime invariants: default_agent=orchestrator; subagent_depth(root)=2; compatibility=$compatLabel"
+Write-Host "SUBAGENT_DEPTH_CONFIGURED"
+if ($RunNestedDelegationProbe) { Write-Host "SUBAGENT_DEPTH_VALIDATED" }
 Write-Host "Runtime smoke: OK"

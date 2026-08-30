@@ -9,7 +9,7 @@ $required = @(
     'skills/ai-driven-engineering/templates/execution-policy.json',
     'runtime/runtime-common.ps1','runtime/bootstrap-project.ps1','runtime/set-ai-state.ps1','runtime/validate-ai-state.ps1',
     'runtime/runtime-smoke.ps1','runtime/work-management.ps1','runtime/traceability.ps1','runtime/audit-log.ps1',
-    'runtime/run-regression.ps1','runtime/verify-git-push.ps1','runtime/git-readonly.ps1','runtime/run-project-check.ps1','runtime/register-project-check.ps1',
+    'runtime/run-regression.ps1','runtime/nested-delegation-smoke.ps1','runtime/verify-git-push.ps1','runtime/git-readonly.ps1','runtime/run-project-check.ps1','runtime/register-project-check.ps1',
     'scripts/bootstrap-project.ps1'
 )
 foreach ($rel in $required) {

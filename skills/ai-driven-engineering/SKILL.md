@@ -1,10 +1,10 @@
 ---
 name: ai-driven-engineering
 description: Operating model para entrega de software orientada por agentes no OpenCode, separando Produto, Entrega e Engenharia por contratos, evidências, gates e delegações tipadas.
-compatibility: Projetado para OpenCode V2; requer permissions V2 e subagent_depth >= 2 para o fluxo nested Engineer -> specialists.
+compatibility: Projetado para OpenCode V2; requer nesting operacional equivalente a subagent_depth >= 2. A raiz subagent_depth: 2 é canônica; builds opencode2 beta podem exigir bridge de compatibilidade detectada pelo installer.
 ---
 
-# AI-Driven Engineering v4.2.2
+# AI-Driven Engineering v4.2.3
 
 Esta skill é a constituição operacional para trabalho de software/produto coordenado no OpenCode. Ela é **agnóstica de stack, provider, model, tracker e MCP**, mas é deliberadamente opinativa sobre processo e usa OpenCode V2 como runtime.
 
@@ -181,7 +181,7 @@ Leia `references/work-management.md`, `references/traceability.md` e `references
 
 ## 11. Runtime OpenCode
 
-A v4 assume `subagent_depth: 2` na raiz da config. O fluxo nested é `orchestrator -> engineer -> specialist`. Como permissões de subagents são próprias e subagents têm contexto novo, cada agente carrega sua policy e deve carregar esta skill em trabalho não trivial.
+A v4 usa `subagent_depth: 2` na raiz como configuração canônica e `subagent_depth: 2` nos owners que precisam criar leaf agents (`project-manager` e `engineer`) como defesa em profundidade. Em builds `opencode2` beta, o installer pode espelhar temporariamente `experimental.subagent_depth: 2` quando o CLI instalado aceita essa forma. Configuração aceita por `debug config` é apenas `SUBAGENT_DEPTH_CONFIGURED`; nesting só é `SUBAGENT_DEPTH_VALIDATED` após `runtime/nested-delegation-smoke.ps1` provar `orchestrator -> project-manager -> tracker-operator`. Como permissions de subagents são próprias e subagents têm contexto novo, cada agente carrega sua policy e deve carregar esta skill em trabalho não trivial.
 
 A v4 evita `ask` em especialistas de profundidade 2. Para Git metadata cross-workspace use `git-readonly.ps1`; para checks específicos/containerizados use `run-project-check.ps1` em vez de ampliar `shell` com `git -C *` ou `docker run*`. Se o OpenCode/runtime não suportar nesting de forma saudável, use o fallback operacional documentado em `references/opencode-runtime.md` e rode o smoke test.
 

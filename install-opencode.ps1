@@ -869,12 +869,46 @@ function Set-V2SubagentDepth(
     return Set-TopLevelJsoncScalar $Text "subagent_depth" "$Depth"
 }
 
+function Set-ExperimentalSubagentDepth(
+    [string]$Text,
+    [int]$Depth
+) {
+    $root = Get-JsoncRootObject $Text
+    $properties = @(Get-JsoncObjectProperties $Text $root.Open $root.Close)
+    $experimental = $null
+    foreach ($property in $properties) {
+        if ($property.Name -eq "experimental") { $experimental = $property }
+    }
+
+    if ($null -eq $experimental) {
+        $literal = "{`n    `"subagent_depth`": $Depth`n  }"
+        return Set-TopLevelJsoncScalar $Text "experimental" $literal
+    }
+
+    if ($Text[$experimental.ValueStart] -ne '{') {
+        throw "Campo experimental existente não é um objeto JSONC; não é seguro inserir fallback de subagent_depth."
+    }
+
+    $close = Find-MatchingJsoncBrace $Text $experimental.ValueStart
+    if ($close -lt 0) { throw "Objeto experimental inválido ao inserir fallback de subagent_depth." }
+    return Set-JsoncObjectScalar $Text $experimental.ValueStart $close "subagent_depth" "$Depth" "    "
+}
+
 function Get-OpenCodeCli {
     foreach ($name in @("opencode2", "opencode")) {
         $command = Get-Command $name -ErrorAction SilentlyContinue
         if ($null -ne $command) { return $command }
     }
     return $null
+}
+
+function Get-OpenCodeVersionText($Cli) {
+    if ($null -eq $Cli) { return "" }
+    try {
+        return ((@(& $Cli.Source --version 2>&1) | Out-String).Trim())
+    } catch {
+        return ""
+    }
 }
 
 function Invoke-OpenCodeDebugConfig(
@@ -987,7 +1021,9 @@ $ConfigOriginalExists = $false
 $ConfigCandidate = $null
 $ConfigNeedsUpdate = $false
 $ConfigBackupPath = $null
+$SubagentDepthMode = "canonical-root"
 $OpenCodeCli = if ($SkipRuntimeCheck) { $null } else { Get-OpenCodeCli }
+$OpenCodeVersionText = if ($null -eq $OpenCodeCli) { "" } else { Get-OpenCodeVersionText $OpenCodeCli }
 
 if (-not $NoConfigPatch) {
     $jsonc = Join-Path $Target "opencode.jsonc"
@@ -1016,31 +1052,52 @@ if (-not $NoConfigPatch) {
         $ConfigOriginalExists = $false
     }
     $initialText = if ($ConfigOriginalExists) { $ConfigOriginalContent } else { "{`r`n}" }
-    $candidate = $initialText
-    $candidate = Remove-LegacyExperimentalSubagentDepth $candidate
-    $candidate = Set-V2SubagentDepth $candidate 2
+
+    # Canonical config follows current OpenCode docs/source: root-level subagent_depth.
+    $canonicalCandidate = Remove-LegacyExperimentalSubagentDepth $initialText
+    $canonicalCandidate = Set-V2SubagentDepth $canonicalCandidate 2
     if (-not $NoDefaultAgent) {
-        $candidate = Set-TopLevelJsoncScalar $candidate "default_agent" '"orchestrator"'
+        $canonicalCandidate = Set-TopLevelJsoncScalar $canonicalCandidate "default_agent" '"orchestrator"'
     }
+
+    $candidate = $canonicalCandidate
+
+    # Compatibility bridge for opencode2 beta builds observed in the field:
+    # some accepted the canonical root key in `debug config` but the task runtime
+    # still reported effective depth=1 and explicitly asked for
+    # experimental.subagent_depth. Keep root=2 as source of truth and mirror the
+    # value into experimental ONLY when the installed opencode2 accepts that shape.
+    if (-not $SkipRuntimeCheck -and $null -ne $OpenCodeCli) {
+        $configName = Split-Path -Leaf $ConfigPathSelected
+        $canonicalPreflight = Test-ConfigCandidateWithOpenCode $OpenCodeCli $configName $canonicalCandidate
+        if ($null -eq $canonicalPreflight -or $canonicalPreflight.ExitCode -ne 0) {
+            $details = if ($null -ne $canonicalPreflight) { ($canonicalPreflight.Output -join [Environment]::NewLine) } else { "sem saída" }
+            throw "OpenCode rejeitou a configuração canônica antes da instalação.`n$details"
+        }
+
+        if ([string]$OpenCodeCli.Name -like "opencode2*" -and $OpenCodeVersionText -match '(?i)beta') {
+            $compatCandidate = Set-ExperimentalSubagentDepth $canonicalCandidate 2
+            $compatPreflight = Test-ConfigCandidateWithOpenCode $OpenCodeCli $configName $compatCandidate
+            if ($null -ne $compatPreflight -and $compatPreflight.ExitCode -eq 0) {
+                $candidate = $compatCandidate
+                $SubagentDepthMode = "dual-root+experimental"
+                Write-Host "OpenCode subagent-depth compatibility: root=2 + experimental.subagent_depth=2 ($($OpenCodeCli.Name))"
+            } else {
+                $SubagentDepthMode = "canonical-root"
+                Write-Host "OpenCode subagent-depth compatibility: canonical root=2; experimental fallback rejeitado/indisponível."
+            }
+        }
+
+        Write-Host "OpenCode config preflight: OK ($($OpenCodeCli.Name))"
+    } elseif (-not $SkipRuntimeCheck -and $null -eq $OpenCodeCli) {
+        Write-Host "WARN: OpenCode CLI (opencode2/opencode) não encontrado no PATH; fallback beta não pôde ser detectado."
+    }
+
     $ConfigCandidate = $candidate
     if ($ConfigOriginalExists) {
         $ConfigNeedsUpdate = -not $candidate.Equals($ConfigOriginalContent, [StringComparison]::Ordinal)
     } else {
         $ConfigNeedsUpdate = $true
-    }
-
-    # Runtime schema gate before mutating the installation. This catches V2-invalid
-    # migrations such as a legacy experimental object becoming empty.
-    if (-not $SkipRuntimeCheck -and $null -ne $OpenCodeCli) {
-        $configName = Split-Path -Leaf $ConfigPathSelected
-        $preflight = Test-ConfigCandidateWithOpenCode $OpenCodeCli $configName $ConfigCandidate
-        if ($null -eq $preflight -or $preflight.ExitCode -ne 0) {
-            $details = if ($null -ne $preflight) { ($preflight.Output -join [Environment]::NewLine) } else { "sem saída" }
-            throw "OpenCode rejeitou a configuração candidata antes da instalação.`n$details"
-        }
-        Write-Host "OpenCode config preflight: OK ($($OpenCodeCli.Name))"
-    } elseif (-not $SkipRuntimeCheck -and $null -eq $OpenCodeCli) {
-        Write-Host "WARN: OpenCode CLI (opencode2/opencode) não encontrado no PATH; o gate runtime será adiado."
     }
 }
 
@@ -1199,7 +1256,14 @@ $configInfo = $null
 if (-not $NoConfigPatch) {
     $currentConfigHash = if (Test-Path -LiteralPath $ConfigPathSelected) { (Get-FileHash -LiteralPath $ConfigPathSelected -Algorithm SHA256).Hash } else { $null }
     if (-not $ConfigNeedsUpdate -and $PreviousManifest -and [int]($PreviousManifest.schema_version) -ge 4 -and $null -ne $PreviousManifest.config -and $PreviousManifest.config.changed_by_installer -and [string]$PreviousManifest.config.path -eq $ConfigPathSelected -and [string]$PreviousManifest.config.installed_hash -eq $currentConfigHash) {
-        $configInfo = $PreviousManifest.config
+        # Preserve every uninstall-related field recorded by the prior manifest.
+        # An upgrade with no config mutation may only backfill/update the current
+        # compatibility observation; replacing this object loses backup evidence.
+        $configInfo = [ordered]@{}
+        foreach ($property in @($PreviousManifest.config.PSObject.Properties)) {
+            $configInfo[$property.Name] = $property.Value
+        }
+        $configInfo["subagent_depth_mode"] = $SubagentDepthMode
     } else {
         $configInfo = [ordered]@{
             path = $ConfigPathSelected
@@ -1207,6 +1271,7 @@ if (-not $NoConfigPatch) {
             changed_by_installer = $ConfigNeedsUpdate
             backup_path = $ConfigBackupPath
             installed_hash = $currentConfigHash
+            subagent_depth_mode = $SubagentDepthMode
         }
     }
 }
@@ -1252,7 +1317,9 @@ foreach ($name in @(
 
 Write-Host ""
 Write-Host "Skill instalada: ai-driven-engineering"
-Write-Host "subagent_depth: 2 (raiz da configuração V2)"
+Write-Host "subagent_depth: 2 (raiz canônica)"
+Write-Host "subagent_depth mode: $SubagentDepthMode"
+if (-not [string]::IsNullOrWhiteSpace($OpenCodeVersionText)) { Write-Host "OpenCode CLI: $OpenCodeVersionText" }
 if (-not $NoDefaultAgent) {
     Write-Host "default_agent: orchestrator"
 }
@@ -1272,3 +1339,6 @@ if ($SkipRuntimeCheck) {
 
 Write-Host ""
 Write-Host "Reinicie o OpenCode / OpenCode V2 ou inicie uma nova sessão para recarregar os arquivos instalados."
+$NestedProbe = Join-Path $RuntimeTarget "nested-delegation-smoke.ps1"
+Write-Host "Somente após reiniciar, execute o probe operacional em uma sessão nova:"
+Write-Host "  $PowerShellExecutable -ExecutionPolicy Bypass -File `"$NestedProbe`" -Target `"$Target`""
