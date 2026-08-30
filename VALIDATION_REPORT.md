@@ -1,22 +1,29 @@
-# Validation report — build v5.2.0
+# Validation report — ADE v5.2.2 consolidation build
 
-Executed in the packaging environment:
+## Source gates deste pacote
 
-- TypeScript: `tsc -p plugin/tsconfig.json --noEmit` — PASS.
-- Node plugin tests: 24/24 — PASS.
-- Python regression: groups 1–31/32 — PASS before final source hash; group 32 is the release-integrity hash gate and is rerun after `RELEASE.json` is finalized.
-- Installer simulation in a clean temporary target — PASS:
-  - removed legacy top-level `subagent_depth`;
-  - preserved unrelated `experimental.keep_me`;
-  - wrote `experimental.subagent_depth=2`;
-  - set `default_agent=orchestrator`;
-  - installed 18 agents / 25 tools / manifest schema 7;
-  - installed `manifest-check` passed.
-- Lifecycle regression includes malformed legacy `evidence: {}` and verifies normalization + durable evidence log — PASS.
+- Python regression: 34 grupos (hash final selado no fim do build);
+- Static policy: obrigatório;
+- TypeScript `tsc --noEmit`: obrigatório;
+- Node plugin tests: **27** testes, incluindo SDK documentado (`Plugin.define`) e fallback beta sem named `Plugin` export;
+- structured handoff schema/authority/limits e revision neutrality;
+- state-driven nested fixture (Delivery → Project Manager → Tracker Operator);
+- bounded plugin-list startup retry;
+- migration v5.2.1 → v5.2.2 e rollback simulados no lifecycle de empacotamento.
 
-Not executable from this Linux packaging environment:
-- real `opencode2 beta-18684` Windows runtime;
-- Windows PowerShell test suite;
-- model-driven behavioral evals.
+## Validation architecture
 
-Those remain explicit post-install gates and are not represented as validated here.
+### Core Runtime
+Manifest, plugin load, provider baseline, catalog, tool execution e configuração V2 resolvida.
+
+### Contract Assurance
+Determinística e obrigatória em todo `validate`: 18 agents, 26 tools, Structured Handoffs, limits/authority, routing contract, generation budgets, retry policy e telemetry privacy.
+
+### Behavioral Canary
+Estrita e model/provider-driven. O nested scenario constrói estado canônico que requer **Delivery**; portanto o route esperado é Project Manager → Tracker Operator. O Orchestrator pode consultar `ade_status` e `ade_route_snapshot` uma vez cada, porque isso faz parte do happy path STATE_DRIVEN, mas nenhuma rota alternativa é aceita.
+
+`assure --model` executa Behavioral Canary por padrão. `--core-only` nunca alega Release Assurance.
+
+## Windows/OpenCode
+
+A v5.2.2 permanece `SOURCE_VALIDATED_RUNTIME_PENDING` até ser instalada no OpenCode V2 alvo. O pacote foi desenhado especificamente para cobrir os dois comportamentos observados na beta-18684: ausência do named export `Plugin` e race curta entre restart e `plugin list`. O runtime real continua sendo a autoridade final.

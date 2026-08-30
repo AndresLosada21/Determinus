@@ -1,25 +1,25 @@
-# Compatibility — ADE v5.2.0
-
-## Target
+# Compatibility — ADE v5.2.2
 
 | ADE | OpenCode | Python | Estado |
 |---|---|---:|---|
-| 5.2.0 | OpenCode V2 / Promise plugin contract | 3.9+ | source/static validated |
-| 5.2.0 | `opencode2 beta-18684` Windows observado na sessão | 3.9+ | core runtime deve ser revalidado no host |
+| 5.2.2 | V2 Promise plugin API | 3.9+ | source/static validated |
+| 5.2.2 | `opencode2 beta-18684` Windows | 3.9+ | revalidate core+contract after upgrade |
 
-## OpenCode V2 invariants usados
+## Upgrade inputs aceitos
 
-- `Plugin.define({ id, setup })` / host SDK como peer dependency.
-- project root é session-scoped (`sessionID -> session.get -> location-aware APIs`).
-- context hook restringe tools e budget; não fabrica SystemPart.
-- `experimental.subagent_depth: 2` é canônico; top-level legado é removido.
-- Skill é explícita/lazy (`metadata.opencode/autoinvoke: false`).
-- child sessions são tratadas como contextos independentes; por isso prompts/handoffs são pequenos.
+Migrator aceita instalações gerenciadas v4.x, v5.0.x, v5.1.x e v5.2.0.
 
-## `tool_choice` auto-only providers
+## API V2 usada
+- `Plugin.define` Promise contract;
+- session-scoped Location via `session.get` + agent list envelope;
+- `session.hook("context")` para tool visibility + generation budget + dispatch metadata;
+- `session.hook("retry")` para retry bounded;
+- `session.context` best-effort para exact usage/cost quando exposto;
+- commands synthetic para diagnostics/metrics.
 
-Alguns provider/model paths observados rejeitam `none`, `required` ou named choices e aceitam apenas `auto`. ADE v5.2 classifica esse `provider.invalid-request` e faz retry limitado. O hook suportado não é tratado como autorização para inventar/rewrite silencioso de requests; falha determinística continua terminal após o budget.
+Structured Handoff não depende de um output-final hook inexistente: o canal canônico é a typed tool `ade_handoff_submit`.
 
-## Upgrade
 
-Installer/migrator aceita linha v4, v5.0 e v5.1. Config legada `subagent_depth` é migrada para `experimental.subagent_depth` preservando outras chaves `experimental`.
+## Plugin definition compatibility adapter (v5.2.2)
+
+The documented OpenCode V2 Promise plugin contract uses `Plugin.define(...)`. The Windows build `0.0.0-beta-18684` observed in runtime validation can expose an SDK shape where the named `Plugin` export is absent. v5.2.2 imports the SDK as a namespace and uses `Plugin.define` when available, otherwise exporting the same `{ id, setup }` definition directly. This avoids a named-export load failure while retaining the documented contract on newer hosts. Runtime validation remains authoritative for the target build.

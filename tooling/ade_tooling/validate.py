@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .common import ADEError, VERSION
 from .manifest import validate_installed_manifest
-from .smoke import capability_recovery_smoke, engineering_recovery_routing_smoke, nested_delegation_smoke, plugin_runtime_smoke, runtime_config_smoke
+from .smoke import capability_recovery_smoke, contract_runtime_smoke, engineering_recovery_routing_smoke, nested_delegation_smoke, plugin_runtime_smoke, runtime_config_smoke
 
 
 def validate(*, target: Path | None = None, model: str | None = None, behavioral: bool = False) -> None:
@@ -12,6 +12,7 @@ def validate(*, target: Path | None = None, model: str | None = None, behavioral
     validate_installed_manifest(target)
     plugin_runtime_smoke(target, model=model)
     runtime_config_smoke(target)
+    contract_runtime_smoke(target)
     if not model:
         if behavioral:
             raise ADEError("BEHAVIORAL_EVAL_REQUIRES_MODEL: forneça --model provider/model")
@@ -21,7 +22,8 @@ def validate(*, target: Path | None = None, model: str | None = None, behavioral
     print("ADE_V5_RUNTIME_CORE_VALIDATED")
     print(f"RUNTIME_VALIDATED: {VERSION}")
     if not behavioral:
-        print("BEHAVIORAL_EVALS_SKIPPED: use --behavioral para nesting/routing/model-compliance evals.")
+        print("BEHAVIORAL_CANARY_PENDING: core+contract estão validados; rode --behavioral para provar uso real dos handoffs/rotas neste provider/model.")
+        print("RELEASE_ASSURANCE_PENDING: behavioral canary é obrigatório em assurance com --model.")
         return
     nested_delegation_smoke(target, model)
     capability_recovery_smoke(target, model)

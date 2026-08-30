@@ -21,7 +21,7 @@ try {
   if($cfg.default_agent -ne 'orchestrator'){throw 'default_agent not set'}
   $m=Get-Content (Join-Path $temp 'ai-driven-engineering-install.json') -Raw | ConvertFrom-Json
   if([int]$m.schema_version -ne 7){throw 'manifest schema !=7'}
-  if($m.package_version -ne '5.2.0'){throw 'package version !=5.2.0'}
+  if($m.package_version -ne '5.2.2'){throw 'package version !=5.2.2'}
   if($m.config.subagent_depth_mode -ne 'experimental-v2'){throw 'manifest depth mode wrong'}
   & $python.Source -B (Join-Path $temp 'ai-driven-engineering/tooling/ade.py') manifest-check --target $temp | Out-Host
   if($LASTEXITCODE -ne 0){throw 'manifest check failed'}

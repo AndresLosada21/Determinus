@@ -1,4 +1,4 @@
-# ADE v5.2.0 Python tooling
+# ADE v5.2.2 Python tooling
 
 Entry point: `python tooling/ade.py <command>`. Python 3.9+, standard library only.
 

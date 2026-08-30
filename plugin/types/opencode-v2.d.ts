@@ -27,6 +27,7 @@ declare module "@opencode-ai/plugin" {
       }
       readonly session: {
         get(input: { sessionID: string }): Promise<{ id?: string; location: { directory: string; workspaceID?: string } }>
+        context(input: { sessionID: string }): Promise<readonly any[]>
         hook(name: "context" | "retry", callback: (event: any) => void | Promise<void>): Promise<Registration>
         synthetic(input: { sessionID: string; text: string; description?: string; metadata?: Record<string, unknown>; delivery?: unknown; resume?: boolean }): Promise<unknown>
         prompt(input: { sessionID: string; text: string; files?: readonly unknown[]; agents?: readonly unknown[]; skills?: readonly unknown[]; metadata?: Record<string, unknown>; delivery?: unknown; resume?: boolean }): Promise<unknown>

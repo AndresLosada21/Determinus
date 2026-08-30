@@ -31,7 +31,7 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect(cap.get("version") == VERSION, "CAPABILITY_VERSION_MISMATCH")
     _expect(cap.get("plugin_id") == "ai-driven-engineering.native", "PLUGIN_ID_MISMATCH")
     _expect(set(cap.get("agents", {})) == set(AGENTS), "CAPABILITY_AGENT_SET_MISMATCH")
-    _expect(len(cap.get("tools", {})) == 25, f"TOOL_COUNT_INVALID: {len(cap.get('tools', {}))}")
+    _expect(len(cap.get("tools", {})) == 26, f"TOOL_COUNT_INVALID: {len(cap.get('tools', {}))}")
     budgets = cap.get("generation_max_tokens") or {}
     _expect(set(budgets) == set(AGENTS), "GENERATION_BUDGET_AGENT_SET_MISMATCH")
     _expect(all(isinstance(v, int) and 500 <= v <= 2000 for v in budgets.values()), "GENERATION_BUDGET_INVALID")
@@ -63,11 +63,11 @@ def static_policy(root: Path | None = None) -> list[str]:
 
     pm_fm, pm_body = parse_frontmatter(agent_files["project-manager"])
     _expect("tracker-operator" in {p.get("resource") for p in pm_fm["permissions"] if p.get("action") == "subagent" and p.get("effect") == "allow"}, "project-manager: tracker-operator não permitido")
-    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "TRACKER_AUTHORITY: EXECUTION_ONLY", "COMPACT_HANDOFF"):
+    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "TRACKER_AUTHORITY: EXECUTION_ONLY", "Handoff canônico"):
         _expect(marker in pm_body, f"project-manager: marker ausente {marker}")
 
     eng_body = parse_frontmatter(agent_files["engineer"])[1]
-    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "HAND_BACK_POLICY: FORBIDDEN_WHEN_EXECUTABLE", "COMPACT_HANDOFF"):
+    for marker in ("ROUTING_POLICY: STATE_DRIVEN", "HAND_BACK_POLICY: FORBIDDEN_WHEN_EXECUTABLE", "Handoff canônico"):
         _expect(marker in eng_body, f"engineer: marker ausente {marker}")
 
     orch_body = parse_frontmatter(agent_files["orchestrator"])[1]
@@ -97,6 +97,12 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect('const limit=i.limit||5' in src, "evidence query default deve ser 5")
     _expect('detail:str({enum:["compact","full"]})' in src, "state_get compact/full selector ausente")
     _expect('add("ade_route_snapshot"' in src, "ade_route_snapshot ausente")
+    _expect('add("ade_handoff_submit"' in src, "ade_handoff_submit ausente")
+    _expect("HANDOFF_SCHEMA_VIOLATION" in src and "HANDOFF_AUTHORITY_VIOLATION" in src, "handoff enforcement ausente")
+    _expect("handoffs.jsonl" in src and "recent_handoffs" in src, "canonical handoff persistence ausente")
+    for agent in AGENTS:
+        if agent != "orchestrator":
+            _expect("ade_handoff_submit" in cap["agents"][agent], f"{agent}: handoff capability ausente")
 
     # Retry is bounded mitigation, not an infinite loop.
     _expect('ctx.session.hook("retry"' in src, "retry hook ausente")
@@ -144,7 +150,7 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect(pkg.get("exports") == "./src/index.ts", "plugin exports inválido")
     _expect("@opencode-ai/plugin" not in (pkg.get("dependencies") or {}), "host SDK não deve ser bundled")
     _expect((pkg.get("peerDependencies") or {}).get("@opencode-ai/plugin") is not None, "host SDK peerDependency ausente")
-    _expect('import { Plugin } from "@opencode-ai/plugin"' in src and "export default Plugin.define({" in src, "Promise Plugin.define ausente")
+    _expect('import * as OpenCodePlugin from "@opencode-ai/plugin"' in src and 'pluginDefine' in src and 'Plugin?.define' in src and 'raw-default-compat' in src and 'export default pluginDefine({' in src, "Promise plugin compatibility adapter ausente")
     _expect("ctx.location?.project" not in src and "ctx.location?.directory" not in src, "ctx.location usado como project root")
     _expect("event.system.push" not in src and "event.system =" not in src, "context hook não pode fabricar SystemPart")
 

@@ -46,7 +46,7 @@ def _group_json(root: Path) -> None:
 
 def _group_registry(root: Path) -> None:
     cap=load_json(root/"plugin/capabilities.json")
-    _expect(len(cap["tools"])==25,"typed tools != 25")
+    _expect(len(cap["tools"])==26,"typed tools != 26")
     _expect(set(cap["agents"])==set(AGENTS),"registry agents mismatch")
     known=set(cap["tools"])
     for agent,tools in cap["agents"].items():
@@ -78,8 +78,14 @@ def _group_compact_ux(root: Path) -> None:
     orch=read_text(root/"agents/orchestrator.md")
     _expect("USER_BRIEF" in orch and "180 palavras" in orch,"user brief budget missing")
     _expect("oito seções" not in orch.lower(),"legacy audit template in orchestrator")
+    cap=load_json(root/"plugin/capabilities.json")
     for p in (root/"agents").glob("*.md"):
-        if p.stem!="orchestrator": _expect("COMPACT_HANDOFF" in read_text(p),f"{p.stem}: compact handoff missing")
+        if p.stem!="orchestrator":
+            text=read_text(p)
+            _expect("Handoff canônico" in text and "ade_handoff_submit" in text,f"{p.stem}: canonical handoff missing")
+            _expect("exatamente um" in text and "no máximo 3 linhas" in text,f"{p.stem}: handoff behavioral budget missing")
+            _expect("ade_handoff_submit" in cap["agents"][p.stem],f"{p.stem}: handoff tool capability missing")
+    _expect("ade_handoff_submit" not in cap["agents"]["orchestrator"],"orchestrator should not submit child handoff")
 
 
 def _group_generation_budgets(root: Path) -> None:
@@ -100,10 +106,11 @@ def _group_evidence_hardening(root: Path) -> None:
 
 def _group_observability(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for marker in ("telemetry.jsonl","duration_ms","ade-trace","ade-metrics","ade-why"):_expect(marker in src,f"observability missing {marker}")
+    for marker in ("telemetry.jsonl","duration_ms","ade-trace","ade-metrics","ade-cost","ade-handoffs","ade-why","model.dispatch","provider.retry","approx_context_tokens"):_expect(marker in src,f"observability missing {marker}")
     # telemetry must not store tool inputs or prompt content
     snippet=src[src.find("duration_ms")-500:src.find("duration_ms")+700]
     _expect("input:" not in snippet and "prompt:" not in snippet,"telemetry stores request content")
+    _expect("prompt_text" not in src and "prompt_content" not in src,"telemetry named prompt payload field detected")
 
 
 def _group_retry_hook(root: Path) -> None:
@@ -168,7 +175,7 @@ def _group_plugin_v2_contract(root: Path) -> None:
     _expect(pkg.get("exports")=="./src/index.ts","exports invalid")
     _expect("@opencode-ai/plugin" not in (pkg.get("dependencies") or {}),"host SDK bundled")
     _expect((pkg.get("peerDependencies") or {}).get("@opencode-ai/plugin") is not None,"peer SDK missing")
-    _expect('import { Plugin } from "@opencode-ai/plugin"' in src and "export default Plugin.define({" in src,"Plugin.define missing")
+    _expect('import * as OpenCodePlugin from "@opencode-ai/plugin"' in src and 'pluginDefine' in src and 'Plugin?.define' in src and 'raw-default-compat' in src and 'export default pluginDefine({' in src,"Plugin.define compatibility adapter missing")
 
 
 def _group_session_scoped_location(root: Path) -> None:
@@ -185,13 +192,13 @@ def _group_v2_location_envelopes(root: Path) -> None:
 
 def _group_bootstrap(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for marker in ("ADE_INIT_OK","project-templates","work-items","delegations","evidence.jsonl","telemetry.jsonl"):_expect(marker in src,f"bootstrap missing {marker}")
+    for marker in ("ADE_INIT_OK","project-templates","work-items","delegations","evidence.jsonl","telemetry.jsonl","handoffs.jsonl"):_expect(marker in src,f"bootstrap missing {marker}")
     for f in ("control.json","execution-policy.json","integrations.json","traceability.json","tracker-policy.json","vcs-policy.json"):_expect((root/"plugin/assets/project-templates"/f).is_file(),f"bootstrap template missing {f}")
 
 
 def _group_commands(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for cmd in ("ade-init","ade-status","ade-doctor","ade-why","ade-trace","ade-metrics","ade-resume","ade-audit"):_expect(f'name:"{cmd}"' in src,f"command missing {cmd}")
+    for cmd in ("ade-init","ade-status","ade-doctor","ade-why","ade-trace","ade-metrics","ade-cost","ade-handoffs","ade-resume","ade-audit"):_expect(f'name:"{cmd}"' in src,f"command missing {cmd}")
 
 
 def _group_provider_wire_schema(root: Path) -> None:
@@ -200,19 +207,42 @@ def _group_provider_wire_schema(root: Path) -> None:
     _expect("project_root:str()" not in src,"tool schema exposes project_root")
     _expect('...(required.length ? { required: [...required] } : {})' in src,"optional required construction missing")
     for marker in ("PROVIDER_BASELINE_VALIDATED","PLUGIN_CATALOG_VALIDATED","PLUGIN_CATALOG_SCHEMA_FAILED","PLUGIN_TOOL_EXECUTION_VALIDATED","PLUGIN_TOOL_SCHEMA_FAILED"):_expect(marker in smoke,f"runtime schema diagnostic missing {marker}")
+    for marker in ("_plugin_list_with_startup_retry","(0.0, 0.5, 1.0, 2.0)","PLUGIN_LIST_STARTUP_RETRY_RECOVERED"):_expect(marker in smoke,f"plugin startup race guard missing {marker}")
 
 
 def _group_behavioral_separation(root: Path) -> None:
-    validate=read_text(root/"tooling/ade_tooling/validate.py");cli=read_text(root/"tooling/ade_tooling/cli.py")
+    validate=read_text(root/"tooling/ade_tooling/validate.py");cli=read_text(root/"tooling/ade_tooling/cli.py");smoke=read_text(root/"tooling/ade_tooling/smoke.py")
     _expect("behavioral: bool = False" in validate,"behavioral default false missing")
-    _expect("BEHAVIORAL_EVALS_SKIPPED" in validate and "BEHAVIORAL_EVALS_VALIDATED" in validate,"behavioral separation markers missing")
+    _expect("BEHAVIORAL_CANARY_PENDING" in validate and "BEHAVIORAL_EVALS_VALIDATED" in validate,"behavioral separation markers missing")
+    _expect("contract_runtime_smoke(target)" in validate,"deterministic contract assurance missing from validate")
     _expect('"--behavioral"' in cli,"behavioral CLI flag missing")
+    _expect('required_plane="delivery"' in smoke,"nested canary fixture is not delivery-routed")
+    _expect('control_calls={"ade_status":0,"ade_route_snapshot":0}' in smoke,"state-driven control-tool allowance missing")
+    _expect('count>1' in smoke and 'repeated_control' in smoke,"state-driven control-tool allowance is not bounded")
+
+
+def _group_structured_handoff_protocol(root: Path) -> None:
+    cap=load_json(root/"plugin/capabilities.json");src=read_text(root/"plugin/src/index.ts")
+    _expect("ade_handoff_submit" in cap["tools"],"handoff tool absent")
+    contract=cap.get("handoff_contract") or {}
+    for k,v in {"max_handoff_bytes":4096,"max_changed_items":8,"max_evidence_refs":8,"recent_in_control":3}.items(): _expect(int(contract.get(k,-1))==v,f"handoff {k} mismatch")
+    for marker in ("HANDOFF_SCHEMA_VIOLATION","HANDOFF_AUTHORITY_VIOLATION","HANDOFF_OWNER_BY_AGENT","handoffs.jsonl","recent_handoffs","canonical:true"):_expect(marker in src,f"structured handoff missing {marker}")
+    smoke=read_text(root/"tooling/ade_tooling/smoke.py")
+    for marker in ("CONTRACT_ASSURANCE_VALIDATED","STRUCTURED_HANDOFF_BEHAVIOR_VALIDATED","_assert_one_handoff"):_expect(marker in smoke,f"handoff validation missing {marker}")
+
+
+def _group_cost_intelligence(root: Path) -> None:
+    src=read_text(root/"plugin/src/index.ts")
+    for marker in ("estimateContext","exactUsageFromMessages","approx_input_tokens_dispatched","requested_output_token_budget","exact_provider_usage"):_expect(marker in src,f"cost intelligence missing {marker}")
+    _expect("chars/4" in src,"estimated token disclaimer missing")
 
 
 def _group_managed_upgrade_safety(root: Path) -> None:
     src=read_text(root/"tooling/ade_tooling/install.py")
     for marker in ("previous_manifest_data","previous_hashes: dict[str, str] | None","old_hash = previous_hashes.get(rel)",'previous_hashes=old_files("skill")','previous_hashes=old_files("runtime")','previous_hashes=old_files("tooling")','previous_hashes=old_files("plugin")'):_expect(marker in src,f"managed upgrade guard missing {marker}")
     _expect("current_hash != source_hash and not force" in src,"managed upgrade conflict guard missing")
+    migrate=read_text(root/"tooling/ade_tooling/migrate.py")
+    _expect('"5.2.1"' in migrate and 'MIGRATION_TO_V5_2_2_OK' in migrate,"v5.2.1 -> v5.2.2 migration support missing")
 
 
 def _group_config_fragment(root: Path) -> None:
@@ -231,11 +261,11 @@ def _group_python_tooling(root: Path) -> None:
 
 
 def _group_unwanted_artifacts(root: Path) -> None:
-    forbidden={".git",".ai","node_modules",".pytest_cache"}
+    forbidden={".git",".ai","node_modules",".pytest_cache","__pycache__"}
     for p in root.rglob("*"):
         _expect(not (set(p.relative_to(root).parts)&forbidden),f"forbidden artifact {p.relative_to(root)}")
         if p.is_file():
-            low=p.name.lower();_expect(not (low.startswith(".env") and low!=".env.example"),f"secret-like artifact {p.relative_to(root)}")
+            low=p.name.lower();_expect(p.suffix.lower()!=".pyc",f"compiled artifact {p.relative_to(root)}");_expect(not (low.startswith(".env") and low!=".env.example"),f"secret-like artifact {p.relative_to(root)}")
 
 
 def _group_release(root: Path) -> None:
@@ -250,8 +280,8 @@ def _group_release(root: Path) -> None:
 GROUPS: list[tuple[str, Callable[[Path], None]]] = [
     ("package-layout",_group_package_layout),("utf8-text",_group_utf8),("version-consistency",_group_version),("json-integrity",_group_json),
     ("capability-registry",_group_registry),("agent-static-policy",_group_agent_policy),("state-driven-routing",_group_state_driven),("lazy-skill",_group_lazy_skill),
-    ("compact-user-handoff",_group_compact_ux),("generation-budgets",_group_generation_budgets),("evidence-log-hardening",_group_evidence_hardening),
-    ("telemetry-observability",_group_observability),("provider-retry-hook",_group_retry_hook),("secret-boundaries",_group_secret_boundaries),
+    ("compact-user-handoff",_group_compact_ux),("structured-handoff-protocol",_group_structured_handoff_protocol),("generation-budgets",_group_generation_budgets),("evidence-log-hardening",_group_evidence_hardening),
+    ("telemetry-observability",_group_observability),("cost-performance-intelligence",_group_cost_intelligence),("provider-retry-hook",_group_retry_hook),("secret-boundaries",_group_secret_boundaries),
     ("vcs-schema-constraints",_group_vcs_surface),("validation-authority",_group_validation_authority),("tracker-read-write-separation",_group_tracker_split),
     ("project-check-bypass-guards",_group_project_check),("runtime-observe-redaction",_group_runtime_observe),("template-parity",_group_templates),
     ("opencode-v2-plugin-contract",_group_plugin_v2_contract),("session-scoped-location",_group_session_scoped_location),("v2-location-envelopes",_group_v2_location_envelopes),

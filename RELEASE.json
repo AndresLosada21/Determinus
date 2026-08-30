@@ -1,29 +1,39 @@
 {
   "schema_version": 3,
-  "version": "5.2.0",
+  "version": "5.2.2",
   "release_state": "SOURCE_VALIDATED_RUNTIME_PENDING",
   "source_tree_hash_excludes": [
     "RELEASE.json"
   ],
-  "source_tree_sha256": "77869770891c9c582acb25f8eb7ca97b8a0e9772977096bbe4fa54c9e58bffeb",
+  "source_tree_sha256": "c5a3e6b34eb2c622a88f515b8ecb4fabd6ae8e94d52b93e779d1eb8011d02930",
   "target": {
     "opencode": "V2 Promise plugin API",
     "observed_windows_build": "0.0.0-beta-18684"
   },
   "validation": {
-    "python_regression_groups": 32,
-    "plugin_tests": 24,
+    "python_regression_groups": 34,
+    "plugin_tests": 27,
     "typescript_typecheck": "passed",
     "v2_lifecycle_mock": "passed",
     "install_simulation": "passed",
     "manifest_schema": 7,
     "agents": 18,
-    "typed_tools": 25,
-    "runtime_opencode_windows": "pending",
-    "behavioral_provider_eval": "pending"
+    "typed_tools": 26,
+    "runtime_opencode_windows": "pending_revalidation_for_5.2.2",
+    "behavioral_provider_eval": "pending",
+    "contract_assurance": "passed",
+    "structured_handoff_revision_neutrality": "passed",
+    "v5_2_1_to_v5_2_2_migration": "passed",
+    "v5_2_2_to_v5_2_1_rollback": "passed",
+    "plugin_definition_compat_adapter": "passed_local_mock",
+    "state_driven_nested_fixture": "passed_static",
+    "plugin_list_bounded_retry": "passed_static"
   },
   "notes": [
-    "Core runtime validation is deterministic and separate from strict optional behavioral evals.",
-    "Provider auto-only tool_choice retry is bounded mitigation, not request rewriting."
+    "v5.2.2 is a consolidation/reproducibility release; no hot-patching of the active install is part of the release procedure.",
+    "Promise plugin adapter uses Plugin.define when available and raw default compatibility only when the SDK lacks that named export.",
+    "Nested behavioral canary is state-driven: the fixture requires Delivery and the expected route remains strictly Project Manager -> Tracker Operator.",
+    "Plugin-list startup recovery is bounded and never treats a missing plugin as success.",
+    "Core Runtime, deterministic Contract Assurance, and strict model-driven Behavioral Canary remain separate validation layers."
   ]
 }

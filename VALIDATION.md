@@ -1,46 +1,69 @@
-# Validation — ADE v5.2.0
+# Validation — ADE v5.2.2
 
-## Camada A — Source/static (determinística)
+## A. Source/static — determinística
 
-Executada antes de empacotar:
-- 32 grupos Python;
-- 24 testes Node;
+Antes de empacotar:
+- 34 grupos Python;
+- 26 testes Node;
 - TypeScript `tsc --noEmit`;
-- 18 agents / 25 tools;
-- capability/permission parity;
-- state-driven routing e Skill lazy;
-- evidence schema/log migration;
+- 18 agents / 26 typed tools;
+- structured handoff ownership/schema/limits;
+- lifecycle mock com handoff persistence e authority rejection;
+- evidence/state hardening;
+- state-driven routing;
+- telemetry privacy + cost intelligence;
 - bounded provider retry;
-- telemetry sem payloads;
-- template parity, VCS/security guards, project-check diagnostics;
-- OpenCode V2 `experimental.subagent_depth` only.
+- installer/migrator/uninstaller safety.
 
-## Camada B — Core runtime (bloqueante)
+## B. Core runtime — bloqueante para operação
 
-`validate --model` prova:
-1. manifesto instalado schema 7;
-2. plugin ativo e 18 agent surfaces;
-3. provider baseline sem ADE;
+`validate --model` prova no host:
+1. manifesto instalado;
+2. plugin ativo;
+3. provider baseline;
 4. catálogo ADE aceito;
-5. `orchestrator -> ade_status` realmente executa;
-6. configuração V2 resolvida;
-7. `ADE_V5_RUNTIME_CORE_VALIDATED` / `RUNTIME_VALIDATED: 5.2.0`.
+5. `orchestrator -> ade_status` executado realmente;
+6. `experimental.subagent_depth=2` resolvido.
 
-Esse caminho não depende de o modelo reproduzir frases exatas de um eval.
+## C. Contract Assurance — determinística e obrigatória no validate
 
-## Camada C — Behavioral eval (opcional, estrita)
+Sempre roda, com ou sem `--behavioral`:
+- 26 tools instaladas;
+- Orchestrator não recebe handoff-submit;
+- 17 child/owner agents recebem `ade_handoff_submit`;
+- agent instructions exigem exactly-one handoff + resposta curta;
+- schema 4 KiB / 8 refs / 8 changed / recent=3;
+- plugin contém authority enforcement, durable handoff log e telemetry privacy markers.
 
-`validate --model ... --behavioral` acrescenta:
-- `orchestrator -> project-manager -> tracker-operator` real;
-- capability-denial recovery;
-- `implementer escalation -> engineer -> verifier`.
+Marcadores:
 
-Esses tests permanecem estritos. Uma rota diferente **falha**; não existe marker leniente que converta comportamento alternativo em prova equivalente.
+```text
+HANDOFF_CONTRACT_VALIDATED
+EFFICIENCY_CONTRACT_VALIDATED
+CONTRACT_ASSURANCE_VALIDATED
+```
 
-## Assurance
+## D. Behavioral Canary — model-driven
 
-`assurance --source --model ...` combina source + core runtime. Acrescente `--behavioral` quando quiser certificar também model-compliance para aquele provider/model.
+`validate --model ... --behavioral` executa canaries no provider/model real. Não valida frases literais; valida comportamento observável:
+- subagent correto;
+- `ade_handoff_submit` chamado exatamente uma vez por child/owner esperado;
+- status/required_owner/next corretos;
+- ausência de tools extras proibidas;
+- resposta abaixo do budget de texto.
 
-## Windows/Bun
+Falha é real behavioral regression para aquela combinação host/provider/model.
 
-Se `opencode2 service restart` reportar Bun `os error 1455` / arquivo de paginação pequeno, trate memória virtual/pagefile antes de interpretar a falha como problema ADE. O release bundle inclui `diagnose-windows-pagefile.ps1`.
+## E. Release Assurance
+
+```powershell
+py -B .\assure-opencode-v5.2.2.py --source --model "provider/model"
+```
+
+Com `--model`, behavioral canary é executado por padrão. Só então sai:
+
+```text
+RELEASE_ASSURANCE_VALIDATED: core + contract + behavioral canary
+```
+
+`--core-only` é diagnóstico; imprime `RELEASE_ASSURANCE_NOT_CLAIMED`.

@@ -242,10 +242,10 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
         }
         dump_json(previous_manifest, manifest)
         print(f"ADE v{VERSION} instalado em: {target}")
-        print(f"Agents: {len(agent_hashes)} | Plugin tools: 25 | Manifest schema: 7")
+        print(f"Agents: {len(agent_hashes)} | Plugin tools: 26 | Manifest schema: 7")
         if config_info.get("patched"):
             print(f"subagent_depth_mode: {config_info.get('subagent_depth_mode')}")
-        print("INSTALL_V5_2_0_OK")
+        print("INSTALL_V5_2_2_OK")
         return manifest
     except Exception:
         # Transactional rollback: delete files created by this attempt, then restore every backed-up original.

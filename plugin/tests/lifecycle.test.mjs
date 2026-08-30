@@ -9,7 +9,7 @@ async function copyTree(src, dst) {
   await fs.cp(src, dst, { recursive: true })
 }
 
-async function fixture() {
+async function fixture({ legacySdk = false } = {}) {
   const pluginDir = path.resolve(new URL("..", import.meta.url).pathname)
   const temp = await fs.mkdtemp(path.join(os.tmpdir(), "ade-v520-lifecycle-"))
   const runtime = path.join(temp, "plugin")
@@ -26,7 +26,9 @@ async function fixture() {
   await fs.writeFile(path.join(sdk, "package.json"), JSON.stringify({
     name: "@opencode-ai/plugin", type: "module", exports: "./index.js"
   }), "utf8")
-  await fs.writeFile(path.join(sdk, "index.js"), "export const Plugin={define:(value)=>value}\n", "utf8")
+  await fs.writeFile(path.join(sdk, "index.js"), legacySdk
+    ? "export const tool={}\n"
+    : "export const Plugin={define:(value)=>value}\n", "utf8")
 
   const project = path.join(temp, "project")
   await fs.mkdir(path.join(project, ".ai"), { recursive: true })
@@ -82,7 +84,7 @@ function makeContext(project, cap) {
     session: {
       async get({ sessionID }) { return { id: sessionID, location: { directory: project } } },
       async hook(name, cb) { hooks[`session:${name}`] = cb },
-      async synthetic() {}, async prompt() {}, async switchAgent() {},
+      async synthetic() {}, async prompt() {}, async switchAgent() {}, async context() { return [{info:{usage:{inputTokens:120,outputTokens:30},cost:0.01}}] },
     },
     permission: { async hook(name, cb) { hooks[`permission:${name}`] = cb } },
     tool: {
@@ -119,8 +121,8 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const cleanup = await mod.default.setup(state.ctx)
 
     assert.equal(state.defaultAgent, "orchestrator")
-    assert.equal(state.tools.size, 25)
-    assert.equal(state.commands.size, 8)
+    assert.equal(state.tools.size, 26)
+    assert.equal(state.commands.size, 10)
 
     const contextHook = state.hooks["session:context"]
     assert.equal(typeof contextHook, "function")
@@ -153,7 +155,7 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const status = await state.tools.get("ade_status").execute({}, orchestratorContext)
     const statusValue = JSON.parse(status.content)
     assert.equal(path.resolve(statusValue.project_root), path.resolve(fx.project))
-    assert.equal(statusValue.plugin.version, "5.2.0")
+    assert.equal(statusValue.plugin.version, "5.2.2")
 
     const evidenceContext = { sessionID: "ses_lifecycle", agent: "explorer", messageID: "msg", id: "call-evidence", async progress() {} }
     const evidence = await state.tools.get("ade_evidence_record").execute({ plane: "engineering", state: "OBSERVADO", summary: "legacy evidence shape migration" }, evidenceContext)
@@ -165,6 +167,25 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const evidenceLog = await fs.readFile(path.join(fx.project, ".ai", "evidence.jsonl"), "utf8")
     assert.match(evidenceLog, /legacy evidence shape migration/)
 
+
+    const handoffContext = { sessionID: "ses_lifecycle", agent: "explorer", messageID: "msg", id: "call-handoff", async progress() {} }
+    const handoff = await state.tools.get("ade_handoff_submit").execute({ status: "BLOCKED", blocker: "tracker read requires delivery owner", required_owner: "project-manager", next: "tracker-operator", evidence_refs: ["issue:95"] }, handoffContext)
+    const handoffValue = JSON.parse(handoff.content)
+    assert.equal(handoffValue.canonical, true)
+    assert.equal(handoffValue.source_agent, "explorer")
+    assert.equal(handoffValue.required_owner, "project-manager")
+    const afterHandoff = JSON.parse(await fs.readFile(path.join(fx.project, ".ai", "control.json"), "utf8"))
+    assert.equal(afterHandoff.recent_handoffs.length, 1)
+    assert.equal(afterHandoff.recent_handoffs[0].status, "BLOCKED")
+    assert.equal(afterHandoff.revision, persisted.revision, "handoff communication must not mutate canonical state revision")
+    const handoffLog = await fs.readFile(path.join(fx.project, ".ai", "handoffs.jsonl"), "utf8")
+    assert.match(handoffLog, /tracker read requires delivery owner/)
+
+    const invalidOwner = await state.tools.get("ade_handoff_submit").execute({ status: "BLOCKED", blocker: "bad owner", required_owner: "product-owner" }, handoffContext)
+    const invalidOwnerValue = JSON.parse(invalidOwner.content)
+    assert.equal(invalidOwnerValue.status, "BLOCKED")
+    assert.match(invalidOwnerValue.error, /HANDOFF_AUTHORITY_VIOLATION/)
+
     const explorerContext = { sessionID: "ses_lifecycle", agent: "explorer", messageID: "msg", id: "call-vcs", async progress() {} }
     const vcs = await state.tools.get("ade_vcs_status").execute({}, explorerContext)
     const vcsValue = JSON.parse(vcs.content)
@@ -173,6 +194,19 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     assert.deepEqual(statusCall[1], { location: { directory: path.resolve(fx.project) } })
 
     if (typeof cleanup === "function") await cleanup()
+  } finally {
+    await fs.rm(fx.temp, { recursive: true, force: true })
+  }
+})
+
+
+test("beta SDK without named Plugin export falls back to raw default contract", async () => {
+  const fx = await fixture({ legacySdk: true })
+  try {
+    const url = `${pathToFileURL(path.join(fx.runtime, "src", "index.ts")).href}?legacy=${Date.now()}`
+    const mod = await import(url)
+    assert.equal(mod.default.id, "ai-driven-engineering.native")
+    assert.equal(typeof mod.default.setup, "function")
   } finally {
     await fs.rm(fx.temp, { recursive: true, force: true })
   }

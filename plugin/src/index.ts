@@ -1,13 +1,17 @@
-import { Plugin } from "@opencode-ai/plugin"
+import * as OpenCodePlugin from "@opencode-ai/plugin"
 import { promises as fs } from "node:fs"
 import path from "node:path"
 import { spawn } from "node:child_process"
 import crypto from "node:crypto"
 import { fileURLToPath } from "node:url"
 
-const VERSION = "5.2.0"
+const VERSION = "5.2.2"
 const PLUGIN_ID = "ai-driven-engineering.native"
 const TOOL_PREFIX = "ade_"
+const pluginDefine = typeof (OpenCodePlugin as any)?.Plugin?.define === "function"
+  ? (OpenCodePlugin as any).Plugin.define.bind((OpenCodePlugin as any).Plugin)
+  : (value: any) => value
+const PLUGIN_CONTRACT = typeof (OpenCodePlugin as any)?.Plugin?.define === "function" ? "Plugin.define" : "raw-default-compat"
 const SECRET_FILE = /(^|[\\/])(\.env(?:\..*)?|[^\\/]*\.(pem|key|p12|pfx|kdbx|ovpn|npmrc|netrc|pypirc)|id_rsa|id_ed25519|[^\\/]*(credential|credentials|secret|secrets|token)[^\\/]*\.json)$/i
 
 const PRODUCT_TRANSITIONS: Record<string, readonly string[]> = {
@@ -39,6 +43,7 @@ const str = (extra: Json = {}) => ({ type:"string", ...extra })
 const bool = () => ({ type:"boolean" })
 const integer = (extra: Json = {}) => ({ type:"integer", ...extra })
 const stringArray = () => ({ type:"array", items:{ type:"string" } })
+const boundedStringArray = (maxItems:number,maxLength:number) => ({ type:"array", maxItems, items:{ type:"string", maxLength } })
 
 function result(value: Json) { return { content: JSON.stringify(value, null, 2) } }
 function now() { return new Date().toISOString() }
@@ -147,7 +152,7 @@ async function initProject(root:string,pluginRoot:string,workItem:string,profile
     await writeTextAtomic(dst,content); created.push(name)
   }
   for(const dir of ["work-items","delegations"]){const d=path.join(ai,dir);if(!(await exists(d))){await fs.mkdir(d,{recursive:true});created.push(`${dir}/`)}else preserved.push(`${dir}/`)}
-  for(const logName of ["audit.jsonl","evidence.jsonl","telemetry.jsonl"]){const log=path.join(ai,logName);if(!(await exists(log))){await writeTextAtomic(log,"");created.push(logName)}else preserved.push(logName)}
+  for(const logName of ["audit.jsonl","evidence.jsonl","telemetry.jsonl","handoffs.jsonl"]){const log=path.join(ai,logName);if(!(await exists(log))){await writeTextAtomic(log,"");created.push(logName)}else preserved.push(logName)}
   return {ai,work_item_id:workItem,profile,created,preserved}
 }
 const sleep=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms))
@@ -180,6 +185,7 @@ function controlPaths(root:string) { return {
   audit:path.join(root,".ai","audit.jsonl"),
   evidence:path.join(root,".ai","evidence.jsonl"),
   telemetry:path.join(root,".ai","telemetry.jsonl"),
+  handoffs:path.join(root,".ai","handoffs.jsonl"),
 } }
 function normalizeEvidence(value:any):any[] {
   if(Array.isArray(value)) return value.filter(x=>x && typeof x==="object")
@@ -192,6 +198,8 @@ function normalizeControl(s:Json) {
   const evidence=normalizeEvidence(s.evidence)
   s.evidence=evidence.slice(-20)
   if(!Number.isFinite(Number(s.evidence_count))) s.evidence_count=evidence.length
+  const handoffs=Array.isArray(s.recent_handoffs)?s.recent_handoffs.filter((x:any)=>x&&typeof x==="object"):[]
+  s.recent_handoffs=handoffs.slice(-3)
   return s
 }
 async function getControl(root:string) {
@@ -230,7 +238,7 @@ function routingHint(s:Json){
 function compactControl(s:Json){ return {
   schema_version:Number(s.schema_version||3),work_item_id:s.work_item_id,profile:s.profile,revision:Number(s.revision||0),updated_at:s.updated_at,
   global_status:s.global_status,product:compactPlane(s.product),delivery:compactPlane(s.delivery),engineering:compactPlane(s.engineering),
-  evidence_count:Number(s.evidence_count||normalizeEvidence(s.evidence).length),routing_hint:routingHint(s),work_management:{provider:s.work_management?.provider||"none",sync_status:s.work_management?.sync_status||"NOT_CONFIGURED"}
+  evidence_count:Number(s.evidence_count||normalizeEvidence(s.evidence).length),routing_hint:routingHint(s),handoff_advisory:handoffAdvisory(s),recent_handoffs:(Array.isArray(s.recent_handoffs)?s.recent_handoffs:[]).slice(-3),work_management:{provider:s.work_management?.provider||"none",sync_status:s.work_management?.sync_status||"NOT_CONFIGURED"}
 } }
 function recomputeGlobal(s:Json) {
   const ok=(plane:string, final:string)=>!s[plane]?.required || s[plane]?.status===final
@@ -258,6 +266,69 @@ async function transition(root:string, plane:"product"|"delivery"|"engineering",
     return {plane,from:current,to:target,global_status:s.global_status,revision:s.revision}
   })
 }
+
+
+const HANDOFF_STATUS=new Set(["DONE","PARTIAL","BLOCKED","FAILED"])
+const HANDOFF_OWNERS=new Set(["none","orchestrator","product-owner","project-manager","engineer"])
+const HANDOFF_OWNER_BY_AGENT:Record<string,readonly string[]>={
+  "product-owner":["none","orchestrator","project-manager","engineer"],
+  "project-manager":["none","orchestrator","product-owner","engineer"],
+  "engineer":["none","orchestrator","product-owner","project-manager"],
+  "tracker-operator":["none","project-manager","orchestrator"],
+  "vcs-operator":["none","engineer","orchestrator"],
+  "explorer":["none","engineer","orchestrator","project-manager"],
+  "researcher":["none","engineer","orchestrator"],"modeler":["none","engineer","orchestrator"],
+  "engineering-planner":["none","engineer","orchestrator"],"tester":["none","engineer","orchestrator"],
+  "implementer":["none","engineer","orchestrator"],"verifier":["none","engineer","orchestrator"],
+  "debugger":["none","engineer","orchestrator"],"reviewer":["none","engineer","orchestrator"],
+  "security-reviewer":["none","engineer","orchestrator"],"integrator":["none","engineer","orchestrator"],
+  "documenter":["none","engineer","orchestrator"]
+}
+function cleanStrings(value:any,maxItems:number,maxChars:number,label:string){
+  const list=Array.isArray(value)?value:[]
+  if(list.length>maxItems)throw new Error(`HANDOFF_SCHEMA_VIOLATION: ${label} max_items=${maxItems}`)
+  return list.map((x:any)=>{const v=String(x||"").trim();if(!v)throw new Error(`HANDOFF_SCHEMA_VIOLATION: ${label} item vazio`);if(v.length>maxChars)throw new Error(`HANDOFF_SCHEMA_VIOLATION: ${label} max_chars=${maxChars}`);return v})
+}
+function compactHandoff(h:any){return {id:h.id,ts:h.ts,source_agent:h.source_agent,status:h.status,required_owner:h.required_owner,...(h.blocker?{blocker:String(h.blocker).slice(0,300)}:{}),...(h.next?{next:String(h.next).slice(0,200)}:{}),evidence_refs:(Array.isArray(h.evidence_refs)?h.evidence_refs:[]).slice(0,4)}}
+function handoffAdvisory(s:Json){const state=routingHint(s),recent=Array.isArray(s.recent_handoffs)?s.recent_handoffs:[],h=recent.length?recent[recent.length-1]:null;if(!h||!h.required_owner||h.required_owner==="none")return {state_owner:state.owner,requested_owner:null,aligned:true,decision:"STATE_ONLY"};const requested=String(h.required_owner);return {state_owner:state.owner,requested_owner:requested,source_agent:h.source_agent,handoff_status:h.status,aligned:state.owner===requested,decision:state.owner===requested?"ALIGNED":"STATE_PRECEDENCE"}}
+async function submitHandoff(root:string,input:Json,sourceAgent:string,sessionID:string){
+  if(sourceAgent==="orchestrator"||!HANDOFF_OWNER_BY_AGENT[sourceAgent])throw new Error(`HANDOFF_BLOCKED: source_agent=${sourceAgent}`)
+  const status=String(input.status||"");if(!HANDOFF_STATUS.has(status))throw new Error(`HANDOFF_SCHEMA_VIOLATION: status=${status}`)
+  const requiredOwner=String(input.required_owner||"none");if(!HANDOFF_OWNERS.has(requiredOwner))throw new Error(`HANDOFF_SCHEMA_VIOLATION: required_owner=${requiredOwner}`)
+  if(!HANDOFF_OWNER_BY_AGENT[sourceAgent].includes(requiredOwner))throw new Error(`HANDOFF_AUTHORITY_VIOLATION: ${sourceAgent}->${requiredOwner}`)
+  const changed=cleanStrings(input.changed,8,180,"changed"), evidenceRefs=cleanStrings(input.evidence_refs,8,240,"evidence_refs")
+  const blocker=String(input.blocker||"").trim(), next=String(input.next||"").trim()
+  if(blocker.length>800)throw new Error("HANDOFF_SCHEMA_VIOLATION: blocker max_chars=800")
+  if(next.length>500)throw new Error("HANDOFF_SCHEMA_VIOLATION: next max_chars=500")
+  if(status==="BLOCKED"&&!blocker)throw new Error("HANDOFF_SCHEMA_VIOLATION: BLOCKED exige blocker")
+  const control=await getControl(root)
+  const handoff={id:`ho-${crypto.randomUUID()}`,ts:now(),source_agent:sourceAgent,session_id:sessionID,work_item_id:control.work_item_id||null,control_revision:Number(control.revision||0),status,changed,evidence_refs:evidenceRefs,...(blocker?{blocker}:{}),required_owner:requiredOwner,...(next?{next}:{}),schema_version:1}
+  const bytes=new TextEncoder().encode(JSON.stringify(handoff)).length;if(bytes>4096)throw new Error(`HANDOFF_SCHEMA_VIOLATION: max_bytes=4096 actual=${bytes}`)
+  return withProjectLock(root,"control",async()=>{
+    const s=await getControl(root);const recent=Array.isArray(s.recent_handoffs)?s.recent_handoffs:[]
+    s.recent_handoffs=[...recent,compactHandoff(handoff)].slice(-3)
+    await writeJsonAtomic(controlPaths(root).control,s);await appendJsonl(controlPaths(root).handoffs,handoff)
+    await appendJsonl(controlPaths(root).audit,{ts:handoff.ts,event:"handoff.submit",actor:sourceAgent,status:"OBSERVADO",handoff_id:handoff.id,handoff_status:status,required_owner:requiredOwner,evidence_refs:evidenceRefs})
+    return {...handoff,canonical:true,bytes}
+  })
+}
+function estimateContext(event:any){
+  let chars=0;try{chars+=JSON.stringify(event.system||[]).length}catch{};try{chars+=JSON.stringify(event.messages||[]).length}catch{};try{chars+=JSON.stringify(Object.keys(event.tools||{})).length}catch{}
+  return {approx_context_chars:chars,approx_context_tokens:Math.ceil(chars/4),message_count:Array.isArray(event.messages)?event.messages.length:0,tool_count:Object.keys(event.tools||{}).length}
+}
+function usageCandidate(value:any){
+  if(!value||typeof value!=="object")return null
+  const candidates=[value.usage,value.info?.usage,value.tokens,value.info?.tokens]
+  for(const c of candidates){if(c&&typeof c==="object")return c}
+  return null
+}
+function exactUsageFromMessages(messages:any[]){
+  let input=0,output=0,cacheRead=0,cacheWrite=0,cost=0,found=false,costFound=false
+  const num=(o:any,keys:string[])=>{for(const k of keys){const v=Number(o?.[k]);if(Number.isFinite(v))return v}return 0}
+  for(const m of messages||[]){const u=usageCandidate(m);if(u){found=true;input+=num(u,["input","inputTokens","input_tokens","promptTokens","prompt_tokens"]);output+=num(u,["output","outputTokens","output_tokens","completionTokens","completion_tokens"]);cacheRead+=num(u,["cacheRead","cache_read","cacheReadTokens","cache_read_tokens"]);cacheWrite+=num(u,["cacheWrite","cache_write","cacheWriteTokens","cache_write_tokens"])}const c=Number(m?.cost??m?.info?.cost);if(Number.isFinite(c)){cost+=c;costFound=true}}
+  return {available:found,input_tokens:input,output_tokens:output,cache_read_tokens:cacheRead,cache_write_tokens:cacheWrite,cost_available:costFound,cost}
+}
+function sessionActivity(messages:any[]){let subagent_calls=0,skill_calls=0,handoff_calls=0,assistant_text_chars=0;for(const m of messages||[]){const content=Array.isArray(m?.content)?m.content:Array.isArray(m?.parts)?m.parts:[];for(const e of content){if(!e||typeof e!=="object")continue;if(e.type==="tool"){const name=String(e.name||e.tool||"");if(name==="subagent")subagent_calls++;if(name==="skill")skill_calls++;if(name==="ade_handoff_submit")handoff_calls++}if(e.type==="text"&&typeof e.text==="string")assistant_text_chars+=e.text.length}}return {subagent_calls,skill_calls,handoff_calls,assistant_text_chars}}
 
 async function persistEvidence(root:string,s:Json,ev:any,auditEvent:string){
   const list=normalizeEvidence(s.evidence)
@@ -342,15 +413,15 @@ function protectedBranch(policy:Json,branch:string) { const list=policy.protecte
 
 // OpenCode V2 native Promise plugin contract. Local plugins are expected to import
 // Plugin.define from the host SDK; this keeps the plugin aligned with the runtime loader.
-export default Plugin.define({
+export default pluginDefine({
   id: PLUGIN_ID,
-  async setup(ctx: Plugin.Context) {
+  async setup(ctx: any) {
     const pluginRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..")
     const capabilityRegistry=await readJson(path.join(pluginRoot,"capabilities.json"))
     const agentTools: Record<string, readonly string[]> = capabilityRegistry.agents || {}
     const hideCore: Record<string, readonly string[]> = capabilityRegistry.hide_core_tools || {}
     const registered = Object.keys(capabilityRegistry.tools || {})
-    await ctx.storage.set("runtime/version",{plugin:VERSION,opencode:ctx.app?.version,loaded_at:now()})
+    await ctx.storage.set("runtime/version",{plugin:VERSION,opencode:ctx.app?.version,plugin_contract:PLUGIN_CONTRACT,loaded_at:now()})
 
     await ctx.agent.transform((draft:any)=>{
       if(draft.get("orchestrator")) draft.default("orchestrator")
@@ -358,18 +429,20 @@ export default Plugin.define({
     })
 
     const generationBudgets:Record<string,number>=capabilityRegistry.generation_max_tokens || {}
-    await ctx.session.hook("context",(event:any)=>{
+    await ctx.session.hook("context",async(event:any)=>{
       const allowed=new Set(agentTools[event.agent] || [])
       for(const name of Object.keys(event.tools || {})) if(name.startsWith(TOOL_PREFIX) && !allowed.has(name)) delete event.tools[name]
       for(const name of hideCore[event.agent] || []) delete event.tools[name]
       const budget=Number(generationBudgets[event.agent]||0); if(budget>0) event.generation.maxTokens=budget
+      try { const scope=await resolveSessionScope(ctx,String(event.sessionID||"")); if(await exists(controlPaths(scope.root).control)){ const est=estimateContext(event); await appendJsonl(controlPaths(scope.root).telemetry,{ts:now(),kind:"model.dispatch",session_id:String(event.sessionID||""),agent:String(event.agent||"unknown"),provider:String(event.model?.providerID||""),model:String(event.model?.id||event.model?.modelID||""),generation_budget:budget,...est}) } } catch {}
     })
 
-    await ctx.session.hook("retry",(event:any)=>{
+    await ctx.session.hook("retry",async(event:any)=>{
       const message=String(event.error?.message||"")
       const autoOnly=event.error?.type==="provider.invalid-request" && /tool[_ ]choice/i.test(message) && /only[^\n]*auto/i.test(message)
-      if(autoOnly && Number(event.attempt||0)<3){ event.decision={retry:true,delay:400}; return }
-      if(autoOnly || Number(event.attempt||0)>=3) event.decision={retry:false}
+      if(autoOnly && Number(event.attempt||0)<3) event.decision={retry:true,delay:400}
+      else if(autoOnly || Number(event.attempt||0)>=3) event.decision={retry:false}
+      try { const scope=await resolveSessionScope(ctx,String(event.sessionID||"")); if(await exists(controlPaths(scope.root).control)){ await appendJsonl(controlPaths(scope.root).telemetry,{ts:now(),kind:"provider.retry",session_id:String(event.sessionID||""),agent:String(event.agent||"unknown"),provider:String(event.model?.providerID||""),model:String(event.model?.id||""),attempt:Number(event.attempt||0),error_type:String(event.error?.type||""),retry:Boolean(event.decision?.retry),delay_ms:event.decision?.retry?Number(event.decision?.delay||0):0}) } } catch {}
     })
 
     await ctx.permission.hook("evaluate",(event:any)=>{
@@ -425,12 +498,13 @@ export default Plugin.define({
             status="blocked"
             return result({status:"BLOCKED",error:asError(e)})
           } finally {
-            if(root){try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),session_id:String(t?.sessionID||""),agent:String(t?.agent||"unknown"),tool:name,status,duration_ms:Date.now()-started})}catch{}}
+            if(root){try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"tool.call",session_id:String(t?.sessionID||""),agent:String(t?.agent||"unknown"),tool:name,status,duration_ms:Date.now()-started})}catch{}}
           }
         },
       })
       add("ade_status","Read compact canonical ADE state and routing hint.",schemaObject({}),async i=>{const root=projectRoot(ctx,i); const control=await getControl(root); return {plugin:{id:PLUGIN_ID,version:VERSION,opencode:ctx.app?.version},project_root:root,...compactControl(control)}})
-      add("ade_route_snapshot","Return the minimal state-driven routing decision for the current ADE state.",schemaObject({}),async i=>{const root=projectRoot(ctx,i),control=await getControl(root); return {status:"OBSERVADO",revision:Number(control.revision||0),global_status:control.global_status,routing_hint:routingHint(control),planes:{product:compactPlane(control.product),delivery:compactPlane(control.delivery),engineering:compactPlane(control.engineering)}}})
+      add("ade_route_snapshot","Return the minimal state-driven routing decision for the current ADE state.",schemaObject({}),async i=>{const root=projectRoot(ctx,i),control=await getControl(root); return {status:"OBSERVADO",revision:Number(control.revision||0),global_status:control.global_status,routing_hint:routingHint(control),handoff_advisory:handoffAdvisory(control),planes:{product:compactPlane(control.product),delivery:compactPlane(control.delivery),engineering:compactPlane(control.engineering)},recent_handoffs:(Array.isArray(control.recent_handoffs)?control.recent_handoffs:[]).slice(-3)}})
+      add("ade_handoff_submit","Publish the canonical bounded handoff consumed by ADE routing instead of relying on free-form child prose.",schemaObject({status:str({enum:["DONE","PARTIAL","BLOCKED","FAILED"]}),changed:boundedStringArray(8,180),evidence_refs:boundedStringArray(8,240),blocker:str({maxLength:800}),required_owner:str({enum:["none","orchestrator","product-owner","project-manager","engineer"]}),next:str({maxLength:500})},["status"]),async(i,t)=>submitHandoff(projectRoot(ctx,i),i,String(t?.agent||"unknown"),String(t?.sessionID||"")))
       add("ade_doctor","Inspect ADE/OpenCode native runtime without exposing credentials.",schemaObject({}),async i=>{const root=projectRoot(ctx,i); const agentsR=await ctx.agent.list({location:i.__ade_location}); const skillsR=await ctx.skill.list({location:i.__ade_location}); const pluginsR=await ctx.plugin.list({location:i.__ade_location}); const agents=agentsR.data||[],skills=skillsR.data||[],plugins=pluginsR.data||[]; let vcs:any; try{const r=await ctx.vcs.get({location:i.__ade_location});vcs=r.data}catch(e){vcs={error:asError(e)}}; return {status:"ADE_DOCTOR_OK",version:VERSION,opencode:ctx.app?.version,project_root:root,canonical_root:i.__ade_canonical,agents_present:Object.keys(agentTools).filter(id=>agents.some((a:any)=>a.id===id||a.name===id)),skill_present:skills.some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:plugins.some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),vcs,ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered}})
       add("ade_vcs_status","Read working-copy status through OpenCode VCS API.",schemaObject({}),async i=>{const r=await ctx.vcs.status({location:i.__ade_location});return {status:"OBSERVADO",changes:r.data,location:r.location}})
       add("ade_vcs_diff","Read repository diff through OpenCode VCS API.",schemaObject({mode:str({enum:["working","branch","committed"]}),base:str(),context:integer({minimum:0,maximum:20})}),async i=>{const r=await ctx.vcs.diff({location:i.__ade_location,mode:i.mode||"working",base:i.base||undefined,context:i.context??3});return {status:"OBSERVADO",diff:r.data,location:r.location}})
@@ -460,9 +534,11 @@ export default Plugin.define({
       draft.add({name:"ade-init",description:"Initialize canonical .ai state for ADE v5. Usage: /ade-init [WORK-ITEM] [LEAN|STANDARD|HIGH_ASSURANCE]",execute:async({sessionID,prompt}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;const req=parseInitRequest(prompt);const initialized=await initProject(root,pluginRoot,req.workItem,req.profile);await ctx.session.synthetic({sessionID,text:`ADE_INIT_OK v${VERSION}: ${initialized.ai} | work_item=${initialized.work_item_id} | profile=${initialized.profile} | created=${initialized.created.length} | preserved=${initialized.preserved.length}`})}})
       draft.add({name:"ade-status",description:"Show canonical ADE state",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;try{const s=await getControl(root);await ctx.session.synthetic({sessionID,text:`ADE v${VERSION} | global=${s.global_status} | product=${s.product?.status} | delivery=${s.delivery?.status} | engineering=${s.engineering?.status}`})}catch(e){await ctx.session.synthetic({sessionID,text:`ADE_STATUS_BLOCKED: ${asError(e)}`})}}})
       draft.add({name:"ade-doctor",description:"Show native ADE runtime diagnostics without an LLM round-trip",execute:async({sessionID}:any)=>{const scope=await resolveSessionScope(ctx,String(sessionID)),root=scope.root;const agentsR=await ctx.agent.list({location:scope.location});const skillsR=await ctx.skill.list({location:scope.location});const pluginsR=await ctx.plugin.list({location:scope.location});const text={status:"ADE_DOCTOR_OK",version:VERSION,opencode:ctx.app?.version,project_root:root,agents_present:Object.keys(agentTools).filter(id=>(agentsR.data||[]).some((a:any)=>a.id===id||a.name===id)),skill_present:(skillsR.data||[]).some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:(pluginsR.data||[]).some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered};await ctx.session.synthetic({sessionID,text:JSON.stringify(text,null,2)})}})
-      draft.add({name:"ade-why",description:"Explain the current state-driven routing hint",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,s=await getControl(root);await ctx.session.synthetic({sessionID,text:`ADE WHY | revision=${s.revision||0} | ${JSON.stringify(routingHint(s))}`})}})
+      draft.add({name:"ade-why",description:"Explain the current state-driven routing hint",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,s=await getControl(root);await ctx.session.synthetic({sessionID,text:`ADE WHY | revision=${s.revision||0} | routing=${JSON.stringify(routingHint(s))} | handoff=${JSON.stringify(handoffAdvisory(s))}`})}})
       draft.add({name:"ade-trace",description:"Show recent ADE tool-routing telemetry",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,p=controlPaths(root).telemetry;const rows=(await readJsonl(p)).slice(-20);await ctx.session.synthetic({sessionID,text:`ADE_TRACE_LAST_20\n${rows.map((x:any)=>`${x.ts} agent=${x.agent} tool=${x.tool} status=${x.status} duration_ms=${x.duration_ms}`).join("\n")}`})}})
-      draft.add({name:"ade-metrics",description:"Summarize recent ADE tool-call cost signals",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).telemetry)).slice(-200);const byAgent:any={},byTool:any={};let blocked=0,totalMs=0;for(const x of rows){byAgent[x.agent]=(byAgent[x.agent]||0)+1;byTool[x.tool]=(byTool[x.tool]||0)+1;if(x.status!=="completed")blocked++;totalMs+=Number(x.duration_ms||0)}await ctx.session.synthetic({sessionID,text:JSON.stringify({window:rows.length,blocked,total_duration_ms:totalMs,by_agent:byAgent,by_tool:byTool},null,2)})}})
+      draft.add({name:"ade-metrics",description:"Summarize routing, retry and estimated context-cost signals without storing prompts",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).telemetry)).slice(-500);const byAgent:any={},byTool:any={},byModel:any={};let blocked=0,totalMs=0,dispatches=0,retries=0,approxInput=0,requestedOutput=0;for(const x of rows){const a=String(x.agent||"unknown");byAgent[a]??={tool_calls:0,model_dispatches:0,retries:0,approx_input_tokens:0,requested_output_budget:0};if(x.kind==="tool.call"||x.tool){byAgent[a].tool_calls++;byTool[x.tool]=(byTool[x.tool]||0)+1;if(x.status!=="completed")blocked++;totalMs+=Number(x.duration_ms||0)}if(x.kind==="model.dispatch"){dispatches++;byAgent[a].model_dispatches++;const n=Number(x.approx_context_tokens||0);approxInput+=n;byAgent[a].approx_input_tokens+=n;const b=Number(x.generation_budget||0);requestedOutput+=b;byAgent[a].requested_output_budget+=b;const key=`${x.provider||"?"}/${x.model||"?"}`;byModel[key]=(byModel[key]||0)+1}if(x.kind==="provider.retry"){retries++;byAgent[a].retries++}}await ctx.session.synthetic({sessionID,text:JSON.stringify({window:rows.length,tool_calls:Object.values(byTool).reduce((a:any,b:any)=>a+Number(b),0),blocked_tool_calls:blocked,total_tool_duration_ms:totalMs,model_dispatches:dispatches,provider_retries:retries,approx_input_tokens_dispatched:approxInput,requested_output_token_budget:requestedOutput,exact_provider_usage:false,note:"approx_input_tokens_dispatched is chars/4 context estimate, not billed tokens",by_agent:byAgent,by_tool:byTool,by_model:byModel},null,2)})}})
+      draft.add({name:"ade-cost",description:"Show exact provider usage from session messages when exposed, plus ADE dispatch estimates",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;let messages:any[]=[];try{messages=Array.from(await ctx.session.context({sessionID})) as any[]}catch{}const exact=exactUsageFromMessages(messages);const activity=sessionActivity(messages);const rows=(await readJsonl(controlPaths(root).telemetry)).filter((x:any)=>x.session_id===sessionID&&x.kind==="model.dispatch");const estimate={dispatches:rows.length,approx_input_tokens_dispatched:rows.reduce((n:number,x:any)=>n+Number(x.approx_context_tokens||0),0),requested_output_token_budget:rows.reduce((n:number,x:any)=>n+Number(x.generation_budget||0),0)};await ctx.session.synthetic({sessionID,text:JSON.stringify({exact_provider_usage:exact,session_activity:activity,estimate,note:exact.available?"exact usage fields were exposed by session context":"provider usage fields unavailable; estimates are not billing"},null,2)})}})
+      draft.add({name:"ade-handoffs",description:"Show recent canonical structured handoffs",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).handoffs)).slice(-10);await ctx.session.synthetic({sessionID,text:JSON.stringify({count:rows.length,handoffs:rows},null,2)})}})
       draft.add({name:"ade-resume",description:"Resume from canonical .ai state via orchestrator",execute:async({sessionID,prompt,delivery}:any)=>{await ctx.session.switchAgent({sessionID,agent:"orchestrator"});await ctx.session.prompt({sessionID,text:"Retome o trabalho a partir de .ai/control.json, contracts, checkpoint, traceability e audit. Preserve gates/autoridades e continue automaticamente até DONE, gate real ou decisão humana genuína.",delivery})}})
       draft.add({name:"ade-audit",description:"Show recent canonical ADE audit events",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,p=controlPaths(root).audit;let lines:string[]=[];if(await exists(p))lines=(await fs.readFile(p,"utf8")).trim().split(/\r?\n/).slice(-20);await ctx.session.synthetic({sessionID,text:`ADE_AUDIT_LAST_20\n${lines.join("\n")}`})}})
     })

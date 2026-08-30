@@ -7,9 +7,9 @@ const pkg=JSON.parse(fs.readFileSync(new URL("../package.json",import.meta.url))
 const src=fs.readFileSync(new URL("../src/index.ts",import.meta.url),"utf8")
 const tools=Object.keys(cap.tools)
 
-test("registry has 18 agents and 25 typed tools",()=>{
+test("registry has 18 agents and 26 typed tools",()=>{
   assert.equal(Object.keys(cap.agents).length,18)
-  assert.equal(tools.length,25)
+  assert.equal(tools.length,26)
   assert.ok(tools.includes("ade_route_snapshot"))
 })
 
@@ -37,8 +37,9 @@ test("generation budgets are defined for every agent",()=>{
 })
 
 test("OpenCode V2 Promise plugin contract is explicit",()=>{
-  assert.match(src,/import \{ Plugin \} from "@opencode-ai\/plugin"/)
-  assert.ok(src.includes("export default Plugin.define({"))
+  assert.ok(src.includes('import * as OpenCodePlugin from "@opencode-ai/plugin"'))
+  assert.ok(src.includes("raw-default-compat"))
+  assert.ok(src.includes("export default pluginDefine({"))
   assert.equal(pkg.peerDependencies["@opencode-ai/plugin"],">=1.18.15")
   assert.equal(pkg.exports,"./src/index.ts")
 })
@@ -158,4 +159,18 @@ test("observability commands are registered",()=>{
   for(const cmd of ["ade-why","ade-trace","ade-metrics","ade-doctor"]) assert.ok(src.includes(`name:"${cmd}"`))
   assert.ok(src.includes("telemetry.jsonl"))
   assert.ok(src.includes("duration_ms"))
+})
+
+
+test("structured handoff is canonical and bounded",()=>{
+  assert.ok(tools.includes("ade_handoff_submit"))
+  for(const [agent,list] of Object.entries(cap.agents)) if(agent!=="orchestrator") assert.ok(list.includes("ade_handoff_submit"),`${agent} missing handoff`)
+  assert.ok(!cap.agents.orchestrator.includes("ade_handoff_submit"))
+  assert.equal(cap.handoff_contract.max_handoff_bytes,4096)
+  for(const marker of ["HANDOFF_SCHEMA_VIOLATION","HANDOFF_AUTHORITY_VIOLATION","handoffs.jsonl","recent_handoffs"]) assert.ok(src.includes(marker))
+})
+
+test("cost intelligence records estimates without prompt payload",()=>{
+  for(const marker of ["model.dispatch","provider.retry","approx_context_tokens","ade-cost","ade-handoffs","exactUsageFromMessages"]) assert.ok(src.includes(marker))
+  assert.ok(!src.includes("prompt_text"))
 })

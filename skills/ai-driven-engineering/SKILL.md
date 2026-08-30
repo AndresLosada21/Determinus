@@ -5,7 +5,7 @@ compatibility: OpenCode V2; experimental.subagent_depth >= 2 quando nesting owne
 metadata:
   opencode/autoinvoke: "false"
 ---
-# AI-Driven Engineering v5.2.0
+# AI-Driven Engineering v5.2.2
 
 Esta skill é **explícita e sob demanda**. Agents ADE já possuem seus contratos essenciais no próprio system prompt; não carregue esta skill em todo trabalho. Carregue-a quando o usuário pedir a metodologia, quando houver dúvida de governança/routing, ao depurar o ADE ou ao consultar uma referência detalhada abaixo.
 
@@ -92,3 +92,13 @@ Leia somente quando necessário:
 3. `/ade-trace` para routing/tool calls recentes.
 4. `/ade-metrics` para custo operacional (tool calls, blockers, duração).
 5. Behavioral evals são separados da certificação determinística do runtime; não torne um smoke permissivo só para ficar verde.
+## Structured handoff contract
+
+Todo agent ADE diferente do Orchestrator deve publicar `ade_handoff_submit` exatamente uma vez antes de finalizar. O registro é canônico; texto livre não é fonte de routing/acceptance. Limites: 4 KiB, até 8 `changed`, 8 `evidence_refs`, blocker <= 800 chars e next <= 500 chars.
+
+## Validation tiers
+
+1. **Core runtime**: instalação, plugin/provider/tool execution e config.
+2. **Contract assurance**: determinística; valida schemas, tool ownership, handoff persistence/limits, state-driven routing e telemetry privacy. Sempre faz parte de `validate`.
+3. **Behavioral canary**: model-driven; valida que agents realmente usam os contratos e rotas no host/provider. Opcional para uso local do runtime, mas obrigatório em `assurance` de release quando há `--model`.
+

@@ -11,7 +11,7 @@ from .manifest import validate_installed_manifest
 from .migrate import migrate
 from .policy import static_policy
 from .regression import run_regression
-from .smoke import capability_recovery_smoke, engineering_recovery_routing_smoke, nested_delegation_smoke, plugin_runtime_smoke, runtime_config_smoke
+from .smoke import capability_recovery_smoke, contract_runtime_smoke, engineering_recovery_routing_smoke, nested_delegation_smoke, plugin_runtime_smoke, runtime_config_smoke
 from .uninstall import uninstall
 from .validate import validate
 
@@ -21,7 +21,7 @@ def _target(value: str | None) -> Path | None:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.0 state-driven runtime tooling")
+    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.2 state-driven runtime tooling")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -58,7 +58,8 @@ def parser() -> argparse.ArgumentParser:
     a.add_argument("--target")
     a.add_argument("--model")
     a.add_argument("--source", action="store_true")
-    a.add_argument("--behavioral", action="store_true")
+    a.add_argument("--behavioral", action="store_true", help="compatibilidade; assurance com --model já executa behavioral por padrão")
+    a.add_argument("--core-only", action="store_true", help="não execute behavioral canary; release assurance não será alegada")
 
     mc = sub.add_parser("manifest-check")
     mc.add_argument("--target")
@@ -74,6 +75,8 @@ def parser() -> argparse.ArgumentParser:
     cr.add_argument("--target"); cr.add_argument("--model", required=True)
     er = sub.add_parser("engineering-recovery-smoke")
     er.add_argument("--target"); er.add_argument("--model", required=True)
+    cs = sub.add_parser("contract-smoke")
+    cs.add_argument("--target")
     return p
 
 
@@ -96,7 +99,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "validate":
             validate(target=_target(args.target), model=args.model, behavioral=args.behavioral)
         elif args.command == "assurance":
-            assurance(target=_target(args.target), model=args.model, source=args.source, behavioral=args.behavioral)
+            assurance(target=_target(args.target), model=args.model, source=args.source, behavioral=True, core_only=args.core_only)
         elif args.command == "manifest-check":
             validate_installed_manifest(_target(args.target) or (Path.home()/".config"/"opencode"))
         elif args.command == "plugin-smoke":
@@ -109,6 +112,8 @@ def main(argv: list[str] | None = None) -> int:
             capability_recovery_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
         elif args.command == "engineering-recovery-smoke":
             engineering_recovery_routing_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
+        elif args.command == "contract-smoke":
+            contract_runtime_smoke(_target(args.target) or (Path.home()/".config"/"opencode"))
         return 0
     except ADEError as exc:
         print(str(exc), file=sys.stderr)

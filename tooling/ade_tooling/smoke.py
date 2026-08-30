@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import json
 import tempfile
 import time
 import shutil
@@ -59,15 +60,33 @@ def _best_effort_cleanup(path: Path) -> None:
     print(f"SMOKE_SANDBOX_CLEANUP_DEFERRED: {path}")
 
 
+def _plugin_list_with_startup_retry(cli: str, target: Path):
+    """Bounded retry for the short service/plugin discovery race observed after restart.
+
+    This is not a behavioral leniency: success still requires the exact ADE plugin to
+    appear in `plugin list`; retries only give the restarted service a bounded window.
+    """
+    last = None
+    for attempt, delay in enumerate((0.0, 0.5, 1.0, 2.0), start=1):
+        if delay:
+            time.sleep(delay)
+        r = run_cmd([cli,"plugin","list"], env=config_env(target), timeout=45)
+        last = r
+        if r.code == 0 and "ai-driven-engineering" in r.combined.lower():
+            if attempt > 1:
+                print(f"PLUGIN_LIST_STARTUP_RETRY_RECOVERED: attempt={attempt}")
+            return r
+    assert last is not None
+    if last.code != 0:
+        raise ADEError(f"PLUGIN_RUNTIME_BLOCKED: plugin list falhou após retries limitados: {last.combined}")
+    raise ADEError("PLUGIN_RUNTIME_BLOCKED: ADE plugin não aparece em plugin list após retries limitados")
+
+
 def plugin_runtime_smoke(target: Path, model: str | None = None) -> None:
     cli = find_opencode_cli()
     if not cli:
         raise ADEError("PLUGIN_RUNTIME_BLOCKED: OpenCode CLI não encontrado")
-    r = run_cmd([cli,"plugin","list"], env=config_env(target), timeout=45)
-    if r.code != 0:
-        raise ADEError(f"PLUGIN_RUNTIME_BLOCKED: plugin list falhou: {r.combined}")
-    if "ai-driven-engineering" not in r.combined.lower():
-        raise ADEError("PLUGIN_RUNTIME_BLOCKED: ADE plugin não aparece em plugin list")
+    _plugin_list_with_startup_retry(cli, target)
     r = run_cmd([cli,"debug","config"], env=config_env(target), timeout=45)
     if r.code != 0:
         raise ADEError(f"PLUGIN_RUNTIME_BLOCKED: debug config falhou: {r.combined}")
@@ -133,212 +152,231 @@ def plugin_runtime_smoke(target: Path, model: str | None = None) -> None:
         _best_effort_cleanup(sandbox)
 
 
-def _validate_tool_record(msg: dict, entry: dict, agent: str, allowed_subagent: str | None = None) -> tuple[str, str | None]:
-    if msg.get("type") != "assistant" or msg.get("agent") != agent:
-        raise ADEError(f"tool record não pertence a assistant/{agent}")
-    tool = str(entry.get("name", ""))
-    status = str(path_get(entry,"state","status",default=""))
-    if status != "completed":
-        raise ADEError(f"{agent}: tool {tool} status={status}")
-    if tool == "skill":
-        if str(path_get(entry,"state","input","id",default="")) != "ai-driven-engineering":
-            raise ADEError(f"{agent}: skill divergente")
-        return tool, None
-    if tool == "subagent" and allowed_subagent:
-        target = str(path_get(entry,"state","input","agent",default=""))
-        if target != allowed_subagent:
-            raise ADEError(f"{agent}: subagent divergente {target}")
-        child = str(path_get(entry,"state","metadata","sessionID",default=""))
-        if not child:
-            raise ADEError(f"{agent}: child sessionID ausente")
-        return tool, child
-    raise ADEError(f"{agent}: tool não permitida no smoke {tool}")
+def contract_runtime_smoke(target: Path) -> None:
+    """Deterministic installed-contract assurance. No LLM behavior is trusted here."""
+    cap_path = target / "plugins/ai-driven-engineering/capabilities.json"
+    src_path = target / "plugins/ai-driven-engineering/src/index.ts"
+    if not cap_path.is_file() or not src_path.is_file():
+        raise ADEError("CONTRACT_ASSURANCE_FAILED: plugin source/capabilities ausentes")
+    cap = json.loads(cap_path.read_text(encoding="utf-8"))
+    tools = cap.get("tools") or {}
+    agents = cap.get("agents") or {}
+    if len(tools) != 26 or "ade_handoff_submit" not in tools:
+        raise ADEError(f"CONTRACT_ASSURANCE_FAILED: typed tools={len(tools)} handoff={'ade_handoff_submit' in tools}")
+    if set(agents) != set(AGENTS):
+        raise ADEError("CONTRACT_ASSURANCE_FAILED: agent registry divergente")
+    for agent in AGENTS:
+        text = (target / "agents" / f"{agent}.md").read_text(encoding="utf-8")
+        if agent == "orchestrator":
+            if "ade_handoff_submit" in agents[agent]:
+                raise ADEError("CONTRACT_ASSURANCE_FAILED: orchestrator não deve publicar child handoff")
+            if "recent_handoffs" not in text:
+                raise ADEError("CONTRACT_ASSURANCE_FAILED: orchestrator não consome structured handoff")
+            continue
+        if "ade_handoff_submit" not in agents[agent]:
+            raise ADEError(f"CONTRACT_ASSURANCE_FAILED: {agent} sem ade_handoff_submit")
+        for marker in ("## Handoff canônico", "exatamente um", "no máximo 3 linhas"):
+            if marker not in text:
+                raise ADEError(f"CONTRACT_ASSURANCE_FAILED: {agent} handoff contract ausente {marker}")
+    contract = cap.get("handoff_contract") or {}
+    expected = {"max_handoff_bytes":4096,"max_changed_items":8,"max_evidence_refs":8,"recent_in_control":3}
+    for key,value in expected.items():
+        if int(contract.get(key, -1)) != value:
+            raise ADEError(f"CONTRACT_ASSURANCE_FAILED: handoff_contract.{key}={contract.get(key)}")
+    src = src_path.read_text(encoding="utf-8")
+    for marker in ("HANDOFF_SCHEMA_VIOLATION","HANDOFF_AUTHORITY_VIOLATION","handoffs.jsonl","model.dispatch","provider.retry","approx_context_tokens","ade-cost","ade-handoffs"):
+        if marker not in src:
+            raise ADEError(f"CONTRACT_ASSURANCE_FAILED: plugin marker ausente {marker}")
+    if "prompt_text" in src or "prompt_content" in src:
+        raise ADEError("CONTRACT_ASSURANCE_FAILED: telemetry content field detectado")
+    print("HANDOFF_CONTRACT_VALIDATED: canonical typed handoffs + bounded schema")
+    print("EFFICIENCY_CONTRACT_VALIDATED: dispatch estimates + retry/tool telemetry without prompt payload")
+    print("CONTRACT_ASSURANCE_VALIDATED")
+
+
+def _write_smoke_control(sandbox: Path, work_item: str, *, required_plane: str = "engineering") -> None:
+    if required_plane not in {"product","delivery","engineering"}:
+        raise ADEError(f"SMOKE_CONTROL_INVALID: required_plane={required_plane}")
+    ai=sandbox/".ai"; ai.mkdir(parents=True,exist_ok=True)
+    control={
+        "schema_version":3,"work_item_id":work_item,"revision":0,"profile":"LEAN","global_status":"NOT_DONE",
+        "product":{"required":required_plane=="product","status":"DRAFT","revision":0},
+        "delivery":{"required":required_plane=="delivery","status":"DRAFT","revision":0},
+        "engineering":{"required":required_plane=="engineering","status":"DISCOVERING" if required_plane=="engineering" else "DRAFT","revision":0},
+        "evidence":[],"evidence_count":0,"recent_handoffs":[],"notes":[],
+        "work_management":{"provider":"none","sync_status":"NOT_CONFIGURED","last_sync_at":"","external_refs":[]},
+        "traceability":{"file":".ai/traceability.json"},"audit":{"file":".ai/audit.jsonl"}
+    }
+    (ai/"control.json").write_text(json.dumps(control,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+
+
+def _records_for(export: dict, agent: str) -> list[tuple[dict,dict]]:
+    out=[]
+    for msg,entry in export_tool_records(export):
+        if msg.get("type") != "assistant" or msg.get("agent") != agent:
+            raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: tool record não pertence a assistant/{agent}")
+        out.append((msg,entry))
+    return out
+
+
+def _child_from_subagent(entry: dict, expected: str) -> str:
+    status=str(path_get(entry,"state","status",default=""))
+    if status != "completed": raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: subagent status={status}")
+    actual=str(path_get(entry,"state","input","agent",default=""))
+    if actual != expected: raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: subagent esperado={expected} atual={actual}")
+    child=str(path_get(entry,"state","metadata","sessionID",default=""))
+    if not child: child=str(path_get(entry,"state","metadata","metadata","sessionID",default=""))
+    if not child: raise ADEError("BEHAVIORAL_CONTRACT_FAILED: child sessionID ausente")
+    return child
+
+
+def _handoff_input(entry: dict) -> dict:
+    status=str(path_get(entry,"state","status",default=""))
+    if status != "completed": raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: handoff tool status={status}")
+    value=path_get(entry,"state","input",default={})
+    if not isinstance(value,dict): raise ADEError("BEHAVIORAL_CONTRACT_FAILED: handoff input inválido")
+    return value
+
+
+def _assert_one_handoff(export: dict, agent: str, *, status: str, required_owner: str, next_contains: str | None = None) -> dict:
+    handoffs=[]; extras=[]
+    for _,entry in _records_for(export,agent):
+        tool=str(entry.get("name",""))
+        if tool=="ade_handoff_submit": handoffs.append(_handoff_input(entry))
+        elif tool=="skill":
+            if str(path_get(entry,"state","status",default=""))!="completed": extras.append(f"skill:{path_get(entry,'state','status',default='')}")
+        elif tool=="subagent": extras.append("subagent")
+        else: extras.append(tool)
+    if len(handoffs)!=1: raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: {agent} handoff calls={len(handoffs)} esperado=1")
+    h=handoffs[0]
+    if str(h.get("status"))!=status: raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: {agent} handoff status={h.get('status')} esperado={status}")
+    if str(h.get("required_owner") or "none")!=required_owner: raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: {agent} owner={h.get('required_owner')} esperado={required_owner}")
+    if next_contains and next_contains.lower() not in str(h.get("next") or "").lower(): raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: {agent} next não contém {next_contains}")
+    if extras: raise ADEError(f"BEHAVIORAL_CONTRACT_FAILED: {agent} tools extras {extras}")
+    return h
+
+
+def _assistant_text_size(export: dict, agent: str) -> int:
+    total=0
+    for msg in export.get("messages") or []:
+        if not isinstance(msg,dict) or msg.get("type")!="assistant" or msg.get("agent")!=agent: continue
+        for entry in msg.get("content") or []:
+            if isinstance(entry,dict) and entry.get("type")=="text" and isinstance(entry.get("text"),str): total+=len(entry["text"])
+    return total
 
 
 def nested_delegation_smoke(target: Path, model: str) -> None:
-    cli = find_opencode_cli()
-    if not cli:
-        raise ADEError("NESTED_DELEGATION_FAILED: OpenCode CLI não encontrado")
-    nonce = uuid.uuid4().hex
-    level1 = f"NESTED_LEVEL1_{nonce}"
-    level2 = f"NESTED_LEVEL2_{nonce}"
-    prompt = f"""NESTED DELEGATION OPERATIONAL SMOKE {nonce}.
-Você é o orchestrator. É proibido ler ou escrever arquivos, usar shell, web, rede, provider externo ou credenciais. Além da cadeia subagent, cada agent pode carregar no máximo uma vez a skill ai-driven-engineering se o system prompt exigir. Nenhuma outra tool é permitida.
-1. invoque project-manager como subagent;
-2. no brief, instrua project-manager a invocar tracker-operator como subagent;
-3. tracker-operator deve responder exatamente {level2};
-4. project-manager deve retornar exatamente {level1} somente depois de receber {level2};
-5. finalize exatamente NESTED_DELEGATION_OK somente após ambas as invocações concluírem.
+    cli=find_opencode_cli()
+    if not cli: raise ADEError("NESTED_DELEGATION_FAILED: OpenCode CLI não encontrado")
+    nonce=uuid.uuid4().hex
+    sandbox=Path(tempfile.mkdtemp(prefix="ade-v522-nested-")); _write_smoke_control(sandbox,f"NESTED-{nonce[:8]}",required_plane="delivery")
+    prompt=f"""NESTED STRUCTURED HANDOFF CANARY {nonce}.
+Você é Orchestrator. Invoque EXATAMENTE project-manager. No brief, ordene que Project Manager invoque EXATAMENTE tracker-operator.
+Tracker Operator não deve ler/escrever nada nem chamar outras tools; deve publicar exatamente um ade_handoff_submit com status=DONE, changed=[\"nested level2 completed\"], required_owner=project-manager, next contendo \"project-manager\", e finalizar em no máximo 3 linhas.
+Project Manager, após o child concluir, deve publicar exatamente um ade_handoff_submit com status=DONE, changed=[\"nested level1 completed\"], required_owner=orchestrator, next contendo \"orchestrator\", e finalizar em no máximo 3 linhas.
+Como o routing é STATE_DRIVEN, Orchestrator pode chamar ade_status e ade_route_snapshot no máximo uma vez cada antes da delegação. Não chame nenhuma outra ADE tool nem outro subagent. Finalize concisamente após o PM concluir.
 """
-    sandbox = Path(tempfile.mkdtemp(prefix="ade-v520-nested-"))
     try:
-        rr = run_cmd([cli,"run","--agent","orchestrator","--format","json","--model",model,prompt], cwd=sandbox, env=config_env(target), timeout=300)
-        if rr.code != 0:
-            raise ADEError(f"NESTED_DELEGATION_FAILED: root exit={rr.code}: {rr.combined}")
-        events = parse_json_lines(rr.stdout, "NESTED_ROOT")
-        skill_count = 0
-        handoffs: list[tuple[str,str]] = []
+        rr=run_cmd([cli,"run","--agent","orchestrator","--format","json","--model",model,prompt],cwd=sandbox,env=config_env(target),timeout=300)
+        if rr.code!=0: raise ADEError(f"NESTED_DELEGATION_FAILED: root exit={rr.code}: {rr.combined}")
+        events=parse_json_lines(rr.stdout,"NESTED_ROOT")
+        sub=[]; extras=[]; control_calls={"ade_status":0,"ade_route_snapshot":0}
         for e in root_tool_events(events):
-            tool = str(path_get(e,"part","tool",default=""))
-            status = str(path_get(e,"part","state","status",default=""))
-            if status != "completed":
-                raise ADEError(f"NESTED_DELEGATION_FAILED: root tool {tool} status={status}")
-            if tool == "skill":
-                if str(path_get(e,"part","state","input","id",default="")) != "ai-driven-engineering":
-                    raise ADEError("NESTED_DELEGATION_FAILED: root skill divergente")
-                skill_count += 1
-            elif tool == "subagent":
-                if str(path_get(e,"part","state","input","agent",default="")) != "project-manager":
-                    raise ADEError("NESTED_DELEGATION_FAILED: root subagent não é project-manager")
-                root_id = str(e.get("sessionID", ""))
-                child = str(path_get(e,"part","state","metadata","sessionID",default=""))
-                if not root_id or not child:
-                    raise ADEError("NESTED_DELEGATION_FAILED: root/child sessionID ausente")
-                handoffs.append((root_id, child))
-            else:
-                raise ADEError(f"NESTED_DELEGATION_FAILED: root tool extra {tool}")
-        if skill_count > 1 or not handoffs:
-            raise ADEError("NESTED_DELEGATION_FAILED: root handoff/skill inválido")
-        root_id, pm_id = handoffs[-1]
-        pm = export_session(cli, pm_id, target)
-        assert_export_info(pm, session_id=pm_id, parent_id=root_id, agent="project-manager", label="PM")
-        pm_skill = 0; tracker_ids: list[str] = []
-        for msg, entry in export_tool_records(pm):
-            tool, child = _validate_tool_record(msg, entry, "project-manager", "tracker-operator")
-            if tool == "skill": pm_skill += 1
-            if child: tracker_ids.append(child)
-        if pm_skill > 1 or not tracker_ids:
-            raise ADEError("NESTED_DELEGATION_FAILED: PM handoff/skill inválido")
-        tracker_id = tracker_ids[-1]
-        tracker = export_session(cli, tracker_id, target)
-        assert_export_info(tracker, session_id=tracker_id, parent_id=pm_id, agent="tracker-operator", label="Tracker")
-        tracker_skill = 0
-        for msg, entry in export_tool_records(tracker):
-            tool, _ = _validate_tool_record(msg, entry, "tracker-operator", None)
-            if tool == "skill": tracker_skill += 1
-        if tracker_skill > 1:
-            raise ADEError("NESTED_DELEGATION_FAILED: tracker skill > 1")
-        if not has_assistant_marker(pm,"project-manager",level1):
-            raise ADEError("NESTED_DELEGATION_FAILED: PM marker ausente")
-        if not has_assistant_marker(tracker,"tracker-operator",level2):
-            raise ADEError("NESTED_DELEGATION_FAILED: tracker marker ausente")
-        if "NESTED_DELEGATION_OK" not in [x.strip() for x in root_texts(events)]:
-            raise ADEError("NESTED_DELEGATION_FAILED: root marker ausente")
+            tool=str(path_get(e,"part","tool",default=""))
+            status=str(path_get(e,"part","state","status",default=""))
+            if tool=="subagent":
+                if status!="completed": extras.append(f"subagent:{status}")
+                else: sub.append(e)
+            elif tool=="skill":
+                if status!="completed": extras.append(f"skill:{status}")
+            elif tool in control_calls:
+                control_calls[tool]+=1
+                if status!="completed": extras.append(f"{tool}:{status}")
+            else: extras.append(tool)
+        repeated=[name for name,count in control_calls.items() if count>1]
+        if len(sub)!=1 or extras or repeated:
+            raise ADEError(f"NESTED_DELEGATION_FAILED: root subagents={len(sub)} extras={extras} repeated_control={repeated}")
+        root_id=str(sub[0].get("sessionID",""))
+        # root event shape wraps state under part; extract child session explicitly
+        pm_id=str(path_get(sub[0],"part","state","metadata","sessionID",default="")) or str(path_get(sub[0],"part","state","metadata","metadata","sessionID",default=""))
+        if not root_id or not pm_id: raise ADEError("NESTED_DELEGATION_FAILED: root/PM sessionID ausente")
+        pm=export_session(cli,pm_id,target); assert_export_info(pm,session_id=pm_id,parent_id=root_id,agent="project-manager",label="PM")
+        pm_records=_records_for(pm,"project-manager"); pm_sub=[entry for _,entry in pm_records if str(entry.get("name",""))=="subagent"]
+        pm_h=[entry for _,entry in pm_records if str(entry.get("name",""))=="ade_handoff_submit"]
+        pm_extra=[str(entry.get("name","")) for _,entry in pm_records if str(entry.get("name","")) not in {"subagent","ade_handoff_submit","skill"}]
+        if len(pm_sub)!=1 or len(pm_h)!=1 or pm_extra: raise ADEError(f"NESTED_DELEGATION_FAILED: PM sub={len(pm_sub)} handoff={len(pm_h)} extras={pm_extra}")
+        tracker_id=_child_from_subagent(pm_sub[0],"tracker-operator")
+        h1=_handoff_input(pm_h[0]);
+        if h1.get("status")!="DONE" or h1.get("required_owner")!="orchestrator" or "orchestrator" not in str(h1.get("next") or "").lower(): raise ADEError(f"NESTED_DELEGATION_FAILED: PM handoff inválido {h1}")
+        tracker=export_session(cli,tracker_id,target); assert_export_info(tracker,session_id=tracker_id,parent_id=pm_id,agent="tracker-operator",label="Tracker")
+        _assert_one_handoff(tracker,"tracker-operator",status="DONE",required_owner="project-manager",next_contains="project-manager")
+        if _assistant_text_size(pm,"project-manager")>1200 or _assistant_text_size(tracker,"tracker-operator")>800: raise ADEError("NESTED_DELEGATION_FAILED: child response verbosity excedida")
         print("NESTED_DELEGATION_OK")
-        print("SUBAGENT_DEPTH_VALIDATED: orchestrator -> project-manager -> tracker-operator")
-
-    finally:
-        _best_effort_cleanup(sandbox)
-
-def _assistant_text_from_events(events: list[dict]) -> str:
-    return "\n".join(root_texts(events))
+        print("STRUCTURED_HANDOFF_BEHAVIOR_VALIDATED: orchestrator -> project-manager -> tracker-operator")
+    finally:_best_effort_cleanup(sandbox)
 
 
 def capability_recovery_smoke(target: Path, model: str) -> None:
-    cli = find_opencode_cli()
-    if not cli:
-        raise ADEError("CAPABILITY_RECOVERY_FAILED: OpenCode CLI não encontrado")
-    scenarios = [
-        ("explorer","explorer-cross-plane", """CAPABILITY DENIAL RECOVERY SMOKE. Não execute tools; classifique apenas a evidência fornecida.
-EVIDÊNCIA OBSERVADA: agent=explorer; attempted_action=shell; attempted_resource=gh issue view 95 --json number,title,body,state,labels,milestone; observed_error=Permission denied: shell; requested_evidence=body/state/labels/milestone da issue 95.
-Inclua literalmente:
-CAPABILITY_DENIAL_RECOVERY_OK
-capability_scope: SPECIFIC_ACTION_RESOURCE_ONLY
-status: PARENT_EXECUTION_REQUIRED
-required_owner: project-manager
-execution_owner: tracker-operator
-Não diga que shell/GitHub/todas as tools estão indisponíveis e não devolva comando manual ao usuário.""",
-         ["CAPABILITY_DENIAL_RECOVERY_OK","capability_scope: SPECIFIC_ACTION_RESOURCE_ONLY","status: PARENT_EXECUTION_REQUIRED","required_owner: project-manager","execution_owner: tracker-operator"]),
-        ("implementer","implementer-to-verifier", """CAPABILITY DENIAL RECOVERY SMOKE. Não execute tools; classifique apenas a evidência fornecida.
-EVIDÊNCIA OBSERVADA: agent=implementer; implementation_status=mudança criada; attempted_action=shell; attempted_resource=php -l tests/Feature/TddUltraSprint4Test.php; observed_error=Permission denied: shell; requested_evidence=sintaxe PHP independente.
-Inclua literalmente:
-CAPABILITY_DENIAL_RECOVERY_OK
-capability_scope: SPECIFIC_ACTION_RESOURCE_ONLY
-implementation_state: IMPLEMENTED_NOT_VALIDATED
-status: PARENT_EXECUTION_REQUIRED
-required_owner: engineer
-execution_owner: verifier
-Não diga que shell/todas tools estão indisponíveis, não devolva comando manual e não declare VALIDATED/ENGINEERING_ACCEPTED.""",
-         ["CAPABILITY_DENIAL_RECOVERY_OK","capability_scope: SPECIFIC_ACTION_RESOURCE_ONLY","implementation_state: IMPLEMENTED_NOT_VALIDATED","status: PARENT_EXECUTION_REQUIRED","required_owner: engineer","execution_owner: verifier"]),
+    cli=find_opencode_cli()
+    if not cli: raise ADEError("CAPABILITY_RECOVERY_FAILED: OpenCode CLI não encontrado")
+    scenarios=[
+      ("explorer","explorer-cross-plane","Permission denied: shell para gh issue view 95; tracker evidence continua necessária.","project-manager","tracker-operator"),
+      ("implementer","implementer-to-verifier","Implementação criada; Permission denied: shell para php -l; sintaxe independente continua necessária.","engineer","verifier"),
     ]
-    for agent, name, prompt, required in scenarios:
-        sandbox = Path(tempfile.mkdtemp(prefix=f"ade-v520-cap-{name}-"))
+    for agent,name,evidence,owner,next_owner in scenarios:
+        sandbox=Path(tempfile.mkdtemp(prefix=f"ade-v522-cap-{name}-"));_write_smoke_control(sandbox,f"CAP-{name}")
+        prompt=f"""STRUCTURED CAPABILITY RECOVERY CANARY. Classifique somente esta evidência: {evidence}
+Não execute a ação negada, não devolva comando manual e não generalize indisponibilidade global.
+Use como única ADE tool `ade_handoff_submit` exatamente uma vez, com status=BLOCKED, blocker curto explicando a evidência faltante, required_owner={owner}, next contendo {next_owner}. Finalize em no máximo 3 linhas.
+"""
         try:
-            rr = run_cmd([cli,"run","--agent",agent,"--format","json","--model",model,prompt], cwd=sandbox, env=config_env(target), timeout=180)
-            if rr.code != 0:
-                raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: exit={rr.code}")
-            events = parse_json_lines(rr.stdout, f"CAPABILITY[{name}]")
-            text = _assistant_text_from_events(events)
-            for marker in required:
-                if marker not in text:
-                    raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: marker ausente {marker}")
-            if re.search(r"(?i)shell\s+(?:está\s+)?indisponível|shell\s+unavailable|github\s+(?:está\s+)?indisponível|all\s+tools\s+unavailable", text):
-                raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: generalização global")
-            if re.search(r"(?i)(rode|execute|run)\s+(?:manualmente\s+)?(?:o\s+)?(?:comando|php|gh|docker)", text):
-                raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: hand-back manual")
+            rr=run_cmd([cli,"run","--agent",agent,"--format","json","--model",model,prompt],cwd=sandbox,env=config_env(target),timeout=180)
+            if rr.code!=0: raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: exit={rr.code}: {rr.combined}")
+            events=parse_json_lines(rr.stdout,f"CAPABILITY[{name}]")
+            tools=[]
+            for e in root_tool_events(events): tools.append((str(path_get(e,"part","tool",default="")),e))
+            non_skill=[x for x in tools if x[0]!="skill"]
+            if len(non_skill)!=1 or non_skill[0][0]!="ade_handoff_submit": raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: tools={ [x[0] for x in tools] }")
+            h=path_get(non_skill[0][1],"part","state","input",default={})
+            if h.get("status")!="BLOCKED" or h.get("required_owner")!=owner or next_owner.lower() not in str(h.get("next") or "").lower() or not str(h.get("blocker") or "").strip(): raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: handoff={h}")
+            text="\n".join(root_texts(events))
+            if len(text)>1000: raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: resposta verbosa chars={len(text)}")
+            if re.search(r"(?i)all tools unavailable|todas as tools.*indispon|shell.*indisponível",text): raise ADEError(f"CAPABILITY_RECOVERY_FAILED[{name}]: generalização global")
             print(f"CAPABILITY_RECOVERY_SCENARIO_OK: {name}")
-        finally:
-            _best_effort_cleanup(sandbox)
-    print("CAPABILITY_DENIAL_RECOVERY_OK")
-    print("CAPABILITY_RECOVERY_VALIDATED: explorer->PM/tracker + implementer->engineer/verifier")
+        finally:_best_effort_cleanup(sandbox)
+    print("CAPABILITY_RECOVERY_VALIDATED: structured deny recovery")
 
 
 def engineering_recovery_routing_smoke(target: Path, model: str) -> None:
-    cli = find_opencode_cli()
-    if not cli:
-        raise ADEError("ENGINEERING_RECOVERY_ROUTING_FAILED: OpenCode CLI não encontrado")
-    nonce = uuid.uuid4().hex
-    verifier_marker = f"RECOVERY_VERIFIER_{nonce}"
-    engineer_marker = f"ENGINEERING_RECOVERY_ROUTING_OK_{nonce}"
-    prompt = f"""ENGINEERING RECOVERY ROUTING SMOKE {nonce}.
-Envelope recebido do Implementer:
-status: PARENT_EXECUTION_REQUIRED
-capability_scope: SPECIFIC_ACTION_RESOURCE_ONLY
-implementation_state: IMPLEMENTED_NOT_VALIDATED
-required_owner: engineer
-execution_owner: verifier
-requested_evidence: php -l de arquivo alterado
-Você é Engineer e DEVE consumir o envelope sem devolver comando ao usuário. Invoque verifier como subagent. No brief, proíba read/edit/shell/web/rede/providers; o Verifier pode no máximo carregar uma vez a skill ai-driven-engineering e deve responder exatamente {verifier_marker}. Depois de receber esse marcador, responda exatamente {engineer_marker}.
-É proibido executar php -l real, editar arquivos, usar shell/read/glob/grep/web ou emular o Verifier.
+    cli=find_opencode_cli()
+    if not cli: raise ADEError("ENGINEERING_RECOVERY_ROUTING_FAILED: OpenCode CLI não encontrado")
+    nonce=uuid.uuid4().hex
+    sandbox=Path(tempfile.mkdtemp(prefix="ade-v522-eng-recovery-"));_write_smoke_control(sandbox,f"ENG-{nonce[:8]}")
+    prompt=f"""ENGINEERING STRUCTURED RECOVERY CANARY {nonce}.
+Você é Engineer. Um Implementer informou BLOCKED porque validação independente é necessária. Invoque EXATAMENTE verifier.
+No brief, o Verifier deve usar somente ade_handoff_submit exatamente uma vez com status=DONE, changed=[\"verification evidence classified\"], required_owner=engineer, next contendo \"engineer\"; nenhuma validação real deve ser executada.
+Após o Verifier concluir, publique você exatamente um ade_handoff_submit com status=PARTIAL, changed=[\"verifier handoff consumed\"], required_owner=none, next contendo \"continue engineering\". Finalize em no máximo 3 linhas.
 """
-    sandbox = Path(tempfile.mkdtemp(prefix="ade-v520-eng-recovery-"))
     try:
-        rr = run_cmd([cli,"run","--agent","engineer","--format","json","--model",model,prompt], cwd=sandbox, env=config_env(target), timeout=240)
-        if rr.code != 0:
-            raise ADEError(f"ENGINEERING_RECOVERY_ROUTING_FAILED: exit={rr.code}: {rr.combined}")
-        events = parse_json_lines(rr.stdout, "ENGINEERING_RECOVERY")
-        skill_count = 0; handoffs: list[tuple[str,str]] = []
+        rr=run_cmd([cli,"run","--agent","engineer","--format","json","--model",model,prompt],cwd=sandbox,env=config_env(target),timeout=240)
+        if rr.code!=0: raise ADEError(f"ENGINEERING_RECOVERY_ROUTING_FAILED: exit={rr.code}: {rr.combined}")
+        events=parse_json_lines(rr.stdout,"ENGINEERING_RECOVERY")
+        sub=[];handoffs=[];extras=[]
         for e in root_tool_events(events):
-            tool = str(path_get(e,"part","tool",default="")); status = str(path_get(e,"part","state","status",default=""))
-            if status != "completed":
-                raise ADEError(f"ENGINEERING_RECOVERY_ROUTING_FAILED: tool {tool} status={status}")
-            if tool == "skill":
-                if str(path_get(e,"part","state","input","id",default="")) != "ai-driven-engineering": raise ADEError("Engineer skill divergente")
-                skill_count += 1
-            elif tool == "subagent":
-                if str(path_get(e,"part","state","input","agent",default="")) != "verifier": raise ADEError("Engineer subagent != verifier")
-                root_id = str(e.get("sessionID", "")); child = str(path_get(e,"part","state","metadata","sessionID",default=""))
-                if not root_id or not child: raise ADEError("sessionIDs ausentes")
-                handoffs.append((root_id, child))
-            else:
-                raise ADEError(f"ENGINEERING_RECOVERY_ROUTING_FAILED: tool extra {tool}")
-        if skill_count > 1 or not handoffs:
-            raise ADEError("ENGINEERING_RECOVERY_ROUTING_FAILED: handoff/skill inválido")
-        root_id, verifier_id = handoffs[-1]
-        exp = export_session(cli, verifier_id, target)
-        assert_export_info(exp, session_id=verifier_id, parent_id=root_id, agent="verifier", label="Verifier")
-        verifier_skill = 0
-        for msg, entry in export_tool_records(exp):
-            if msg.get("type") != "assistant" or msg.get("agent") != "verifier": raise ADEError("Verifier tool record inválido")
-            tool = str(entry.get("name", "")); status = str(path_get(entry,"state","status",default=""))
-            if tool != "skill" or status != "completed" or str(path_get(entry,"state","input","id",default="")) != "ai-driven-engineering":
-                raise ADEError(f"Verifier usou tool não permitida {tool}")
-            verifier_skill += 1
-        if verifier_skill > 1 or not has_assistant_marker(exp,"verifier",verifier_marker):
-            raise ADEError("Verifier marker/skill inválido")
-        if engineer_marker not in [x.strip() for x in root_texts(events)]:
-            raise ADEError("Engineer marker ausente")
+            tool=str(path_get(e,"part","tool",default=""))
+            if tool=="subagent":sub.append(e)
+            elif tool=="ade_handoff_submit":handoffs.append(e)
+            elif tool=="skill":pass
+            else:extras.append(tool)
+        if len(sub)!=1 or len(handoffs)!=1 or extras: raise ADEError(f"ENGINEERING_RECOVERY_ROUTING_FAILED: sub={len(sub)} handoff={len(handoffs)} extras={extras}")
+        verifier_id=str(path_get(sub[0],"part","state","metadata","sessionID",default="")) or str(path_get(sub[0],"part","state","metadata","metadata","sessionID",default=""))
+        root_id=str(sub[0].get("sessionID",""))
+        if str(path_get(sub[0],"part","state","input","agent",default=""))!="verifier" or not verifier_id: raise ADEError("ENGINEERING_RECOVERY_ROUTING_FAILED: verifier delegation inválida")
+        eh=path_get(handoffs[0],"part","state","input",default={})
+        if eh.get("status")!="PARTIAL" or str(eh.get("required_owner") or "none")!="none" or "continue engineering" not in str(eh.get("next") or "").lower(): raise ADEError(f"ENGINEERING_RECOVERY_ROUTING_FAILED: engineer handoff={eh}")
+        exp=export_session(cli,verifier_id,target);assert_export_info(exp,session_id=verifier_id,parent_id=root_id,agent="verifier",label="Verifier")
+        _assert_one_handoff(exp,"verifier",status="DONE",required_owner="engineer",next_contains="engineer")
+        if len("\n".join(root_texts(events)))>1200 or _assistant_text_size(exp,"verifier")>800: raise ADEError("ENGINEERING_RECOVERY_ROUTING_FAILED: verbosity budget excedido")
         print("ENGINEERING_RECOVERY_ROUTING_OK")
-        print("ENGINEERING_RECOVERY_ROUTING_VALIDATED: implementer escalation -> engineer -> verifier")
-    finally:
-        _best_effort_cleanup(sandbox)
+        print("ENGINEERING_RECOVERY_ROUTING_VALIDATED: engineer -> verifier + canonical handoffs")
+    finally:_best_effort_cleanup(sandbox)

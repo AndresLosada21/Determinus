@@ -1,5 +1,5 @@
 <!-- AI-DRIVEN-ENGINEERING:BEGIN v5 -->
-## AI-Driven Engineering Runtime v5.2.0
+## AI-Driven Engineering Runtime v5.2.2
 
 Use ADE como plano de controle, não como formato de conversa.
 
@@ -16,3 +16,6 @@ Invariantes globais:
 - A resposta ao usuário é concisa por padrão. Detalhes completos ficam em `/ade-audit`, `/ade-trace` e evidências sob demanda.
 - Só declare `DONE` quando todos os planos aplicáveis estiverem aceitos no estado canônico.
 <!-- AI-DRIVEN-ENGINEERING:END v5 -->
+
+### Handoff canônico
+Subagents ADE publicam resultado via `ade_handoff_submit`; texto livre é apenas UX e não concede authority/acceptance.

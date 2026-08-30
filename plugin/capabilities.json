@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "plugin_id": "ai-driven-engineering.native",
-  "version": "5.2.0",
+  "version": "5.2.2",
   "tools": {
     "ade_status": {
       "capability": "STATUS_READ",
@@ -117,6 +117,12 @@
     "ade_route_snapshot": {
       "capability": "ROUTING_SNAPSHOT",
       "authority": "ORCHESTRATE"
+    },
+    "ade_handoff_submit": {
+      "capability": "HANDOFF_SUBMIT",
+      "authority": "HANDOFF",
+      "acceptance_authority": false,
+      "canonical": true
     }
   },
   "agents": {
@@ -130,7 +136,8 @@
       "ade_product_transition",
       "ade_evidence_record",
       "ade_evidence_query",
-      "ade_product_validation_record"
+      "ade_product_validation_record",
+      "ade_handoff_submit"
     ],
     "project-manager": [
       "ade_status",
@@ -138,7 +145,8 @@
       "ade_delivery_transition",
       "ade_evidence_record",
       "ade_evidence_query",
-      "ade_delivery_validation_record"
+      "ade_delivery_validation_record",
+      "ade_handoff_submit"
     ],
     "engineer": [
       "ade_status",
@@ -148,34 +156,41 @@
       "ade_evidence_query",
       "ade_vcs_status",
       "ade_vcs_diff",
-      "ade_vcs_branches"
+      "ade_vcs_branches",
+      "ade_handoff_submit"
     ],
     "explorer": [
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_vcs_branches",
       "ade_runtime_observe",
-      "ade_evidence_record"
+      "ade_evidence_record",
+      "ade_handoff_submit"
     ],
     "researcher": [
-      "ade_evidence_record"
+      "ade_evidence_record",
+      "ade_handoff_submit"
     ],
     "modeler": [
-      "ade_evidence_record"
+      "ade_evidence_record",
+      "ade_handoff_submit"
     ],
     "engineering-planner": [
-      "ade_evidence_record"
+      "ade_evidence_record",
+      "ade_handoff_submit"
     ],
     "tester": [
       "ade_vcs_diff",
       "ade_self_check",
-      "ade_evidence_record"
+      "ade_evidence_record",
+      "ade_handoff_submit"
     ],
     "implementer": [
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_self_check",
-      "ade_evidence_record"
+      "ade_evidence_record",
+      "ade_handoff_submit"
     ],
     "verifier": [
       "ade_vcs_status",
@@ -183,41 +198,48 @@
       "ade_project_check",
       "ade_evidence_record",
       "ade_evidence_query",
-      "ade_engineering_validation_record"
+      "ade_engineering_validation_record",
+      "ade_handoff_submit"
     ],
     "debugger": [
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_self_check",
       "ade_evidence_record",
-      "ade_diagnostic_check"
+      "ade_diagnostic_check",
+      "ade_handoff_submit"
     ],
     "reviewer": [
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_evidence_record",
-      "ade_evidence_query"
+      "ade_evidence_query",
+      "ade_handoff_submit"
     ],
     "security-reviewer": [
       "ade_vcs_status",
       "ade_vcs_diff",
       "ade_evidence_record",
-      "ade_evidence_query"
+      "ade_evidence_query",
+      "ade_handoff_submit"
     ],
     "integrator": [
       "ade_vcs_status",
       "ade_vcs_diff",
-      "ade_evidence_query"
+      "ade_evidence_query",
+      "ade_handoff_submit"
     ],
     "documenter": [
       "ade_vcs_diff",
-      "ade_evidence_record"
+      "ade_evidence_record",
+      "ade_handoff_submit"
     ],
     "tracker-operator": [
       "ade_evidence_record",
       "ade_evidence_query",
       "ade_tracker_read",
-      "ade_tracker_write"
+      "ade_tracker_write",
+      "ade_handoff_submit"
     ],
     "vcs-operator": [
       "ade_vcs_status",
@@ -228,7 +250,8 @@
       "ade_vcs_push",
       "ade_pr_create",
       "ade_evidence_record",
-      "ade_evidence_query"
+      "ade_evidence_query",
+      "ade_handoff_submit"
     ]
   },
   "hide_core_tools": {
@@ -310,19 +333,35 @@
     "product-owner": 900,
     "project-manager": 1000,
     "engineer": 1400,
-    "explorer": 800,
-    "researcher": 900,
-    "modeler": 900,
-    "engineering-planner": 900,
+    "explorer": 700,
+    "researcher": 700,
+    "modeler": 700,
+    "engineering-planner": 700,
     "tester": 1000,
     "implementer": 1200,
     "verifier": 1000,
     "debugger": 1000,
-    "reviewer": 900,
+    "reviewer": 800,
     "security-reviewer": 1000,
-    "integrator": 900,
-    "documenter": 900,
+    "integrator": 800,
+    "documenter": 800,
     "tracker-operator": 700,
     "vcs-operator": 700
+  },
+  "handoff_contract": {
+    "statuses": [
+      "DONE",
+      "PARTIAL",
+      "BLOCKED",
+      "FAILED"
+    ],
+    "max_handoff_bytes": 4096,
+    "max_changed_items": 8,
+    "max_evidence_refs": 8,
+    "max_changed_chars": 180,
+    "max_evidence_ref_chars": 240,
+    "max_blocker_chars": 800,
+    "max_next_chars": 500,
+    "recent_in_control": 3
   }
 }

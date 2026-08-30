@@ -1,97 +1,117 @@
-# AI-Driven Engineering v5.2.0 — State-Driven OpenCode V2 Runtime
+# AI-Driven Engineering v5.2.2 — Unified v5.2 Runtime
 
-ADE v5.2.0 é uma release de estabilização e eficiência para OpenCode V2. Ela preserva os planos **Product / Delivery / Engineering**, evidências, acceptance gates, least privilege e subagents especializados, mas remove o custo e o ruído de uma orquestração ritualística.
+ADE v5.2.2 consolida na própria linha **v5.2** as duas evoluções que antes estavam separadas: **Structured Handoffs** e **Cost/Performance Intelligence**. A governança Product / Delivery / Engineering continua intacta, mas comunicação entre agents deixa de depender de texto livre como fonte canônica.
 
-## Principais mudanças
+## O que muda sobre v5.2.0
 
-### 1. State-driven routing
-O Orchestrator não percorre mais `PO -> PM -> Engineer -> PM -> PO` por padrão. Ele consulta um snapshot compacto e chama somente o owner cuja autoridade é necessária no estado atual. Decisões existentes são reutilizadas enquanto sua revision/input relevante não mudar.
+### 1. Structured Handoff canônico
+Todos os ADE agents, exceto o Orchestrator, recebem `ade_handoff_submit` e devem chamá-la exatamente uma vez antes de finalizar uma delegação.
 
-### 2. UX concisa e handoffs compactos
-O Orchestrator usa `USER_BRIEF` (normalmente 3–6 bullets / ~180 palavras). Specialists usam `COMPACT_HANDOFF` com `status`, `changed`, `evidence_refs`, `blocker`, `required_owner`, `next`. Audit completo continua disponível via `/ade-audit`, `/ade-trace` e `/ade-why`.
+Schema lógico:
 
-### 3. Skill realmente lazy
-`ai-driven-engineering` usa `metadata.opencode/autoinvoke: "false"`. Agents não carregam a Skill automaticamente. `AGENTS.md` contém apenas invariantes globais; regras específicas ficam nos agents/references.
+```json
+{
+  "status": "DONE | PARTIAL | BLOCKED | FAILED",
+  "changed": ["..."],
+  "evidence_refs": ["..."],
+  "blocker": "...",
+  "required_owner": "none | orchestrator | product-owner | project-manager | engineer",
+  "next": "..."
+}
+```
 
-### 4. Estado/evidência endurecidos
-- `control.json` schema 3 e compacto;
-- legacy `evidence: {}` é normalizado com segurança;
-- histórico completo vai para `.ai/evidence.jsonl`;
-- `ade_evidence_query` usa janela padrão 5;
-- `ade_state_get` é compacto por padrão e `full` é explícito;
-- `ade_route_snapshot` fornece somente a decisão mínima de routing.
+Enforcement no plugin:
+- máximo 4096 bytes por handoff;
+- até 8 `changed` e 8 `evidence_refs`;
+- limites por string;
+- `BLOCKED` exige `blocker`;
+- `required_owner` é validado por source agent;
+- source agent/session vêm do runtime, não do input do modelo;
+- histórico durável em `.ai/handoffs.jsonl`;
+- somente os 3 handoffs compactos mais recentes entram no `control.json`;
+- publicar handoff **não incrementa revision do estado canônico**.
 
-### 5. Observabilidade sem poluir a conversa
-`.ai/telemetry.jsonl` registra somente sinais mínimos de tool-call (`agent`, `tool`, `status`, `duration_ms`, timestamp/session id), nunca argumentos/prompts/segredos. Comandos:
-- `/ade-why` — motivo do routing atual;
-- `/ade-trace` — últimas chamadas ADE;
-- `/ade-metrics` — contagens/duração por agent/tool;
-- `/ade-doctor` — diagnóstico direto, sem round-trip de LLM.
+O texto final do child é UX. Routing/acceptance nunca são concedidos pelo texto livre.
 
-### 6. Provider resilience
-O plugin classifica `provider.invalid-request` relacionado a `tool_choice` e faz retry **limitado**. Isto é mitigação, não mascaramento: se o host reenviar deterministicamente uma request incompatível, a falha permanece visível após o limite.
+### 2. State-driven routing + handoff advisory
+`ade_route_snapshot` continua derivando o owner primário do estado canônico. O handoff tipado aparece como `handoff_advisory` e nunca sobrepõe autoridade de Product/Delivery/Engineering. Em divergência, `STATE_PRECEDENCE` vence.
 
-### 7. OpenCode V2 config
-`experimental.subagent_depth: 2` é a configuração canônica. O installer remove o top-level legado `subagent_depth`; não há `subagent_depth` per-agent.
+### 3. Respostas curtas realmente verificáveis
+Cada child deve, após `ade_handoff_submit`, responder em até 3 linhas. Behavioral canaries verificam tool usage, owner, rota e budget de texto — não frases mágicas.
+
+### 4. Validation tiers sem esconder regressão
+
+**Core Runtime** — bloqueante para operação:
+- manifesto/plugin/provider/catalog;
+- tool execution real;
+- configuração V2.
+
+**Contract Assurance** — determinística e sempre executada pelo `validate`:
+- 18 agents / 26 tools;
+- structured handoff schema e ownership;
+- agent permission parity;
+- persistence/limits;
+- state-driven routing;
+- telemetry privacy;
+- generation budgets.
+
+**Behavioral Canary** — model-driven:
+- Orchestrator → Project Manager → Tracker Operator;
+- capability-denial recovery via structured handoff;
+- Engineer → Verifier;
+- resposta compacta.
+
+`validate --model` pode terminar com `BEHAVIORAL_CANARY_PENDING` para uso cotidiano. Já `assurance --model` executa behavioral por padrão e **não alega release assurance** sem ele.
+
+### 5. Cost/Performance Intelligence
+`.ai/telemetry.jsonl` contém metadados, nunca prompt/tool args:
+- `tool.call`: agent/tool/status/duration;
+- `model.dispatch`: provider/model, generation budget, message/tool counts e estimativa de contexto;
+- `provider.retry`: provider/model/attempt/error type/retry decision.
+
+Comandos:
+- `/ade-metrics` — distribuição por agent/tool/model, retries, dispatches, budget e input estimado;
+- `/ade-cost` — usage/cost exato quando exposto por `session.context`, com fallback explicitamente estimado;
+- `/ade-handoffs` — últimos handoffs canônicos;
+- `/ade-trace` — telemetria recente;
+- `/ade-why` — state route + handoff advisory;
+- `/ade-doctor` — diagnóstico explícito.
 
 ## Capability surface
 
-18 agents, 25 tools ADE. O Orchestrator vê somente `ade_status` e `ade_route_snapshot`; `ade_doctor` e state/evidence completos não fazem parte do happy path. Raw `shell`/`execute` continuam ocultos para todos os ADE agents.
+18 agents, **26 typed ADE tools**. O Orchestrator continua mínimo: somente `ade_status` + `ade_route_snapshot`. `ade_handoff_submit` aparece apenas nos 17 agents que devolvem trabalho a um parent/control plane.
 
-## Instalação / upgrade
+## Upgrade recomendado: v5.2.0 → v5.2.2
 
 No release bundle:
 
 ```powershell
-py -B .\install-opencode-v5.2.0.py
+py -B .\migrate-opencode-v5.2.0-to-v5.2.2.py
 opencode2 service restart
-py -B .\validate-opencode-v5.2.0.py --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\validate-opencode-v5.2.2.py --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
-Upgrade gerenciado de v4/v5.0/v5.1:
+Esse primeiro validate deve incluir `CONTRACT_ASSURANCE_VALIDATED`.
+
+Para provar comportamento real do provider/model:
 
 ```powershell
-py -B .\migrate-opencode-to-v5.2.0.py
-opencode2 service restart
-py -B .\validate-opencode-v5.2.0.py --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\validate-opencode-v5.2.2.py --model "opencode/muse-spark-1.2-contributor-free" --behavioral
 ```
 
-O installer aplica rollback transacional aos arquivos gerenciados: cria backup, recusa sobrescrever customização não reconhecida sem `--force`, escreve manifesto schema 7 e preserva settings não-ADE.
-
-## Validação
-
-Core runtime (bloqueante):
-
-```text
-INSTALLED_MANIFEST_VALIDATED
-PLUGIN_LOADED_VALIDATED
-PROVIDER_BASELINE_VALIDATED
-PLUGIN_CATALOG_VALIDATED
-PLUGIN_TOOL_EXECUTION_VALIDATED: orchestrator -> ade_status
-SUBAGENT_DEPTH_CONFIGURED: experimental.subagent_depth=2
-RUNTIME_CONFIG_VALIDATED
-ADE_V5_RUNTIME_CORE_VALIDATED
-RUNTIME_VALIDATED: 5.2.0
-BEHAVIORAL_EVALS_SKIPPED
-```
-
-Behavioral eval (opcional, estrito e probabilístico):
+Para release assurance completa:
 
 ```powershell
-py -B .\validate-opencode-v5.2.0.py --model "..." --behavioral
+py -B .\assure-opencode-v5.2.2.py --source --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
-Ele prova nesting/routing/model compliance e **não é flexibilizado para transformar uma rota diferente em sucesso**.
+`assure --model` roda o behavioral canary por padrão. `--core-only` existe apenas para diagnóstico e imprime explicitamente que release assurance **não** foi alegada.
 
-## Source gates
+## Compatibilidade
 
-```powershell
-py -B .\tooling\ade.py regression --package-root .
-cd plugin
-npm test
-npm run typecheck
-```
+- OpenCode V2 Promise plugin API;
+- configuração canônica `experimental.subagent_depth: 2`;
+- Python 3.9+ tooling;
+- Windows pagefile diagnostic incluído para Bun `os error 1455`.
 
-A release contém 32 grupos de regressão Python e 24 testes Node, além do typecheck TypeScript.
-
-Veja `VALIDATION.md`, `COMPATIBILITY.md`, `OPENCODE_V2_AUDIT.md` e `RELEASE_NOTES_v5.2.0.md`.
+Veja `STRUCTURED_HANDOFFS.md`, `COST_INTELLIGENCE.md`, `VALIDATION.md`, `COMPATIBILITY.md` e `RELEASE_NOTES_v5.2.2.md`.
