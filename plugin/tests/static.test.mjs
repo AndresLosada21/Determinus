@@ -7,9 +7,9 @@ const pkg=JSON.parse(fs.readFileSync(new URL("../package.json",import.meta.url))
 const src=fs.readFileSync(new URL("../src/index.ts",import.meta.url),"utf8")
 const tools=Object.keys(cap.tools)
 
-test("registry has 18 agents and 26 typed tools",()=>{
+test("registry has 18 agents and 28 typed tools",()=>{
   assert.equal(Object.keys(cap.agents).length,18)
-  assert.equal(tools.length,26)
+  assert.equal(tools.length,28)
   assert.ok(tools.includes("ade_route_snapshot"))
 })
 
@@ -61,10 +61,11 @@ test("context hook restricts tools and caps generation without modifying system"
   assert.ok(!src.includes("event.system ="))
 })
 
-test("provider invalid-request retry is bounded",()=>{
+test("provider failure signatures use a bounded circuit breaker",()=>{
   assert.ok(src.includes('ctx.session.hook("retry"'))
   assert.ok(src.includes('event.error?.type==="provider.invalid-request"'))
-  assert.ok(src.includes("event.attempt||0)<3"))
+  for(const marker of ["normalizedFailureSignature","retrySignatures","tool_choice:auto-only","reasoning item expired","seen===0","seen>0"]) assert.ok(src.includes(marker),marker)
+  assert.ok(src.includes("if(autoOnly) event.decision={retry:false}"))
   assert.ok(src.includes("event.decision={retry:true,delay:400}"))
 })
 
@@ -120,8 +121,17 @@ test("vcs mutation surface is constrained",()=>{
 })
 
 test("tracker write is policy gated",()=>{
-  assert.ok(src.includes('trackerPolicy=await readJson(trackerPolicyPath)'))
+  assert.ok(src.includes('trackerPolicy=await readProjectJson(root,".ai/tracker-policy.json","tracker policy")'))
   assert.ok(src.includes('mode==="write"&&!i.dry_run&&trackerPolicy.write?.authorized!==true'))
+})
+
+test("project-manager owns deterministic GitHub Project sync while tracker agent remains fallback",()=>{
+  assert.ok(cap.agents["project-manager"].includes("ade_tracker_project_snapshot"))
+  assert.ok(cap.agents["project-manager"].includes("ade_tracker_project_sync"))
+  assert.deepEqual(new Set(cap.agents["tracker-operator"]),new Set(["ade_tracker_read","ade_tracker_write","ade_handoff_submit"]))
+  for(const marker of ["githubProjectSnapshot","githubSetProjectField","updateProjectV2ItemFieldValue","TRACKER_VERIFY_FAILED","canonical_handoff","post_state"]) assert.ok(src.includes(marker),marker)
+  assert.equal(cap.deterministic_control_plane.tool_choice_auto_only_retry,0)
+  assert.equal(cap.deterministic_control_plane.same_failure_signature_retry_max,1)
 })
 
 test("debugger diagnostic check stays non-validating",()=>{
@@ -156,7 +166,7 @@ test("all ADE agents hide raw shell and execute",()=>{
 })
 
 test("observability commands are registered",()=>{
-  for(const cmd of ["ade-why","ade-trace","ade-metrics","ade-doctor"]) assert.ok(src.includes(`name:"${cmd}"`))
+  for(const cmd of ["ade-why","ade-trace","ade-metrics","ade-doctor","ade-failures"]) assert.ok(src.includes(`name:"${cmd}"`))
   assert.ok(src.includes("telemetry.jsonl"))
   assert.ok(src.includes("duration_ms"))
 })
@@ -173,4 +183,15 @@ test("structured handoff is canonical and bounded",()=>{
 test("cost intelligence records estimates without prompt payload",()=>{
   for(const marker of ["model.dispatch","provider.retry","approx_context_tokens","ade-cost","ade-handoffs","exactUsageFromMessages"]) assert.ok(src.includes(marker))
   assert.ok(!src.includes("prompt_text"))
+})
+
+
+test("heavy hardening guards are present",()=>{
+  for(const marker of ["readProjectJson","assertRegularNoSymlink","LOG_CORRUPT","redactForModel","minimalEnv","resolveTrustedExecutable",'redirect:"error"',"AbortController","assertNoSecretStaged","--read-only","--cap-drop","no-new-privileges","allow_network","allow_mutable_image"]) assert.ok(src.includes(marker),marker)
+  assert.ok(!src.includes("commit.gpgSign=false"))
+  assert.ok(src.includes("policy.hooks?.allow_bypass===true"))
+  assert.ok(src.includes("session_ref"))
+  assert.ok(!src.includes("session_id:"))
+  assert.equal(cap.hardening.docker_network_default,"none")
+  assert.equal(cap.hardening.git_hooks_bypass_default,false)
 })

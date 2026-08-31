@@ -1,29 +1,43 @@
-# Validation report — ADE v5.2.3 consolidation build
+# Validation report — ADE v5.2.6 Hardened
 
-## Source gates deste pacote
+## Source gates
 
-- Python regression: 34 grupos (hash final selado no fim do build);
-- Static policy: obrigatório;
-- TypeScript `tsc --noEmit`: obrigatório;
-- Node plugin tests: **27** testes, incluindo SDK documentado (`Plugin.define`) e fallback beta sem named `Plugin` export;
-- structured handoff schema/authority/limits e revision neutrality;
-- state-driven nested fixture (Delivery → Project Manager → Tracker Operator);
-- bounded plugin-list startup retry;
-- migration v5.2.1 → v5.2.3 e rollback simulados no lifecycle de empacotamento.
+- Python regression groups: **40/40 PASS** before release sealing (inclui `human-authorization-boundary` + `docs-integrity`).
+- Static Policy: **PASS**.
+- Plugin Node tests: **63/63 PASS** (29 base + 4 human-auth + 18 security-negative + 12 human-grant-functional).
+- TypeScript `tsc --noEmit`: **PASS** (Windows shim fix: `fileURLToPath`, `Buffer`, `node:os`).
+- V2 plugin lifecycle mock: **PASS** for `Plugin.define` SDK and raw-default compatibility SDK.
+- Security negative tests: **PASS** (25 cenários: self-auth, human approval, policy outside root, symlink, `.git/config`, secret outbound, staged secret, allowlists, duplicate/verification, JSONL corrupt, oversized, traversal, junction, minimal env, Docker defaults, circuit breaker, handoff revision, post_state, auto-approve).
 
-## Validation architecture
+## Deterministic control-plane coverage
 
-### Core Runtime
-Manifest, plugin load, provider baseline, catalog, tool execution e configuração V2 resolvida.
+- 18 agents / 28 typed tools.
+- Project Manager direct GitHub Project V2 snapshot/sync capability: **PASS static + lifecycle mock**.
+- Project field mapping and `updateProjectV2ItemFieldValue`: **PASS lifecycle mock**.
+- Write → read-back → expected/actual verification: **PASS lifecycle mock**.
+- Runtime-generated tracker handoff (`origin=runtime`): **PASS lifecycle mock**.
+- Runtime-generated Engineering state-transition handoff + `post_state`: **PASS lifecycle mock**.
+- Same-signature provider circuit breaker: **PASS lifecycle mock**.
+- Tool-choice auto-only deterministic error gets zero retry: **PASS lifecycle mock**.
+- `reasoning item expired` gets one retry then circuit open: **PASS lifecycle mock**.
 
-### Contract Assurance
-Determinística e obrigatória em todo `validate`: 18 agents, 26 tools, Structured Handoffs, limits/authority, routing contract, generation budgets, retry policy e telemetry privacy.
+## Managed lifecycle simulation
 
-### Behavioral Canary
-Estrita e model/provider-driven. O nested scenario constrói estado canônico que requer **Delivery**; portanto o route esperado é Project Manager → Tracker Operator. O Orchestrator pode consultar `ade_status` e `ade_route_snapshot` uma vez cada, porque isso faz parte do happy path STATE_DRIVEN, mas nenhuma rota alternativa é aceita.
+A clean managed v5.2.5 installation was created in a temporary target, then migrated directly to v5.2.6.
 
-`assure --model` executa Behavioral Canary por padrão. `--core-only` nunca alega Release Assurance.
+- v5.2.5 → v5.2.6: **PASS** (39/39 regression, 51/51 Node, TypeScript PASS).
+- Installed manifest: schema 7 / package 5.2.6 / 18 agents / 28 tools: **PASS**.
+- Contract Assurance after migration: **PASS** (human-auth boundary validated).
+- v5.2.6 uninstall → v5.2.5: **PASS** (byte-identical `orchestrator.md` restored).
+- `preserved_modified=0`: **PASS**.
+- ZIP integrity + secret scan + no hardcoded personal paths: **PASS**.
 
-## Windows/OpenCode
+## Deliberately pending
 
-A v5.2.3 permanece `SOURCE_VALIDATED_RUNTIME_PENDING` até ser instalada no OpenCode V2 alvo. O pacote foi desenhado especificamente para cobrir os dois comportamentos observados na beta-18684: ausência do named export `Plugin` e race curta entre restart e `plugin list`. O runtime real continua sendo a autoridade final.
+This build environment cannot call the user's real Windows OpenCode/Zen runtime. Therefore:
+
+- OpenCode `0.0.0-beta-18684` Windows runtime revalidation: **PENDING**.
+- Provider/model Behavioral Assurance: **PENDING BY DESIGN**.
+- Real GitHub Project write against the user's Project 4: **PENDING**.
+
+These pending items do not invalidate source/lifecycle validation, but they are not represented as completed evidence.

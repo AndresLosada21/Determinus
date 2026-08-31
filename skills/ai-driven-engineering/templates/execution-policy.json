@@ -3,5 +3,14 @@
   "authorized": false,
   "policy_owner": "human",
   "cross_workspace_git_metadata": true,
-  "checks": {}
+  "checks": {},
+  "hardening_defaults": {
+    "process_environment": "minimal; opt-in allowlist per check",
+    "docker_network": "none unless allow_network=true",
+    "docker_rootfs": "read-only",
+    "docker_capabilities": "drop ALL",
+    "docker_no_new_privileges": true,
+    "docker_image": "sha256 digest required unless allow_mutable_image=true",
+    "host_process": "blocked unless allow_host_process=true on the check"
+  }
 }

@@ -1,122 +1,106 @@
-# AI-Driven Engineering v5.2.3 — Unified v5.2 Runtime
+# AI-Driven Engineering v5.2.6 Hardened — Human Authorization Boundary
 
-ADE v5.2.3 consolida na própria linha **v5.2** as duas evoluções que antes estavam separadas: **Structured Handoffs** e **Cost/Performance Intelligence**. A governança Product / Delivery / Engineering continua intacta, mas comunicação entre agents deixa de depender de texto livre como fonte canônica.
+ADE v5.2.6 Hardened keeps the v5.2 Product / Delivery / Engineering governance model, STATE_DRIVEN Orchestrator, lazy Skill, bounded context, structured handoffs and deterministic control plane, but enforces **repo policy != human authority** via OpenCode `ask` permissions for high-impact mutations.
 
-## O que muda sobre v5.2.0
+The design rule is: **LLMs decide content; ADE decides mechanics.**
 
-### 1. Structured Handoff canônico
-Todos os ADE agents, exceto o Orchestrator, recebem `ade_handoff_submit` e devem chamá-la exatamente uma vez antes de finalizar uma delegação.
+## Architecture
 
-Schema lógico:
-
-```json
-{
-  "status": "DONE | PARTIAL | BLOCKED | FAILED",
-  "changed": ["..."],
-  "evidence_refs": ["..."],
-  "blocker": "...",
-  "required_owner": "none | orchestrator | product-owner | project-manager | engineer",
-  "next": "..."
-}
+```text
+canonical .ai state
+        ↓
+ade_route_snapshot
+        ↓
+Orchestrator chooses only the authority needed now
+        ↓
+owner/specialist reasoning when reasoning is required
+        ↓
+typed runtime operation / state transition
+        ↓
+runtime receipt + canonical handoff + post_state
+        ↓
+Orchestrator reads post-operation route_snapshot
+        ↓
+concise USER_BRIEF
 ```
 
-Enforcement no plugin:
-- máximo 4096 bytes por handoff;
-- até 8 `changed` e 8 `evidence_refs`;
-- limites por string;
-- `BLOCKED` exige `blocker`;
-- `required_owner` é validado por source agent;
-- source agent/session vêm do runtime, não do input do modelo;
-- histórico durável em `.ai/handoffs.jsonl`;
-- somente os 3 handoffs compactos mais recentes entram no `control.json`;
-- publicar handoff **não incrementa revision do estado canônico**.
+### Deterministic GitHub Project path
 
-O texto final do child é UX. Routing/acceptance nunca são concedidos pelo texto livre.
+For configured GitHub Projects V2, Project Manager no longer needs a Tracker Operator subagent in the normal path:
 
-### 2. State-driven routing + handoff advisory
-`ade_route_snapshot` continua derivando o owner primário do estado canônico. O handoff tipado aparece como `handoff_advisory` e nunca sobrepõe autoridade de Product/Delivery/Engineering. Em divergência, `STATE_PRECEDENCE` vence.
+- `ade_tracker_project_snapshot` resolves the configured project, fields, single-select options, iterations and items.
+- `ade_tracker_project_sync` applies a bounded batch, maps field/option/iteration IDs, performs GitHub GraphQL writes, reads the project back and verifies expected vs actual values.
+- The sync returns `requested`, `updated`, `verified`, `failed`, verification details, a runtime-generated `canonical_handoff` and `post_state`.
+- `tracker-operator` remains a fallback for providers/operations not covered by the deterministic adapter or genuine ambiguity.
 
-### 3. Respostas curtas realmente verificáveis
-Cada child deve, após `ade_handoff_submit`, responder em até 3 linhas. Behavioral canaries verificam tool usage, owner, rota e budget de texto — não frases mágicas.
+GitHub Project writes remain gated by `.ai/tracker-policy.json`. Credentials are resolved from the authorized OpenCode integration and are not written to ADE files.
 
-### 4. Validation tiers sem esconder regressão
+### Runtime-generated handoffs
 
-**Core Runtime** — bloqueante para operação:
-- manifesto/plugin/provider/catalog;
-- tool execution real;
-- configuração V2.
+`ade_handoff_submit` remains available for conclusions that exist only in agent reasoning. However, state transitions and deterministic tracker syncs now emit `origin=runtime` handoffs themselves. Agents must not duplicate those handoffs.
 
-**Contract Assurance** — determinística e sempre executada pelo `validate`:
-- 18 agents / 26 tools;
-- structured handoff schema e ownership;
-- agent permission parity;
-- persistence/limits;
-- state-driven routing;
-- telemetry privacy;
-- generation budgets.
+Product/Delivery/Engineering transition tools also return `post_state`, so acceptance cannot depend on a child agent's prose.
 
-**Behavioral Canary** — model-driven:
-- Orchestrator → Project Manager → Tracker Operator;
-- capability-denial recovery via structured handoff;
-- Engineer → Verifier;
-- resposta compacta.
+### Circuit breaker
 
-`validate --model` pode terminar com `BEHAVIORAL_CANARY_PENDING` para uso cotidiano. Já `assurance --model` executa behavioral por padrão e **não alega release assurance** sem ele.
+Provider failures are normalized into stable signatures:
 
-### 5. Cost/Performance Intelligence
-`.ai/telemetry.jsonl` contém metadados, nunca prompt/tool args:
-- `tool.call`: agent/tool/status/duration;
-- `model.dispatch`: provider/model, generation budget, message/tool counts e estimativa de contexto;
-- `provider.retry`: provider/model/attempt/error type/retry decision.
+- deterministic `tool_choice` auto-only incompatibility: **0 retries**;
+- identical `reasoning item expired`: at most **1 retry** per session/agent/provider/model/signature;
+- repeated identical signature: circuit open / no retry.
 
-Comandos:
-- `/ade-metrics` — distribuição por agent/tool/model, retries, dispatches, budget e input estimado;
-- `/ade-cost` — usage/cost exato quando exposto por `session.context`, com fallback explicitamente estimado;
-- `/ade-handoffs` — últimos handoffs canônicos;
-- `/ade-trace` — telemetria recente;
-- `/ade-why` — state route + handoff advisory;
-- `/ade-doctor` — diagnóstico explícito.
+Use `/ade-failures` to inspect recent signature/domain/retry decisions.
 
-## Capability surface
+## Surface
 
-18 agents, **26 typed ADE tools**. O Orchestrator continua mínimo: somente `ade_status` + `ade_route_snapshot`. `ade_handoff_submit` aparece apenas nos 17 agents que devolvem trabalho a um parent/control plane.
+- 18 agents.
+- 28 typed ADE tools.
+- Orchestrator remains minimal: `ade_status` + `ade_route_snapshot` only.
+- Project Manager owns deterministic Project V2 snapshot/sync plus Delivery transition/validation.
+- Tracker Operator keeps only generic tracker read/write + handoff fallback capabilities.
+- Raw shell/execute remain hidden from ADE agents.
 
-## Upgrade recomendado: v5.2.0 → v5.2.3
+## Context/UX efficiency
 
-No release bundle:
+- `opencode/autoinvoke: false` keeps the Skill lazy.
+- Child agents use bounded generation budgets.
+- `ade_state_get` is compact by default and evidence queries default to 5.
+- User-facing Orchestrator responses target ~3–6 bullets / ~180 words.
+- Telemetry stores metadata, not prompts or tool arguments.
+
+## Validation layers
+
+These responsibilities are intentionally separate:
+
+1. **Install/Migrate** — managed files/config only; no behavioral matrix.
+2. **Core Runtime** — plugin/provider/catalog/one real ADE tool/config.
+3. **Contract Assurance** — deterministic capability/schema/state/security checks.
+4. **Behavioral Assurance** — strict model-driven routing/recovery canaries.
+5. **Live Matrix** — repeated multi-model reliability measurement in isolated temporary projects.
+
+A Core/Contract PASS does not imply Behavioral PASS. A failed behavioral trial is not converted into success by a pass-rate threshold.
+
+## Upgrade from v5.2.5 (validated)
 
 ```powershell
-py -B .\migrate-opencode-v5.2.0-to-v5.2.3.py
+py -B .\tooling\ade.py migrate --target "$HOME\.config\opencode"
+# ou shim legado:
+py -B .\migrate-v4-to-v5.py --target "$HOME\.config\opencode"
 opencode2 service restart
-py -B .\validate-opencode-v5.2.3.py --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\tooling\ade.py validate --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
-Esse primeiro validate deve incluir `CONTRACT_ASSURANCE_VALIDATED`.
-
-Para provar comportamento real do provider/model:
+Do **not** run a Live Matrix during installation. Return to normal work first. For model reliability:
 
 ```powershell
-py -B .\validate-opencode-v5.2.3.py --model "opencode/muse-spark-1.2-contributor-free" --behavioral
+py -B .\tooling\ade.py behavioral-reliability --model "provider/model" --trials 5 --strict
+py -B .\tooling\ade.py live-test --models "opencode/muse-spark-1.2-contributor-free" --trials 2
 ```
 
-Para release assurance completa:
+For complete release assurance:
 
 ```powershell
-py -B .\assure-opencode-v5.2.3.py --source --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\tooling\ade.py assure --source --model "provider/model"
 ```
 
-`assure --model` roda o behavioral canary por padrão. `--core-only` existe apenas para diagnóstico e imprime explicitamente que release assurance **não** foi alegada.
-
-## Compatibilidade
-
-- OpenCode V2 Promise plugin API;
-- configuração canônica `experimental.subagent_depth: 2`;
-- Python 3.9+ tooling;
-- Windows pagefile diagnostic incluído para Bun `os error 1455`.
-
-Veja `STRUCTURED_HANDOFFS.md`, `COST_INTELLIGENCE.md`, `VALIDATION.md`, `COMPATIBILITY.md` e `RELEASE_NOTES_v5.2.3.md`.
-
-
-## v5.2.3: Delegation-Driven Children
-
-O Orchestrator continua `STATE_DRIVEN`; owners e specialists críticos passam a `DELEGATION_DRIVEN`. Consulte `DELEGATION_DRIVEN.md`. O comando `behavioral-reliability` mede consistência do provider/model por múltiplos trials mantendo cada assert estrito.
+See `HARDENING.md`, `DETERMINISTIC_CONTROL_PLANE.md`, `STRUCTURED_HANDOFFS.md`, `DELEGATION_DRIVEN.md`, `LIVE_TESTING.md`, `VALIDATION.md` and `RELEASE_NOTES_v5.2.6.md`. `HUMAN_REQUIRED` é two-channel: `ask` em `--auto` vira `AUTO_APPROVED` e não basta; exige `grant` externo single-use via `/ade-authorize` fora de `.ai` com `resource_hash` exato, senão `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations.

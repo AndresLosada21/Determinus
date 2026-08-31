@@ -31,7 +31,7 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect(cap.get("version") == VERSION, "CAPABILITY_VERSION_MISMATCH")
     _expect(cap.get("plugin_id") == "ai-driven-engineering.native", "PLUGIN_ID_MISMATCH")
     _expect(set(cap.get("agents", {})) == set(AGENTS), "CAPABILITY_AGENT_SET_MISMATCH")
-    _expect(len(cap.get("tools", {})) == 26, f"TOOL_COUNT_INVALID: {len(cap.get('tools', {}))}")
+    _expect(len(cap.get("tools", {})) == 28, f"TOOL_COUNT_INVALID: {len(cap.get('tools', {}))}")
     budgets = cap.get("generation_max_tokens") or {}
     _expect(set(budgets) == set(AGENTS), "GENERATION_BUDGET_AGENT_SET_MISMATCH")
     _expect(all(isinstance(v, int) and 500 <= v <= 2000 for v in budgets.values()), "GENERATION_BUDGET_INVALID")
@@ -46,19 +46,28 @@ def static_policy(root: Path | None = None) -> list[str]:
     # Parse location roughly: no root key before experimental.
     _expect(not re.search(r'(?m)^  \"subagent_depth\"\s*:', cfg), "TOP_LEVEL_SUBAGENT_DEPTH_FORBIDDEN")
 
+    HUMAN_ASK_REQUIRED = {"ade_tracker_project_sync","ade_tracker_write","ade_project_check","ade_diagnostic_check","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create"}
     for name, path in agent_files.items():
         fm, body = parse_frontmatter(path)
         _expect(deny_all_present(path), f"{name}: deny-all ausente")
         _expect("subagent_depth" not in fm, f"{name}: per-agent subagent_depth não suportado")
         perms = fm.get("permissions", [])
         if name in LEAF_AGENTS:
-            _expect(not any(p.get("effect") == "ask" for p in perms), f"{name}: leaf não pode depender de ask")
             _expect(not any(p.get("action") == "subagent" and p.get("effect") == "allow" for p in perms), f"{name}: leaf não pode criar subagent")
+            for p in perms:
+                if p.get("effect") == "ask":
+                    _expect(p.get("action") in HUMAN_ASK_REQUIRED, f"{name}: leaf ask só permitido para human-authorized tools, encontrado {p.get('action')}")
         _expect(not any(p.get("action") == "external_directory" and p.get("effect") == "allow" for p in perms), f"{name}: external_directory allow proibido")
         _expect(not any(p.get("action") == "shell" and p.get("effect") == "allow" for p in perms), f"{name}: raw shell allow proibido")
-        ade_allowed = allowed_actions(path, "ade_")
+        ade_allowed_allow = {p.get("action","") for p in perms if p.get("effect")=="allow" and str(p.get("action","")).startswith("ade_")}
+        ade_allowed_ask = {p.get("action","") for p in perms if p.get("effect")=="ask" and str(p.get("action","")).startswith("ade_")}
+        ade_all = ade_allowed_allow | ade_allowed_ask
         expected = set(cap["agents"][name])
-        _expect(ade_allowed == expected, f"{name}: ADE permissions drift missing={sorted(expected-ade_allowed)} extra={sorted(ade_allowed-expected)}")
+        _expect(ade_all == expected, f"{name}: ADE permissions drift missing={sorted(expected-ade_all)} extra={sorted(ade_all-expected)}")
+        # high-impact tools must be ask, not allow
+        for tool in (HUMAN_ASK_REQUIRED & expected):
+            _expect(tool in ade_allowed_ask, f"{name}: {tool} deve ser ask (human authorization), não allow")
+            _expect(tool not in ade_allowed_allow, f"{name}: {tool} não pode ser allow")
         _expect("Não carregue `ai-driven-engineering` automaticamente" in body or "Não carregue a skill" in body or "não carregue" in body.lower(), f"{name}: lazy-skill invariant ausente")
 
     pm_fm, pm_body = parse_frontmatter(agent_files["project-manager"])
@@ -104,9 +113,10 @@ def static_policy(root: Path | None = None) -> list[str]:
         if agent != "orchestrator":
             _expect("ade_handoff_submit" in cap["agents"][agent], f"{agent}: handoff capability ausente")
 
-    # Retry is bounded mitigation, not an infinite loop.
+    # Retry/circuit breaker: deterministic request incompatibility is never retried; transient same-signature expiry gets one retry.
     _expect('ctx.session.hook("retry"' in src, "retry hook ausente")
-    _expect('Number(event.attempt||0)<3' in src and 'tool[_ ]choice' in src and 'auto/i.test(message)' in src, "bounded tool_choice retry ausente")
+    for marker in ("normalizedFailureSignature","retrySignatures","tool_choice:auto-only","reasoning item expired","seen===0","seen>0"):
+        _expect(marker in src, f"provider circuit breaker ausente {marker}")
     _expect('ctx.session.hook("context"' in src and 'event.generation.maxTokens' in src, "generation budget hook ausente")
 
     # Critical VCS/security invariants.
@@ -136,9 +146,11 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect(cap["agents"]["tracker-operator"].count("ade_tracker_read") == 1 and cap["agents"]["tracker-operator"].count("ade_tracker_write") == 1, "tracker split inválido")
     _expect(set(cap["agents"]["tracker-operator"]) == {"ade_tracker_read","ade_tracker_write","ade_handoff_submit"}, "tracker leaf surface não mínima")
     _expect({"read","glob","grep","skill"}.issubset(set((cap.get("hide_core_tools") or {}).get("tracker-operator",[]))), "tracker workspace discovery não oculto")
-    _expect("trackerPolicy=await readJson(trackerPolicyPath)" in src and 'mode==="write"&&!i.dry_run&&trackerPolicy.write?.authorized!==true' in src, "tracker write gate ausente")
+    _expect('trackerPolicy=await readProjectJson(root,".ai/tracker-policy.json","tracker policy")' in src and 'mode==="write"&&!i.dry_run&&trackerPolicy.write?.authorized!==true' in src, "tracker write gate ausente")
+    _expect({"ade_tracker_project_snapshot","ade_tracker_project_sync"}.issubset(set(cap["agents"]["project-manager"])), "project-manager deterministic tracker path ausente")
+    _expect('updateProjectV2ItemFieldValue' in src and 'TRACKER_VERIFY_FAILED' in src and 'canonical_handoff' in src and 'post_state' in src, "deterministic tracker sync/read-back ausente")
 
-    for marker in ("blockedExecutables", "powershell.exe", "cmd.exe", "bash", "docker", "podman", "git", 'args.some((x:string)=>x.includes("\\0"))'):
+    for marker in ("blockedExecutables", "powershell.exe", "cmd.exe", "bash", "docker", "podman", "git", r'x.includes("\0")'):
         _expect(marker in src, f"project-check bypass guard ausente {marker}")
     _expect("safeExistingRealPath" in src and "fs.realpath(root)" in src and "fs.realpath(lexical)" in src, "realpath boundary ausente")
     for marker in ("project_root=${root}", "policy=.ai/execution-policy.json", "available=["):
@@ -146,6 +158,21 @@ def static_policy(root: Path | None = None) -> list[str]:
 
     _expect('{{.ID}}\\t{{.Image}}\\t{{.Names}}\\t{{.Status}}\\t{{.Ports}}' in src, "safe docker ps format ausente")
     _expect('{{.Id}}\\t{{json .RepoTags}}\\t{{.Size}}\\t{{.Created}}' in src, "safe docker image format ausente")
+
+    # Heavy hardening invariants.
+    for marker in ("readProjectJson","LOG_CORRUPT","LOG_UNSAFE","redactForModel","minimalEnv","resolveTrustedExecutable",'redirect:"error"',"AbortController","allow_mutable_image","allow_network","--read-only","--cap-drop","ALL","no-new-privileges","assertNoSecretStaged"):
+        _expect(marker in src, f"heavy-hardening marker ausente {marker}")
+    _expect('commit.gpgSign=false' not in src, "commit signing não pode ser desativado")
+    _expect('policy.hooks?.allow_bypass===true' in src, "hook bypass não está explicitamente policy-gated")
+    _expect('session_ref' in src and 'session_id:' not in src, "telemetria deve pseudonimizar session id")
+
+    # Human authorization boundary: repo policy != human authority, high-impact tools must be ask-gated.
+    _expect('HUMAN_AUTHORIZATION_REQUIRED' in src and 'ADE_HUMAN_AUTHORIZATION_REQUIRED' in src, "human authorization boundary ausente no plugin")
+    _expect('repo policy' in src.lower() or 'repositório' in src.lower() or 'policy do repositório' in src.lower(), "documentação de repo policy vs human authority ausente")
+    _expect('AUTO_APPROVED' in src and 'USER_APPROVED' in src, "auto-approve distinction ausente")
+    _expect('event.effect="ask"' in src, "permission ask enforcement ausente")
+    for tool in ("ade_tracker_project_sync","ade_tracker_write","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create","ade_project_check","ade_diagnostic_check"):
+        _expect(tool in src and 'HUMAN_AUTHORIZATION_REQUIRED' in src, f"human auth set ausente para {tool}")
 
     pkg = load_json(root / "plugin/package.json")
     _expect(pkg.get("version") == VERSION, "plugin package version mismatch")

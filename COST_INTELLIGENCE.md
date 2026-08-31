@@ -1,4 +1,4 @@
-# Cost / Performance Intelligence — ADE v5.2.3
+# Cost / Performance Intelligence — ADE v5.2.5
 
 ## Princípio
 

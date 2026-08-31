@@ -1,12 +1,31 @@
 # Changelog
 
-## 5.2.3
+## 5.2.6 Hardened — Human Authorization Boundary
+
+- **Human authorization boundary**: `repo policy != human authority`. `.ai/*-policy.json` define limites máximos; mutações de alto impacto exigem `ask` via permissão nativa OpenCode (`ade_tracker_project_sync`, `ade_tracker_write`, `ade_vcs_stage/commit/push`, `ade_pr_create`, `ade_project_check`/`ade_diagnostic_check` com host process). `project-manager`, `tracker-operator`, `verifier`, `debugger`, `vcs-operator` agora têm `ask` para essas tools; leituras permanecem `allow`.
+- **Fail-closed em auto-approve**: `ask` em `opencode --auto` vira `AUTO_APPROVED`, distinto de `USER_APPROVED`. Se a API não distinguir confiavelmente, mantém-se fail-closed e documenta-se a limitação — nunca inventar evidência de aprovação humana.
+- **Plugin runtime**: `ctx.permission.hook("evaluate")` força `ask` para tools de alto impacto mesmo se frontmatter divergir; mensagem `ADE_HUMAN_AUTHORIZATION_REQUIRED` explícita.
+- **Hardening preservado**: containment realpath, symlink/reparse rejection, atomic writes com fsync, bounded JSON/JSONL com `LOG_CORRUPT` fail-visible, rotação, secrets detection/redaction/outbound blocking, GitHub Project sync preflight→resolve→validate→write→read-back→verify→receipt, VCS hooks sem `--no-verify` implícito, env mínimo, Docker `network=none`/`read-only`/`cap-drop=ALL`/`no-new-privileges`/digest pinning, installer atomic rollback.
+- **Testes negativos reais (63 Node + 40 Python)**: cobrem repo self-authorization, ausência de human approval, policy fora do root, symlink, `.git/config` Windows/Unix, secret outbound, staged secret, allowlist VCS/Tracker/Jira, batch duplicado/conflitante, verificação read-back, JSONL corrompido, oversized manifest, path traversal, junction, env mínimo, Docker defaults, circuit breaker, runtime handoff revision, post_state, auto-approve distinction, e 12 testes funcionais de grants (A-L) com ZERO mutation sem grant, single-use, expiração, resource mismatch, alias, always-bypass, telemetry sem segredo.
+- **Migração**: `v5.2.5 → v5.2.6` direta e `v5.2.6 → v5.2.5` rollback byte-a-byte validados.
+- **Infra**: `plugin/types/node-shim.d.ts` corrigido para Windows (`fileURLToPath`, `Buffer`, `node:os`), `lifecycle.test.mjs` fix `path.resolve(fileURLToPath(...))`, `TypeScript` PASS, `ZIP` integrity PASS.
+
+## 5.2.5 — Deterministic Control Plane
+
+- Added direct GitHub Project V2 snapshot/sync tools owned by Project Manager; Tracker Operator is fallback-only for normal Project V2 sync.
+- Added field/option/iteration mapping, post-write read-back verification and runtime operation receipts.
+- State transitions and deterministic tracker syncs now emit runtime canonical handoffs and `post_state`.
+- Added normalized provider failure signatures, zero retry for deterministic auto-only `tool_choice`, and one-retry circuit breaker for repeated `reasoning item expired`.
+- Added `/ade-failures`.
+- Explicitly separated migration/install from behavioral/live testing.
+
+## 5.2.5
 - Child execution `DELEGATION_DRIVEN` com envelope compacto.
 - Hard reduction de state/evidence tools em owners delegados.
 - Tracker Operator leaf estrita.
 - Behavioral reliability multi-trial sem leniência semântica.
 
-## 5.2.3 — Unified structured communication + cost intelligence
+## 5.2.5 — Unified structured communication + cost intelligence
 - canonical `ade_handoff_submit` with bounded schema and authority validation;
 - durable `.ai/handoffs.jsonl` + compact recent handoffs;
 - handoff communication does not mutate canonical state revision;
@@ -16,7 +35,7 @@
 - release assurance runs behavioral canary by default with a model;
 - model dispatch / provider retry telemetry;
 - `/ade-cost` and `/ade-handoffs`;
-- v5.2.0 → v5.2.3 managed migration.
+- v5.2.0 → v5.2.5 managed migration.
 
 ## 5.2.0 — State-driven stabilization & efficiency
 - state-driven routing;
@@ -25,3 +44,11 @@
 - evidence hardening;
 - bounded provider retry;
 - initial ADE telemetry.
+
+## 5.2.5
+
+- Added isolated OpenCode live integration matrix for multiple real models.
+- Added current OpenCode Zen free-model defaults with local availability/runtime probing.
+- Added strict multi-trial behavioral reporting, JSON/Markdown reports and redacted evidence bundles.
+- Added normalized failure-domain diagnostics without relaxing behavioral assertions.
+- Added managed v5.2.3 → v5.2.5 migration support.

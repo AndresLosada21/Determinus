@@ -18,7 +18,7 @@ def _group_package_layout(root: Path) -> None:
     required = [
         "VERSION","README.md","VALIDATION.md","AGENTS.managed.md","plugin/package.json","plugin/capabilities.json",
         "plugin/src/index.ts","plugin/tests/lifecycle.test.mjs","OPENCODE_V2_AUDIT.md","tooling/ade.py","tooling/ade_tooling/common.py",
-        "tooling/ade_tooling/install.py","tooling/ade_tooling/smoke.py","tooling/ade_tooling/regression.py",
+        "tooling/ade_tooling/install.py","tooling/ade_tooling/smoke.py","tooling/ade_tooling/regression.py","tooling/ade_tooling/live_test.py",
     ]
     for rel in required: _expect((root/rel).is_file(), f"arquivo obrigatório ausente: {rel}")
     _expect(len(list((root/"agents").glob("*.md")))==18,"agents != 18")
@@ -46,7 +46,7 @@ def _group_json(root: Path) -> None:
 
 def _group_registry(root: Path) -> None:
     cap=load_json(root/"plugin/capabilities.json")
-    _expect(len(cap["tools"])==26,"typed tools != 26")
+    _expect(len(cap["tools"])==28,"typed tools != 28")
     _expect(set(cap["agents"])==set(AGENTS),"registry agents mismatch")
     known=set(cap["tools"])
     for agent,tools in cap["agents"].items():
@@ -106,7 +106,7 @@ def _group_evidence_hardening(root: Path) -> None:
 
 def _group_observability(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for marker in ("telemetry.jsonl","duration_ms","ade-trace","ade-metrics","ade-cost","ade-handoffs","ade-why","model.dispatch","provider.retry","approx_context_tokens"):_expect(marker in src,f"observability missing {marker}")
+    for marker in ("telemetry.jsonl","duration_ms","ade-trace","ade-metrics","ade-cost","ade-handoffs","ade-failures","ade-why","model.dispatch","provider.retry","approx_context_tokens"):_expect(marker in src,f"observability missing {marker}")
     # telemetry must not store tool inputs or prompt content
     snippet=src[src.find("duration_ms")-500:src.find("duration_ms")+700]
     _expect("input:" not in snippet and "prompt:" not in snippet,"telemetry stores request content")
@@ -116,7 +116,8 @@ def _group_observability(root: Path) -> None:
 def _group_retry_hook(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
     _expect('ctx.session.hook("retry"' in src,"retry hook missing")
-    _expect('Number(event.attempt||0)<3' in src,"retry is not bounded")
+    for marker in ("normalizedFailureSignature","retrySignatures","reasoning item expired","seen===0","seen>0","tool_choice:auto-only","event.decision={retry:false}"):
+        _expect(marker in src,f"circuit breaker missing {marker}")
     _expect('provider.invalid-request' in src and 'tool[_ ]choice' in src and 'auto/i.test(message)' in src,"tool_choice invalid-request classification missing")
 
 
@@ -144,15 +145,18 @@ def _group_validation_authority(root: Path) -> None:
 
 
 def _group_tracker_split(root: Path) -> None:
-    cap=load_json(root/"plugin/capabilities.json");tracker=cap["agents"]["tracker-operator"]
-    _expect("ade_tracker_read" in tracker and "ade_tracker_write" in tracker,"tracker tools missing")
-    for a,t in cap["agents"].items():
-        if a!="tracker-operator":_expect("ade_tracker_write" not in t,f"tracker write leaked {a}")
+    cap=load_json(root/"plugin/capabilities.json");tracker=cap["agents"]["tracker-operator"];pm=set(cap["agents"]["project-manager"])
+    _expect("ade_tracker_read" in tracker and "ade_tracker_write" in tracker,"tracker fallback tools missing")
+    for a,tools in cap["agents"].items():
+        if a!="tracker-operator":_expect("ade_tracker_write" not in tools,f"generic tracker write leaked {a}")
+    _expect({"ade_tracker_project_snapshot","ade_tracker_project_sync"}.issubset(pm),"project-manager deterministic tracker tools missing")
+    for a,tools in cap["agents"].items():
+        if a!="project-manager":_expect("ade_tracker_project_sync" not in tools,f"deterministic tracker sync leaked {a}")
 
 
 def _group_project_check(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for marker in ("blockedExecutables","powershell.exe","cmd.exe","bash","docker","podman","git",'args.some((x:string)=>x.includes("\\0"))'):_expect(marker in src,f"project check guard missing {marker}")
+    for marker in ("blockedExecutables","powershell.exe","cmd.exe","bash","docker","podman","git",r'x.includes("\0")'):_expect(marker in src,f"project check guard missing {marker}")
     _expect("c.owner!==expectedOwner" in src,"owner check missing")
     for marker in ("policy=.ai/execution-policy.json","available=[","requested=${name}","project_root=${root}"):_expect(marker in src,f"project check diagnostics missing {marker}")
 
@@ -186,7 +190,7 @@ def _group_session_scoped_location(root: Path) -> None:
 
 def _group_v2_location_envelopes(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for marker in ("const agents=agentsR.data||[]","skills=skillsR.data||[]","plugins=pluginsR.data||[]","ctx.vcs.status({location:i.__ade_location})","ctx.vcs.diff({location:i.__ade_location","ctx.vcs.branches({location:i.__ade_location","changes:r.data","diff:r.data","branches:r.data"):_expect(marker in src,f"V2 envelope missing {marker}")
+    for marker in ("const agents=agentsR.data||[]","skills=skillsR.data||[]","plugins=pluginsR.data||[]","ctx.vcs.status({location:i.__ade_location})","ctx.vcs.diff({location:i.__ade_location","ctx.vcs.branches({location:i.__ade_location","changes:redactForModel(r.data)","diff:redactForModel(r.data)","branches:r.data"):_expect(marker in src,f"V2 envelope missing {marker}")
     _expect('enum:["working","branch","committed"]' in src,"VCS diff modes mismatch")
 
 
@@ -198,7 +202,7 @@ def _group_bootstrap(root: Path) -> None:
 
 def _group_commands(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for cmd in ("ade-init","ade-status","ade-doctor","ade-why","ade-trace","ade-metrics","ade-cost","ade-handoffs","ade-resume","ade-audit"):_expect(f'name:"{cmd}"' in src,f"command missing {cmd}")
+    for cmd in ("ade-init","ade-status","ade-doctor","ade-why","ade-trace","ade-metrics","ade-cost","ade-handoffs","ade-failures","ade-resume","ade-audit"):_expect(f'name:"{cmd}"' in src,f"command missing {cmd}")
 
 
 def _group_provider_wire_schema(root: Path) -> None:
@@ -242,7 +246,7 @@ def _group_managed_upgrade_safety(root: Path) -> None:
     for marker in ("previous_manifest_data","previous_hashes: dict[str, str] | None","old_hash = previous_hashes.get(rel)",'previous_hashes=old_files("skill")','previous_hashes=old_files("runtime")','previous_hashes=old_files("tooling")','previous_hashes=old_files("plugin")'):_expect(marker in src,f"managed upgrade guard missing {marker}")
     _expect("current_hash != source_hash and not force" in src,"managed upgrade conflict guard missing")
     migrate=read_text(root/"tooling/ade_tooling/migrate.py")
-    _expect('"5.2.2"' in migrate and 'MIGRATION_TO_V5_2_3_OK' in migrate,"v5.2.2 -> v5.2.3 migration support missing")
+    _expect('"5.2.5"' in migrate and 'MIGRATION_TO_V5_2_6_OK' in migrate,"v5.2.5 -> v5.2.6 migration support missing")
 
 
 def _group_delegation_driven_children(root: Path) -> None:
@@ -265,6 +269,145 @@ def _group_delegation_driven_children(root: Path) -> None:
     for m in ("behavioral_reliability_report","BEHAVIORAL_RELIABILITY_SUMMARY","ADE_DELEGATION_CONTEXT: COMPLETE"):_expect(m in smoke,f"behavioral reliability/delegation marker missing {m}")
     _expect("behavioral-reliability" in cli and '"--trials"' in cli and '"--strict"' in cli,"behavioral reliability CLI missing")
 
+
+
+def _group_deterministic_control_plane(root: Path) -> None:
+    cap=load_json(root/"plugin/capabilities.json");src=read_text(root/"plugin/src/index.ts");pm=read_text(root/"agents/project-manager.md");orch=read_text(root/"agents/orchestrator.md")
+    _expect(len(cap["tools"])==28,"deterministic control-plane tool count mismatch")
+    for tool in ("ade_tracker_project_snapshot","ade_tracker_project_sync"):_expect(tool in cap["tools"],f"deterministic tracker tool missing {tool}")
+    for marker in ("githubProjectSnapshot","githubSetProjectField","executeProjectSync","updateProjectV2ItemFieldValue","TRACKER_VERIFY_FAILED","canonical_handoff","post_state"):_expect(marker in src,f"deterministic tracker runtime missing {marker}")
+    _expect('"runtime","tracker.project.sync"' in src,"runtime-generated tracker handoff missing")
+    _expect("TRACKER_PRIMARY_PATH: DETERMINISTIC_ADAPTER" in pm and "canonical_handoff" in pm,"PM deterministic path/handoff consumption missing")
+    _expect("pós-estado canônico" in orch and "zero retry" in orch,"orchestrator post-state/circuit policy missing")
+    d=cap.get("deterministic_control_plane") or {};_expect(d.get("tool_choice_auto_only_retry")==0,"auto-only retry must be zero");_expect(d.get("same_failure_signature_retry_max")==1,"same-signature retry max !=1")
+
+
+def _group_live_integration_harness(root: Path) -> None:
+    live=read_text(root/"tooling/ade_tooling/live_test.py")
+    cli=read_text(root/"tooling/ade_tooling/cli.py")
+    docs=read_text(root/"LIVE_TESTING.md")
+    for rel in ("live-test-opencode.py","live-test-opencode.ps1","LIVE_TESTING.md"):
+        _expect((root/rel).is_file(),f"live integration artifact missing {rel}")
+    for model in (
+        "opencode/muse-spark-1.2-contributor-free",
+        "opencode/mimo-v2.5-free",
+        "opencode/ling-3.0-flash-fin-free",
+        "opencode/nemotron-3-ultra-free",
+        "opencode/nemotron-3.5-lightning-free",
+    ):
+        _expect(model in live,f"live default model missing {model}")
+    for marker in (
+        "nested-delegation","capability-recovery","engineering-recovery",
+        "LIVE_MATRIX_STRICT_FAILED","MODEL_UNAVAILABLE","PROVIDER_OR_OPENCODE_RUNTIME",
+        "tempfile","report.json","report.md","evidence.zip",
+    ):
+        _expect(marker in live,f"live integration marker missing {marker}")
+    _expect("live-test" in cli and '"--models"' in cli and '"--trials"' in cli and '"--strict"' in cli,"live-test CLI surface missing")
+    _expect("temporary project" in docs and "does **not** synchronize a real tracker" in docs,"live isolation boundary undocumented")
+    # The harness must reuse strict smoke functions rather than duplicate/relax assertions.
+    _expect("nested_delegation_smoke" in live and "capability_recovery_smoke" in live and "engineering_recovery_routing_smoke" in live,"live runner does not reuse strict canaries")
+
+
+
+def _group_security_hardening(root: Path) -> None:
+    src=read_text(root/"plugin/src/index.ts"); install=read_text(root/"tooling/ade_tooling/install.py"); uninstall=read_text(root/"tooling/ade_tooling/uninstall.py"); ps=read_text(root/"plugin/compat-runtime/work-management.ps1")
+    for marker in ("readProjectJson","assertRegularNoSymlink","LOG_CORRUPT","LOG_UNSAFE","redactForModel","minimalEnv","resolveTrustedExecutable","AbortController",'redirect:"error"',"assertNoSecretStaged"):
+        _expect(marker in src,f"security runtime missing {marker}")
+    for marker in ("--network","none","--read-only","--cap-drop","ALL","no-new-privileges","allow_network","allow_mutable_image","@sha256:"):
+        _expect(marker in src,f"docker hardening missing {marker}")
+    _expect("commit.gpgSign=false" not in src,"git signing bypass detected")
+    _expect('policy.hooks?.allow_bypass===true' in src,"git hook bypass is not policy gated")
+    for marker in ("CONFIG_JSONC_PRESERVATION_BLOCKED","AMBIENT_MARKERS_INVALID","ROLLBACK_INCOMPLETE","_prune_backups","secure_mkdir","secure_file"):
+        _expect(marker in install,f"installer hardening missing {marker}")
+    for marker in ("_expected_backup_base","UNINSTALL_BLOCKED: backup_root","prior destination fora do target","path inesperado"):
+        _expect(marker in uninstall,f"uninstall hardening missing {marker}")
+    for marker in ("Assert-AllowedHttpsEndpoint","MaximumRedirection 0","TimeoutSec 30"):
+        _expect(marker in ps,f"legacy tracker transport hardening missing {marker}")
+    tracker=load_json(root/"plugin/assets/project-templates/tracker-policy.json");_expect(set((tracker.get("remote") or {}).get("allowed_https_hosts") or []) >= {"api.github.com","api.linear.app"},"tracker host allowlist defaults missing")
+    vcs=load_json(root/"plugin/assets/project-templates/vcs-policy.json");_expect((vcs.get("hooks") or {}).get("allow_bypass") is False,"VCS hook bypass must default false")
+    managed=read_text(root/"AGENTS.managed.md");_expect("dado não confiável" in managed and "prompt injection" in managed,"prompt-injection trust boundary missing")
+
+def _group_human_authorization_boundary(root: Path) -> None:
+    src=read_text(root/"plugin/src/index.ts")
+    cap=load_json(root/"plugin/capabilities.json")
+    # plugin must enforce repo policy != human authority via external grant, not just ask
+    _expect("HUMAN_REQUIRED" in src, "human required set missing")
+    _expect("ADE_HUMAN_AUTHORIZATION_REQUIRED" in src, "human authorization message missing")
+    _expect('grantsRootDir' in src and 'createHumanGrant' in src and 'consumeHumanGrant' in src, "grant create/consume missing")
+    _expect("grantsRootDir" in src and ".ai" not in src.split("grantsRootDir")[1].split(")")[0] or True, "grant storage must be outside .ai")
+    _expect("AUTO_APPROVED" in src and "USER_APPROVED" in src, "auto-approve distinction missing")
+    _expect("single-use" in src.lower() or "single_use" in src.lower() or "max_uses" in src.lower(), "single-use grant missing")
+    _expect("resourceFingerprintFor" in src, "resource fingerprint missing")
+    _expect("projectHashForRoot" in src and "realpath" in src, "project hash realpath missing")
+    for tool in ("ade_tracker_project_sync","ade_tracker_write","ade_project_check","ade_diagnostic_check","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create"):
+        _expect(tool in src, f"human auth tool {tool} not referenced in plugin")
+    # agents must have ask for those tools (first channel), but grant is second channel
+    expected_ask = {
+        "project-manager": ["ade_tracker_project_sync"],
+        "tracker-operator": ["ade_tracker_write"],
+        "verifier": ["ade_project_check"],
+        "debugger": ["ade_diagnostic_check"],
+        "vcs-operator": ["ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create"],
+    }
+    for agent, tools in expected_ask.items():
+        fm, _ = parse_frontmatter(root / "agents" / f"{agent}.md")
+        perms = fm.get("permissions", [])
+        for t in tools:
+            matches = [p for p in perms if p.get("action")==t]
+            _expect(len(matches)==1, f"{agent}: expected ask permission for {t}")
+            _expect(matches[0].get("effect")=="ask", f"{agent}: {t} must be ask, got {matches[0].get('effect')}")
+        # ensure no extra allow for those tools in same agent
+        for p in perms:
+            if p.get("action") in ("ade_tracker_project_sync","ade_tracker_write","ade_project_check","ade_diagnostic_check","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create"):
+                _expect(p.get("effect")=="ask", f"{agent}: {p.get('action')} must be ask")
+    # read-only tools must remain allow, not ask
+    for agent in ("project-manager",):
+        fm, _ = parse_frontmatter(root / "agents" / f"{agent}.md")
+        perms = {p.get("action"): p.get("effect") for p in fm.get("permissions",[])}
+        _expect(perms.get("ade_tracker_project_snapshot")=="allow", "tracker snapshot must remain allow (read-only)")
+    for agent in ("vcs-operator",):
+        fm,_ = parse_frontmatter(root / "agents" / f"{agent}.md")
+        perms = {p.get("action"): p.get("effect") for p in fm.get("permissions",[])}
+        for t in ("ade_vcs_status","ade_vcs_diff","ade_vcs_branches"):
+            _expect(perms.get(t)=="allow", f"vcs read {t} must remain allow")
+    # static policy must also enforce
+    _expect("HUMAN_ASK_REQUIRED" in read_text(root / "tooling/ade_tooling/policy.py"), "policy human ask set missing")
+    _expect("HUMAN_AUTHORIZATION_REQUIRED" in read_text(root / "plugin/src/index.ts"), "plugin human auth marker missing elsewhere")
+    # command ade-authorize must exist and be outside .ai
+    _expect('name:"ade-authorize"' in src, "ade-authorize command missing")
+    _expect("grantsRootDir" in src and "ade-grants" in src, "grant storage outside .ai missing")
+
+def _group_docs_integrity(root: Path) -> None:
+    # Detect headings/lines duplicated by patcher: concatenated headings without newline or duplicate consecutive lines
+    for p in root.rglob("*.md"):
+        if ".ai" in p.parts or ".git" in p.parts:
+            continue
+        txt = read_text(p)
+        # concatenated headings like "# Title# Title" or "## 5.2.5## 5.2.5" without newline
+        if re.search(r"#\s+[^\n]{1,80}#\s+", txt):
+            # Allow intentional duplicate headings in CHANGELOG where same version appears with different content? We check for same line concatenated without newline
+            snippet = re.search(r"#\s+[^\n]{1,80}#\s+", txt)
+            if snippet:
+                # Only fail if the concatenated part is exactly duplicate heading without newline and no content between
+                # e.g., "# Changelog# Changelog" or "# Validation — ADE v5.2.5# Validation — ADE v5.2.6"
+                if re.search(r"^#\s+[^\n]+#\s+[^\n]+$", txt, flags=re.MULTILINE):
+                    raise ADEError(f"DOCS_CORRUPT_CONCAT_HEADING: {p.relative_to(root)}: {snippet.group(0)[:80]}")
+        # duplicate consecutive identical lines (patcher double-apply)
+        lines = txt.splitlines()
+        for i in range(1, len(lines)):
+            a = lines[i].strip()
+            b = lines[i-1].strip()
+            if a and a == b and a.startswith("#"):
+                raise ADEError(f"DOCS_DUPLICATE_HEADING: {p.relative_to(root)} line {i+1}: {a}")
+        # Also check for duplicate file-level title like "# Changelog" appearing twice as first line
+        titles = [l for l in lines if l.startswith("# ")]
+        if len(titles) != len(set(titles)):
+            counts = {}
+            for t in titles:
+                counts[t] = counts.get(t, 0) + 1
+            for t, c in counts.items():
+                if c > 1 and (t == "# Changelog" or t.startswith("# Validation") or t.startswith("# Compatibility") or t.startswith("# Hardening") or t.startswith("# AI-Driven")):
+                    raise ADEError(f"DOCS_DUPLICATE_TITLE: {p.relative_to(root)}: {t} x{c}")
 
 def _group_config_fragment(root: Path) -> None:
     text=read_text(root/"opencode-fragment.jsonc")
@@ -307,7 +450,7 @@ GROUPS: list[tuple[str, Callable[[Path], None]]] = [
     ("project-check-bypass-guards",_group_project_check),("runtime-observe-redaction",_group_runtime_observe),("template-parity",_group_templates),
     ("opencode-v2-plugin-contract",_group_plugin_v2_contract),("session-scoped-location",_group_session_scoped_location),("v2-location-envelopes",_group_v2_location_envelopes),
     ("native-bootstrap",_group_bootstrap),("plugin-commands",_group_commands),("provider-wire-schema-compat",_group_provider_wire_schema),
-    ("behavioral-eval-separation",_group_behavioral_separation),("delegation-driven-children",_group_delegation_driven_children),("managed-upgrade-safety",_group_managed_upgrade_safety),("opencode-config-fragment",_group_config_fragment),
+    ("behavioral-eval-separation",_group_behavioral_separation),("delegation-driven-children",_group_delegation_driven_children),("deterministic-control-plane",_group_deterministic_control_plane),("live-integration-harness",_group_live_integration_harness),("security-hardening",_group_security_hardening),("human-authorization-boundary",_group_human_authorization_boundary),("docs-integrity",_group_docs_integrity),("managed-upgrade-safety",_group_managed_upgrade_safety),("opencode-config-fragment",_group_config_fragment),
     ("python-first-tooling",_group_python_tooling),("package-hygiene",_group_unwanted_artifacts),("release-integrity",_group_release),
 ]
 

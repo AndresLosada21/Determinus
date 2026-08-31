@@ -3,14 +3,15 @@ import assert from "node:assert/strict"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { pathToFileURL } from "node:url"
+import crypto from "node:crypto"
+import { pathToFileURL, fileURLToPath } from "node:url"
 
 async function copyTree(src, dst) {
   await fs.cp(src, dst, { recursive: true })
 }
 
 async function fixture({ legacySdk = false } = {}) {
-  const pluginDir = path.resolve(new URL("..", import.meta.url).pathname)
+  const pluginDir = path.resolve(fileURLToPath(new URL("..", import.meta.url)))
   const temp = await fs.mkdtemp(path.join(os.tmpdir(), "ade-v520-lifecycle-"))
   const runtime = path.join(temp, "plugin")
   await fs.mkdir(path.join(runtime, "src"), { recursive: true })
@@ -45,7 +46,67 @@ async function fixture({ legacySdk = false } = {}) {
     traceability: { file: ".ai/traceability.json" },
     audit: { file: ".ai/audit.jsonl" }
   }, null, 2) + "\n", "utf8")
+  await fs.writeFile(path.join(project, ".ai", "tracker-policy.json"), JSON.stringify({ schema_version: 1, read: { authorized: true }, write: { authorized: true }, remote: { allowed_https_hosts: ["api.github.com", "api.linear.app"], allowed_github_repositories: ["octo/repo"], allowed_github_projects: ["octo/4"], allowed_jira_projects: [], allowed_linear_team_ids: [] } }, null, 2) + "\n", "utf8")
+  await fs.writeFile(path.join(project, ".ai", "integrations.json"), JSON.stringify({ schema_version: 1, work_management: { provider: "github", github: { owner: "octo", repository: "repo", project_owner: "octo", project_number: 4, connection_id: "github" } } }, null, 2) + "\n", "utf8")
   return { temp, runtime, project }
+}
+function grantsRootDir() {
+  const home = os.homedir()
+  if (process.platform === "win32") {
+    const base = process.env.LOCALAPPDATA || path.join(home, "AppData", "Local")
+    return path.join(base, "opencode", "ade-grants")
+  }
+  const base = process.env.XDG_STATE_HOME || path.join(home, ".local", "state")
+  return path.join(base, "opencode", "ade-grants")
+}
+function canonicalStringify(value) {
+  if (Array.isArray(value)) return "[" + value.map(canonicalStringify).join(",") + "]"
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value).sort()
+    return "{" + keys.map(k => JSON.stringify(k) + ":" + canonicalStringify(value[k])).join(",") + "}"
+  }
+  return JSON.stringify(value)
+}
+function hashResource(obj) { return crypto.createHash("sha256").update(canonicalStringify(obj)).digest("hex").slice(0, 32) }
+async function projectHashForRoot(root) { const real = await fs.realpath(root); return crypto.createHash("sha256").update(real).digest("hex").slice(0, 16) }
+function resourceFingerprintFor(tool, input, extra={}) {
+  let obj={}
+  if(tool==="ade_tracker_project_sync"){ const updates=Array.isArray(input.updates)?input.updates:[]; const norm=updates.map(u=>({external_id:String(u.external_id||""),item_id:String(u.item_id||""),fields:Array.isArray(u.fields)?[...u.fields].map(f=>({name:String(f.name||""),value:String(f.value||"")})).sort((a,b)=>a.name.localeCompare(b.name)):[]})).sort((a,b)=>(a.external_id+a.item_id).localeCompare(b.external_id+b.item_id)); obj={updates:norm} }
+  else if(tool==="ade_tracker_write"){ obj={action:String(input.action||""),external_id:String(input.external_id||""),internal_id:String(input.internal_id||""),title:String(input.title||""),body:String(input.body||"").slice(0,200),status:String(input.status||""),url:String(input.url||""),query:String(input.query||"")}; obj=Object.fromEntries(Object.entries(obj).filter(([_,v])=>v!=="")) }
+  else if(tool==="ade_vcs_stage"){ const paths=Array.isArray(input.paths)?[...input.paths].map(String).sort():[]; obj={paths} }
+  else if(tool==="ade_vcs_commit"){ obj={message:String(input.message||""),branch:String(extra.branch||"")} }
+  else if(tool==="ade_vcs_push"){ obj={branch:String(extra.branch||""),remote:String(extra.remote||""),remote_url:String(extra.remote_url||"")} }
+  else if(tool==="ade_pr_create"){ obj={title:String(input.title||""),base:String(input.base||""),head:String(extra.head||""),body:String(input.body||"").slice(0,200)}; if(!obj.body) delete obj.body }
+  else if(tool==="ade_project_check"||tool==="ade_diagnostic_check"){ obj={name:String(input.name||"")} }
+  else obj={input:canonicalStringify(input)}
+  return hashResource(obj)
+}
+async function createTestGrant(root, tool, input, extra={}) {
+  const projectHash=await projectHashForRoot(root)
+  const fp=resourceFingerprintFor(tool, input, extra)
+  const file=path.join(grantsRootDir(), `${projectHash}.jsonl`)
+  await fs.mkdir(path.dirname(file), {recursive:true, mode:0o700})
+  // Implement same as plugin: read, prune expired, append, atomic write with lock
+  const lock=`${file}.lock`
+  // Simple lock via mkdir? Use file lock via open wx
+  let handle
+  for(let i=0;i<50;i++){
+    try{ handle=await fs.open(lock, "wx", 0o600); await handle.writeFile(JSON.stringify({pid:process.pid})); break } catch(e){ if(e.code!=="EEXIST") throw e; await new Promise(r=>setTimeout(r,20)) }
+  }
+  if(!handle) throw new Error("grant lock timeout")
+  try{
+    let grants=[]
+    try{ const raw=await fs.readFile(file,"utf8"); for(const line of raw.split(/\r?\n/)){ if(!line.trim()) continue; try{ grants.push(JSON.parse(line)) }catch{}} }catch{}
+    const now=Date.now()
+    grants=grants.filter(g=>{ const exp=Date.parse(g.expires_at||""); return Number.isFinite(exp)&&exp>now&&(g.remaining_uses??0)>0 })
+    const grant={id:`gr-${crypto.randomUUID()}`,action:tool,project_hash:projectHash,resource_hash:fp,issued_at:new Date(now).toISOString(),expires_at:new Date(now+10*60*1000).toISOString(),max_uses:1,remaining_uses:1,nonce:crypto.randomUUID()}
+    grants.push(grant)
+    const tmp=`${file}.tmp-${crypto.randomUUID()}`
+    const h=await fs.open(tmp,"wx",0o600)
+    try{ await h.writeFile(grants.map(g=>JSON.stringify(g)).join("\n")+"\n","utf8"); await h.sync() } finally{ await h.close() }
+    await fs.rename(tmp,file)
+    return grant
+  } finally{ try{ await handle.close(); await fs.unlink(lock) }catch{} }
 }
 
 function makeContext(project, cap) {
@@ -105,7 +166,7 @@ function makeContext(project, cap) {
       async branches(input) { vcsCalls.push(["branches", input]); return { location: locationInfo, data: ["feature", "main"] } },
       async diff(input) { vcsCalls.push(["diff", input]); return { location: locationInfo, data: [{ file: "a.txt", patch: "+x", additions: 1, deletions: 0, status: "modified" }] } },
     },
-    integration: { connection: { async active() { return undefined }, async resolve() { return undefined } } },
+    integration: { connection: { async active(id) { return { id, type: "test" } }, async resolve() { return { token: "test-token" } } } },
   }
   return { ctx, hooks, tools, commands, vcsCalls, get defaultAgent() { return defaultAgent } }
 }
@@ -121,8 +182,8 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const cleanup = await mod.default.setup(state.ctx)
 
     assert.equal(state.defaultAgent, "orchestrator")
-    assert.equal(state.tools.size, 26)
-    assert.equal(state.commands.size, 10)
+    assert.equal(state.tools.size, 28)
+    assert.equal(state.commands.size, 12)
 
     const contextHook = state.hooks["session:context"]
     assert.equal(typeof contextHook, "function")
@@ -141,21 +202,30 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const denied = { sessionID: "ses_lifecycle", agent: "explorer", action: "ade_tracker_read", resources: [], effect: "allow" }
     await permissionHook(denied)
     assert.equal(denied.effect, "deny")
+    const deniedSensitiveRead = { sessionID: "ses_lifecycle", agent: "explorer", action: "read", resources: [path.join(fx.project, ".git", "config")], effect: "allow" }
+    await permissionHook(deniedSensitiveRead)
+    assert.equal(deniedSensitiveRead.effect, "deny", "permission hook must deny sensitive repository metadata even if frontmatter drifts")
+    const deniedWindowsSensitiveRead = { sessionID: "ses_lifecycle", agent: "explorer", action: "read", resources: ["C:\\repo\\.git\\config"], effect: "allow" }
+    await permissionHook(deniedWindowsSensitiveRead)
+    assert.equal(deniedWindowsSensitiveRead.effect, "deny", "sensitive path guard must recognize Windows separators")
 
     const retryHook = state.hooks["session:retry"]
     assert.equal(typeof retryHook, "function")
-    const retryEvent = { error: { type: "provider.invalid-request", message: 'only "auto" is supported for tool_choice' }, attempt: 1, decision: { retry: false } }
+    const retryEvent = { sessionID: "ses_retry", agent: "project-manager", model: { providerID: "p", modelID: "m" }, error: { type: "provider.invalid-request", message: 'only "auto" is supported for tool_choice' }, attempt: 1, decision: { retry: true } }
     await retryHook(retryEvent)
-    assert.deepEqual(retryEvent.decision, { retry: true, delay: 400 })
-    const terminalRetry = { error: { type: "provider.invalid-request", message: 'only "auto" is supported for tool_choice' }, attempt: 3, decision: { retry: true } }
-    await retryHook(terminalRetry)
-    assert.deepEqual(terminalRetry.decision, { retry: false })
+    assert.deepEqual(retryEvent.decision, { retry: false }, "deterministic tool_choice incompatibility must not retry")
+    const transient1 = { sessionID: "ses_retry2", agent: "project-manager", model: { providerID: "p", modelID: "m" }, error: { type: "provider.invalid-request", message: "reasoning item expired" }, attempt: 1, decision: { retry: false } }
+    await retryHook(transient1)
+    assert.deepEqual(transient1.decision, { retry: true, delay: 400 })
+    const transient2 = { ...transient1, attempt: 2, decision: { retry: true } }
+    await retryHook(transient2)
+    assert.deepEqual(transient2.decision, { retry: false }, "same failure signature must open circuit after one retry")
 
     const orchestratorContext = { sessionID: "ses_lifecycle", agent: "orchestrator", messageID: "msg", id: "call-status", async progress() {} }
     const status = await state.tools.get("ade_status").execute({}, orchestratorContext)
     const statusValue = JSON.parse(status.content)
     assert.equal(path.resolve(statusValue.project_root), path.resolve(fx.project))
-    assert.equal(statusValue.plugin.version, "5.2.3")
+    assert.equal(statusValue.plugin.version, "5.2.6")
 
     const evidenceContext = { sessionID: "ses_lifecycle", agent: "researcher", messageID: "msg", id: "call-evidence", async progress() {} }
     const evidence = await state.tools.get("ade_evidence_record").execute({ plane: "engineering", state: "OBSERVADO", summary: "legacy evidence shape migration" }, evidenceContext)
@@ -186,6 +256,64 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     assert.equal(invalidOwnerValue.status, "BLOCKED")
     assert.match(invalidOwnerValue.error, /HANDOFF_AUTHORITY_VIOLATION/)
 
+    const engineerTransitionContext = { sessionID: "ses_lifecycle", agent: "engineer", messageID: "msg", id: "call-eng-transition", async progress() {} }
+    const engTransition = await state.tools.get("ade_engineering_transition").execute({ target: "READY_FOR_IMPLEMENTATION", note: "runtime handoff transition" }, engineerTransitionContext)
+    const engTransitionValue = JSON.parse(engTransition.content)
+    assert.equal(engTransitionValue.to, "READY_FOR_IMPLEMENTATION")
+    assert.equal(engTransitionValue.canonical_handoff.origin, "runtime")
+    assert.equal(engTransitionValue.canonical_handoff.source_agent, "engineer")
+    assert.equal(engTransitionValue.post_state.engineering.status, "READY_FOR_IMPLEMENTATION")
+
+    const originalFetch = globalThis.fetch
+    let snapshotCount = 0
+    const graphqlCalls = []
+    globalThis.fetch = async (_url, init) => {
+      const body = JSON.parse(init.body)
+      graphqlCalls.push(body)
+      if (String(body.query).includes("updateProjectV2ItemFieldValue")) {
+        return { ok: true, status: 200, async text() { return JSON.stringify({ data: { updateProjectV2ItemFieldValue: { projectV2Item: { id: "ITEM95" } } } }) }, async json() { return { data: { updateProjectV2ItemFieldValue: { projectV2Item: { id: "ITEM95" } } } } } }
+      }
+      snapshotCount++
+      const value = snapshotCount === 1 ? "Todo" : "Done"
+      const payload = { data: { user: { projectV2: {
+        id: "PVT_TEST", title: "Delivery",
+        fields: { nodes: [{ id: "FIELD_STATUS", name: "Status", dataType: "SINGLE_SELECT", options: [{ id: "OPT_TODO", name: "Todo" }, { id: "OPT_DONE", name: "Done" }] }] },
+        items: { nodes: [{ id: "ITEM95", content: { number: 95, title: "RQ-050", url: "https://example.test/issues/95" }, fieldValues: { nodes: [{ field: { name: "Status" }, name: value, optionId: value === "Done" ? "OPT_DONE" : "OPT_TODO" }] } }] }
+      } }, organization: null } }
+      return { ok: true, status: 200, async text() { return JSON.stringify(payload) }, async json() { return payload } }
+    }
+    try {
+      const pmContext = { sessionID: "ses_lifecycle", agent: "project-manager", messageID: "msg", id: "call-project-sync", async progress() {} }
+      await createTestGrant(fx.project, "ade_tracker_project_sync", {updates:[{external_id:"95",fields:[{name:"Status",value:"Done"}]}]})
+      const sync = await state.tools.get("ade_tracker_project_sync").execute({ updates: [{ external_id: "95", fields: [{ name: "Status", value: "Done" }] }] }, pmContext)
+      const syncValue = JSON.parse(sync.content)
+      assert.equal(syncValue.status, "TRACKER_SYNC_DONE")
+      assert.equal(syncValue.requested, 1)
+      assert.equal(syncValue.updated, 1)
+      assert.equal(syncValue.verified, 1)
+      assert.equal(syncValue.failed, 0)
+      assert.equal(syncValue.canonical_handoff.origin, "runtime")
+      assert.equal(syncValue.canonical_handoff.source_agent, "project-manager")
+      assert.equal(syncValue.post_state.routing_hint.owner, "engineer")
+      assert.equal(graphqlCalls.filter(x => String(x.query).includes("updateProjectV2ItemFieldValue")).length, 1)
+      const ctl = JSON.parse(await fs.readFile(path.join(fx.project, ".ai", "control.json"), "utf8"))
+      assert.equal(ctl.recent_handoffs.at(-1).origin, "runtime")
+
+      const mutationsBeforeDuplicate = graphqlCalls.filter(x => String(x.query).includes("updateProjectV2ItemFieldValue")).length
+      await createTestGrant(fx.project, "ade_tracker_project_sync", {updates:[{external_id:"95",fields:[{name:"Status",value:"Done"},{name:"Status",value:"Todo"}]}]})
+      const duplicate = await state.tools.get("ade_tracker_project_sync").execute({ updates: [{ external_id: "95", fields: [{ name: "Status", value: "Done" }, { name: "Status", value: "Todo" }] }] }, pmContext)
+      const duplicateValue = JSON.parse(duplicate.content)
+      assert.equal(duplicateValue.status, "TRACKER_SYNC_BLOCKED_PREFLIGHT")
+      assert.match(JSON.stringify(duplicateValue.failures), /duplicate item\/field update/)
+      assert.equal(graphqlCalls.filter(x => String(x.query).includes("updateProjectV2ItemFieldValue")).length, mutationsBeforeDuplicate, "duplicate preflight must not mutate remote state")
+
+      await createTestGrant(fx.project, "ade_tracker_project_sync", {updates:[{external_id:"95",fields:[{name:"Status",value:"github_pat_123456789012345678901234567890"}]}]})
+      const secretSync = await state.tools.get("ade_tracker_project_sync").execute({ updates: [{ external_id: "95", fields: [{ name: "Status", value: "github_pat_123456789012345678901234567890" }] }] }, pmContext)
+      const secretSyncValue = JSON.parse(secretSync.content)
+      assert.equal(secretSyncValue.status, "BLOCKED")
+      assert.match(secretSyncValue.error, /TRACKER_OUTBOUND_BLOCKED/)
+    } finally { globalThis.fetch = originalFetch }
+
     const explorerContext = { sessionID: "ses_lifecycle", agent: "explorer", messageID: "msg", id: "call-vcs", async progress() {} }
     const vcs = await state.tools.get("ade_vcs_status").execute({}, explorerContext)
     const vcsValue = JSON.parse(vcs.content)
@@ -193,8 +321,25 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const statusCall = state.vcsCalls.find(([name]) => name === "status")
     assert.deepEqual(statusCall[1], { location: { directory: path.resolve(fx.project) } })
 
+    await fs.appendFile(path.join(fx.project, ".ai", "evidence.jsonl"), "{not-json}\n", "utf8")
+    const poisoned = await state.tools.get("ade_evidence_query").execute({ limit: 5 }, { sessionID: "ses_lifecycle", agent: "researcher", messageID: "msg", id: "call-poison", async progress() {} })
+    const poisonedValue = JSON.parse(poisoned.content)
+    assert.equal(poisonedValue.status, "BLOCKED")
+    assert.match(poisonedValue.error, /LOG_CORRUPT/)
+
+    const controlPath = path.join(fx.project, ".ai", "control.json")
+    const outsideControl = path.join(fx.temp, "outside-control.json")
+    await fs.copyFile(controlPath, outsideControl)
+    await fs.unlink(controlPath)
+    await fs.symlink(outsideControl, controlPath)
+    const unsafeControl = await state.tools.get("ade_status").execute({}, orchestratorContext)
+    const unsafeControlValue = JSON.parse(unsafeControl.content)
+    assert.equal(unsafeControlValue.status, "BLOCKED")
+    assert.match(unsafeControlValue.error, /symlink|unsafe/i)
+
     if (typeof cleanup === "function") await cleanup()
   } finally {
+    try { const ph=await projectHashForRoot(fx.project); await fs.unlink(path.join(grantsRootDir(), `${ph}.jsonl`)).catch(()=>{}); await fs.unlink(path.join(grantsRootDir(), `${ph}.jsonl.lock`)).catch(()=>{}) } catch {}
     await fs.rm(fx.temp, { recursive: true, force: true })
   }
 })

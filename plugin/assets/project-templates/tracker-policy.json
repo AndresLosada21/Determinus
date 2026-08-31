@@ -6,5 +6,15 @@
   },
   "write": {
     "authorized": false
+  },
+  "remote": {
+    "allowed_https_hosts": [
+      "api.github.com",
+      "api.linear.app"
+    ],
+    "allowed_github_repositories": [],
+    "allowed_github_projects": [],
+    "allowed_jira_projects": [],
+    "allowed_linear_team_ids": []
   }
 }

@@ -161,7 +161,7 @@ def contract_runtime_smoke(target: Path) -> None:
     cap = json.loads(cap_path.read_text(encoding="utf-8"))
     tools = cap.get("tools") or {}
     agents = cap.get("agents") or {}
-    if len(tools) != 26 or "ade_handoff_submit" not in tools:
+    if len(tools) != 28 or "ade_handoff_submit" not in tools:
         raise ADEError(f"CONTRACT_ASSURANCE_FAILED: typed tools={len(tools)} handoff={'ade_handoff_submit' in tools}")
     if set(agents) != set(AGENTS):
         raise ADEError("CONTRACT_ASSURANCE_FAILED: agent registry divergente")
@@ -268,7 +268,7 @@ def nested_delegation_smoke(target: Path, model: str) -> None:
     cli=find_opencode_cli()
     if not cli: raise ADEError("NESTED_DELEGATION_FAILED: OpenCode CLI não encontrado")
     nonce=uuid.uuid4().hex
-    sandbox=Path(tempfile.mkdtemp(prefix="ade-v523-nested-")); _write_smoke_control(sandbox,f"NESTED-{nonce[:8]}",required_plane="delivery")
+    sandbox=Path(tempfile.mkdtemp(prefix="ade-v525-nested-")); _write_smoke_control(sandbox,f"NESTED-{nonce[:8]}",required_plane="delivery")
     prompt=f"""NESTED STRUCTURED HANDOFF CANARY {nonce}.
 Você é Orchestrator. Invoque EXATAMENTE project-manager com este envelope no início do brief:
 ADE_DELEGATION_CONTEXT: COMPLETE
@@ -331,7 +331,7 @@ def capability_recovery_smoke(target: Path, model: str) -> None:
       ("implementer","implementer-to-verifier","Implementação criada; Permission denied: shell para php -l; sintaxe independente continua necessária.","engineer","verifier"),
     ]
     for agent,name,evidence,owner,next_owner in scenarios:
-        sandbox=Path(tempfile.mkdtemp(prefix=f"ade-v523-cap-{name}-"));_write_smoke_control(sandbox,f"CAP-{name}")
+        sandbox=Path(tempfile.mkdtemp(prefix=f"ade-v525-cap-{name}-"));_write_smoke_control(sandbox,f"CAP-{name}")
         prompt=f"""STRUCTURED CAPABILITY RECOVERY CANARY.
 ADE_DELEGATION_CONTEXT: COMPLETE
 objective: classificar somente a evidência de capability já observada
@@ -362,7 +362,7 @@ def engineering_recovery_routing_smoke(target: Path, model: str) -> None:
     cli=find_opencode_cli()
     if not cli: raise ADEError("ENGINEERING_RECOVERY_ROUTING_FAILED: OpenCode CLI não encontrado")
     nonce=uuid.uuid4().hex
-    sandbox=Path(tempfile.mkdtemp(prefix="ade-v523-eng-recovery-"));_write_smoke_control(sandbox,f"ENG-{nonce[:8]}")
+    sandbox=Path(tempfile.mkdtemp(prefix="ade-v525-eng-recovery-"));_write_smoke_control(sandbox,f"ENG-{nonce[:8]}")
     prompt=f"""ENGINEERING STRUCTURED RECOVERY CANARY {nonce}.
 Você é Engineer. Um Implementer informou BLOCKED porque validação independente é necessária.
 ADE_DELEGATION_CONTEXT: COMPLETE

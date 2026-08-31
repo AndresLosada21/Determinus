@@ -8,6 +8,7 @@ from .assurance import assurance
 from .common import ADEError, VERSION, python_version_guard
 from .install import install
 from .manifest import validate_installed_manifest
+from .live_test import DEFAULT_ZEN_FREE_MODELS, live_test
 from .migrate import migrate
 from .policy import static_policy
 from .regression import run_regression
@@ -21,7 +22,7 @@ def _target(value: str | None) -> Path | None:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.3 state-driven runtime tooling")
+    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.6 state-driven runtime tooling")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -81,6 +82,16 @@ def parser() -> argparse.ArgumentParser:
     br.add_argument("--target"); br.add_argument("--model", required=True)
     br.add_argument("--trials", type=int, default=5)
     br.add_argument("--strict", action="store_true", help="falha se qualquer trial estrito falhar")
+
+    lt = sub.add_parser("live-test", help="multi-model OpenCode live integration matrix in isolated sandboxes")
+    lt.add_argument("--target")
+    lt.add_argument("--models", nargs="+", default=None, help="model refs; defaults to curated OpenCode Zen free models")
+    lt.add_argument("--trials", type=int, default=3)
+    lt.add_argument("--scenarios", nargs="+", choices=["nested-delegation","capability-recovery","engineering-recovery"], default=None)
+    lt.add_argument("--output-dir")
+    lt.add_argument("--strict", action="store_true", help="fail if any requested model probe or behavioral trial fails")
+    lt.add_argument("--skip-core", action="store_true")
+    lt.add_argument("--no-bundle", action="store_true")
     return p
 
 
@@ -120,6 +131,17 @@ def main(argv: list[str] | None = None) -> int:
             contract_runtime_smoke(_target(args.target) or (Path.home()/".config"/"opencode"))
         elif args.command == "behavioral-reliability":
             behavioral_reliability_report(_target(args.target) or (Path.home()/".config"/"opencode"), args.model, trials=args.trials, strict=args.strict)
+        elif args.command == "live-test":
+            live_test(
+                target=_target(args.target) or (Path.home()/".config"/"opencode"),
+                models=args.models or list(DEFAULT_ZEN_FREE_MODELS),
+                trials=args.trials,
+                scenarios=args.scenarios,
+                output_dir=Path(args.output_dir).expanduser().absolute() if args.output_dir else None,
+                strict=args.strict,
+                skip_core=args.skip_core,
+                bundle=not args.no_bundle,
+            )
         return 0
     except ADEError as exc:
         print(str(exc), file=sys.stderr)

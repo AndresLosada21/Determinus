@@ -1,10 +1,10 @@
-# OpenCode V2 audit — ADE v5.2.3
+# OpenCode V2 audit — ADE v5.2.5
 
 Esta release consolida a linha v5.2 contra a superfície atual do OpenCode V2 e contra os problemas observados em runtime Windows/provider.
 
 ## Agents e contexto
 
-Subagents executam em child sessions com contexto próprio. Repetir constituição longa em Orchestrator, owners e leaf agents multiplica custo. A v5.2.3 mantém prompts de papel curtos, reduz `steps`, usa generation budgets e desloca estado/auditoria para tools tipadas.
+Subagents executam em child sessions com contexto próprio. Repetir constituição longa em Orchestrator, owners e leaf agents multiplica custo. A v5.2.5 mantém prompts de papel curtos, reduz `steps`, usa generation budgets e desloca estado/auditoria para tools tipadas.
 
 ## Skills
 
@@ -35,11 +35,11 @@ A resposta livre do child é UX e pode ser ignorada pelo control plane quando ho
 
 ## Provider retry
 
-O Promise plugin expõe retry hook para falhas de provider. A v5.2.3 classifica somente a assinatura auto-only `tool_choice` observada como retry bounded. Repetição persistente continua sendo falha real; o plugin não converte incompatibilidade determinística em sucesso e não reescreve silenciosamente a semântica da request.
+O Promise plugin expõe retry hook para falhas de provider. A v5.2.5 classifica somente a assinatura auto-only `tool_choice` observada como retry bounded. Repetição persistente continua sendo falha real; o plugin não converte incompatibilidade determinística em sucesso e não reescreve silenciosamente a semântica da request.
 
 ## Validation tiers
 
-O problema do harness anterior era misturar runtime determinístico com obediência probabilística do modelo e depois tornar asserts cada vez mais lenientes. A v5.2.3 separa:
+O problema do harness anterior era misturar runtime determinístico com obediência probabilística do modelo e depois tornar asserts cada vez mais lenientes. A v5.2.5 separa:
 
 1. **Core Runtime** — manifesto, plugin, provider baseline, catálogo, execução real de tool e config V2;
 2. **Contract Assurance** — determinística e obrigatória em todo `validate`; prova schema/capabilities/ownership/limits/persistence/privacy;

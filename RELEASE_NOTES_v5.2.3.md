@@ -1,4 +1,4 @@
-# ADE v5.2.3 — Delegation-Driven Children
+# ADE v5.2.4 — Delegation-Driven Children
 
 ## Objetivo
 

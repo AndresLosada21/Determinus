@@ -17,10 +17,15 @@
     "allowed": true,
     "remote": "origin",
     "allow_protected_branches": false,
-    "force": false
+    "force": false,
+    "allowed_remote_urls": []
   },
   "pull_request": {
     "allowed": true,
-    "base_branch": "main"
+    "base_branch": "main",
+    "allowed_repositories": []
+  },
+  "hooks": {
+    "allow_bypass": false
   }
 }

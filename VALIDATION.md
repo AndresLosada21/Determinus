@@ -1,19 +1,20 @@
-# Validation — ADE v5.2.3
+# Validation — ADE v5.2.6 Hardened
 
 ## A. Source/static — determinística
 
 Antes de empacotar:
-- 34 grupos Python;
-- 26 testes Node;
-- TypeScript `tsc --noEmit`;
-- 18 agents / 26 typed tools;
+- 40 grupos Python (inclui `human-authorization-boundary` + `docs-integrity`);
+- 63 testes Node (29 lifecycle/static + 4 human-auth + 18 security-negative + 12 human-grant-functional);
+- TypeScript `tsc --noEmit` (com `node-shim` corrigido para Windows);
+- 18 agents / 28 typed tools;
 - structured handoff ownership/schema/limits;
 - lifecycle mock com handoff persistence e authority rejection;
 - evidence/state hardening;
 - state-driven routing;
 - telemetry privacy + cost intelligence;
 - bounded provider retry;
-- installer/migrator/uninstaller safety.
+- installer/migrator/uninstaller safety;
+- human authorization boundary (`repo policy != human authority`, `ask` para mutações de alto impacto, `AUTO_APPROVED` vs `USER_APPROVED` fail-closed).
 
 ## B. Core runtime — bloqueante para operação
 
@@ -28,7 +29,7 @@ Antes de empacotar:
 ## C. Contract Assurance — determinística e obrigatória no validate
 
 Sempre roda, com ou sem `--behavioral`:
-- 26 tools instaladas;
+- 28 tools instaladas;
 - Orchestrator não recebe handoff-submit;
 - 17 child/owner agents recebem `ade_handoff_submit`;
 - agent instructions exigem exactly-one handoff + resposta curta;
@@ -57,7 +58,9 @@ Falha é real behavioral regression para aquela combinação host/provider/model
 ## E. Release Assurance
 
 ```powershell
-py -B .\assure-opencode-v5.2.3.py --source --model "provider/model"
+py -B .\tooling\ade.py assure --source --model "provider/model"
+# ou legado:
+py -B .\assure-opencode-v5.2.6.py --source --model "provider/model"
 ```
 
 Com `--model`, behavioral canary é executado por padrão. Só então sai:
@@ -68,7 +71,7 @@ RELEASE_ASSURANCE_VALIDATED: core + contract + behavioral canary
 
 `--core-only` é diagnóstico; imprime `RELEASE_ASSURANCE_NOT_CLAIMED`.
 
-## Delegation-driven behavioral reliability (v5.2.3)
+## Delegation-driven behavioral reliability (v5.2.5)
 
 Behavioral canaries remain strict. To measure provider/model consistency across repeated trials without relaxing any assertion:
 
@@ -77,3 +80,22 @@ py -B tooling/ade.py behavioral-reliability --model "provider/model" --trials 5
 ```
 
 Add `--strict` to return a failing exit code if any trial fails. A reliability report is diagnostic and does not replace `assurance --model`.
+
+## Live integration matrix (v5.2.5)
+
+`ade live-test` is the multi-model real-runtime layer above Core, Contract and the single-model Behavioral Canary. It reuses the strict behavioral functions; it does not relax individual assertions. Use `--strict` when every requested model and every trial must pass. See `LIVE_TESTING.md`.
+
+
+## v5.2.6 hardened checks
+
+Contract Assurance verifies that Project Manager owns `ade_tracker_project_snapshot`/`ade_tracker_project_sync` com `ask` para sync, generic tracker mutation isolada em Tracker Operator com `ask`, VCS `stage/commit/push/pr_create` com `ask`, `project-check`/`diagnostic-check` com `ask` quando host process, runtime-generated handoffs com `post_state`, e provider retries com circuit breaker. `HUMAN_AUTHORIZATION_REQUIRED` é forçado via `ctx.permission.hook("evaluate")` mesmo se frontmatter divergir; repo `authorized=true` não substitui `ask`.
+
+## v5.2.5 deterministic control-plane checks (retidos)
+
+Contract Assurance verifies that Project Manager owns `ade_tracker_project_snapshot`/`ade_tracker_project_sync`, generic tracker mutation remains isolated to Tracker Operator, runtime-generated handoffs are present for deterministic operations, and provider retries use failure-signature circuit breaking.
+
+Migration/install do not run Behavioral Assurance or Live Matrix. Use those explicitly after the runtime is healthy.
+
+## Two-channel grant limitation (v5.2.6 Hardened)
+
+`ask` em `opencode --auto` é auto-aprovado (`AUTO_APPROVED`), então `ask` sozinho não prova humano. Por isso v5.2.6 exige **grant externo** (`/ade-authorize`) para mutações `HUMAN_REQUIRED`; sem grant → `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations mesmo com `ask` auto-aprovado ou `always allow`. Grants são single-use, 10min TTL, `resource_hash` exato e `project_hash` de `realpath`; consumo é atômico antes do side effect. `dry_run` não exige grant. Nunca registra `AUTO_APPROVED` como `human authorized`.

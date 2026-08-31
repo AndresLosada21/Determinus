@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "plugin_id": "ai-driven-engineering.native",
-  "version": "5.2.3",
+  "version": "5.2.6",
   "tools": {
     "ade_status": {
       "capability": "STATUS_READ",
@@ -123,6 +123,19 @@
       "authority": "HANDOFF",
       "acceptance_authority": false,
       "canonical": true
+    },
+    "ade_tracker_project_snapshot": {
+      "capability": "TRACKER_PROJECT_READ",
+      "authority": "DELIVERY_OPERATOR",
+      "acceptance_authority": false,
+      "deterministic": true
+    },
+    "ade_tracker_project_sync": {
+      "capability": "TRACKER_PROJECT_SYNC",
+      "authority": "DELIVERY_OPERATOR",
+      "acceptance_authority": false,
+      "deterministic": true,
+      "runtime_handoff": true
     }
   },
   "agents": {
@@ -138,6 +151,8 @@
     "project-manager": [
       "ade_delivery_transition",
       "ade_delivery_validation_record",
+      "ade_tracker_project_snapshot",
+      "ade_tracker_project_sync",
       "ade_handoff_submit"
     ],
     "engineer": [
@@ -348,6 +363,38 @@
     "max_evidence_ref_chars": 240,
     "max_blocker_chars": 800,
     "max_next_chars": 500,
-    "recent_in_control": 3
+    "recent_in_control": 3,
+    "runtime_generated_for": [
+      "tracker.project.sync"
+    ]
+  },
+  "deterministic_control_plane": {
+    "routing_source": "ade_route_snapshot",
+    "tracker_primary": [
+      "ade_tracker_project_snapshot",
+      "ade_tracker_project_sync"
+    ],
+    "tracker_llm_fallback": "tracker-operator",
+    "same_failure_signature_retry_max": 1,
+    "tool_choice_auto_only_retry": 0,
+    "post_operation_snapshot": true
+  },
+  "hardening": {
+    "project_state_realpath_boundary": true,
+    "jsonl_symlink_rejection": true,
+    "bounded_rotating_logs": true,
+    "model_output_redaction": true,
+    "minimal_child_environment": true,
+    "docker_network_default": "none",
+    "docker_read_only_rootfs": true,
+    "docker_drop_all_capabilities": true,
+    "git_hooks_bypass_default": false,
+    "git_signing_preserved": true,
+    "staged_secret_scan": true,
+    "remote_http_redirects": "blocked",
+    "jira_host_allowlist": "human-owned tracker policy",
+    "session_identifiers": "sha256-prefix pseudonymized",
+    "installer_jsonc_comment_preservation": "fail-closed",
+    "backup_retention": 10
   }
 }

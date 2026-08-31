@@ -5,7 +5,7 @@ compatibility: OpenCode V2; experimental.subagent_depth >= 2 quando nesting owne
 metadata:
   opencode/autoinvoke: "false"
 ---
-# AI-Driven Engineering v5.2.3
+# AI-Driven Engineering v5.2.5
 
 Esta skill é **explícita e sob demanda**. Agents ADE já possuem seus contratos essenciais no próprio system prompt; não carregue esta skill em todo trabalho. Carregue-a quando o usuário pedir a metodologia, quando houver dúvida de governança/routing, ao depurar o ADE ou ao consultar uma referência detalhada abaixo.
 
@@ -102,3 +102,7 @@ Todo agent ADE diferente do Orchestrator deve publicar `ade_handoff_submit` exat
 2. **Contract assurance**: determinística; valida schemas, tool ownership, handoff persistence/limits, state-driven routing e telemetry privacy. Sempre faz parte de `validate`.
 3. **Behavioral canary**: model-driven; valida que agents realmente usam os contratos e rotas no host/provider. Opcional para uso local do runtime, mas obrigatório em `assurance` de release quando há `--model`.
 
+
+
+## Deterministic control-plane rule
+LLMs decide content; ADE decides mechanics. Prefer typed deterministic runtime operations over subagent chains for mechanical routing, tracker synchronization, state transitions and verification receipts.

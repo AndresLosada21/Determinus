@@ -10,9 +10,9 @@ from pathlib import Path
 from typing import Any
 
 from .common import (
-    ADEError, AGENTS, PLUGIN_ID, VERSION, assert_safe_chain, assert_tree_no_links, config_env, copy_file_verified,
-    dump_json, find_opencode_cli, is_reparse, iter_files, load_jsonc, package_root, read_text, run_cmd, sha256_file,
-    within, write_text,
+    ADEError, AGENTS, PLUGIN_ID, VERSION, assert_safe_chain, assert_tree_no_links, config_env, copy_file_atomic, copy_file_verified,
+    dump_json, find_opencode_cli, is_reparse, iter_files, jsonc_has_extended_syntax, load_jsonc, package_root, read_text, run_cmd, sha256_file,
+    secure_file, secure_mkdir, within, write_text,
 )
 from .regression import run_regression
 
@@ -49,8 +49,8 @@ def _backup_file(path: Path, target: Path, backup_root: Path, records: dict[str,
     except ValueError:
         key = f"external/{path.name}"
     dest = backup_root / "prior" / key
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(path, dest, follow_symlinks=False)
+    secure_mkdir(dest.parent)
+    copy_file_atomic(path, dest)
     records[str(path)] = str(dest)
 
 
@@ -110,6 +110,10 @@ def _patch_config(target: Path, *, default_agent: bool, skip_runtime_check: bool
     candidates = [target / "opencode.jsonc", target / "opencode.json"]
     path = next((p for p in candidates if p.exists()), candidates[0])
     assert_safe_chain(path.parent)
+    if path.exists() and path.suffix.lower() == ".jsonc":
+        raw = read_text(path)
+        if jsonc_has_extended_syntax(raw):
+            raise ADEError("CONFIG_JSONC_PRESERVATION_BLOCKED: opencode.jsonc contém comentários/trailing commas; use --no-config-patch e preserve o arquivo manualmente")
     base = load_jsonc(path) if path.exists() else {}
     cli = None if skip_runtime_check else find_opencode_cli()
     chosen = _config_candidate(base, default_agent=default_agent)
@@ -135,9 +139,14 @@ def _patch_config(target: Path, *, default_agent: bool, skip_runtime_check: bool
 def _patch_ambient(target: Path, managed: str, backup_root: Path, prior: dict[str, str]) -> dict[str, Any]:
     path = target / "AGENTS.md"
     existing = read_text(path) if path.exists() else ""
+    begin_count, end_count = existing.count(BEGIN), existing.count(END)
+    if (begin_count, end_count) not in {(0, 0), (1, 1)}:
+        raise ADEError(f"AMBIENT_MARKERS_INVALID: BEGIN={begin_count} END={end_count}")
     start = existing.find(BEGIN)
     end = existing.find(END)
-    if start >= 0 and end >= start:
+    if begin_count == 1:
+        if end < start:
+            raise ADEError("AMBIENT_MARKERS_INVALID: END precede BEGIN")
         end += len(END)
         new = existing[:start].rstrip() + "\n\n" + managed.strip() + "\n" + existing[end:].lstrip("\r\n")
     else:
@@ -147,6 +156,30 @@ def _patch_ambient(target: Path, managed: str, backup_root: Path, prior: dict[st
     _backup_file(path, target, backup_root, prior)
     write_text(path, new)
     return {"path": str(path), "old_hash": old_hash, "new_hash": sha256_file(path)}
+
+
+def _assert_target_safe(target: Path) -> None:
+    resolved = target.resolve(strict=False)
+    if resolved == Path(resolved.anchor) or resolved == Path.home().resolve(strict=False):
+        raise ADEError(f"INSTALL_UNSAFE_TARGET: {resolved}")
+    assert_safe_chain(target.parent)
+
+
+def _prune_backups(base: Path, current: Path, keep: int = 10) -> None:
+    if not base.exists() or is_reparse(base):
+        return
+    dirs = [p for p in base.iterdir() if p.is_dir() and not is_reparse(p)]
+    dirs.sort(key=lambda p: p.name, reverse=True)
+    protected = {current.resolve(strict=False)}
+    kept = 0
+    for d in dirs:
+        if d.resolve(strict=False) in protected or kept < keep - 1:
+            kept += 1
+            continue
+        try:
+            shutil.rmtree(d)
+        except OSError:
+            pass
 
 
 def install(*, target: Path | None = None, force: bool = False, no_default_agent: bool = False,
@@ -159,19 +192,24 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
         run_regression(root)
 
     target = (target or _default_target()).expanduser().absolute()
-    assert_safe_chain(target.parent)
-    target.mkdir(parents=True, exist_ok=True)
+    _assert_target_safe(target)
+    secure_mkdir(target)
     if is_reparse(target):
         raise ADEError(f"INSTALL_UNSAFE: target é reparse {target}")
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S%f") + "-" + uuid.uuid4().hex
-    backup_root = _backup_base(target) / stamp
-    backup_root.mkdir(parents=True, exist_ok=False)
+    backup_base = _backup_base(target)
+    secure_mkdir(backup_base)
+    backup_root = backup_base / stamp
+    backup_root.mkdir(parents=True, exist_ok=False, mode=0o700)
+    if os.name != "nt": backup_root.chmod(0o700)
     prior: dict[str, str] = {}
     created_paths: set[Path] = set()
 
     previous_manifest = target / "ai-driven-engineering-install.json"
     previous_manifest_data: dict[str, Any] = {}
+    if previous_manifest.exists() and is_reparse(previous_manifest):
+        raise ADEError(f"INSTALL_BLOCKED: manifesto anterior é link/reparse {previous_manifest}")
     if previous_manifest.is_file():
         try:
             loaded = json.loads(read_text(previous_manifest))
@@ -242,27 +280,30 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
         }
         dump_json(previous_manifest, manifest)
         print(f"ADE v{VERSION} instalado em: {target}")
-        print(f"Agents: {len(agent_hashes)} | Plugin tools: 26 | Manifest schema: 7")
+        print(f"Agents: {len(agent_hashes)} | Plugin tools: 28 | Manifest schema: 7")
         if config_info.get("patched"):
             print(f"subagent_depth_mode: {config_info.get('subagent_depth_mode')}")
-        print("INSTALL_V5_2_3_OK")
+        _prune_backups(backup_base, backup_root, keep=10)
+        print("INSTALL_V5_2_6_OK")
         return manifest
-    except Exception:
+    except Exception as exc:
         # Transactional rollback: delete files created by this attempt, then restore every backed-up original.
         for created in sorted(created_paths, key=lambda x: len(x.parts), reverse=True):
             try:
                 if created.is_file() or created.is_symlink(): created.unlink(missing_ok=True)
             except Exception:
                 pass
+        rollback_errors: list[str] = []
         for original, backup in sorted(prior.items(), reverse=True):
             try:
                 src = Path(backup)
                 dst = Path(original)
                 if src.exists():
-                    dst.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(src, dst)
-            except Exception:
-                pass
+                    assert_safe_chain(dst.parent)
+                    secure_mkdir(dst.parent)
+                    copy_file_atomic(src, dst)
+            except Exception as rollback_exc:
+                rollback_errors.append(f"{original}: {rollback_exc}")
         for d in (target/"plugins/ai-driven-engineering", target/"ai-driven-engineering", target/"skills/ai-driven-engineering", target/"agents"):
             try:
                 cur=d
@@ -270,4 +311,6 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
                     cur.rmdir(); cur=cur.parent
             except Exception:
                 pass
+        if rollback_errors:
+            raise ADEError(f"{exc}; ROLLBACK_INCOMPLETE: {' | '.join(rollback_errors[:10])}") from exc
         raise
