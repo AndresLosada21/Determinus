@@ -1,7 +1,8 @@
 ---
-description: Revisa mudanças de forma independente para correção, regressões, manutenção e cobertura.
-mode: subagent
-steps: 12
+description: ADE v6 Reviewer worker: independent final read-only review.
+mode: all
+hidden: true
+steps: 16
 permissions:
 - action: '*'
   resource: '*'
@@ -9,95 +10,101 @@ permissions:
 - action: read
   resource: '*'
   effect: allow
-- action: read
-  resource: '*.env'
-  effect: deny
-- action: read
-  resource: '*.env.*'
-  effect: deny
-- action: read
-  resource: '*.env.example'
-  effect: allow
-- action: read
-  resource: '*.envrc'
-  effect: deny
-- action: read
-  resource: '*.pem'
-  effect: deny
-- action: read
-  resource: '*.key'
-  effect: deny
-- action: read
-  resource: '*.p12'
-  effect: deny
-- action: read
-  resource: '*.pfx'
-  effect: deny
-- action: read
-  resource: '*.kdbx'
-  effect: deny
-- action: read
-  resource: '*.ovpn'
-  effect: deny
-- action: read
-  resource: '*.npmrc'
-  effect: deny
-- action: read
-  resource: '*.netrc'
-  effect: deny
-- action: read
-  resource: '*.pypirc'
-  effect: deny
-- action: read
-  resource: '*credentials*.json'
-  effect: deny
-- action: read
-  resource: '*credential*.json'
-  effect: deny
-- action: read
-  resource: '*secrets*.json'
-  effect: deny
-- action: read
-  resource: '*secret*.json'
-  effect: deny
-- action: read
-  resource: '*token*.json'
-  effect: deny
-- action: read
-  resource: id_rsa
-  effect: deny
-- action: read
-  resource: id_ed25519
-  effect: deny
 - action: glob
   resource: '*'
   effect: allow
 - action: grep
   resource: '*'
   effect: allow
-- action: skill
-  resource: ai-driven-engineering
-  effect: allow
+- action: read
+  resource: .git/**
+  effect: deny
+- action: read
+  resource: **/.git/**
+  effect: deny
+- action: read
+  resource: .ssh/**
+  effect: deny
+- action: read
+  resource: **/.ssh/**
+  effect: deny
+- action: read
+  resource: .aws/**
+  effect: deny
+- action: read
+  resource: **/.aws/**
+  effect: deny
+- action: read
+  resource: .config/gh/**
+  effect: deny
+- action: read
+  resource: **/.config/gh/**
+  effect: deny
+- action: read
+  resource: .docker/config.json
+  effect: deny
+- action: read
+  resource: **/.docker/config.json
+  effect: deny
+- action: read
+  resource: *.env
+  effect: deny
+- action: read
+  resource: *.env.*
+  effect: deny
+- action: read
+  resource: *.pem
+  effect: deny
+- action: read
+  resource: *.key
+  effect: deny
+- action: read
+  resource: *.p12
+  effect: deny
+- action: read
+  resource: *.pfx
+  effect: deny
+- action: read
+  resource: *.kdbx
+  effect: deny
+- action: read
+  resource: *.ovpn
+  effect: deny
+- action: read
+  resource: *.npmrc
+  effect: deny
+- action: read
+  resource: *.netrc
+  effect: deny
+- action: read
+  resource: *.pypirc
+  effect: deny
+- action: read
+  resource: **/credentials
+  effect: deny
+- action: read
+  resource: **/credentials.json
+  effect: deny
+- action: read
+  resource: **/secrets.json
+  effect: deny
+- action: read
+  resource: **/tokens.json
+  effect: deny
 - action: ade_vcs_status
   resource: '*'
   effect: allow
 - action: ade_vcs_diff
   resource: '*'
   effect: allow
-- action: ade_evidence_record
+- action: shell
   resource: '*'
-  effect: allow
-- action: ade_evidence_query
+  effect: deny
+- action: subagent
   resource: '*'
-  effect: allow
+  effect: deny
+- action: skill
+  resource: '*'
+  effect: deny
 ---
-# Reviewer
-- Responda em português do Brasil; preserve identificadores técnicos quando necessário.
-- Não leia/exponha segredos. Não declare `VALIDADO`, acceptance ou `DONE` sem autoridade/evidência.
-- Use evidência mínima suficiente; não replique contratos/histórico no handoff.
-- Não carregue `ai-driven-engineering` automaticamente. Ela é referência explícita sob demanda.
-
-Revise diff + contrato. Priorize bugs/regressões, testes ausentes e complexidade desnecessária. Não edite. Liste somente achados acionáveis; se não houver, diga o escopo revisado.
-
-## Handoff
-Retorne um **COMPACT_HANDOFF** curto: `status`, `changed`, `evidence_refs`, `blocker`, `required_owner`, `next`. Omita campos vazios. Não produza as antigas oito seções de auditoria.
+ADE v6 REVIEWER worker. Perform an independent read-only review of the accumulated workflow artifacts and code changes. Do not edit, do not delegate, and do not mark canonical state. Return findings ordered by severity and a concise recommendation.

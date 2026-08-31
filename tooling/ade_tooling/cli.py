@@ -8,10 +8,11 @@ from .assurance import assurance
 from .common import ADEError, VERSION, python_version_guard
 from .install import install
 from .manifest import validate_installed_manifest
+from .live_test import DEFAULT_ZEN_FREE_MODELS, live_test
 from .migrate import migrate
 from .policy import static_policy
 from .regression import run_regression
-from .smoke import capability_recovery_smoke, engineering_recovery_routing_smoke, nested_delegation_smoke, plugin_runtime_smoke, runtime_config_smoke
+from .smoke import behavioral_reliability_report, contract_runtime_smoke, kernel_analysis_smoke, kernel_approval_smoke, kernel_proposal_smoke, plugin_runtime_smoke, runtime_config_smoke
 from .uninstall import uninstall
 from .validate import validate
 
@@ -21,7 +22,7 @@ def _target(value: str | None) -> Path | None:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.0 state-driven runtime tooling")
+    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v6.0.5 durable engineering runtime tooling")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -58,7 +59,8 @@ def parser() -> argparse.ArgumentParser:
     a.add_argument("--target")
     a.add_argument("--model")
     a.add_argument("--source", action="store_true")
-    a.add_argument("--behavioral", action="store_true")
+    a.add_argument("--behavioral", action="store_true", help="compatibilidade; assurance com --model já executa behavioral por padrão")
+    a.add_argument("--core-only", action="store_true", help="não execute behavioral canary; release assurance não será alegada")
 
     mc = sub.add_parser("manifest-check")
     mc.add_argument("--target")
@@ -68,12 +70,28 @@ def parser() -> argparse.ArgumentParser:
     ps.add_argument("--model")
     rs = sub.add_parser("runtime-smoke")
     rs.add_argument("--target")
-    nd = sub.add_parser("nested-smoke")
+    nd = sub.add_parser("kernel-analysis-smoke")
     nd.add_argument("--target"); nd.add_argument("--model", required=True)
-    cr = sub.add_parser("capability-smoke")
+    cr = sub.add_parser("approval-boundary-smoke")
     cr.add_argument("--target"); cr.add_argument("--model", required=True)
-    er = sub.add_parser("engineering-recovery-smoke")
+    er = sub.add_parser("worker-lifecycle-smoke")
     er.add_argument("--target"); er.add_argument("--model", required=True)
+    cs = sub.add_parser("contract-smoke")
+    cs.add_argument("--target")
+    br = sub.add_parser("behavioral-reliability")
+    br.add_argument("--target"); br.add_argument("--model", required=True)
+    br.add_argument("--trials", type=int, default=5)
+    br.add_argument("--strict", action="store_true", help="falha se qualquer trial estrito falhar")
+
+    lt = sub.add_parser("live-test", help="multi-model OpenCode live integration matrix in isolated sandboxes")
+    lt.add_argument("--target")
+    lt.add_argument("--models", nargs="+", default=None, help="model refs; defaults to curated OpenCode Zen free models")
+    lt.add_argument("--trials", type=int, default=3)
+    lt.add_argument("--scenarios", nargs="+", choices=["kernel-analysis","approval-boundary","worker-lifecycle"], default=None)
+    lt.add_argument("--output-dir")
+    lt.add_argument("--strict", action="store_true", help="fail if any requested model probe or behavioral trial fails")
+    lt.add_argument("--skip-core", action="store_true")
+    lt.add_argument("--no-bundle", action="store_true")
     return p
 
 
@@ -96,19 +114,34 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "validate":
             validate(target=_target(args.target), model=args.model, behavioral=args.behavioral)
         elif args.command == "assurance":
-            assurance(target=_target(args.target), model=args.model, source=args.source, behavioral=args.behavioral)
+            assurance(target=_target(args.target), model=args.model, source=args.source, behavioral=True, core_only=args.core_only)
         elif args.command == "manifest-check":
             validate_installed_manifest(_target(args.target) or (Path.home()/".config"/"opencode"))
         elif args.command == "plugin-smoke":
             plugin_runtime_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), model=args.model)
         elif args.command == "runtime-smoke":
             runtime_config_smoke(_target(args.target) or (Path.home()/".config"/"opencode"))
-        elif args.command == "nested-smoke":
-            nested_delegation_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
-        elif args.command == "capability-smoke":
-            capability_recovery_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
-        elif args.command == "engineering-recovery-smoke":
-            engineering_recovery_routing_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
+        elif args.command == "kernel-analysis-smoke":
+            kernel_analysis_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
+        elif args.command == "approval-boundary-smoke":
+            kernel_approval_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
+        elif args.command == "worker-lifecycle-smoke":
+            kernel_proposal_smoke(_target(args.target) or (Path.home()/".config"/"opencode"), args.model)
+        elif args.command == "contract-smoke":
+            contract_runtime_smoke(_target(args.target) or (Path.home()/".config"/"opencode"))
+        elif args.command == "behavioral-reliability":
+            behavioral_reliability_report(_target(args.target) or (Path.home()/".config"/"opencode"), args.model, trials=args.trials, strict=args.strict)
+        elif args.command == "live-test":
+            live_test(
+                target=_target(args.target) or (Path.home()/".config"/"opencode"),
+                models=args.models or list(DEFAULT_ZEN_FREE_MODELS),
+                trials=args.trials,
+                scenarios=args.scenarios,
+                output_dir=Path(args.output_dir).expanduser().absolute() if args.output_dir else None,
+                strict=args.strict,
+                skip_core=args.skip_core,
+                bundle=not args.no_bundle,
+            )
         return 0
     except ADEError as exc:
         print(str(exc), file=sys.stderr)

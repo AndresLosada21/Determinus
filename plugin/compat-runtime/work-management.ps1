@@ -16,9 +16,50 @@ $ErrorActionPreference = "Stop"
 
 $cfg = Get-IntegrationConfig $ProjectRoot
 $provider = ([string]$cfg.provider).ToLowerInvariant()
+
+$trackerPolicyPath = Join-Path (Get-AiRoot $ProjectRoot) "tracker-policy.json"
+$trackerPolicy = if (Test-Path -LiteralPath $trackerPolicyPath) { Read-JsonFile $trackerPolicyPath } else { $null }
+function Assert-AllowedHttpsEndpoint([string]$UrlText) {
+    try { $u = [uri]$UrlText } catch { throw "TRACKER_BLOCKED: URL remota inválida." }
+    if ($u.Scheme -ne "https" -or -not [string]::IsNullOrWhiteSpace($u.UserInfo)) { throw "TRACKER_BLOCKED: endpoint remoto exige HTTPS sem userinfo." }
+    $allowed = @()
+    if ($null -ne $trackerPolicy -and $null -ne $trackerPolicy.remote -and $null -ne $trackerPolicy.remote.allowed_https_hosts) { $allowed = @($trackerPolicy.remote.allowed_https_hosts | ForEach-Object { ([string]$_).ToLowerInvariant() }) }
+    if ($allowed -notcontains $u.DnsSafeHost.ToLowerInvariant()) { throw "TRACKER_BLOCKED: host remoto não autorizado em tracker-policy.remote.allowed_https_hosts: $($u.DnsSafeHost)" }
+}
 if ([string]::IsNullOrWhiteSpace($provider) -or $provider -eq "none") {
     throw "TRACKER_BLOCKED: work_management.provider está 'none'. Configure .ai/integrations.json."
 }
+
+function Get-AllowedRemoteValues([string]$Name) {
+    if ($null -eq $trackerPolicy -or $null -eq $trackerPolicy.remote) { return @() }
+    $v = $trackerPolicy.remote.$Name
+    if ($null -eq $v) { return @() }
+    return @($v | ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+function Assert-ProviderScope {
+    switch ($provider) {
+        "github" {
+            $g = $cfg.github; $owner = ([string]$g.owner).Trim(); $repo = ([string]$g.repository).Trim()
+            if (-not [string]::IsNullOrWhiteSpace($repo)) {
+                $key = "$owner/$repo".ToLowerInvariant(); if ((Get-AllowedRemoteValues "allowed_github_repositories") -notcontains $key) { throw "TRACKER_SCOPE_BLOCKED: github repository $owner/$repo não autorizado" }
+            }
+            if ([int]$g.project_number -gt 0) {
+                $po = if ([string]::IsNullOrWhiteSpace([string]$g.project_owner)) { $owner } else { ([string]$g.project_owner).Trim() }
+                $key = "$po/$([int]$g.project_number)".ToLowerInvariant(); if ((Get-AllowedRemoteValues "allowed_github_projects") -notcontains $key) { throw "TRACKER_SCOPE_BLOCKED: github project $po/$([int]$g.project_number) não autorizado" }
+            }
+            if (-not $DryRun -and [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable("GH_TOKEN"))) { throw "TRACKER_BLOCKED: GH_TOKEN explícito ausente; não usar credenciais implícitas do gh" }
+        }
+        "jira" {
+            $j=$cfg.jira; try { $u=[uri]([string]$j.base_url) } catch { throw "TRACKER_BLOCKED: jira.base_url inválida" }; $key="$($u.DnsSafeHost)/$([string]$j.project_key)".ToLowerInvariant()
+            if ((Get-AllowedRemoteValues "allowed_jira_projects") -notcontains $key) { throw "TRACKER_SCOPE_BLOCKED: jira $key não autorizado" }
+        }
+        "linear" {
+            $team=([string]$cfg.linear.team_id).Trim().ToLowerInvariant(); if ((Get-AllowedRemoteValues "allowed_linear_team_ids") -notcontains $team) { throw "TRACKER_SCOPE_BLOCKED: linear team $team não autorizado" }
+        }
+        default { throw "TRACKER_BLOCKED: provider não suportado: $provider" }
+    }
+}
+Assert-ProviderScope
 if ($Action -eq "sync") {
     if ([string]::IsNullOrWhiteSpace($InternalId)) { throw "InternalId obrigatório para sync." }
     $aiForSync = Get-AiRoot $ProjectRoot
@@ -72,6 +113,7 @@ function Invoke-JiraRequest([string]$Method, [string]$Path, $Payload = $null) {
     $j = $cfg.jira
     $base = ([string]$j.base_url).TrimEnd('/')
     if ([string]::IsNullOrWhiteSpace($base)) { throw "TRACKER_BLOCKED: jira.base_url ausente." }
+    Assert-AllowedHttpsEndpoint $base
     $emailEnv = if ([string]::IsNullOrWhiteSpace([string]$j.email_env)) { "JIRA_EMAIL" } else { [string]$j.email_env }
     $tokenEnv = if ([string]::IsNullOrWhiteSpace([string]$j.token_env)) { "JIRA_API_TOKEN" } else { [string]$j.token_env }
     $email = [Environment]::GetEnvironmentVariable($emailEnv)
@@ -84,11 +126,11 @@ function Invoke-JiraRequest([string]$Method, [string]$Path, $Payload = $null) {
     $headers = @{ Authorization = "Basic $basic"; Accept = "application/json" }
     $uri = "$base$Path"
     if ($null -eq $Payload) {
-        return Invoke-RestMethod -Method $Method -Uri $uri -Headers $headers
+        return Invoke-RestMethod -Method $Method -Uri $uri -Headers $headers -MaximumRedirection 0 -TimeoutSec 30
     }
     $headers["Content-Type"] = "application/json"
     $json = $Payload | ConvertTo-Json -Depth 30
-    return Invoke-RestMethod -Method $Method -Uri $uri -Headers $headers -Body $json
+    return Invoke-RestMethod -Method $Method -Uri $uri -Headers $headers -Body $json -MaximumRedirection 0 -TimeoutSec 30
 }
 
 function Invoke-Linear([string]$GraphQl, [hashtable]$Variables = @{}) {
@@ -101,7 +143,8 @@ function Invoke-Linear([string]$GraphQl, [hashtable]$Variables = @{}) {
     $auth = if ($scheme -eq "bearer") { "Bearer $token" } else { $token }
     $headers = @{ Authorization=$auth; "Content-Type"="application/json" }
     $payload = @{ query=$GraphQl; variables=$Variables } | ConvertTo-Json -Depth 30
-    $response = Invoke-RestMethod -Method Post -Uri "https://api.linear.app/graphql" -Headers $headers -Body $payload
+    Assert-AllowedHttpsEndpoint "https://api.linear.app/graphql"
+    $response = Invoke-RestMethod -Method Post -Uri "https://api.linear.app/graphql" -Headers $headers -Body $payload -MaximumRedirection 0 -TimeoutSec 30
     if ($null -ne $response.errors -and @($response.errors).Count -gt 0) {
         $msgs = @($response.errors | ForEach-Object { $_.message }) -join "; "
         throw "Linear GraphQL errors: $msgs"

@@ -2,7 +2,7 @@ param([string]$Root = (Split-Path -Parent $PSScriptRoot))
 $ErrorActionPreference='Stop'
 $c=Get-Content (Join-Path $Root 'plugin/capabilities.json') -Raw | ConvertFrom-Json
 if(@($c.agents.PSObject.Properties).Count -ne 18){throw 'capability registry agents != 18'}
-if(@($c.tools.PSObject.Properties).Count -ne 25){throw "capability registry tools != 25"}
+if(@($c.tools.PSObject.Properties).Count -ne 26){throw "capability registry tools != 26"}
 $orch=@($c.agents.orchestrator)
 if(($orch -join ',') -notmatch 'ade_status' -or ($orch -join ',') -notmatch 'ade_route_snapshot'){throw 'orchestrator compact tools ausentes'}
 if($orch -contains 'ade_doctor' -or $orch -contains 'ade_state_get'){throw 'orchestrator happy-path surface excessiva'}

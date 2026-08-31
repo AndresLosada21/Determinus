@@ -1,29 +1,61 @@
 {
   "schema_version": 3,
-  "version": "5.2.0",
-  "release_state": "SOURCE_VALIDATED_RUNTIME_PENDING",
+  "version": "6.0.5",
+  "release_state": "SOURCE_HARDENED_VALIDATED_RUNTIME_PENDING",
   "source_tree_hash_excludes": [
     "RELEASE.json"
   ],
-  "source_tree_sha256": "77869770891c9c582acb25f8eb7ca97b8a0e9772977096bbe4fa54c9e58bffeb",
+  "source_tree_sha256": "ffed0935c72b6a54e0a2a384dab5ac4ebe8ae34ff7dc8b383aaf0b60e5cd0cf3",
   "target": {
     "opencode": "V2 Promise plugin API",
-    "observed_windows_build": "0.0.0-beta-18684"
+    "observed_windows_build": "0.0.0-beta-18707"
   },
   "validation": {
-    "python_regression_groups": 32,
-    "plugin_tests": 24,
+    "python_regression_groups": 35,
+    "plugin_tests": 89,
     "typescript_typecheck": "passed",
+    "static_policy": "passed",
     "v2_lifecycle_mock": "passed",
-    "install_simulation": "passed",
     "manifest_schema": 7,
-    "agents": 18,
-    "typed_tools": 25,
-    "runtime_opencode_windows": "pending",
-    "behavioral_provider_eval": "pending"
+    "managed_agent_files": 18,
+    "active_agents": 5,
+    "typed_tools": 34,
+    "durable_kernel": "passed_functional",
+    "hash_chained_event_journal": "passed_functional",
+    "safe_read_only_on_corruption": "passed_functional",
+    "kernel_owned_scheduler": "passed_functional",
+    "legacy_managed_delegation": "physically_removed",
+    "verification_resume": "passed_functional_no_worker_respawn",
+    "leases_reconciliation": "passed_functional_and_static",
+    "exact_effect_external_grant": "retained_passed",
+    "provider_auto_only_compat": "retained_passed_scoped",
+    "runtime_opencode_windows": "pending_6_0_5_revalidation",
+    "behavioral_provider_eval": "pending_by_design",
+    "fresh_install": "passed",
+    "migration_v5_2_8_to_v6": "passed",
+    "rollback_v6_to_v5_2_8": "passed_byte_identical_representative_files",
+    "chatgpt_codex_output_budget_compat": "passed_functional_scoped",
+    "openai_public_output_budget_preserved": "passed_functional",
+    "workflow_start_ux_contract": "passed_functional",
+    "runtime_openai_chatgpt_codex_windows": "pending_6_0_5_revalidation",
+    "migration_v6_0_0_to_v6_0_1": "passed",
+    "migration_v5_2_8_to_v6_0_1": "passed",
+    "rollback_v6_0_1_to_v6_0_0": "passed_byte_identical_representative_files",
+    "rollback_v6_0_1_to_v5_2_8": "passed_byte_identical_representative_files"
   },
   "notes": [
-    "Core runtime validation is deterministic and separate from strict optional behavioral evals.",
-    "Provider auto-only tool_choice retry is bounded mitigation, not request rewriting."
-  ]
+    "ADE 6 replaces agent-to-agent orchestration with a durable event-sourced kernel; LLM sessions are disposable workers and never canonical workflow authorities.",
+    "Canonical workflow state is an external per-project hash-chained journal with disposable snapshots; corruption fails closed into SAFE_READ_ONLY.",
+    "Only the kernel creates worker sessions. v5 Managed Delegation code and ade_delegate are physically absent from the v6 runtime/tool registry.",
+    "Engineering DONE requires deterministic verification checks; WAITING_APPROVAL resumes persisted check progress without respawning the verifier or reusing consumed grants.",
+    "Exact-effect grants, VCS/tracker/process/Docker/secret hardening and scoped OpenCode Zen auto-only tool_choice compatibility are retained from the hardened v5 line.",
+    "Real Windows/OpenCode/provider validation remains pending and is not represented as completed release evidence.",
+    "ADE 6.0.1 removes wire-level max_output_tokens only from the observed ChatGPT/Codex responses route while preserving public OpenAI API generation budgets.",
+    "ade_workflow_start is a fast durable state transition only; it returns WORKFLOW_STARTED/workflow_id/next_action, /ade-workflow exposes active state, and the Orchestrator normally calls ade_workflow_run in the same turn.",
+    "ADE 6.0.2 dispatches newly created workers with steer delivery and accepts only an assistant-role response as worker evidence, preventing a queued capsule from producing false DONE.",
+    "ADE 6.0.3 explicitly registers ./plugins/ai-driven-engineering so OpenCode V2 builds that do not implicitly discover the managed package load its native tools.",
+    "ADE 6.0.4 adds plugin/index.ts, the root entrypoint required by OpenCode V2 beta-18721 for configured plugin directories.",
+    "ADE 6.0.5 captures the assistant result returned directly from session.prompt before consulting the asynchronously updated session context."
+  ],
+  "hardening_revision": 7
 }

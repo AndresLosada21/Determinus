@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-VERSION = "5.2.0"
+VERSION = "6.0.5"
 PLUGIN_ID = "ai-driven-engineering.native"
 AGENTS = [
     "orchestrator","product-owner","project-manager","engineer","explorer","researcher",
@@ -68,21 +68,70 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def secure_mkdir(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if os.name != "nt":
+        with contextlib.suppress(OSError):
+            path.chmod(0o700)
+
+
+def secure_file(path: Path) -> None:
+    if os.name != "nt" and path.exists():
+        with contextlib.suppress(OSError):
+            path.chmod(0o600)
+
+
 def write_text(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8", newline="\n")
+    secure_mkdir(path.parent)
+    tmp = path.parent / f".{path.name}.tmp-{os.getpid()}-{next(tempfile._get_candidate_names())}"
+    try:
+        with tmp.open("x", encoding="utf-8", newline="\n") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        secure_file(tmp)
+        os.replace(tmp, path)
+        secure_file(path)
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            tmp.unlink()
 
 
-def load_json(path: Path) -> Any:
+def load_json(path: Path, *, max_bytes: int = 2_000_000) -> Any:
+    try:
+        size = path.stat().st_size
+    except OSError as exc:
+        raise ADEError(f"JSON_READ_FAILED: {path}: {exc}") from exc
+    if size > max_bytes:
+        raise ADEError(f"JSON_TOO_LARGE: {path}: {size} bytes")
     with path.open("r", encoding="utf-8") as fh:
         return json.load(fh)
 
 
+def copy_file_atomic(src: Path, dst: Path) -> str:
+    if is_reparse(src):
+        raise ADEError(f"COPY_UNSAFE_SOURCE: {src}")
+    assert_safe_chain(dst.parent)
+    secure_mkdir(dst.parent)
+    tmp = dst.parent / f".{dst.name}.tmp-{os.getpid()}-{next(tempfile._get_candidate_names())}"
+    try:
+        with src.open("rb") as rf, tmp.open("xb") as wf:
+            shutil.copyfileobj(rf, wf, length=1024 * 1024)
+            wf.flush(); os.fsync(wf.fileno())
+        secure_file(tmp)
+        os.replace(tmp, dst)
+        secure_file(dst)
+    finally:
+        with contextlib.suppress(FileNotFoundError): tmp.unlink()
+    a, b = sha256_file(src), sha256_file(dst)
+    if a != b:
+        raise ADEError(f"COPY_VERIFY_FAILED: {src} -> {dst}")
+    return b
+
+
 def dump_json(path: Path, value: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="\n") as fh:
-        json.dump(value, fh, ensure_ascii=False, indent=2)
-        fh.write("\n")
+    text = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+    write_text(path, text)
 
 
 def strip_jsonc(text: str) -> str:
@@ -153,6 +202,11 @@ def strip_jsonc(text: str) -> str:
         out2.append(ch)
         i += 1
     return "".join(out2)
+
+
+def jsonc_has_extended_syntax(text: str) -> bool:
+    """True when comments or trailing commas would be lost by JSON serialization."""
+    return strip_jsonc(text) != text
 
 
 def load_jsonc(path: Path) -> dict[str, Any]:
@@ -408,15 +462,10 @@ def deny_all_present(agent_file: Path) -> bool:
 
 
 def copy_file_verified(src: Path, dst: Path) -> str:
-    assert_safe_chain(dst.parent)
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dst, follow_symlinks=False)
+    value = copy_file_atomic(src, dst)
     if is_reparse(dst):
         raise ADEError(f"INSTALL_UNSAFE: destino virou reparse {dst}")
-    a, b = sha256_file(src), sha256_file(dst)
-    if a != b:
-        raise ADEError(f"INSTALL_COPY_FAILED: hash divergente {src} -> {dst}")
-    return b
+    return value
 
 
 def iter_files(root: Path) -> Iterator[Path]:

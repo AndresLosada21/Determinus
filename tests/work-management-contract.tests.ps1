@@ -5,9 +5,9 @@ $tracker = [System.IO.File]::ReadAllText((Join-Path $root 'agents/tracker-operat
 $runtime = [System.IO.File]::ReadAllText((Join-Path $root 'runtime/work-management.ps1'))
 $integration = Get-Content -LiteralPath (Join-Path $root 'skills/ai-driven-engineering/templates/integrations.json') -Raw | ConvertFrom-Json
 
-if ($pm -notmatch 'resource:\s+"tracker-operator"[\s\S]{0,80}effect:\s+allow') { throw 'PM não pode invocar tracker-operator' }
+if ($pm -notmatch 'ade_delegate') { throw 'PM deve usar ade_delegate para tracker-operator' }
 if ($pm -notmatch 'TRACKER_AUTHORITY: EXECUTION_ONLY') { throw 'PM não explicita authority execution-only do tracker' }
-if ($tracker -notmatch 'mode:\s+subagent') { throw 'tracker-operator deve ser subagent' }
+if ($tracker -notmatch 'mode:\s+all' -or $tracker -notmatch 'hidden:\s+true') { throw 'tracker-operator deve ser hidden selectable worker para managed delegation' }
 if ($tracker -match 'action:\s+edit[\s\S]{0,100}effect:\s+allow') { throw 'tracker-operator não deve editar diretamente' }
 if ($runtime -notmatch '"github"') { throw 'provider github ausente' }
 if ($runtime -notmatch '"jira"') { throw 'provider jira ausente' }

@@ -1,7 +1,8 @@
 ---
-description: Valida de forma independente a implementação executando checks permitidos e comparando com o contrato técnico.
-mode: subagent
-steps: 16
+description: ADE v6 Verifier worker: independent read-only verification proposal; deterministic checks are kernel activities.
+mode: all
+hidden: true
+steps: 18
 permissions:
 - action: '*'
   resource: '*'
@@ -9,103 +10,101 @@ permissions:
 - action: read
   resource: '*'
   effect: allow
-- action: read
-  resource: '*.env'
-  effect: deny
-- action: read
-  resource: '*.env.*'
-  effect: deny
-- action: read
-  resource: '*.env.example'
-  effect: allow
-- action: read
-  resource: '*.envrc'
-  effect: deny
-- action: read
-  resource: '*.pem'
-  effect: deny
-- action: read
-  resource: '*.key'
-  effect: deny
-- action: read
-  resource: '*.p12'
-  effect: deny
-- action: read
-  resource: '*.pfx'
-  effect: deny
-- action: read
-  resource: '*.kdbx'
-  effect: deny
-- action: read
-  resource: '*.ovpn'
-  effect: deny
-- action: read
-  resource: '*.npmrc'
-  effect: deny
-- action: read
-  resource: '*.netrc'
-  effect: deny
-- action: read
-  resource: '*.pypirc'
-  effect: deny
-- action: read
-  resource: '*credentials*.json'
-  effect: deny
-- action: read
-  resource: '*credential*.json'
-  effect: deny
-- action: read
-  resource: '*secrets*.json'
-  effect: deny
-- action: read
-  resource: '*secret*.json'
-  effect: deny
-- action: read
-  resource: '*token*.json'
-  effect: deny
-- action: read
-  resource: id_rsa
-  effect: deny
-- action: read
-  resource: id_ed25519
-  effect: deny
 - action: glob
   resource: '*'
   effect: allow
 - action: grep
   resource: '*'
   effect: allow
-- action: skill
-  resource: ai-driven-engineering
-  effect: allow
+- action: read
+  resource: .git/**
+  effect: deny
+- action: read
+  resource: **/.git/**
+  effect: deny
+- action: read
+  resource: .ssh/**
+  effect: deny
+- action: read
+  resource: **/.ssh/**
+  effect: deny
+- action: read
+  resource: .aws/**
+  effect: deny
+- action: read
+  resource: **/.aws/**
+  effect: deny
+- action: read
+  resource: .config/gh/**
+  effect: deny
+- action: read
+  resource: **/.config/gh/**
+  effect: deny
+- action: read
+  resource: .docker/config.json
+  effect: deny
+- action: read
+  resource: **/.docker/config.json
+  effect: deny
+- action: read
+  resource: *.env
+  effect: deny
+- action: read
+  resource: *.env.*
+  effect: deny
+- action: read
+  resource: *.pem
+  effect: deny
+- action: read
+  resource: *.key
+  effect: deny
+- action: read
+  resource: *.p12
+  effect: deny
+- action: read
+  resource: *.pfx
+  effect: deny
+- action: read
+  resource: *.kdbx
+  effect: deny
+- action: read
+  resource: *.ovpn
+  effect: deny
+- action: read
+  resource: *.npmrc
+  effect: deny
+- action: read
+  resource: *.netrc
+  effect: deny
+- action: read
+  resource: *.pypirc
+  effect: deny
+- action: read
+  resource: **/credentials
+  effect: deny
+- action: read
+  resource: **/credentials.json
+  effect: deny
+- action: read
+  resource: **/secrets.json
+  effect: deny
+- action: read
+  resource: **/tokens.json
+  effect: deny
 - action: ade_vcs_status
   resource: '*'
   effect: allow
 - action: ade_vcs_diff
   resource: '*'
   effect: allow
-- action: ade_project_check
+- action: shell
   resource: '*'
-  effect: allow
-- action: ade_evidence_record
+  effect: deny
+- action: subagent
   resource: '*'
-  effect: allow
-- action: ade_evidence_query
+  effect: deny
+- action: skill
   resource: '*'
-  effect: allow
-- action: ade_engineering_validation_record
-  resource: '*'
-  effect: allow
+  effect: deny
 ---
-# Verifier
-- Responda em português do Brasil; preserve identificadores técnicos quando necessário.
-- Não leia/exponha segredos. Não declare `VALIDADO`, acceptance ou `DONE` sem autoridade/evidência.
-- Use evidência mínima suficiente; não replique contratos/histórico no handoff.
-- Não carregue `ai-driven-engineering` automaticamente. Ela é referência explícita sob demanda.
-
-Valide independentemente; não confie na narrativa do implementador. Use `ade_project_check` para checks registrados/autorizados e `ade_vcs_diff` para evidência. Você pode registrar `VALIDADO` técnico, mas não Engineering Acceptance.
-
-Se um check não existir, reporte o diagnóstico retornado pela tool (policy/root/checks disponíveis) e peça a menor correção de policy; não invente causa e não devolva `docker run*` genérico.
-
-## Handoff
-Retorne um **COMPACT_HANDOFF** curto: `status`, `changed`, `evidence_refs`, `blocker`, `required_owner`, `next`. Omita campos vazios. Não produza as antigas oito seções de auditoria.
+ADE v6 VERIFIER worker. Inspect the implementation against the capsule and deterministic-check intent. Do not edit files and do not delegate. Your prose is advisory; the kernel owns deterministic checks and final state.

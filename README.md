@@ -1,97 +1,114 @@
-# AI-Driven Engineering v5.2.0 — State-Driven OpenCode V2 Runtime
+# ADE 6.0.1 — Durable Engineering Runtime
 
-ADE v5.2.0 é uma release de estabilização e eficiência para OpenCode V2. Ela preserva os planos **Product / Delivery / Engineering**, evidências, acceptance gates, least privilege e subagents especializados, mas remove o custo e o ruído de uma orquestração ritualística.
+ADE 6 replaces agent-to-agent orchestration with a durable local workflow kernel. OpenCode remains the session/model executor; the ADE kernel owns workflow state, scheduling, retries, worker lifecycle, authorization boundaries, reconciliation and canonical completion.
 
-## Principais mudanças
+## Core rule
 
-### 1. State-driven routing
-O Orchestrator não percorre mais `PO -> PM -> Engineer -> PM -> PO` por padrão. Ele consulta um snapshot compacto e chama somente o owner cuja autoridade é necessária no estado atual. Decisões existentes são reutilizadas enquanto sua revision/input relevante não mudar.
+**The runtime coordinates. LLMs are disposable workers.**
 
-### 2. UX concisa e handoffs compactos
-O Orchestrator usa `USER_BRIEF` (normalmente 3–6 bullets / ~180 palavras). Specialists usam `COMPACT_HANDOFF` com `status`, `changed`, `evidence_refs`, `blocker`, `required_owner`, `next`. Audit completo continua disponível via `/ade-audit`, `/ade-trace` e `/ade-why`.
+- No active worker can create another worker.
+- No LLM writes canonical workflow state directly.
+- Engineering `DONE` requires deterministic project checks.
+- External mutations remain behind exact-effect, single-use external grants.
+- Canonical workflow state lives outside the repository in a hash-chained event journal.
+- A derived snapshot can be deleted and rebuilt from the journal.
+- Journal corruption puts the kernel into `SAFE_READ_ONLY`.
+- Running jobs use leases; expired leases are reconciled after interruption/restart.
 
-### 3. Skill realmente lazy
-`ai-driven-engineering` usa `metadata.opencode/autoinvoke: "false"`. Agents não carregam a Skill automaticamente. `AGENTS.md` contém apenas invariantes globais; regras específicas ficam nos agents/references.
+## Active runtime roles
 
-### 4. Estado/evidência endurecidos
-- `control.json` schema 3 e compacto;
-- legacy `evidence: {}` é normalizado com segurança;
-- histórico completo vai para `.ai/evidence.jsonl`;
-- `ade_evidence_query` usa janela padrão 5;
-- `ade_state_get` é compacto por padrão e `full` é explícito;
-- `ade_route_snapshot` fornece somente a decisão mínima de routing.
+ADE 6 has 5 active OpenCode agents:
 
-### 5. Observabilidade sem poluir a conversa
-`.ai/telemetry.jsonl` registra somente sinais mínimos de tool-call (`agent`, `tool`, `status`, `duration_ms`, timestamp/session id), nunca argumentos/prompts/segredos. Comandos:
-- `/ade-why` — motivo do routing atual;
-- `/ade-trace` — últimas chamadas ADE;
-- `/ade-metrics` — contagens/duração por agent/tool;
-- `/ade-doctor` — diagnóstico direto, sem round-trip de LLM.
+| Agent | Kernel role | Mutation authority |
+|---|---|---|
+| `orchestrator` | conversation gateway | none |
+| `explorer` | Analyst worker | read-only |
+| `implementer` | Builder worker | workspace edit only |
+| `verifier` | Verifier worker | read-only; deterministic checks are kernel activities |
+| `reviewer` | Reviewer worker | read-only |
 
-### 6. Provider resilience
-O plugin classifica `provider.invalid-request` relacionado a `tool_choice` e faz retry **limitado**. Isto é mitigação, não mascaramento: se o host reenviar deterministicamente uma request incompatível, a falha permanece visível após o limite.
+The 13 v5 organizational agents remain installed as explicit `disabled: true` tombstones so a managed v6 uninstall can restore the previous release byte-for-byte. They have no v6 capability surface.
 
-### 7. OpenCode V2 config
-`experimental.subagent_depth: 2` é a configuração canônica. O installer remove o top-level legado `subagent_depth`; não há `subagent_depth` per-agent.
+## Durable workflow kinds
 
-## Capability surface
+- `analysis`: Analyst → Reviewer → `DONE`.
+- `engineering`: Analyst → Builder → Verifier + deterministic checks → Reviewer → `DONE`.
+- `implementation_proposal`: Analyst → Builder → Reviewer → `RESULT_PROPOSED`; never silently promoted to verified completion.
+- `tracker_sync`: deterministic tracker activity with exact-effect approval and remote read-back verification.
 
-18 agents, 25 tools ADE. O Orchestrator vê somente `ade_status` e `ade_route_snapshot`; `ade_doctor` e state/evidence completos não fazem parte do happy path. Raw `shell`/`execute` continuam ocultos para todos os ADE agents.
+The gateway uses `ade_workflow_start`, then `ade_workflow_run`. The kernel alone creates worker sessions via OpenCode `session.create → switchAgent → prompt → wait → context`.
 
-## Instalação / upgrade
+## Durable state
 
-No release bundle:
-
-```powershell
-py -B .\install-opencode-v5.2.0.py
-opencode2 service restart
-py -B .\validate-opencode-v5.2.0.py --model "opencode/muse-spark-1.2-contributor-free"
-```
-
-Upgrade gerenciado de v4/v5.0/v5.1:
-
-```powershell
-py -B .\migrate-opencode-to-v5.2.0.py
-opencode2 service restart
-py -B .\validate-opencode-v5.2.0.py --model "opencode/muse-spark-1.2-contributor-free"
-```
-
-O installer aplica rollback transacional aos arquivos gerenciados: cria backup, recusa sobrescrever customização não reconhecida sem `--force`, escreve manifesto schema 7 e preserva settings não-ADE.
-
-## Validação
-
-Core runtime (bloqueante):
+Windows:
 
 ```text
-INSTALLED_MANIFEST_VALIDATED
-PLUGIN_LOADED_VALIDATED
-PROVIDER_BASELINE_VALIDATED
-PLUGIN_CATALOG_VALIDATED
-PLUGIN_TOOL_EXECUTION_VALIDATED: orchestrator -> ade_status
-SUBAGENT_DEPTH_CONFIGURED: experimental.subagent_depth=2
-RUNTIME_CONFIG_VALIDATED
-ADE_V5_RUNTIME_CORE_VALIDATED
-RUNTIME_VALIDATED: 5.2.0
-BEHAVIORAL_EVALS_SKIPPED
+%LOCALAPPDATA%\opencode\ade-kernel\<project_hash>\
+  events.jsonl
+  snapshot.json
+  *.lock
 ```
 
-Behavioral eval (opcional, estrito e probabilístico):
+Unix:
+
+```text
+$XDG_STATE_HOME/opencode/ade-kernel/<project_hash>/
+```
+
+`events.jsonl` is canonical. Every event contains a monotonic sequence, `prev_hash` and `event_hash`. The snapshot is only a cache.
+
+Legacy `.ai/control.json` is not canonical in v6. If present on first use, a compact legacy state is imported as a non-authoritative event so history is not silently lost.
+
+## Approval model
+
+Repository policy defines the maximum permitted scope but cannot authorize itself. High-impact deterministic activities require an external `/ade-authorize` grant that is:
+
+- outside the repository;
+- exact-effect scoped;
+- project-realpath scoped;
+- short-lived;
+- single-use;
+- atomically consumed before the side effect;
+- revalidated immediately before the side effect.
+
+`--auto` or saved OpenCode `allow` does not replace that grant.
+
+## Upgrade 6.0.0 → 6.0.1
+
+If ADE 6.0.0 is already installed, use the managed patch migration:
 
 ```powershell
-py -B .\validate-opencode-v5.2.0.py --model "..." --behavioral
+py -B .\migrate-v6.0.0-to-v6.0.1.py
+opencode2 service restart
+py -B .\validate-opencode.py --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
-Ele prova nesting/routing/model compliance e **não é flexibilizado para transformar uma rota diferente em sucesso**.
+6.0.1 fixes the ChatGPT/Codex OpenAI HTTP 400 caused by the host lowering ADE generation budgets into `max_output_tokens` on the private Codex responses route. It also makes workflow creation explicit: `ade_workflow_start` persists the DAG and returns `WORKFLOW_STARTED`; `/ade-workflow` shows what is active and what runs next.
 
-## Source gates
+## Install / replace v5.2.8
+
+From the release bundle:
 
 ```powershell
-py -B .\tooling\ade.py regression --package-root .
-cd plugin
-npm test
-npm run typecheck
+py -B .\migrate-opencode-v5.2.8-to-v6.0.1.py
+opencode2 service restart
+py -B .\validate-opencode-v6.0.1.py --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
-A release contém 32 grupos de regressão Python e 24 testes Node, além do typecheck TypeScript.
+The migration is transactional. Uninstalling v6 restores the managed prior ADE installation from the installer backup. Project-local `.ai/*` files are preserved; v6 simply stops treating legacy state as canonical.
 
-Veja `VALIDATION.md`, `COMPATIBILITY.md`, `OPENCODE_V2_AUDIT.md` e `RELEASE_NOTES_v5.2.0.md`.
+## Verification philosophy
+
+Worker prose is a proposal, not evidence of reality. Engineering completion requires deterministic checks configured in `.ai/execution-policy.json`. If several checks need approval, completed check results are journaled individually; a later `WAITING_APPROVAL` resume does not rerun the Verifier worker or consume a previous grant again.
+
+## Validation surfaces
+
+- Python source regression + static policy.
+- Node functional/plugin tests.
+- TypeScript typecheck.
+- install/migrate/uninstall lifecycle.
+- extracted-ZIP rerun.
+- optional provider/runtime core validation.
+- optional live behavioral matrix.
+
+See `DURABLE_KERNEL.md`, `HARDENING.md`, `VALIDATION.md` and `MIGRATION_v5.2.8_to_v6.0.1.md`.

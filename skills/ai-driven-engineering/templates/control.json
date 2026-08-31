@@ -43,5 +43,6 @@
   },
   "telemetry": {
     "file": ".ai/telemetry.jsonl"
-  }
+  },
+  "recent_handoffs": []
 }

@@ -16,7 +16,7 @@ $pm = Read-Text 'agents/project-manager.md'
 $skill = Read-Text 'skills/ai-driven-engineering/SKILL.md'
 $reference = Read-Text 'skills/ai-driven-engineering/references/capability-recovery.md'
 $ambient = Read-Text 'AGENTS.managed.md'
-$engineeringRecoverySmoke = Read-Text 'runtime/engineering-recovery-routing-smoke.ps1'
+$engineeringRecoverySmoke = Read-Text 'tooling/ade_tooling/smoke.py'
 $releaseAssurance = Read-Text 'runtime/release-assurance.ps1'
 
 foreach ($required in @(
@@ -68,8 +68,7 @@ foreach ($required in @('deny','action + resource','fallback','Orchestrator','tr
 if ($skill -notmatch 'deny.*action \+ resource' -and $skill -notmatch 'action \+ resource.*deny') { throw 'SKILL não explicita deny scoped a action + resource' }
 if ($ambient -notmatch 'Permission denied.*action \+ resource') { throw 'AGENTS.managed não contém deny scoping' }
 if ($ambient -notmatch 'IMPLEMENTED_NOT_VALIDATED.*engineer.*verifier') { throw 'AGENTS.managed não contém recovery same-plane implementer -> engineer -> verifier' }
-try { [scriptblock]::Create($engineeringRecoverySmoke) | Out-Null } catch { throw "engineering-recovery-routing-smoke.ps1 possui sintaxe PowerShell inválida: $($_.Exception.Message)" }
-foreach ($required in @('PARENT_EXECUTION_REQUIRED','IMPLEMENTED_NOT_VALIDATED','execution_owner: verifier','subagent','verifier','ENGINEERING_RECOVERY_ROUTING_VALIDATED')) {
+foreach ($required in @('PARENT_EXECUTION_REQUIRED','IMPLEMENTED_NOT_VALIDATED','execution_owner: verifier','ade_delegate','verifier','ENGINEERING_RECOVERY_ROUTING_VALIDATED')) {
     if ($engineeringRecoverySmoke -notmatch [regex]::Escape($required)) { throw "Engineering recovery routing smoke incompleto: $required" }
 }
 try { [scriptblock]::Create($releaseAssurance) | Out-Null } catch { throw "release-assurance.ps1 possui sintaxe PowerShell inválida: $($_.Exception.Message)" }

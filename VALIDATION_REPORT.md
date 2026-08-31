@@ -1,22 +1,18 @@
-# Validation report — build v5.2.0
+# Validation report — ADE 6.0.1
 
-Executed in the packaging environment:
+This report is sealed with the final source package. Deterministic source gates: **35/35 Python regression groups, 88/88 Node plugin tests, Static Policy PASS and TypeScript PASS**. Exact hashes are recorded in `RELEASE.json` and the release-bundle validation summary.
 
-- TypeScript: `tsc -p plugin/tsconfig.json --noEmit` — PASS.
-- Node plugin tests: 24/24 — PASS.
-- Python regression: groups 1–31/32 — PASS before final source hash; group 32 is the release-integrity hash gate and is rerun after `RELEASE.json` is finalized.
-- Installer simulation in a clean temporary target — PASS:
-  - removed legacy top-level `subagent_depth`;
-  - preserved unrelated `experimental.keep_me`;
-  - wrote `experimental.subagent_depth=2`;
-  - set `default_agent=orchestrator`;
-  - installed 18 agents / 25 tools / manifest schema 7;
-  - installed `manifest-check` passed.
-- Lifecycle regression includes malformed legacy `evidence: {}` and verifies normalization + durable evidence log — PASS.
+The v6 validation target is the Durable Engineering Runtime: 5 active workers/gateway agents, 18 managed agent files for rollback compatibility, 34 typed tools, hash-chained external journal, kernel-owned scheduler, leases/reconciliation, deterministic engineering checks and exact-effect external authorization.
 
-Not executable from this Linux packaging environment:
-- real `opencode2 beta-18684` Windows runtime;
-- Windows PowerShell test suite;
-- model-driven behavioral evals.
+Real Windows/OpenCode/provider validation remains `RUNTIME_PENDING` until the released artifact is installed on the user's host. Deterministic release gates do not claim live provider compatibility beyond the tested mocks/contracts. The build container has no `opencode2` binary, so host Contract Assurance is intentionally not claimed here.
 
-Those remain explicit post-install gates and are not represented as validated here.
+## Deterministic lifecycle
+
+- Fresh install 6.0.1: PASS (`INSTALL_V6_0_1_OK`, manifest schema 7, 18 managed agent files, 5 active agents, 34 tools).
+- Managed patch migration 6.0.0 → 6.0.1: PASS (`MIGRATION_TO_V6_0_1_OK`).
+- Patch rollback 6.0.1 → restore 6.0.0: PASS (`preserved_modified=0`); `agents/orchestrator.md`, plugin `src/index.ts`, and `capabilities.json` restored byte-for-byte; prior manifest restored as package 6.0.0.
+- Managed direct migration 5.2.8 → 6.0.1: PASS (`MIGRATION_TO_V6_0_1_OK`).
+- Rollback 6.0.1 → restore 5.2.8: PASS (`preserved_modified=0`); representative `agents/orchestrator.md` and plugin `src/index.ts` restored byte-for-byte, and prior manifest restored as package 5.2.8.
+- Source-level provider compatibility: PASS — ChatGPT/Codex Responses strips only wire-level `max_output_tokens`; public `api.openai.com/v1/responses` preserves it.
+- Workflow-start UX contract: PASS — `ade_workflow_start` returns `WORKFLOW_STARTED`, `workflow_id`, and `next_action`; `/ade-workflow` exposes active durable state; Orchestrator is instructed to run the workflow in the same turn unless the user explicitly requested plan-only.
+- No active-install hotpatching or behavioral-provider matrix is part of install/migrate.

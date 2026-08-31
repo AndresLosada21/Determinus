@@ -1,20 +1,5 @@
-# @ai-driven-engineering/opencode-plugin v5.2.0
+# ADE 6.0.1 OpenCode plugin
 
-OpenCode V2 Promise plugin do ADE.
+The plugin implements the Durable Engineering Runtime. The kernel owns workflow/event state, worker scheduling, leases/reconciliation and deterministic activities. Active OpenCode roles are Orchestrator gateway, Analyst (`explorer`), Builder (`implementer`), Verifier and Reviewer. Legacy v5 roles are disabled tombstones.
 
-Principais superfícies:
-- 25 typed tools e 18 role-specific capability sets;
-- session-scoped project resolution;
-- state-driven `ade_status` + `ade_route_snapshot`;
-- compact/full state selector;
-- durable evidence (`.ai/evidence.jsonl`) e minimal telemetry (`.ai/telemetry.jsonl`);
-- generation budgets por agent;
-- bounded retry para provider `invalid-request` auto-only;
-- `/ade-doctor`, `/ade-why`, `/ade-trace`, `/ade-metrics` sem precisar poluir respostas normais.
-
-Teste local:
-
-```text
-npm test
-npm run typecheck
-```
+Canonical state is an external hash-chained journal. Raw subagent recursion and direct high-impact mutation capabilities are not exposed to active agents.
