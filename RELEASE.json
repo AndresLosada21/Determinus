@@ -5,7 +5,7 @@
   "source_tree_hash_excludes": [
     "RELEASE.json"
   ],
-  "source_tree_sha256": "47411375d8be7a5b6ce42f70183b8e4fb058d051788b9d6861b4e985895e6572",
+  "source_tree_sha256": "67c495ea35bdef4c57951e717e512a466077e053aca3c3531bfeaf4bcf2db6ea",
   "target": {
     "opencode": "V2 Promise plugin API",
     "observed_windows_build": "0.0.0-beta-18721",
