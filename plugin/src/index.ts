@@ -843,7 +843,7 @@ export default pluginDefine({
       const allowed=new Set(agentTools[event.agent] || [])
       for(const name of Object.keys(event.tools || {})) if(name.startsWith(TOOL_PREFIX) && !allowed.has(name)) delete event.tools[name]
       for(const name of hideCore[event.agent] || []) delete event.tools[name]
-      const budget=Number(generationBudgets[event.agent]||0); if(budget>0) event.generation.maxTokens=budget
+      const budget=Number(generationBudgets[event.agent]||0); const budgetProvider=String(event.model?.providerID||"").toLowerCase(); if(budget>0 && budgetProvider!=="openai") event.generation.maxTokens=budget
       try { const scope=await resolveSessionScope(ctx,String(event.sessionID||"")); if(await exists(controlPaths(scope.root).control)){ const est=estimateContext(event); await appendJsonl(controlPaths(scope.root).telemetry,{ts:now(),kind:"model.dispatch",session_ref:crypto.createHash("sha256").update(String(event.sessionID||"")).digest("hex").slice(0,16),agent:String(event.agent||"unknown"),provider:String(event.model?.providerID||""),model:String(event.model?.id||event.model?.modelID||""),generation_budget:budget,...est}) } } catch {}
     })
 
