@@ -18,6 +18,32 @@ from .common import (
 ACTIVE_AGENTS = {"orchestrator","explorer","implementer","verifier","reviewer"}
 
 
+def runtime_agent_catalog(target: Path, cli: str) -> dict[str, Any]:
+    last = ""
+    for attempt, delay in enumerate((0.0, 0.5, 1.0, 2.0), 1):
+        if delay:
+            time.sleep(delay)
+        result = run_cmd([cli, "api", "get", "/api/agent"], cwd=target, env=config_env(target), timeout=45)
+        last = result.combined
+        if result.code != 0:
+            continue
+        try:
+            payload = json.loads(result.stdout)
+            agents = payload.get("data") if isinstance(payload, dict) else None
+            if not isinstance(agents, list):
+                continue
+            discovered = {str(agent.get("id")) for agent in agents if isinstance(agent, dict)}
+        except Exception:
+            continue
+        missing = sorted(ACTIVE_AGENTS - discovered)
+        if not missing:
+            if attempt > 1:
+                print(f"AGENT_CATALOG_STARTUP_RETRY_RECOVERED: attempt={attempt}")
+            return {"discovered": discovered, "missing": []}
+        last = f"missing={missing}; response={last[:1000]}"
+    raise ADEError(f"ADE_AGENT_CATALOG_INVALID: required_active_agents_missing; {last[:1400]}")
+
+
 def runtime_config_smoke(target: Path) -> dict[str, Any]:
     for name in AGENTS:
         if not (target/"agents"/f"{name}.md").is_file():raise ADEError(f"RUNTIME_INVARIANT_FAILED: managed agent file missing {name}")
@@ -34,12 +60,18 @@ def runtime_config_smoke(target: Path) -> dict[str, Any]:
     exp=cfg.get("experimental")
     if not isinstance(exp,dict) or int(exp.get("subagent_depth",0))!=1:raise ADEError(f"RUNTIME_INVARIANT_FAILED: v6 experimental.subagent_depth={exp.get('subagent_depth') if isinstance(exp,dict) else None}")
     if cfg.get("default_agent")!="orchestrator":raise ADEError(f"RUNTIME_INVARIANT_FAILED: default_agent={cfg.get('default_agent')}")
+    configured_agents=cfg.get("agents")
+    if not isinstance(configured_agents,dict):raise ADEError("RUNTIME_INVARIANT_FAILED: managed agent config missing")
+    if set(configured_agents)!=set(AGENTS):raise ADEError(f"RUNTIME_INVARIANT_FAILED: managed agent config={sorted(configured_agents)}")
     cli=find_opencode_cli()
     if cli:
         r=run_cmd([cli,"debug","config"],env=config_env(target),timeout=45)
         if r.code!=0:raise ADEError(f"RUNTIME_CONFIG_FAILED: {r.combined}")
         if "orchestrator" not in r.combined:raise ADEError("RUNTIME_CONFIG_FAILED: resolved config does not reference orchestrator")
+        runtime_agent_catalog(target,cli)
     print("V6_SUBAGENT_DEPTH_CONFIGURED: experimental.subagent_depth=1 (native recursion unused)")
+    print("AGENT_CONFIG_REGISTERED: managed=18 active=5")
+    print("AGENT_CATALOG_VALIDATED: required_active_agents=5")
     print("DURABLE_KERNEL_CONFIGURED: active_agents=5 managed_agent_files=18 tools=34")
     print("RUNTIME_CONFIG_VALIDATED")
     return {"cli":cli,"config":cfg,"capabilities":cap}

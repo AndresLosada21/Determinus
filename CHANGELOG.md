@@ -1,8 +1,50 @@
 # Changelog
 
-## 6.0.5 - Synchronous Worker Result Capture
+## 6.0.10 - Autonomous Project Self-Healing
 
-- Persist the assistant message returned directly by `session.prompt`; context is fallback-only.
+- Add bounded SAFE_AUTO_REPAIR for historical/existing project execution policy before engineering DAG creation.
+- Secure-bootstrap missing policy as `authorized:false`; preserve custom fields and fail closed on malformed/unknown schema.
+- Resolve the official process-check mismatch: `runner=process` is the check-level opt-in, legacy missing `allow_host_process` is normalized, and explicit false remains a hard veto.
+- Preserve policy authorization plus exact-effect single-use grant as the human execution boundary.
+- Add restrictive Docker-only normalization and no inferred network/write/mutable-image permissions.
+- Add existing-project, legacy-process, explicit-deny, Docker-default and malformed-policy functional regressions.
+- Fix the plugin runtime version constant divergence discovered during release review.
+
+## 6.0.9 - Beta-18721 Worker Contract & Release Integrity
+
+- Require settled canonical V2 assistant evidence (`time.completed`) while preserving explicit legacy parser compatibility.
+- Centralize canonical worker `SystemPart` construction and add permanent INC-BETA18721-WORKER-ZERO-TOKEN coverage for every worker role.
+- Complete the Promise `session.prompt` type shim with `id?: string`.
+- Add deterministic `WORKER_EXECUTION_FAILED`, `WORKER_INTERRUPTED`, `WORKER_TIMEOUT`, and `WORKER_INVALID_OUTPUT` domains; terminal failures no longer enter the generic blind retry path.
+- Convert current lifecycle mocks to canonical V2 prompt-admission / wait / assistant-context shapes.
+- Add current-release metadata/docs/test-count consistency gates.
+- Explicitly reject speculative same-ID wake recovery for this release; beta-18721 already serializes/coalesces session execution and no observed failure requires an extra wake.
+- Preserve 6.0.8 fail-fast engineering execution-policy preflight.
+
+## 6.0.8 - Engineering Policy Preflight
+
+- Fail fast at `ade_workflow_start` when an engineering workflow cannot resolve its project execution policy.
+- Require `.ai/execution-policy.json`, explicit policy authorization, registered `check_names`, `owner=verifier`, and `non_destructive=true` before creating the durable DAG.
+- Prevent ANALYZE/BUILD/VERIFY token spend when deterministic verification is impossible by configuration.
+- Preserve the 6.0.7 beta-18721 worker fix and all fail-closed human authorization boundaries; no policy is auto-authorized or invented.
+
+## 6.0.7 - OpenCode V2 Worker SystemPart Contract Fix
+
+- Fix worker-only `session:context` injection to emit canonical beta-18721 `SystemPart` values: `{ type: "text", text: ... }`.
+- Distinguish `Session.Info.outcome=failed` from a genuine empty assistant response after `session.wait()`.
+- Add regressions for the exact worker SystemPart schema and zero-token failed session outcome.
+
+## 6.0.6 - OpenCode V2 Worker Message Contract Fix
+
+- Fix durable worker result parsing for OpenCode `0.0.0-beta-18721`: canonical assistant messages are discriminated by `type: "assistant"`, not only legacy `role`/`info.role`.
+- Treat `session.prompt` as the V2 admission operation it is on beta-18721; wait for idle and read worker evidence from `session.context`.
+- Keep `delivery: "steer"` because the exact beta-18721 schema explicitly supports `steer | queue` and defaults prompts to steer.
+- Replace the worker-session mock with the beta-18721 contract so this regression can no longer pass against a V1-shaped fake response.
+- Add exact V2 session typings for create/wait/interrupt/switchModel and delivery modes.
+
+## 6.0.5 - Synchronous Worker Result Capture (superseded)
+
+- Historical attempted fix: treated `session.prompt` as returning assistant output. This diagnosis is superseded by 6.0.6 for beta-18721, where prompt returns an admission receipt and assistant output is read from `session.context`.
 
 ## 6.0.4 - OpenCode Directory Entrypoint
 

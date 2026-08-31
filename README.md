@@ -1,114 +1,50 @@
-# ADE 6.0.1 — Durable Engineering Runtime
+# ADE 6.0.11 — Runtime Agent Catalog Registration
 
-ADE 6 replaces agent-to-agent orchestration with a durable local workflow kernel. OpenCode remains the session/model executor; the ADE kernel owns workflow state, scheduling, retries, worker lifecycle, authorization boundaries, reconciliation and canonical completion.
+ADE 6 keeps the durable event-sourced kernel introduced in v6 and adds bounded project self-healing for historical/existing repositories. OpenCode remains the session/model executor; the ADE kernel owns workflow state, scheduling, retries, deterministic evidence, project-policy normalization, authorization boundaries and completion.
 
 ## Core rule
 
-**The runtime coordinates. LLMs are disposable workers.**
+**The runtime coordinates and repairs deterministic ADE state; LLMs remain disposable workers.**
 
-- No active worker can create another worker.
+- No worker can create another worker.
 - No LLM writes canonical workflow state directly.
-- Engineering `DONE` requires deterministic project checks.
-- External mutations remain behind exact-effect, single-use external grants.
-- Canonical workflow state lives outside the repository in a hash-chained event journal.
-- A derived snapshot can be deleted and rebuilt from the journal.
-- Journal corruption puts the kernel into `SAFE_READ_ONLY`.
-- Running jobs use leases; expired leases are reconciled after interruption/restart.
+- SAFE_AUTO_REPAIR may only create/normalize ADE-owned project policy with security-preserving defaults.
+- HUMAN_GATE remains mandatory for policy authorization and every exact-effect high-impact operation.
+- Explicit deny values are never elevated by self-heal.
+- Unknown/malformed historical state fails closed instead of being guessed.
+- Engineering `DONE` still requires deterministic checks.
 
-## Active runtime roles
+## Existing-project self-heal
 
-ADE 6 has 5 active OpenCode agents:
+Before an engineering DAG is created, ADE performs one bounded deterministic reconciliation pass:
 
-| Agent | Kernel role | Mutation authority |
-|---|---|---|
-| `orchestrator` | conversation gateway | none |
-| `explorer` | Analyst worker | read-only |
-| `implementer` | Builder worker | workspace edit only |
-| `verifier` | Verifier worker | read-only; deterministic checks are kernel activities |
-| `reviewer` | Reviewer worker | read-only |
+1. If `.ai/execution-policy.json` is absent, create a secure skeleton with `authorized:false`.
+2. Normalize known schema-1 omissions while preserving unknown/custom fields.
+3. Migrate legacy `runner:"process"` checks missing `allow_host_process` to the explicit process-runner semantics. `allow_host_process:false` remains an absolute veto.
+4. Add only restrictive Docker defaults (`network=none`, `ro`, no workspace writes, no mutable image/network opt-in).
+5. Never auto-authorize the project policy and never issue an exact-effect grant.
 
-The 13 v5 organizational agents remain installed as explicit `disabled: true` tombstones so a managed v6 uninstall can restore the previous release byte-for-byte. They have no v6 capability surface.
+A process check still cannot execute merely because it self-healed: the project policy must already be human-authorized and `ade_project_check` still requires the external single-use `/ade-authorize` grant bound to the exact check definition.
 
-## Durable workflow kinds
+This means old projects no longer fail repeatedly because a managed field or policy file is missing, while security-sensitive intent remains human-controlled.
 
-- `analysis`: Analyst → Reviewer → `DONE`.
-- `engineering`: Analyst → Builder → Verifier + deterministic checks → Reviewer → `DONE`.
-- `implementation_proposal`: Analyst → Builder → Reviewer → `RESULT_PROPOSED`; never silently promoted to verified completion.
-- `tracker_sync`: deterministic tracker activity with exact-effect approval and remote read-back verification.
+## OpenCode beta-18721 worker contract
 
-The gateway uses `ade_workflow_start`, then `ade_workflow_run`. The kernel alone creates worker sessions via OpenCode `session.create → switchAgent → prompt → wait → context`.
+ADE 6.0.11 retains the host-validated worker fix for OpenCode `0.0.0-beta-18721`, source `90fb6562ce09782c311040ba39a9d50edec6ad0e`: canonical `SystemPart`, settled `type:"assistant"` evidence, `Session.Info.outcome` failure taxonomy, and no speculative same-ID wake retry.
 
-## Durable state
+## Install / migrate
 
-Windows:
-
-```text
-%LOCALAPPDATA%\opencode\ade-kernel\<project_hash>\
-  events.jsonl
-  snapshot.json
-  *.lock
-```
-
-Unix:
-
-```text
-$XDG_STATE_HOME/opencode/ade-kernel/<project_hash>/
-```
-
-`events.jsonl` is canonical. Every event contains a monotonic sequence, `prev_hash` and `event_hash`. The snapshot is only a cache.
-
-Legacy `.ai/control.json` is not canonical in v6. If present on first use, a compact legacy state is imported as a non-authoritative event so history is not silently lost.
-
-## Approval model
-
-Repository policy defines the maximum permitted scope but cannot authorize itself. High-impact deterministic activities require an external `/ade-authorize` grant that is:
-
-- outside the repository;
-- exact-effect scoped;
-- project-realpath scoped;
-- short-lived;
-- single-use;
-- atomically consumed before the side effect;
-- revalidated immediately before the side effect.
-
-`--auto` or saved OpenCode `allow` does not replace that grant.
-
-## Upgrade 6.0.0 → 6.0.1
-
-If ADE 6.0.0 is already installed, use the managed patch migration:
+From the 6.0.11 release bundle:
 
 ```powershell
-py -B .\migrate-v6.0.0-to-v6.0.1.py
+py -B .\install-opencode-v6.0.11.py
+# direct from ADE 6.0.10
+py -B .\migrate-opencode-v6.0.10-to-v6.0.11.py
+
 opencode2 service restart
-py -B .\validate-opencode.py --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\validate-opencode-v6.0.11.py
 ```
 
-6.0.1 fixes the ChatGPT/Codex OpenAI HTTP 400 caused by the host lowering ADE generation budgets into `max_output_tokens` on the private Codex responses route. It also makes workflow creation explicit: `ade_workflow_start` persists the DAG and returns `WORKFLOW_STARTED`; `/ade-workflow` shows what is active and what runs next.
+Do not hotpatch the installed plugin and do not use `--force` for the normal 6.0.10 → 6.0.11 migration. The canonical OpenCode `agents` map is reconciled idempotently while non-ADE definitions are preserved.
 
-## Install / replace v5.2.8
-
-From the release bundle:
-
-```powershell
-py -B .\migrate-opencode-v5.2.8-to-v6.0.1.py
-opencode2 service restart
-py -B .\validate-opencode-v6.0.1.py --model "opencode/muse-spark-1.2-contributor-free"
-```
-
-The migration is transactional. Uninstalling v6 restores the managed prior ADE installation from the installer backup. Project-local `.ai/*` files are preserved; v6 simply stops treating legacy state as canonical.
-
-## Verification philosophy
-
-Worker prose is a proposal, not evidence of reality. Engineering completion requires deterministic checks configured in `.ai/execution-policy.json`. If several checks need approval, completed check results are journaled individually; a later `WAITING_APPROVAL` resume does not rerun the Verifier worker or consume a previous grant again.
-
-## Validation surfaces
-
-- Python source regression + static policy.
-- Node functional/plugin tests.
-- TypeScript typecheck.
-- install/migrate/uninstall lifecycle.
-- extracted-ZIP rerun.
-- optional provider/runtime core validation.
-- optional live behavioral matrix.
-
-See `DURABLE_KERNEL.md`, `HARDENING.md`, `VALIDATION.md` and `MIGRATION_v5.2.8_to_v6.0.1.md`.
+`SOURCE_VALIDATED` and `HOST_VALIDATED` remain distinct. Host validation requires a real beta-18721 canary.

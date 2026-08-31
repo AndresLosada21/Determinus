@@ -26,12 +26,16 @@ declare module "@opencode-ai/plugin" {
         list(input?: { location?: { directory?: string; workspace?: string } }): Promise<{ location: LocationInfo; data: readonly any[] }>
       }
       readonly session: {
-        get(input: { sessionID: string }): Promise<{ id?: string; location: { directory: string; workspaceID?: string } }>
+        create(input?: { title?: string; agent?: string; model?: { id: string; providerID: string; variant?: string }; location?: { directory: string; workspaceID?: string } }): Promise<{ id: string; sessionID?: string; location: { directory: string; workspaceID?: string }; agent?: string; model?: { id: string; providerID: string; variant?: string }; outcome?: "succeeded" | "failed" | "interrupted"; tokens?: { input?: number; output?: number; reasoning?: number } }>
+        get(input: { sessionID: string }): Promise<{ id?: string; sessionID?: string; location: { directory: string; workspaceID?: string }; agent?: string; model?: { id: string; providerID: string; variant?: string }; outcome?: "succeeded" | "failed" | "interrupted"; tokens?: { input?: number; output?: number; reasoning?: number } }>
         context(input: { sessionID: string }): Promise<readonly any[]>
+        wait(input: { sessionID: string }): Promise<void>
+        interrupt(input: { sessionID: string; continue?: boolean }): Promise<unknown>
         hook(name: "context" | "retry", callback: (event: any) => void | Promise<void>): Promise<Registration>
-        synthetic(input: { sessionID: string; text: string; description?: string; metadata?: Record<string, unknown>; delivery?: unknown; resume?: boolean }): Promise<unknown>
-        prompt(input: { sessionID: string; text: string; files?: readonly unknown[]; agents?: readonly unknown[]; skills?: readonly unknown[]; metadata?: Record<string, unknown>; delivery?: unknown; resume?: boolean }): Promise<unknown>
+        synthetic(input: { sessionID: string; text: string; description?: string; metadata?: Record<string, unknown>; delivery?: "steer" | "queue"; resume?: boolean }): Promise<unknown>
+        prompt(input: { id?: string; sessionID: string; text: string; files?: readonly unknown[]; agents?: readonly unknown[]; skills?: readonly unknown[]; metadata?: Record<string, unknown>; delivery?: "steer" | "queue"; resume?: boolean }): Promise<{ id: string; sessionID: string; type: "user"; delivery: "steer" | "queue"; payload?: unknown }>
         switchAgent(input: { sessionID: string; agent: string }): Promise<void>
+        switchModel(input: { sessionID: string; model: { id: string; providerID: string; variant?: string } }): Promise<void>
       }
       readonly permission: {
         hook(name: "evaluate", callback: (event: any) => void | Promise<void>): Promise<Registration>

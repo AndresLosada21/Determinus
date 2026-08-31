@@ -1,18 +1,28 @@
-# Validation report — ADE 6.0.1
+# Validation report — ADE 6.0.11
 
-This report is sealed with the final source package. Deterministic source gates: **35/35 Python regression groups, 88/88 Node plugin tests, Static Policy PASS and TypeScript PASS**. Exact hashes are recorded in `RELEASE.json` and the release-bundle validation summary.
+Release classification: **SOURCE_VALIDATED / HOST_VALIDATION_PENDING**.
 
-The v6 validation target is the Durable Engineering Runtime: 5 active workers/gateway agents, 18 managed agent files for rollback compatibility, 34 typed tools, hash-chained external journal, kernel-owned scheduler, leases/reconciliation, deterministic engineering checks and exact-effect external authorization.
+## Deterministic source gates
 
-Real Windows/OpenCode/provider validation remains `RUNTIME_PENDING` until the released artifact is installed on the user's host. Deterministic release gates do not claim live provider compatibility beyond the tested mocks/contracts. The build container has no `opencode2` binary, so host Contract Assurance is intentionally not claimed here.
+- Python regression: **36/36 PASS**.
+- Node plugin tests: **104/104 PASS**.
+- TypeScript: **PASS**.
+- Static Policy: **PASS**.
+- Historical-project self-heal regressions: **PASS**.
+- Explicit `allow_host_process=false` veto preservation: **PASS**.
+- Legacy process-check normalization: **PASS**.
+- Restrictive Docker normalization: **PASS**.
+- Malformed historical policy fail-closed: **PASS**.
+- Plugin runtime/package version consistency gate: **PASS**.
 
-## Deterministic lifecycle
+## Artifact and lifecycle gates
 
-- Fresh install 6.0.1: PASS (`INSTALL_V6_0_1_OK`, manifest schema 7, 18 managed agent files, 5 active agents, 34 tools).
-- Managed patch migration 6.0.0 → 6.0.1: PASS (`MIGRATION_TO_V6_0_1_OK`).
-- Patch rollback 6.0.1 → restore 6.0.0: PASS (`preserved_modified=0`); `agents/orchestrator.md`, plugin `src/index.ts`, and `capabilities.json` restored byte-for-byte; prior manifest restored as package 6.0.0.
-- Managed direct migration 5.2.8 → 6.0.1: PASS (`MIGRATION_TO_V6_0_1_OK`).
-- Rollback 6.0.1 → restore 5.2.8: PASS (`preserved_modified=0`); representative `agents/orchestrator.md` and plugin `src/index.ts` restored byte-for-byte, and prior manifest restored as package 5.2.8.
-- Source-level provider compatibility: PASS — ChatGPT/Codex Responses strips only wire-level `max_output_tokens`; public `api.openai.com/v1/responses` preserves it.
-- Workflow-start UX contract: PASS — `ade_workflow_start` returns `WORKFLOW_STARTED`, `workflow_id`, and `next_action`; `/ade-workflow` exposes active durable state; Orchestrator is instructed to run the workflow in the same turn unless the user explicitly requested plan-only.
-- No active-install hotpatching or behavioral-provider matrix is part of install/migrate.
+A clean extraction of the release candidate source ZIP reran successfully: **36/36 Python, 104/104 Node, TypeScript PASS, Static Policy PASS**.
+
+Fresh managed installation to an isolated OpenCode config target passed and reported package `6.0.11`, manifest schema 7, 18 managed agent files, 5 active agents and 34 tools.
+
+Managed migration **6.0.10 → 6.0.11** passed **without `--force`**. The installer now verifies the canonical active-agent catalog rather than treating managed Markdown files as readiness evidence.
+
+## Host boundary
+
+This build environment does not contain the user's Windows `opencode2 0.0.0-beta-18721` host. Therefore this release is not labeled `HOST_VALIDATED` here. A real host canary must validate project self-heal, exact-effect check execution, and the complete engineering chain.

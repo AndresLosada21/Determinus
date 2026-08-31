@@ -1,12 +1,11 @@
-# Compatibility — ADE 6.0.1
+# Compatibility — ADE 6.0.11
 
-ADE 6 targets the OpenCode V2 Promise plugin API and programmatic session lifecycle used by the durable scheduler (`session.create`, `switchAgent`, `prompt`, `wait`, `context`).
+Target runtime: OpenCode V2 Promise plugin API. Worker-contract decisions remain pinned to OpenCode `0.0.0-beta-18721`, source commit `90fb6562ce09782c311040ba39a9d50edec6ad0e`.
 
-Raw native subagent recursion is not part of the v6 architecture. Installed config uses `experimental.subagent_depth=1` only as a shallow host compatibility setting.
+## Historical project compatibility
 
-The provider compatibility shim from v5.2.7 remains narrowly scoped to known OpenCode Zen free models that only accept `tool_choice=auto`; unknown providers/models are not rewritten.
+ADE 6.0.11 retains bounded SAFE_AUTO_REPAIR for `.ai/execution-policy.json` and registers managed agents with the canonical beta-18721 `agents` config map. Missing policy is created unauthorized; known schema-1 omissions are normalized without replacing unknown/custom fields; malformed or unsupported schemas fail closed.
 
-The major migrator accepts managed ADE v4/v5 manifests, with v5.2.8 as the tested/recommended direct source release. Real OpenCode builds are validated separately because the V2 API is still evolving.
+Legacy `runner=process` entries without `allow_host_process` are migrated to `allow_host_process=true` because choosing the process runner is itself the check-level opt-in. An explicit `allow_host_process=false` remains a hard veto. This does **not** bypass security: project policy authorization remains human-owned and `ade_project_check` still requires an exact-effect external single-use grant before the process is spawned.
 
-## ChatGPT/Codex OpenAI compatibility (6.0.1)
-OpenCode sessions authenticated through ChatGPT/Codex may use `https://chatgpt.com/backend-api/codex/responses` while still reporting `providerID=openai`. On the observed beta-18707 host this route rejects `max_output_tokens` with HTTP 400. ADE keeps its semantic generation budget but removes the incompatible wire field only for that exact host/path in the `http.request` hook. Public `api.openai.com/v1/responses` is not rewritten.
+Docker omissions are repaired only toward restrictive defaults. No network, mutable-image, or workspace-write permission is inferred.

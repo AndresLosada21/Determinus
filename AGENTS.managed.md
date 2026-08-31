@@ -1,5 +1,5 @@
 <!-- AI-DRIVEN-ENGINEERING:BEGIN v6 -->
-## ADE 6.0.1 Durable Engineering Runtime
+## ADE 6.0.10 Durable Engineering Runtime
 
 The ADE kernel is the control plane. LLM agents are disposable workers.
 

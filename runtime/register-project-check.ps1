@@ -6,6 +6,7 @@ param(
     [string]$Executable = '',
     [string[]]$Arguments = @(),
     [string]$WorkingDirectory = '.',
+    [bool]$AllowHostProcess = $true,
     [string]$Image = '',
     [string]$Network = '',
     [string]$ProjectMountTarget = '/workspace',
@@ -33,6 +34,7 @@ if ($null -eq $policy.PSObject.Properties['checks']) { $policy | Add-Member -Not
 $entry = [ordered]@{ owner=$Owner; non_destructive=$true; runner=$Runner; allowed_exit_codes=@($AllowedExitCodes) }
 if ($Runner -eq 'process') {
     if ([string]::IsNullOrWhiteSpace($Executable)) { throw '-Executable é obrigatório para runner=process.' }
+    $entry.allow_host_process = [bool]$AllowHostProcess
     $entry.working_directory = $WorkingDirectory
     $entry.executable = $Executable
     $entry.arguments = @($Arguments)

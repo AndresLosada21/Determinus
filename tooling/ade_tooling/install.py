@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import os
 import shutil
@@ -11,7 +12,7 @@ from typing import Any
 
 from .common import (
     ADEError, AGENTS, PLUGIN_ID, VERSION, assert_safe_chain, assert_tree_no_links, config_env, copy_file_atomic, copy_file_verified,
-    dump_json, find_opencode_cli, is_reparse, iter_files, jsonc_has_extended_syntax, load_jsonc, package_root, read_text, run_cmd, sha256_file,
+    dump_json, find_opencode_cli, is_reparse, iter_files, jsonc_has_extended_syntax, load_jsonc, package_root, parse_frontmatter, read_text, run_cmd, sha256_file,
     secure_file, secure_mkdir, within, write_text,
 )
 from .regression import run_regression
@@ -84,13 +85,50 @@ def _managed_copy(src_root: Path, dst_root: Path, target: Path, backup_root: Pat
     return hashes
 
 
-def _config_candidate(base: dict[str, Any], *, default_agent: bool) -> dict[str, Any]:
+def _agent_definition_hash(value: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")).hexdigest()
+
+
+def managed_agent_definitions(root: Path) -> dict[str, dict[str, Any]]:
+    definitions: dict[str, dict[str, Any]] = {}
+    allowed = {"description", "mode", "hidden", "steps", "disabled", "permissions"}
+    for name in AGENTS:
+        frontmatter, body = parse_frontmatter(root / "agents" / f"{name}.md")
+        definition = {key: value for key, value in frontmatter.items() if key in allowed}
+        definition["system"] = body.strip()
+        definitions[name] = definition
+    return definitions
+
+
+def _merge_managed_agents(base: dict[str, Any], managed: dict[str, dict[str, Any]], previous: dict[str, str] | None) -> dict[str, Any]:
+    existing = base.get("agents")
+    if existing is None:
+        existing = {}
+    if not isinstance(existing, dict):
+        raise ADEError("CONFIG_AGENTS_INVALID: agents must be an object")
+    merged = json.loads(json.dumps(existing))
+    previous = previous or {}
+    for name, definition in managed.items():
+        current = merged.get(name)
+        known = previous.get(name)
+        current_hash = _agent_definition_hash(current) if isinstance(current, dict) else None
+        if current is None or current == definition or (known and current_hash == known):
+            merged[name] = definition
+            continue
+        raise ADEError(f"CONFIG_AGENT_CONFLICT: managed agent {name} has user-owned configuration")
+    return merged
+
+
+def _config_candidate(base: dict[str, Any], *, default_agent: bool, managed_agents: dict[str, dict[str, Any]] | None = None,
+                      previous_agent_hashes: dict[str, str] | None = None) -> dict[str, Any]:
     # ADE v6 creates worker sessions programmatically; raw native subagent recursion is denied.
     # Keep a shallow V2-compatible depth only as a host compatibility guard.
     cfg = json.loads(json.dumps(base))
     cfg.pop("subagent_depth", None)
     if default_agent:
         cfg["default_agent"] = "orchestrator"
+    if managed_agents is not None:
+        cfg["agents"] = _merge_managed_agents(cfg, managed_agents, previous_agent_hashes)
     # Recent OpenCode V2 builds do not discover this package directory implicitly.
     # Keep an explicit relative entry so the managed native plugin and its tools load.
     plugin_entry = "./plugins/ai-driven-engineering"
@@ -119,7 +157,8 @@ def _preflight_config(cli: str | None, candidate: dict[str, Any], config_name: s
         return r.code == 0, r.combined
 
 
-def _patch_config(target: Path, *, default_agent: bool, skip_runtime_check: bool, backup_root: Path, prior: dict[str, str]) -> dict[str, Any]:
+def _patch_config(target: Path, *, root: Path, default_agent: bool, skip_runtime_check: bool, backup_root: Path, prior: dict[str, str],
+                  previous_agent_hashes: dict[str, str] | None = None) -> dict[str, Any]:
     candidates = [target / "opencode.jsonc", target / "opencode.json"]
     path = next((p for p in candidates if p.exists()), candidates[0])
     assert_safe_chain(path.parent)
@@ -129,7 +168,8 @@ def _patch_config(target: Path, *, default_agent: bool, skip_runtime_check: bool
             raise ADEError("CONFIG_JSONC_PRESERVATION_BLOCKED: opencode.jsonc contém comentários/trailing commas; use --no-config-patch e preserve o arquivo manualmente")
     base = load_jsonc(path) if path.exists() else {}
     cli = None if skip_runtime_check else find_opencode_cli()
-    chosen = _config_candidate(base, default_agent=default_agent)
+    managed_agents = managed_agent_definitions(root)
+    chosen = _config_candidate(base, default_agent=default_agent, managed_agents=managed_agents, previous_agent_hashes=previous_agent_hashes)
     ok, detail = _preflight_config(cli, chosen, path.name)
     if not ok:
         raise ADEError(f"CONFIG_PREFLIGHT_FAILED v6 experimental.subagent_depth: {detail}")
@@ -146,7 +186,9 @@ def _patch_config(target: Path, *, default_agent: bool, skip_runtime_check: bool
         r = run_cmd([cli, "debug", "config"], env=config_env(target), timeout=45)
         if r.code != 0:
             raise ADEError(f"CONFIG_POSTWRITE_FAILED: {r.combined}")
-    return {"path": str(path), "old_hash": old_hash, "new_hash": new_hash, "subagent_depth_mode": "experimental-v2", "cli": cli, "cli_version": version_text}
+    registered = chosen.get("agents") or {}
+    hashes = {name: _agent_definition_hash(registered[name]) for name in managed_agents}
+    return {"path": str(path), "old_hash": old_hash, "new_hash": new_hash, "subagent_depth_mode": "experimental-v2", "cli": cli, "cli_version": version_text, "managed_agents_registered": sorted(managed_agents), "managed_agent_hashes": hashes}
 
 
 def _patch_ambient(target: Path, managed: str, backup_root: Path, prior: dict[str, str]) -> dict[str, Any]:
@@ -246,6 +288,10 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
             return raw["files"]
         return {}
 
+    previous_agent_hashes = previous_manifest_data.get("managed_agent_config")
+    if not isinstance(previous_agent_hashes, dict):
+        previous_agent_hashes = {}
+
     try:
         agent_hashes: dict[str, str] = {}
         for name in AGENTS:
@@ -273,7 +319,7 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
             config_candidates=[target / "opencode.jsonc", target / "opencode.json"]
             config_path=next((x for x in config_candidates if x.exists()), config_candidates[0])
             if not config_path.exists(): created_paths.add(config_path)
-            config_info = {"patched": True, **_patch_config(target, default_agent=not no_default_agent, skip_runtime_check=skip_runtime_check, backup_root=backup_root, prior=prior)}
+            config_info = {"patched": True, **_patch_config(target, root=root, default_agent=not no_default_agent, skip_runtime_check=skip_runtime_check, backup_root=backup_root, prior=prior, previous_agent_hashes=previous_agent_hashes)}
 
         ambient_info = {"patched": False}
         if not no_ambient_instructions:
@@ -286,6 +332,7 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
             "package_version": VERSION,
             "plugin": {"id": PLUGIN_ID, "path": str(target / "plugins/ai-driven-engineering"), "files": plugin_hashes, "version": VERSION},
             "agents": agent_hashes,
+            "managed_agent_config": config_info.get("managed_agent_hashes", previous_agent_hashes),
             "skill": {"files": skill_hashes},
             "runtime": {"files": runtime_hashes},
             "tooling": {"files": tooling_hashes, "python": f"{os.sys.version_info.major}.{os.sys.version_info.minor}.{os.sys.version_info.micro}"},
@@ -302,7 +349,7 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
         if config_info.get("patched"):
             print(f"subagent_depth_mode: {config_info.get('subagent_depth_mode')}")
         _prune_backups(backup_base, backup_root, keep=10)
-        print("INSTALL_V6_0_5_OK")
+        print("INSTALL_V6_0_11_OK")
         return manifest
     except Exception as exc:
         # Transactional rollback: delete files created by this attempt, then restore every backed-up original.

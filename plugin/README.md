@@ -1,5 +1,3 @@
-# ADE 6.0.1 OpenCode plugin
+# ADE 6.0.11 OpenCode plugin
 
-The plugin implements the Durable Engineering Runtime. The kernel owns workflow/event state, worker scheduling, leases/reconciliation and deterministic activities. Active OpenCode roles are Orchestrator gateway, Analyst (`explorer`), Builder (`implementer`), Verifier and Reviewer. Legacy v5 roles are disabled tombstones.
-
-Canonical state is an external hash-chained journal. Raw subagent recursion and direct high-impact mutation capabilities are not exposed to active agents.
+Native OpenCode V2 Promise plugin for the ADE durable engineering runtime. The kernel owns durable workflow state and creates disposable ANALYST/BUILDER/VERIFIER/REVIEWER sessions. For beta-18721, worker system context uses canonical `SystemPart`, prompt admission is not output evidence, and canonical assistant evidence must be settled via `time.completed`.

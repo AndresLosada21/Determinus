@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "plugin_id": "ai-driven-engineering.native",
-  "version": "6.0.5",
+  "version": "6.0.11",
   "tools": {
     "ade_status": {
       "capability": "STATUS_READ",

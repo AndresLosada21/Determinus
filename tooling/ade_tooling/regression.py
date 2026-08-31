@@ -18,11 +18,11 @@ def _expect(cond: bool, message: str) -> None:
 def _group_package_layout(root: Path) -> None:
     required = [
         "VERSION","README.md","CHANGELOG.md","COMPATIBILITY.md","HARDENING.md","DURABLE_KERNEL.md",
-        "RELEASE_NOTES_v6.0.0.md","RELEASE_NOTES_v6.0.1.md","RELEASE_NOTES_v6.0.2.md","RELEASE_NOTES_v6.0.3.md","RELEASE_NOTES_v6.0.4.md","RELEASE_NOTES_v6.0.5.md","MIGRATION_v5.2.8_to_v6.0.0.md","MIGRATION_v5.2.8_to_v6.0.1.md","MIGRATION_v6.0.0_to_v6.0.1.md","MIGRATION_v6.0.1_to_v6.0.2.md","MIGRATION_v6.0.2_to_v6.0.3.md","MIGRATION_v6.0.3_to_v6.0.4.md","MIGRATION_v6.0.4_to_v6.0.5.md","VALIDATION.md","VALIDATION_REPORT.md",
+        "RELEASE_NOTES_v6.0.0.md","RELEASE_NOTES_v6.0.1.md","RELEASE_NOTES_v6.0.2.md","RELEASE_NOTES_v6.0.3.md","RELEASE_NOTES_v6.0.4.md","RELEASE_NOTES_v6.0.5.md","RELEASE_NOTES_v6.0.6.md","RELEASE_NOTES_v6.0.7.md","RELEASE_NOTES_v6.0.8.md","RELEASE_NOTES_v6.0.9.md","RELEASE_NOTES_v6.0.10.md","RELEASE_NOTES_v6.0.11.md","MIGRATION_v5.2.8_to_v6.0.0.md","MIGRATION_v5.2.8_to_v6.0.1.md","MIGRATION_v6.0.0_to_v6.0.1.md","MIGRATION_v6.0.1_to_v6.0.2.md","MIGRATION_v6.0.2_to_v6.0.3.md","MIGRATION_v6.0.3_to_v6.0.4.md","MIGRATION_v6.0.4_to_v6.0.5.md","MIGRATION_v6.0.5_to_v6.0.6.md","MIGRATION_v6.0.6_to_v6.0.7.md","MIGRATION_v6.0.7_to_v6.0.8.md","MIGRATION_v6.0.8_to_v6.0.9.md","MIGRATION_v6.0.8_to_v6.0.10.md","MIGRATION_v6.0.9_to_v6.0.10.md","MIGRATION_v6.0.10_to_v6.0.11.md","VALIDATION.md","VALIDATION_REPORT.md",
         "AGENTS.managed.md","opencode-fragment.jsonc","plugin/package.json","plugin/capabilities.json","plugin/src/index.ts",
         "tooling/ade.py","tooling/ade_tooling/common.py","tooling/ade_tooling/install.py","tooling/ade_tooling/migrate.py",
         "tooling/ade_tooling/uninstall.py","tooling/ade_tooling/validate.py","tooling/ade_tooling/smoke.py","tooling/ade_tooling/assurance.py",
-        "build-release.py","install-opencode.py","migrate-v4-to-v5.py","migrate-v6.0.0-to-v6.0.1.py","migrate-v6.0.0-to-v6.0.1.ps1","migrate-v6.0.1-to-v6.0.2.py","migrate-v6.0.1-to-v6.0.2.ps1","migrate-v6.0.2-to-v6.0.3.py","migrate-v6.0.2-to-v6.0.3.ps1","migrate-v6.0.3-to-v6.0.4.py","migrate-v6.0.3-to-v6.0.4.ps1","migrate-v6.0.4-to-v6.0.5.py","migrate-v6.0.4-to-v6.0.5.ps1","uninstall-opencode.py","validate-opencode.py",
+        "build-release.py","install-opencode.py","migrate-v4-to-v5.py","migrate-v6.0.0-to-v6.0.1.py","migrate-v6.0.0-to-v6.0.1.ps1","migrate-v6.0.1-to-v6.0.2.py","migrate-v6.0.1-to-v6.0.2.ps1","migrate-v6.0.2-to-v6.0.3.py","migrate-v6.0.2-to-v6.0.3.ps1","migrate-v6.0.3-to-v6.0.4.py","migrate-v6.0.3-to-v6.0.4.ps1","migrate-v6.0.4-to-v6.0.5.py","migrate-v6.0.4-to-v6.0.5.ps1","migrate-v6.0.5-to-v6.0.6.py","migrate-v6.0.5-to-v6.0.6.ps1","migrate-v6.0.6-to-v6.0.7.py","migrate-v6.0.6-to-v6.0.7.ps1","migrate-v6.0.7-to-v6.0.8.py","migrate-v6.0.7-to-v6.0.8.ps1","migrate-v6.0.8-to-v6.0.9.py","migrate-v6.0.8-to-v6.0.9.ps1","migrate-v6.0.8-to-v6.0.10.py","migrate-v6.0.8-to-v6.0.10.ps1","migrate-v6.0.9-to-v6.0.10.py","migrate-v6.0.9-to-v6.0.10.ps1","uninstall-opencode.py","validate-opencode.py",
     ]
     for rel in required:_expect((root/rel).is_file(),f"PACKAGE_LAYOUT_MISSING: {rel}")
     _expect(len(list((root/"agents").glob("*.md")))==18,"PACKAGE_LAYOUT_AGENT_FILES_MUST_BE_18_FOR_ROLLBACK_COMPAT")
@@ -40,8 +40,18 @@ def _group_version(root: Path) -> None:
     _expect(read_text(root/"VERSION").strip()==VERSION,"VERSION_FILE_MISMATCH")
     _expect(load_json(root/"plugin/package.json").get("version")==VERSION,"PLUGIN_PACKAGE_VERSION_MISMATCH")
     _expect(load_json(root/"plugin/capabilities.json").get("version")==VERSION,"CAPABILITIES_VERSION_MISMATCH")
+    _expect(f'const VERSION = "{VERSION}"' in read_text(root/"plugin/src/index.ts"),"PLUGIN_RUNTIME_VERSION_MISMATCH")
     _expect(f'__version__ = "{VERSION}"' in read_text(root/"tooling/ade_tooling/__init__.py"),"PY_TOOLING_VERSION_MISMATCH")
     _expect(f'VERSION = "{VERSION}"' in read_text(root/"tooling/ade_tooling/common.py"),"COMMON_VERSION_MISMATCH")
+    _expect(f'VERSION = "{VERSION}"' in read_text(root/"build-release.py"),"BUILD_RELEASE_VERSION_MISMATCH")
+    release=load_json(root/"RELEASE.json");_expect(release.get("version")==VERSION,"RELEASE_VERSION_MISMATCH")
+    expected_tests=int((release.get("validation") or {}).get("plugin_tests") or 0)
+    _expect(expected_tests==104,f"RELEASE_NODE_TEST_COUNT_MISMATCH: {expected_tests}")
+    current_docs={"README.md":f"# ADE {VERSION}","COMPATIBILITY.md":f"# Compatibility — ADE {VERSION}","VALIDATION.md":f"# Validation — ADE {VERSION}","VALIDATION_REPORT.md":f"# Validation report — ADE {VERSION}","plugin/README.md":f"# ADE {VERSION}"}
+    for rel,prefix in current_docs.items():_expect(read_text(root/rel).splitlines()[0].startswith(prefix),f"CURRENT_DOC_VERSION_STALE: {rel}")
+    _expect("104/104" in read_text(root/"VALIDATION_REPORT.md"),"VALIDATION_REPORT_NODE_COUNT_STALE")
+    _expect((root/f"RELEASE_NOTES_v{VERSION}.md").is_file(),"CURRENT_RELEASE_NOTES_MISSING")
+    _expect((root/"MIGRATION_v6.0.10_to_v6.0.11.md").is_file(),"CURRENT_MIGRATION_DOC_MISSING")
 
 
 def _group_json(root: Path) -> None:
@@ -96,6 +106,11 @@ def _group_scheduler(root: Path) -> None:
     _expect("ade_delegate" not in cap["tools"],"LEGACY_DELEGATION_SURFACE_PRESENT")
     _expect("managedDelegateExecute" not in src and "DELEGATION_DAG" not in src,"LEGACY_DELEGATION_IMPLEMENTATION_PRESENT")
     _expect("worker_to_worker_delegation" in json.dumps(cap),"WORKER_DELEGATION_POLICY_MISSING")
+    _expect("canonicalSystemTextPart" in src and 'type:"text"' in src,"BETA18721_SYSTEMPART_CONSTRUCTOR_MISSING")
+    _expect("sessionAssistantSettled" in src and "time?.completed" in src,"BETA18721_ASSISTANT_SETTLEMENT_MISSING")
+    _expect("ADE_KERNEL_WORKER_EXECUTION_FAILED" in src and "ADE_KERNEL_WORKER_INTERRUPTED" in src and "ADE_KERNEL_WORKER_INVALID_OUTPUT" in src,"WORKER_FAILURE_TAXONOMY_MISSING")
+    shim=read_text(root/"plugin/types/opencode-v2.d.ts");_expect("prompt(input: { id?: string; sessionID: string;" in shim,"PROMPT_ID_TYPE_SHIM_MISSING")
+    _expect(not re.search(r'event\.system\.push\(\{\s*text\s*:',src),"NONCANONICAL_SYSTEMPART_PRODUCER_PRESENT")
 
 
 def _group_workflow_state_machine(root: Path) -> None:
@@ -163,7 +178,8 @@ def _group_vcs(root: Path) -> None:
 
 def _group_process_docker(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
-    for marker in ("minimalEnv","blockedExecutables","allow_host_process","--network","--read-only","--cap-drop","ALL","no-new-privileges","--pids-limit","allow_mutable_image","allow_network"):_expect(marker in src,f"PROCESS_DOCKER_HARDENING_MISSING: {marker}")
+    for marker in ("minimalEnv","blockedExecutables","allow_host_process","--network","--read-only","--cap-drop","ALL","no-new-privileges","--pids-limit","allow_mutable_image","allow_network","selfHealExecutionPolicy","SAFE_AUTO_REPAIR","legacy-process-opt-in"):_expect(marker in src,f"PROCESS_DOCKER_HARDENING_MISSING: {marker}")
+    register=read_text(root/"runtime/register-project-check.ps1");_expect("allow_host_process" in register and "$AllowHostProcess" in register,"PROCESS_REGISTER_OPT_IN_MISSING")
 
 
 def _group_tracker(root: Path) -> None:
@@ -195,7 +211,7 @@ def _group_config(root: Path) -> None:
 
 def _group_installer(root: Path) -> None:
     text=read_text(root/"tooling/ade_tooling/install.py")
-    for marker in ("AI-DRIVEN-ENGINEERING:BEGIN v6","INSTALL_V6_0_5_OK","Plugin tools: 34"):_expect(marker in text,f"V6_INSTALLER_MARKER_MISSING: {marker}")
+    for marker in ("AI-DRIVEN-ENGINEERING:BEGIN v6","INSTALL_V6_0_11_OK","Plugin tools: 34"):_expect(marker in text,f"V6_INSTALLER_MARKER_MISSING: {marker}")
     _expect("LEGACY_BEGIN" in text and "BEGIN" in text,"V5_TO_V6_AMBIENT_REPLACEMENT_MISSING")
     from .install import _config_candidate
     merged=_config_candidate({"plugins":["vendor-plugin"]},default_agent=True)
@@ -209,6 +225,35 @@ def _group_installer(root: Path) -> None:
     _expect('export { default } from "./src/index.ts"' in read_text(root/"plugin/index.ts"),"PLUGIN_ROOT_ENTRYPOINT_INVALID")
 
 
+def _group_agent_catalog(root: Path) -> None:
+    from .install import _agent_definition_hash, _config_candidate, managed_agent_definitions
+    managed = managed_agent_definitions(root)
+    _expect(set(managed) == set(AGENTS), "AGENT-CATALOG-001: managed definition set invalid")
+    _expect(managed["orchestrator"].get("mode") == "primary", "AGENT-CATALOG-001: orchestrator registration invalid")
+    _expect(managed["product-owner"].get("disabled") is True, "AGENT-CATALOG-001: legacy tombstone registration invalid")
+    user = {"custom-user-agent": {"description": "preserve me", "mode": "primary"}}
+    first = _config_candidate({"agents": user, "plugins": ["vendor-plugin"]}, default_agent=True, managed_agents=managed)
+    _expect(first["agents"]["custom-user-agent"] == user["custom-user-agent"], "AGENT-CATALOG-004: user agent was modified")
+    _expect(set(managed).issubset(first["agents"]), "AGENT-CATALOG-003: managed definitions not registered")
+    second = _config_candidate(first, default_agent=True, managed_agents=managed, previous_agent_hashes={name: _agent_definition_hash(first["agents"][name]) for name in managed})
+    _expect(second == first, "AGENT-CATALOG-003: idempotent registration duplicated or drifted")
+    drifted = {"agents": dict(first["agents"])}
+    drifted["agents"].pop("reviewer")
+    restored = _config_candidate(drifted, default_agent=True, managed_agents=managed, previous_agent_hashes={name: _agent_definition_hash(first["agents"][name]) for name in managed})
+    _expect(restored["agents"]["reviewer"] == managed["reviewer"], "AGENT-CATALOG-005: managed registration not restored")
+    _expect(restored["agents"]["custom-user-agent"] == user["custom-user-agent"], "AGENT-CATALOG-006: custom agent was removed")
+    try:
+        _config_candidate({"agents": {"orchestrator": {"description": "user-owned"}}}, default_agent=True, managed_agents=managed)
+    except ADEError as exc:
+        _expect("CONFIG_AGENT_CONFLICT" in str(exc), "AGENT-CATALOG-006: unexpected managed collision")
+    else:
+        raise ADEError("AGENT-CATALOG-006: user-owned colliding agent overwritten")
+    smoke = read_text(root / "tooling/ade_tooling/smoke.py")
+    _expect("runtime_agent_catalog" in smoke and "ADE_AGENT_CATALOG_INVALID" in smoke, "AGENT-CATALOG-001: runtime catalog validation missing")
+    plugin = read_text(root / "plugin/src/index.ts")
+    _expect("ADE_DOCTOR_AGENT_CATALOG_INVALID" in plugin and "required_agents_ready" in plugin, "AGENT-CATALOG-002: doctor catalog gate missing")
+
+
 def _group_migration(root: Path) -> None:
     text=read_text(root/"tooling/ade_tooling/migrate.py")
     _expect('"5.2.8"' in text,"V5_2_8_DIRECT_MIGRATION_MISSING")
@@ -216,7 +261,10 @@ def _group_migration(root: Path) -> None:
     _expect('"6.0.1"' in text,"V6_0_1_PATCH_MIGRATION_MISSING")
     _expect('"6.0.2"' in text,"V6_0_2_PATCH_MIGRATION_MISSING")
     _expect('"6.0.4"' in text,"V6_0_4_PATCH_MIGRATION_MISSING")
-    _expect("MIGRATION_TO_V6_0_5_OK" in text,"V6_MIGRATION_SUCCESS_MARKER_MISSING")
+    _expect('"6.0.6"' in text,"V6_0_6_PATCH_MIGRATION_MISSING")
+    _expect('"6.0.8"' in text,"V6_0_8_PATCH_MIGRATION_MISSING")
+    _expect('"6.0.10"' in text,"V6_0_10_PATCH_MIGRATION_MISSING")
+    _expect("MIGRATION_TO_V6_0_11_OK" in text,"V6_MIGRATION_SUCCESS_MARKER_MISSING")
 
 
 def _group_manifest(root: Path) -> None:
@@ -234,12 +282,12 @@ def _group_validation(root: Path) -> None:
 
 def _group_node_tests(root: Path) -> None:
     tests="\n".join(read_text(p) for p in (root/"plugin/tests").glob("*.test.mjs"))
-    for marker in ("analysis workflow is event-sourced","tampered journal forces SAFE_READ_ONLY","verification resumes from persisted check progress","tracker_sync workflow stops at WAITING_APPROVAL","workers cannot access kernel store"):_expect(marker in tests,f"V6_FUNCTIONAL_TEST_MISSING: {marker}")
+    for marker in ("analysis workflow is event-sourced","tampered journal forces SAFE_READ_ONLY","verification resumes from persisted check progress","tracker_sync workflow stops at WAITING_APPROVAL","workers cannot access kernel store","INC-BETA18721-WORKER-ZERO-TOKEN","canonical beta-18721 assistant must be settled"):_expect(marker in tests,f"V6_FUNCTIONAL_TEST_MISSING: {marker}")
 
 
 def _group_docs(root: Path) -> None:
-    for rel in ("README.md","DURABLE_KERNEL.md","RELEASE_NOTES_v6.0.1.md","RELEASE_NOTES_v6.0.2.md","RELEASE_NOTES_v6.0.3.md","RELEASE_NOTES_v6.0.4.md","MIGRATION_v6.0.0_to_v6.0.1.md","MIGRATION_v6.0.1_to_v6.0.2.md","MIGRATION_v6.0.2_to_v6.0.3.md","MIGRATION_v6.0.3_to_v6.0.4.md","MIGRATION_v5.2.8_to_v6.0.1.md","VALIDATION.md","HARDENING.md"):
-        text=read_text(root/rel);_expect("6.0.1" in text or "v6" in text.lower(),f"V6_DOC_NOT_UPDATED: {rel}")
+    for rel in ("README.md","DURABLE_KERNEL.md","RELEASE_NOTES_v6.0.11.md","MIGRATION_v6.0.10_to_v6.0.11.md","VALIDATION.md","VALIDATION_REPORT.md","COMPATIBILITY.md","HARDENING.md"):
+        text=read_text(root/rel);_expect("6.0.11" in text or "v6" in text.lower(),f"V6_DOC_NOT_UPDATED: {rel}")
     _expect("agents are workers" in read_text(root/"DURABLE_KERNEL.md").lower() or "workers" in read_text(root/"DURABLE_KERNEL.md").lower(),"DURABLE_KERNEL_WORKER_MODEL_UNDOCUMENTED")
 
 
@@ -284,7 +332,7 @@ GROUPS: list[tuple[str, Callable[[Path], None]]] = [
     ("mutation-serialization",_group_mutation_serialization),("exact-effect-authorization",_group_authorization),("grant-store-isolation",_group_grant_store),
     ("provider-wire-compat",_group_provider_compat),("provider-circuit-breaker",_group_retry),("secret-boundaries",_group_secrets),
     ("vcs-hardening",_group_vcs),("process-docker-hardening",_group_process_docker),("tracker-deterministic-activity",_group_tracker),
-    ("v6-commands",_group_commands),("skill-reference-only",_group_skill),("opencode-config",_group_config),("v6-installer",_group_installer),
+    ("v6-commands",_group_commands),("skill-reference-only",_group_skill),("opencode-config",_group_config),("v6-installer",_group_installer),("agent-catalog",_group_agent_catalog),
     ("v5-to-v6-migration",_group_migration),("manifest-reporting",_group_manifest),("runtime-validation",_group_validation),
     ("functional-node-coverage",_group_node_tests),("v6-docs",_group_docs),("docs-integrity",_group_docs_integrity),
     ("python-backed-wrappers",_group_wrappers),("package-hygiene",_group_hygiene),("release-integrity",_group_release),

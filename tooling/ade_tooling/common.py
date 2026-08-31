@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-VERSION = "6.0.5"
+VERSION = "6.0.11"
 PLUGIN_ID = "ai-driven-engineering.native"
 AGENTS = [
     "orchestrator","product-owner","project-manager","engineer","explorer","researcher",
@@ -438,7 +438,12 @@ def parse_frontmatter(path: Path) -> tuple[dict[str, Any], str]:
             m = re.match(r"^([A-Za-z0-9_-]+):\s*(.*?)\s*$", line)
             if m:
                 value = m.group(2).strip().strip('"\'')
-                if value.isdigit():
+                low = value.lower()
+                if low == "true":
+                    result[m.group(1)] = True
+                elif low == "false":
+                    result[m.group(1)] = False
+                elif value.isdigit():
                     result[m.group(1)] = int(value)
                 else:
                     result[m.group(1)] = value

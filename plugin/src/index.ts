@@ -6,7 +6,7 @@ import crypto from "node:crypto"
 import os from "node:os"
 import { fileURLToPath } from "node:url"
 
-const VERSION = "6.0.5"
+const VERSION = "6.0.11"
 const PLUGIN_ID = "ai-driven-engineering.native"
 const TOOL_PREFIX = "ade_"
 const pluginDefine = typeof (OpenCodePlugin as any)?.Plugin?.define === "function"
@@ -225,9 +225,12 @@ function kernelContextCapsule(state:any,wf:any,job:any):any{
 }
 function kernelFailureDomain(error:any):string{
   const text=asError(error).toLowerCase()
+  if(text.includes("ade_kernel_worker_execution_failed"))return "WORKER_EXECUTION_FAILED"
+  if(text.includes("ade_kernel_worker_interrupted")||text.includes("ade_kernel_worker_execution_interrupted"))return "WORKER_INTERRUPTED"
+  if(text.includes("ade_kernel_worker_invalid_output"))return "WORKER_INVALID_OUTPUT"
   if(text.includes("tool_choice")||text.includes("named function")||text.includes("only \"auto\""))return "PROVIDER_CAPABILITY"
   if(text.includes("429")||text.includes("rate limit"))return "PROVIDER_TRANSIENT"
-  if(text.includes("timeout"))return "WORKER_TIMEOUT"
+  if(text.includes("ade_kernel_worker_timeout")||text.includes("timeout"))return "WORKER_TIMEOUT"
   if(text.includes("authorization")||text.includes("grant"))return "AUTHORIZATION"
   if(text.includes("policy")||text.includes("blocked"))return "POLICY"
   return "WORKER_FAILURE"
@@ -716,6 +719,36 @@ async function initProject(root:string,pluginRoot:string,workItem:string,profile
   for(const logName of ["audit.jsonl","evidence.jsonl","telemetry.jsonl","handoffs.jsonl"]){const log=path.join(ai,logName);if(!(await exists(log))){await writeTextAtomic(log,"");created.push(logName)}else preserved.push(logName)}
   return {ai,work_item_id:workItem,profile,created,preserved}
 }
+type ProjectSelfHealResult = {changed:boolean;actions:string[];human_gates:string[]}
+function defaultExecutionPolicy(){return {schema_version:1,authorized:false,policy_owner:"human",cross_workspace_git_metadata:true,checks:{},hardening_defaults:{process_environment:"minimal; opt-in allowlist per check",docker_network:"none unless allow_network=true",docker_rootfs:"read-only",docker_capabilities:"drop ALL",docker_no_new_privileges:true,docker_image:"sha256 digest required unless allow_mutable_image=true",host_process:"runner=process is an explicit check-level opt-in; allow_host_process=false is an explicit veto; exact-effect human grant remains mandatory"}}}
+async function selfHealExecutionPolicy(root:string):Promise<ProjectSelfHealResult>{
+  await assertProjectStateBoundary(root,true)
+  const policyPath=path.join(root,".ai","execution-policy.json"),actions:string[]=[],human_gates:string[]=[]
+  if(!(await exists(policyPath))){await writeJsonAtomic(policyPath,defaultExecutionPolicy());actions.push("created:.ai/execution-policy.json:secure-default");return {changed:true,actions,human_gates:["execution-policy authorization required"]}}
+  const st=await fs.lstat(policyPath);if(st.isSymbolicLink()||!st.isFile())throw new Error("ADE_PROJECT_SELF_HEAL_BLOCKED: execution-policy.json must be a regular non-symlink file")
+  let policy:any;try{policy=await readJson(policyPath)}catch(e){throw new Error(`ADE_PROJECT_SELF_HEAL_BLOCKED: execution-policy.json invalid JSON: ${cleanErrorText(asError(e),300)}`)}
+  if(!policy||typeof policy!=="object"||Array.isArray(policy))throw new Error("ADE_PROJECT_SELF_HEAL_BLOCKED: execution-policy.json root must be an object")
+  const schema=policy.schema_version==null?1:Number(policy.schema_version);if(schema!==1)throw new Error(`ADE_PROJECT_SELF_HEAL_BLOCKED: unsupported execution policy schema_version=${String(policy.schema_version)}`)
+  let changed=false
+  if(policy.schema_version!==1){policy.schema_version=1;actions.push("normalized:policy.schema_version=1");changed=true}
+  if(typeof policy.authorized!=="boolean"){policy.authorized=false;actions.push("normalized:policy.authorized=false");changed=true}
+  if(typeof policy.policy_owner!=="string"||!policy.policy_owner.trim()){policy.policy_owner="human";actions.push("normalized:policy.policy_owner=human");changed=true}
+  if(!policy.checks||typeof policy.checks!=="object"||Array.isArray(policy.checks)){policy.checks={};actions.push("normalized:policy.checks={}");changed=true}
+  for(const [name,raw] of Object.entries(policy.checks||{})){
+    const c:any=raw;if(!c||typeof c!=="object"||Array.isArray(c)){human_gates.push(`check:${name}:invalid-definition`);continue}
+    const runner=String(c.runner||"")
+    if(runner==="process"){
+      if(c.allow_host_process===undefined){c.allow_host_process=true;actions.push(`migrated:${name}:legacy-process-opt-in`);changed=true}
+      else if(c.allow_host_process===false)human_gates.push(`check:${name}:allow_host_process=false`)
+    } else if(runner==="docker"){
+      const defaults:any={network:"none",project_mount_mode:"ro",allow_workspace_writes:false,allow_network:false,allow_mutable_image:false}
+      for(const [k,v] of Object.entries(defaults))if(c[k]===undefined){c[k]=v;actions.push(`normalized:${name}:${k}=${String(v)}`);changed=true}
+    }
+  }
+  if(changed)await writeJsonAtomic(policyPath,policy)
+  if(policy.authorized!==true)human_gates.push("execution-policy authorization required")
+  return {changed,actions,human_gates}
+}
 async function withProjectLock<T>(root:string,scope:string,fn:()=>Promise<T>):Promise<T>{await assertProjectStateBoundary(root,true);const lockDir=path.join(root,".ai","locks");await fs.mkdir(lockDir,{recursive:true,mode:0o700});return withFileLock(path.join(lockDir,`${scope}.lock`),5000,fn)}
 function minimalEnv(extra:NodeJS.ProcessEnv={}):NodeJS.ProcessEnv{const keep=["PATH","Path","PATHEXT","SystemRoot","WINDIR","COMSPEC","HOME","USERPROFILE","TMP","TEMP","TMPDIR","LANG","LC_ALL","TERM"];const env:NodeJS.ProcessEnv={};for(const k of keep)if(process.env[k]!=null)env[k]=process.env[k];for(const [k,v] of Object.entries(extra))if(v!=null)env[k]=v;return env}
 function vcsEnv():NodeJS.ProcessEnv{const extra:NodeJS.ProcessEnv={};for(const k of ["SSH_AUTH_SOCK","GIT_ASKPASS","GIT_SSH","GIT_SSH_COMMAND"])if(process.env[k]!=null)extra[k]=process.env[k];return minimalEnv(extra)}
@@ -964,7 +997,7 @@ async function nativeProjectCheck(root:string,name:string,expectedOwner:"verifie
   const allowed=Array.isArray(c.allowed_exit_codes)?c.allowed_exit_codes.map(Number):[0]
   if(!allowed.length||allowed.length>16||allowed.some((x:any)=>!Number.isInteger(x)||x<0||x>255))throw new Error("PROJECT_CHECK_BLOCKED: allowed_exit_codes inválido")
   if(c.runner==="process") {
-    if(c.allow_host_process!==true)throw new Error("PROJECT_CHECK_BLOCKED: process runner exige allow_host_process=true; prefira docker sandbox")
+    if(c.allow_host_process===false)throw new Error("PROJECT_CHECK_BLOCKED: process runner explicitamente vetado por allow_host_process=false")
     const cwd=await safeExistingRealPath(root,String(c.working_directory || "."),"working_directory"); const cwdStat=await fs.stat(cwd); if(!cwdStat.isDirectory()) throw new Error("PROJECT_CHECK_BLOCKED: working_directory não é diretório")
     let exe=String(c.executable||""); if(!exe) throw new Error("PROJECT_CHECK_BLOCKED: executable ausente")
     const blockedExecutables=new Set(["pwsh","pwsh.exe","powershell","powershell.exe","cmd","cmd.exe","bash","sh","zsh","fish","wsl","docker","podman","git"])
@@ -1023,10 +1056,31 @@ function sessionMessageText(message:any):string{
   for(const part of parts)if(part&&typeof part==="object"&&part.type==="text"&&typeof part.text==="string")texts.push(part.text)
   return texts.join("\n").trim()
 }
+function sessionMessageKind(message:any):string{
+  // OpenCode V2 SessionMessageInfo is discriminated by `type`; legacy/compat
+  // surfaces may still expose `role` or `info.role`. Legacy parsing remains
+  // explicit compatibility only; canonical V2 worker evidence uses `type`.
+  return String(message?.type||message?.role||message?.info?.role||"").toLowerCase()
+}
+function sessionAssistantSettled(message:any):boolean{
+  if(sessionMessageKind(message)!=="assistant")return false
+  // beta-18721 canonical Assistant messages always carry `time`; `completed`
+  // marks terminal settlement after streaming/tool work. Never promote an
+  // incomplete canonical assistant to durable worker evidence. Legacy surfaces
+  // without a canonical `type` remain parser-compatible.
+  if(String(message?.type||"").toLowerCase()==="assistant")return Boolean(message?.time?.completed)
+  return true
+}
 function latestAssistantText(messages:any[]):string{
-  // Never treat the queued worker capsule (a user message) as worker output.
-  for(let i=(messages||[]).length-1;i>=0;i--){const m=messages[i],text=sessionMessageText(m);if(!text)continue;const role=String(m?.role||m?.info?.role||"").toLowerCase();if(role==="assistant")return redactSensitiveText(text,6000)}
+  // Never treat the admitted worker prompt/capsule (`type: user`) as output.
+  // beta-18721 returns an admission receipt from session.prompt and exposes
+  // the generated assistant message through session.context after session.wait.
+  for(let i=(messages||[]).length-1;i>=0;i--){const m=messages[i],text=sessionMessageText(m);if(!text)continue;if(sessionAssistantSettled(m))return redactSensitiveText(text,6000)}
   return ""
+}
+function canonicalSystemTextPart(text:string):{type:"text",text:string}{
+  if(typeof text!=="string")throw new Error("ADE_KERNEL_WORKER_CONTEXT_INVALID: SystemPart.text must be a string")
+  return {type:"text",text}
 }
 async function waitWorkerWithTimeout(ctx:any,sessionID:string,timeoutMs:number):Promise<void>{
   let timer:any
@@ -1042,6 +1096,20 @@ export default pluginDefine({
     const pluginRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..")
     const capabilityRegistry=await readJson(path.join(pluginRoot,"capabilities.json"))
     const agentTools: Record<string, readonly string[]> = capabilityRegistry.agents || {}
+    const requiredActiveAgents=Object.keys(agentTools)
+    const agentCatalog=(agents:readonly any[])=>{
+      const discovered=new Set(agents.map((agent:any)=>String(agent?.id||"")))
+      const missing=requiredActiveAgents.filter(id=>!discovered.has(id))
+      return {
+        agent_files_present:"RUNTIME_AGENT_CATALOG_UNVERIFIED",
+        agent_config_registered:"RUNTIME_AGENT_CATALOG_UNVERIFIED",
+        agent_catalog_discovered:missing.length===0,
+        required_agents_ready:missing.length===0,
+        required_active_agents:requiredActiveAgents,
+        discovered_required_agents:requiredActiveAgents.filter(id=>discovered.has(id)),
+        missing_required_agents:missing,
+      }
+    }
     const hideCore: Record<string, readonly string[]> = capabilityRegistry.hide_core_tools || {}
     const registered = Object.keys(capabilityRegistry.tools || {})
     const retrySignatures=new Map<string,number>()
@@ -1062,7 +1130,7 @@ export default pluginDefine({
       if(agentTools[agent]) delete event.tools.subagent
       if(["explorer","implementer","verifier","reviewer"].includes(agent)){
         event.system ??=[]
-        event.system.push({text:"ADE v6 WORKER RUNTIME (authoritative): you are a disposable worker for exactly one durable job. Never delegate, never coordinate another worker, never mutate canonical workflow state, and never claim canonical DONE. Return only a factual proposal/result; the kernel observes side effects and decides state."})
+        event.system.push(canonicalSystemTextPart("ADE v6 WORKER RUNTIME (authoritative): you are a disposable worker for exactly one durable job. Never delegate, never coordinate another worker, never mutate canonical workflow state, and never claim canonical DONE. Return only a factual proposal/result; the kernel observes side effects and decides state."))
       }
       const budget=Number(generationBudgets[agent]||0); if(budget>0) event.generation.maxTokens=budget
       try { const scope=await resolveSessionScope(ctx,String(event.sessionID||"")); if(await exists(controlPaths(scope.root).control)){ const est=estimateContext(event); await appendJsonl(controlPaths(scope.root).telemetry,{ts:now(),kind:"model.dispatch",session_ref:crypto.createHash("sha256").update(String(event.sessionID||"")).digest("hex").slice(0,16),agent:agent||"unknown",provider:String(event.model?.providerID||""),model:String(event.model?.id||event.model?.modelID||""),generation_budget:budget,...est}) } } catch {}
@@ -1334,13 +1402,30 @@ export default pluginDefine({
       const actual=await resolveAuthorizationFingerprint(root,name,input)
       if(actual!==expected)throw new Error(`ADE_AUTHORIZATION_STALE: ${name} target/effect changed after grant; re-authorize exact operation`)
     }
+    const engineeringWorkflowPreflight=async(root:string,input:any)=>{
+      if(String(input?.kind||"engineering")!=="engineering")return {changed:false,actions:[],human_gates:[]} as ProjectSelfHealResult
+      const checks=Array.isArray(input?.check_names)?input.check_names.map((x:any)=>String(x).trim()).filter(Boolean):[]
+      if(!checks.length)return {changed:false,actions:[],human_gates:[]} as ProjectSelfHealResult // kernelWorkflowPlan owns the canonical missing-check error
+      const heal=await selfHealExecutionPolicy(root)
+      const policy=await readProjectJson(root,".ai/execution-policy.json","execution policy")
+      const available=Object.keys(policy.checks||{}).sort()
+      if(policy.authorized!==true)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: execution policy authorized=false after SAFE_AUTO_REPAIR; no workers were started. Human review/authorization is required before engineering; requested=[${checks.join(",")}]; available=[${available.join(",")}]; self_heal=[${heal.actions.join(";")||"none"}]`)
+      for(const name of checks){
+        const c=policy.checks?.[name]
+        if(!c)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: deterministic check '${name}' is not registered; no workers were started; available=[${available.join(",")}]; self_heal=[${heal.actions.join(";")||"none"}]`)
+        if(c.owner!=="verifier"||c.non_destructive!==true)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: deterministic check '${name}' must be owner=verifier and non_destructive=true; no workers were started`)
+        if(c.runner==="process"&&c.allow_host_process===false)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: deterministic check '${name}' explicitly denies host process via allow_host_process=false; no workers were started`)
+      }
+      return heal
+    }
     const kernelStartWorkflow=async(root:string,input:any)=>{
+      const selfHeal=await engineeringWorkflowPreflight(root,input)
       await kernelEnsureInitialized(root)
       const current=await kernelLoad(root)
       if(current.active_workflow_id){const active=current.workflows?.[current.active_workflow_id];if(active&&!KERNEL_TERMINAL_WORKFLOW.has(String(active.status)))throw new Error(`ADE_WORKFLOW_CONFLICT: active workflow ${active.id} status=${active.status}`)}
       const plan=kernelWorkflowPlan(input),drafts:any[]=[{type:"WORKFLOW_CREATED",payload:{workflow:plan.workflow}},...plan.jobs.map(job=>({type:"JOB_CREATED",payload:{job}}))]
       const state=await kernelAppendDrafts(root,drafts),snapshot=kernelWorkflowPublic(state,plan.workflow.id)
-      return {event:"WORKFLOW_STARTED",workflow_id:plan.workflow.id,...snapshot,next_action:{tool:"ade_workflow_run",input:{workflow_id:plan.workflow.id,max_jobs:4}},note:"ade_workflow_start only persists the durable workflow DAG; no worker session runs until ade_workflow_run."}
+      return {event:"WORKFLOW_STARTED",workflow_id:plan.workflow.id,...snapshot,project_self_heal:selfHeal,next_action:{tool:"ade_workflow_run",input:{workflow_id:plan.workflow.id,max_jobs:4}},note:"ade_workflow_start performs bounded SAFE_AUTO_REPAIR for ADE-owned project policy, then persists the durable workflow DAG; no worker session runs until ade_workflow_run. Security-sensitive gates remain human-controlled."}
     }
     const kernelWorkerSession=async(root:string,parentSessionID:string,wf:any,job:any,t:any)=>{
       const capsule=kernelContextCapsule(await kernelLoad(root),wf,job),agent=KERNEL_WORKER_AGENT[job.type]
@@ -1353,11 +1438,25 @@ export default pluginDefine({
         await ctx.session.switchAgent({sessionID,agent})
         try{const p=await ctx.session.get({sessionID:parentSessionID}),m=p?.model||p?.info?.model,providerID=String(m?.providerID||""),id=String(m?.id||m?.modelID||"");if(providerID&&id&&typeof ctx.session.switchModel==="function")await ctx.session.switchModel({sessionID,model:{providerID,id}})}catch{}
         if(typeof t?.progress==="function")try{await t.progress({status:"kernel-worker",workflow_id:wf.id,job_id:job.id,job_type:job.type,worker_agent:agent})}catch{}
-        // A child has no running turn to steer later. Dispatch it immediately, then wait for its assistant result.
-        const response=await ctx.session.prompt({sessionID,text:kernelWorkerPrompt(capsule),delivery:"steer"})
+        // OpenCode V2 beta-18721 session.prompt returns a SessionInboxUser
+        // admission receipt, not the generated assistant message. `steer` is a
+        // valid V2 delivery mode and resume defaults to true. Wait for the child
+        // to become idle, then read the canonical SessionMessageInfo context.
+        await ctx.session.prompt({sessionID,text:kernelWorkerPrompt(capsule),delivery:"steer"})
         await waitWorkerWithTimeout(ctx,sessionID,KERNEL_WORKER_TIMEOUT_MS)
-        const messages=await ctx.session.context({sessionID}),summary=latestAssistantText([response,...(messages as any[])])
-        if(!summary.trim())throw new Error("ADE_KERNEL_WORKER_INVALID_OUTPUT: empty assistant result")
+        const messages=await ctx.session.context({sessionID}),summary=latestAssistantText(messages as any[])
+        if(!summary.trim()){
+          const kinds=(messages as any[]).map(sessionMessageKind).filter(Boolean).slice(-8).join(",")||"none"
+          let outcome="",tokens="unknown"
+          try{
+            const post=await ctx.session.get({sessionID});outcome=String(post?.outcome||post?.info?.outcome||"")
+            const usage=post?.tokens||post?.info?.tokens
+            if(usage&&typeof usage==="object")tokens=`input=${Number(usage.input||0)},output=${Number(usage.output||0)},reasoning=${Number(usage.reasoning||0)}`
+          }catch{}
+          if(outcome==="failed")throw new Error(`ADE_KERNEL_WORKER_EXECUTION_FAILED: outcome=failed; context_kinds=${kinds}; tokens=${tokens}`)
+          if(outcome==="interrupted")throw new Error(`ADE_KERNEL_WORKER_INTERRUPTED: outcome=interrupted; context_kinds=${kinds}; tokens=${tokens}`)
+          throw new Error(`ADE_KERNEL_WORKER_INVALID_OUTPUT: empty assistant result; outcome=${outcome||"unknown"}; context_kinds=${kinds}; tokens=${tokens}`)
+        }
         return {session_id:sessionID,session_ref:sha256Hex(sessionID).slice(0,16),agent,summary:summary.slice(0,6000),capsule_hash:capsule.context_hash}
       }catch(e){try{await ctx.session.interrupt({sessionID,continue:false})}catch{};throw e}
     }
@@ -1507,7 +1606,7 @@ export default pluginDefine({
       add("ade_status","Read canonical ADE v6 durable-kernel state. Repository .ai/control.json is legacy/non-authoritative.",schemaObject({}),async i=>{const root=projectRoot(ctx,i);try{const state=await kernelEnsureInitialized(root);return {plugin:{id:PLUGIN_ID,version:VERSION,opencode:ctx.app?.version},project_root:root,kernel_store:"external-user-state",canonical_state:"hash-chained-event-journal",...kernelWorkflowPublic(state)}}catch(e){return {plugin:{id:PLUGIN_ID,version:VERSION,opencode:ctx.app?.version},project_root:root,status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),900)}}})
       add("ade_route_snapshot","Return the minimal state-driven routing decision for the current ADE state.",schemaObject({}),async i=>{const root=projectRoot(ctx,i),control=await getControl(root); return {status:"OBSERVADO",revision:Number(control.revision||0),global_status:control.global_status,routing_hint:routingHint(control),handoff_advisory:handoffAdvisory(control),planes:{product:compactPlane(control.product),delivery:compactPlane(control.delivery),engineering:compactPlane(control.engineering)},recent_handoffs:(Array.isArray(control.recent_handoffs)?control.recent_handoffs:[]).slice(-3)}})
       add("ade_handoff_submit","Publish the canonical bounded handoff consumed by ADE routing instead of relying on free-form child prose.",schemaObject({status:str({enum:["DONE","PARTIAL","BLOCKED","FAILED"]}),changed:boundedStringArray(8,180),evidence_refs:boundedStringArray(8,240),blocker:str({maxLength:800}),required_owner:str({enum:["none","orchestrator","product-owner","project-manager","engineer"]}),next:str({maxLength:500})},["status"]),async(i,t)=>submitHandoff(projectRoot(ctx,i),i,String(t?.agent||"unknown"),String(t?.sessionID||"")))
-      add("ade_doctor","Inspect ADE v6/OpenCode runtime and durable-kernel health without exposing credentials.",schemaObject({}),async i=>{const root=projectRoot(ctx,i); const agentsR=await ctx.agent.list({location:i.__ade_location}); const skillsR=await ctx.skill.list({location:i.__ade_location}); const pluginsR=await ctx.plugin.list({location:i.__ade_location}); const agents=agentsR.data||[],skills=skillsR.data||[],plugins=pluginsR.data||[]; let vcs:any; try{const r=await ctx.vcs.get({location:i.__ade_location});vcs=r.data}catch(e){vcs={error:asError(e)}};let kernel:any;try{const state=await kernelEnsureInitialized(root),kp=await kernelPaths(root);kernel={status:"HEALTHY",revision:state.revision,store:path.basename(kp.dir),active_workflow_id:state.active_workflow_id,event_hash_chain:true}}catch(e){kernel={status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),700)}}; return {status:"ADE_DOCTOR_OK",version:VERSION,architecture:"DURABLE_ENGINEERING_RUNTIME",opencode:ctx.app?.version,project_root:root,canonical_root:i.__ade_canonical,agents_present:Object.keys(agentTools).filter(id=>agents.some((a:any)=>a.id===id||a.name===id)),active_worker_roles:Object.keys(KERNEL_WORKER_AGENT),skill_present:skills.some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:plugins.some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),vcs,kernel,legacy_ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered}})
+      add("ade_doctor","Inspect ADE v6/OpenCode runtime and durable-kernel health without exposing credentials.",schemaObject({}),async i=>{const root=projectRoot(ctx,i); const agentsR=await ctx.agent.list({location:i.__ade_location}); const skillsR=await ctx.skill.list({location:i.__ade_location}); const pluginsR=await ctx.plugin.list({location:i.__ade_location}); const agents=agentsR.data||[],skills=skillsR.data||[],plugins=pluginsR.data||[],catalog=agentCatalog(agents); let vcs:any; try{const r=await ctx.vcs.get({location:i.__ade_location});vcs=r.data}catch(e){vcs={error:asError(e)}};let kernel:any;try{const state=await kernelEnsureInitialized(root),kp=await kernelPaths(root);kernel={status:"HEALTHY",revision:state.revision,store:path.basename(kp.dir),active_workflow_id:state.active_workflow_id,event_hash_chain:true}}catch(e){kernel={status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),700)}}; return {status:catalog.required_agents_ready?"ADE_DOCTOR_OK":"ADE_DOCTOR_AGENT_CATALOG_INVALID",version:VERSION,architecture:"DURABLE_ENGINEERING_RUNTIME",opencode:ctx.app?.version,project_root:root,canonical_root:i.__ade_canonical,agents_present:catalog.discovered_required_agents,active_worker_roles:Object.keys(KERNEL_WORKER_AGENT),...catalog,skill_present:skills.some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:plugins.some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),vcs,kernel,legacy_ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered}})
       add("ade_workflow_start","Persist one durable ADE v6 workflow DAG and return immediately; this does NOT run workers. Call ade_workflow_run next. Engineering workflows require deterministic check_names; tracker_sync requires exact tracker_updates.",schemaObject({objective:str({minLength:1,maxLength:2400}),kind:str({enum:["analysis","engineering","implementation_proposal","tracker_sync"]}),risk:str({enum:["LOW","MEDIUM","HIGH","CRITICAL"]}),check_names:boundedStringArray(8,120),tracker_updates:{type:"array",maxItems:50,items:schemaObject({external_id:str({maxLength:120}),item_id:str({maxLength:160}),fields:{type:"array",minItems:1,maxItems:10,items:schemaObject({name:str({minLength:1,maxLength:120}),value:str({maxLength:240})},["name","value"])}},["fields"])}},["objective","kind"]),async i=>kernelStartWorkflow(projectRoot(ctx,i),i))
       add("ade_workflow_run","Run ready durable jobs synchronously. The kernel alone creates worker sessions, owns leases/retries, and stops on approval/blockers.",schemaObject({workflow_id:str({minLength:1,maxLength:120}),max_jobs:integer({minimum:1,maximum:8})},["workflow_id"]),async(i,t)=>kernelRunWorkflow(projectRoot(ctx,i),String(i.workflow_id),Number(i.max_jobs||4),t))
       add("ade_workflow_snapshot","Read a durable workflow reconstructed from the hash-chained event journal.",schemaObject({workflow_id:str({maxLength:120})}),async i=>{const root=projectRoot(ctx,i);try{const state=await kernelEnsureInitialized(root);return kernelWorkflowPublic(state,String(i.workflow_id||"")||undefined)}catch(e){return {status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),900)}}})
@@ -1573,7 +1672,7 @@ export default pluginDefine({
       draft.add({name:"ade-init",description:"Initialize ADE project configuration and create the external v6 durable kernel. Usage: /ade-init [WORK-ITEM] [LEAN|STANDARD|HIGH_ASSURANCE]",execute:async({sessionID,prompt}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;const req=parseInitRequest(prompt);const initialized=await initProject(root,pluginRoot,req.workItem,req.profile);const kernel=await kernelEnsureInitialized(root);await ctx.session.synthetic({sessionID,text:`ADE_INIT_OK v${VERSION}: config=${initialized.ai} | kernel=external | kernel_revision=${kernel.revision} | work_item=${initialized.work_item_id} | profile=${initialized.profile} | created=${initialized.created.length} | preserved=${initialized.preserved.length}`})}})
       draft.add({name:"ade-status",description:"Show ADE v6 durable-kernel state",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;try{const state=await kernelEnsureInitialized(root);await ctx.session.synthetic({sessionID,text:JSON.stringify(kernelWorkflowPublic(state),null,2)})}catch(e){await ctx.session.synthetic({sessionID,text:`ADE SAFE_READ_ONLY: ${cleanErrorText(asError(e))}`})}}})
       draft.add({name:"ade-workflow",description:"Show the active durable workflow, next runnable job, and how to continue; custom ADE tool rows in the TUI are not task cards.",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;try{const state=await kernelEnsureInitialized(root),pub=kernelWorkflowPublic(state),id=state.active_workflow_id,jobs=id?kernelWorkflowJobs(state,id):[],next=jobs.find((j:any)=>j.status==="WAITING_APPROVAL")||jobs.find((j:any)=>j.status==="READY")||jobs.find((j:any)=>j.status==="RUNNING")||null;await ctx.session.synthetic({sessionID,text:JSON.stringify({status:"ADE_WORKFLOW_STATUS",kernel:pub,next_job:next?{id:next.id,type:next.type,status:next.status,lease_expires_at:next.lease_expires_at||null,pending_authorization:next.pending_authorization||null}:null,continue_with:id?"/ade-resume":null,note:"ade_workflow_start only creates/persists the DAG. ade_workflow_run executes workers synchronously; use /ade-workflow or /ade-status instead of trying to click a custom tool row."},null,2)})}catch(e){await ctx.session.synthetic({sessionID,text:`ADE SAFE_READ_ONLY: ${cleanErrorText(asError(e))}`})}}})
-      draft.add({name:"ade-doctor",description:"Show native ADE runtime diagnostics without an LLM round-trip",execute:async({sessionID}:any)=>{const scope=await resolveSessionScope(ctx,String(sessionID)),root=scope.root;const agentsR=await ctx.agent.list({location:scope.location});const skillsR=await ctx.skill.list({location:scope.location});const pluginsR=await ctx.plugin.list({location:scope.location});const text={status:"ADE_DOCTOR_OK",version:VERSION,opencode:ctx.app?.version,project_root:root,agents_present:Object.keys(agentTools).filter(id=>(agentsR.data||[]).some((a:any)=>a.id===id||a.name===id)),skill_present:(skillsR.data||[]).some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:(pluginsR.data||[]).some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered};await ctx.session.synthetic({sessionID,text:JSON.stringify(text,null,2)})}})
+      draft.add({name:"ade-doctor",description:"Show native ADE runtime diagnostics without an LLM round-trip",execute:async({sessionID}:any)=>{const scope=await resolveSessionScope(ctx,String(sessionID)),root=scope.root;const agentsR=await ctx.agent.list({location:scope.location});const skillsR=await ctx.skill.list({location:scope.location});const pluginsR=await ctx.plugin.list({location:scope.location}),catalog=agentCatalog(agentsR.data||[]);const text={status:catalog.required_agents_ready?"ADE_DOCTOR_OK":"ADE_DOCTOR_AGENT_CATALOG_INVALID",version:VERSION,opencode:ctx.app?.version,project_root:root,agents_present:catalog.discovered_required_agents,...catalog,skill_present:(skillsR.data||[]).some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:(pluginsR.data||[]).some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered};await ctx.session.synthetic({sessionID,text:JSON.stringify(text,null,2)})}})
       draft.add({name:"ade-why",description:"Explain the current durable workflow state and next runnable job",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,state=await kernelEnsureInitialized(root),pub=kernelWorkflowPublic(state),id=state.active_workflow_id,jobs=id?kernelWorkflowJobs(state,id):[],next=jobs.find((j:any)=>j.status==="WAITING_APPROVAL")||jobs.find((j:any)=>j.status==="READY")||null;await ctx.session.synthetic({sessionID,text:JSON.stringify({kernel:pub,next_job:next?{id:next.id,type:next.type,status:next.status,pending_authorization:next.pending_authorization||null}:null},null,2)})}})
       draft.add({name:"ade-trace",description:"Show recent ADE tool-routing telemetry",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,p=controlPaths(root).telemetry;const rows=(await readJsonl(p)).slice(-20);await ctx.session.synthetic({sessionID,text:`ADE_TRACE_LAST_20\n${rows.map((x:any)=>`${x.ts} agent=${x.agent} tool=${x.tool} status=${x.status} duration_ms=${x.duration_ms}`).join("\n")}`})}})
       draft.add({name:"ade-metrics",description:"Summarize routing, retry and estimated context-cost signals without storing prompts",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).telemetry)).slice(-500);const byAgent:any={},byTool:any={},byModel:any={};let blocked=0,totalMs=0,dispatches=0,retries=0,approxInput=0,requestedOutput=0;for(const x of rows){const a=String(x.agent||"unknown");byAgent[a]??={tool_calls:0,model_dispatches:0,retries:0,approx_input_tokens:0,requested_output_budget:0};if(x.kind==="tool.call"||x.tool){byAgent[a].tool_calls++;byTool[x.tool]=(byTool[x.tool]||0)+1;if(x.status!=="completed")blocked++;totalMs+=Number(x.duration_ms||0)}if(x.kind==="model.dispatch"){dispatches++;byAgent[a].model_dispatches++;const n=Number(x.approx_context_tokens||0);approxInput+=n;byAgent[a].approx_input_tokens+=n;const b=Number(x.generation_budget||0);requestedOutput+=b;byAgent[a].requested_output_budget+=b;const key=`${x.provider||"?"}/${x.model||"?"}`;byModel[key]=(byModel[key]||0)+1}if(x.kind==="provider.retry"){retries++;byAgent[a].retries++}}await ctx.session.synthetic({sessionID,text:JSON.stringify({window:rows.length,tool_calls:Object.values(byTool).reduce((a:any,b:any)=>a+Number(b),0),blocked_tool_calls:blocked,total_tool_duration_ms:totalMs,model_dispatches:dispatches,provider_retries:retries,approx_input_tokens_dispatched:approxInput,requested_output_token_budget:requestedOutput,exact_provider_usage:false,note:"approx_input_tokens_dispatched is chars/4 context estimate, not billed tokens",by_agent:byAgent,by_tool:byTool,by_model:byModel},null,2)})}})
