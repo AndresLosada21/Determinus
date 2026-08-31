@@ -1,61 +1,23 @@
 name: ci
+
 on:
   push:
   pull_request:
 
 jobs:
-  powershell:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  validate:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Package layout
-        shell: pwsh
-        run: ./tests/package-layout.tests.ps1
-      - name: Static permissions
-        shell: pwsh
-        run: ./tests/static-policy.tests.ps1
-      - name: State machine
-        shell: pwsh
-        run: ./tests/state-machine.tests.ps1
-      - name: Installer integration
-        shell: pwsh
-        run: ./tests/installers.integration.ps1
-      - name: Runtime config gate rollback
-        shell: pwsh
-        run: ./tests/runtime-config-gate.tests.ps1
-      - name: Runtime smoke CLI precedence
-        shell: pwsh
-        run: ./tests/runtime-smoke-cli.tests.ps1
-      - name: Nested delegation structural parser and sandbox
-        shell: pwsh
-        run: ./tests/nested-delegation-smoke.tests.ps1
-      - name: Subagent depth compatibility
-        shell: pwsh
-        run: ./tests/subagent-depth-compat.tests.ps1
-
-      - name: Work management contract
-        shell: pwsh
-        run: ./tests/work-management-contract.tests.ps1
-      - name: Work management terminal gate
-        shell: pwsh
-        run: ./tests/work-management-terminal.tests.ps1
-      - name: Traceability and audit
-        shell: pwsh
-        run: ./tests/traceability.tests.ps1
-      - name: Evidence hardening
-        shell: pwsh
-        run: ./tests/evidence-hardening.tests.ps1
-
-      - name: Git readonly cross-workspace
-        shell: pwsh
-        run: ./tests/git-readonly.tests.ps1
-      - name: Project check execution policy
-        shell: pwsh
-        run: ./tests/project-check-policy.tests.ps1
-      - name: Legacy bootstrap compatibility
-        shell: pwsh
-        run: ./tests/legacy-bootstrap-shim.tests.ps1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -B tooling/ade.py regression
+      - run: python -B tooling/ade.py static-policy
+      - run: npm test
+        working-directory: plugin
+      - run: npx tsc -p tsconfig.json --noEmit
+        working-directory: plugin

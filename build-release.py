@@ -64,7 +64,7 @@ def main() -> int:
     )
     for filename, command in {
         "install-opencode-v6.0.11.py": "install",
-        "migrate-opencode-v6.0.10-to-v6.0.11.py": "migrate",
+        "migrate-to-v6.0.11.py": "migrate",
         "validate-opencode-v6.0.11.py": "validate",
         "regression-opencode-v6.0.11.py": "regression",
         "static-policy-opencode-v6.0.11.py": "static-policy",
@@ -86,7 +86,7 @@ def main() -> int:
         "node_plugin_tests": 104,
         "static_policy": "passed",
         "typescript": "passed",
-        "migration_from": ["6.0.10", "6.0.9", "6.0.8", "6.0.7", "6.0.6", "6.0.5", "6.0.4", "6.0.3", "6.0.2", "6.0.1", "6.0.0", "5.2.8"],
+        "migration": "migrate-to-v6.0.11.py",
         "runtime_validation": "pending",
     }
     (output / "BUNDLE_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
