@@ -33,7 +33,7 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect(cap.get("version") == VERSION, "CAPABILITY_VERSION_MISMATCH")
     _expect(cap.get("plugin_id") == "ai-driven-engineering.native", "PLUGIN_ID_MISMATCH")
     _expect(set(cap.get("agents", {})) == ACTIVE_AGENTS, f"ACTIVE_AGENT_SET_INVALID: {sorted(set(cap.get('agents',{}))^ACTIVE_AGENTS)}")
-    _expect(len(cap.get("tools", {})) == 34, f"TOOL_COUNT_INVALID: {len(cap.get('tools',{}))}")
+    _expect(len(cap.get("tools", {})) == 35, f"TOOL_COUNT_INVALID: {len(cap.get('tools',{}))}")
     _expect(set(cap.get("generation_max_tokens", {})) == ACTIVE_AGENTS, "GENERATION_BUDGET_ACTIVE_AGENT_SET_MISMATCH")
     _expect(all(isinstance(v, int) and 500 <= v <= 2000 for v in cap["generation_max_tokens"].values()), "GENERATION_BUDGET_INVALID")
 
@@ -88,7 +88,15 @@ def static_policy(root: Path | None = None) -> list[str]:
     _expect(dk.get("schema_version") == 1, "DURABLE_KERNEL_SCHEMA_INVALID")
     _expect(dk.get("event_hash_chain") == "sha256", "DURABLE_EVENT_HASH_CHAIN_REQUIRED")
     _expect(dk.get("safe_mode_on_corruption") is True, "DURABLE_SAFE_MODE_REQUIRED")
-    _expect((cap.get("deterministic_control_plane") or {}).get("architecture") == "DURABLE_KERNEL", "CONTROL_PLANE_NOT_DURABLE_KERNEL")
+    _expect((cap.get("deterministic_control_plane") or {}).get("architecture") == "DURABLE_OBSERVABLE_RUNTIME", "CONTROL_PLANE_NOT_DURABLE_KERNEL")
+    obs = cap.get("observation_plane") or {}
+    _expect(obs.get("canonical") is False, "OBSERVATION_PLANE_MUST_BE_NONCANONICAL")
+    _expect(obs.get("source") == "ctx.event.subscribe", "OBSERVATION_EVENT_SOURCE_REQUIRED")
+    _expect("ctx.event.subscribe" in src and "observations.jsonl" in src, "OBSERVATION_RUNTIME_REQUIRED")
+    _expect("session.text.delta" in src and "session.reasoning.delta" in src, "BETA18743_EVENT_ALIASES_REQUIRED")
+    _expect("Never project model reasoning text" in src, "REASONING_PAYLOAD_PROJECTION_FORBIDDEN")
+    _expect("filesystemSnapshot" in src and "filesystemDiff" in src and "fs-baseline-" in src, "GIT_OPTIONAL_FILESYSTEM_EVIDENCE_REQUIRED")
+    _expect('name:"ade-worker"' in src and "parent_session_ref" in src, "PARENT_BOUND_WORKER_INSPECTION_REQUIRED")
     for marker in (
         "kernelReadEvents", "kernelAppendDrafts", "prev_hash", "event_hash", "SAFE_READ_ONLY",
         "kernelRunWorkflow", "kernelReconcile", "lease_expires_at", "KERNEL_JOB_MAX_ATTEMPTS",

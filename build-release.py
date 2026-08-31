@@ -10,7 +10,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-VERSION = "6.1.0"
+VERSION = "6.1.3"
 NAME = f"opencode-ai-driven-engineering-v{VERSION}"
 EXCLUDED_PARTS = {".git", ".ai", "__pycache__", "node_modules"}
 EXCLUDED_SUFFIXES = {".zip", ".pyc"}
@@ -63,12 +63,12 @@ def main() -> int:
         encoding="utf-8",
     )
     for filename, command in {
-        "install-opencode-v6.1.0.py": "install",
-        "migrate-to-v6.1.0.py": "migrate",
-        "validate-opencode-v6.1.0.py": "validate",
-        "regression-opencode-v6.1.0.py": "regression",
-        "static-policy-opencode-v6.1.0.py": "static-policy",
-        "uninstall-opencode-v6.1.0.py": "uninstall",
+        "install-opencode-v6.1.3.py": "install",
+        "migrate-to-v6.1.3.py": "migrate",
+        "validate-opencode-v6.1.3.py": "validate",
+        "regression-opencode-v6.1.3.py": "regression",
+        "static-policy-opencode-v6.1.3.py": "static-policy",
+        "uninstall-opencode-v6.1.3.py": "uninstall",
     }.items():
         (output / filename).write_text(wrapper(command), encoding="utf-8")
     (output / f"{NAME}-complete.zip.sha256").write_text(f"{sha256(inner)}  {inner.name}\n", encoding="ascii")
@@ -81,13 +81,13 @@ def main() -> int:
         "inner_source_zip_sha256": sha256(inner),
         "active_agents": 5,
         "managed_agent_files": 18,
-        "typed_tools": 34,
-        "python_regression_groups": 36,
-        "node_plugin_tests": 109,
+        "typed_tools": 35,
+        "python_regression_groups": 38,
+        "node_plugin_tests": 115,
         "static_policy": "passed",
         "typescript": "passed",
-        "migration": "migrate-to-v6.1.0.py",
-        "runtime_validation": "pending",
+        "migration": "migrate-to-v6.1.3.py",
+        "runtime_validation": "target-host-required",
     }
     (output / "BUNDLE_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     checksums = []

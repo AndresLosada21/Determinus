@@ -17,11 +17,11 @@ def _expect(cond: bool, message: str) -> None:
 
 def _group_package_layout(root: Path) -> None:
     required = [
-        "VERSION","README.md","CHANGELOG.md","COMPATIBILITY.md","HARDENING.md","DURABLE_KERNEL.md","RELEASE_NOTES_v6.1.0.md","MIGRATION.md","VALIDATION.md","VALIDATION_REPORT.md",
+        "VERSION","README.md","CHANGELOG.md","COMPATIBILITY.md","HARDENING.md","DURABLE_KERNEL.md","RELEASE_NOTES_v6.1.3.md","MIGRATION.md","VALIDATION.md","VALIDATION_REPORT.md",
         "AGENTS.managed.md","opencode-fragment.jsonc","plugin/package.json","plugin/capabilities.json","plugin/src/index.ts",
         "tooling/ade.py","tooling/ade_tooling/common.py","tooling/ade_tooling/install.py","tooling/ade_tooling/migrate.py",
         "tooling/ade_tooling/uninstall.py","tooling/ade_tooling/validate.py","tooling/ade_tooling/smoke.py","tooling/ade_tooling/assurance.py",
-        "build-release.py","install-opencode.py","migrate-to-v6.1.0.py","migrate-to-v6.1.0.ps1","uninstall-opencode.py","validate-opencode.py",
+        "build-release.py","install-opencode.py","migrate-to-v6.1.3.py","migrate-to-v6.1.3.ps1","uninstall-opencode.py","validate-opencode.py",
     ]
     for rel in required:_expect((root/rel).is_file(),f"PACKAGE_LAYOUT_MISSING: {rel}")
     _expect(len(list((root/"agents").glob("*.md")))==18,"PACKAGE_LAYOUT_AGENT_FILES_MUST_BE_18_FOR_ROLLBACK_COMPAT")
@@ -45,9 +45,10 @@ def _group_version(root: Path) -> None:
     _expect(f'VERSION = "{VERSION}"' in read_text(root/"build-release.py"),"BUILD_RELEASE_VERSION_MISMATCH")
     release=load_json(root/"RELEASE.json");_expect(release.get("version")==VERSION,"RELEASE_VERSION_MISMATCH")
     expected_tests=int((release.get("validation") or {}).get("plugin_tests") or 0)
-    _expect(expected_tests>=104,f"RELEASE_NODE_TEST_COUNT_MISMATCH: {expected_tests}")
+    _expect(expected_tests==115,f"RELEASE_NODE_TEST_COUNT_MISMATCH: {expected_tests}")
     current_docs={"README.md":f"# ADE {VERSION}","COMPATIBILITY.md":f"# Compatibility — ADE {VERSION}","VALIDATION.md":"# Validation", "VALIDATION_REPORT.md":"# Validation report", "plugin/README.md":f"# ADE {VERSION}"}
     for rel,prefix in current_docs.items():_expect(read_text(root/rel).splitlines()[0].startswith(prefix),f"CURRENT_DOC_VERSION_STALE: {rel}")
+    _expect("115/115" in read_text(root/"VALIDATION_REPORT.md"),"VALIDATION_REPORT_NODE_COUNT_STALE")
     _expect((root/f"RELEASE_NOTES_v{VERSION}.md").is_file(),"CURRENT_RELEASE_NOTES_MISSING")
     _expect((root/"MIGRATION.md").is_file(),"CURRENT_MIGRATION_DOC_MISSING")
 
@@ -74,10 +75,10 @@ def _group_active_agents(root: Path) -> None:
 
 def _group_registry(root: Path) -> None:
     cap=load_json(root/"plugin/capabilities.json");src=read_text(root/"plugin/src/index.ts")
-    _expect(len(cap.get("tools",{}))==34,f"V6_TOOL_COUNT_INVALID: {len(cap.get('tools',{}))}")
+    _expect(len(cap.get("tools",{}))==35,f"V6_TOOL_COUNT_INVALID: {len(cap.get('tools',{}))}")
     registered=set(re.findall(r'\badd\("(ade_[A-Za-z0-9_]+)"',src))
     _expect(registered==set(cap["tools"]),f"TOOL_REGISTRY_DRIFT missing={sorted(set(cap['tools'])-registered)} extra={sorted(registered-set(cap['tools']))}")
-    for tool in ("ade_workflow_start","ade_workflow_run","ade_workflow_snapshot","ade_workflow_cancel","ade_kernel_reconcile","ade_kernel_events"):_expect(tool in cap["tools"],f"V6_KERNEL_TOOL_MISSING: {tool}")
+    for tool in ("ade_workflow_start","ade_workflow_run","ade_workflow_snapshot","ade_workflow_cancel","ade_kernel_reconcile","ade_kernel_events","ade_worker_events"):_expect(tool in cap["tools"],f"V6_KERNEL_TOOL_MISSING: {tool}")
 
 
 def _group_static_policy(root: Path) -> None:
@@ -87,9 +88,29 @@ def _group_static_policy(root: Path) -> None:
 
 def _group_durable_kernel(root: Path) -> None:
     cap=load_json(root/"plugin/capabilities.json");src=read_text(root/"plugin/src/index.ts");dk=cap.get("durable_kernel") or {}
-    _expect((cap.get("deterministic_control_plane") or {}).get("architecture")=="DURABLE_KERNEL","DURABLE_KERNEL_ARCH_MISSING")
+    _expect((cap.get("deterministic_control_plane") or {}).get("architecture")=="DURABLE_OBSERVABLE_RUNTIME","DURABLE_KERNEL_ARCH_MISSING")
     _expect(dk.get("runtime")=="file_backed_event_sourcing","DURABLE_KERNEL_BACKEND_MISSING")
     for marker in ("KERNEL_SCHEMA_VERSION","kernelEnsureInitialized","kernelStartWorkflow","kernelRunWorkflow","kernelFinalizeAfterJob","kernelContextCapsule"):_expect(marker in src,f"DURABLE_KERNEL_CODE_MISSING: {marker}")
+
+
+def _group_observation_plane(root: Path) -> None:
+    cap=load_json(root/"plugin/capabilities.json");src=read_text(root/"plugin/src/index.ts");obs=cap.get("observation_plane") or {}
+    _expect(obs.get("canonical") is False,"OBSERVATION_PLANE_MUST_BE_NONCANONICAL")
+    _expect(obs.get("source")=="ctx.event.subscribe","OBSERVATION_EVENT_SOURCE_MISSING")
+    _expect("ctx.event.subscribe" in src and "observationAppend" in src and "workerRegistry" in src,"OBSERVATION_RUNTIME_MISSING")
+    _expect("observations.jsonl" in src and "ade_worker_events" in src,"OBSERVATION_JOURNAL_OR_TOOL_MISSING")
+    _expect("POLLING_FALLBACK" in src and "EVENT_DEGRADED" in src and "WORKER_REATTACHED" in src and "WORKER_CONTEXT_SAMPLE" in src,"OBSERVATION_RECOVERY_OR_FALLBACK_MISSING")
+    _expect("resumeRunning" in src and "running worker adopted by workflow run" in src,"RUNNING_WORKER_ADOPTION_MISSING")
+    _expect("VCS_PRECONDITION" in src and "engineeringWorkflowPreflight" in src,"ENGINEERING_ADMISSION_PREFLIGHT_MISSING")
+    _expect("session.text.delta" in src and "session.reasoning.delta" in src and "reasoning payload" in src.lower(),"BETA18743_EVENT_ALIAS_OR_REASONING_GUARD_MISSING")
+    _expect('name:"ade-worker"' in src and "parent_session_ref" in src,"COMPLETED_WORKER_INSPECTION_MISSING")
+
+
+def _group_git_optional_evidence(root: Path) -> None:
+    src=read_text(root/"plugin/src/index.ts");tests=read_text(root/"plugin/tests/durable-kernel.test.mjs");cap=load_json(root/"plugin/capabilities.json")
+    for marker in ("kernelWorkspaceMode","filesystemSnapshot","filesystemDiff","writeFilesystemBaseline","readFilesystemBaseline","workspace-mode:filesystem","FILESYSTEM_FALLBACK"):_expect(marker in src,f"FILESYSTEM_EVIDENCE_MISSING: {marker}")
+    _expect("git_requirement" in (cap.get("deterministic_control_plane") or {}),"GIT_OPTIONAL_CAPABILITY_MISSING")
+    for marker in ("Git-optional BUILD uses bounded filesystem evidence","inconsistent VCS blocks engineering before any worker token is spent","filesystem BUILD recovery reuses persisted baseline"):_expect(marker in tests,f"GIT_OPTIONAL_FUNCTIONAL_TEST_MISSING: {marker}")
 
 
 def _group_event_journal(root: Path) -> None:
@@ -104,8 +125,8 @@ def _group_scheduler(root: Path) -> None:
     _expect("ade_delegate" not in cap["tools"],"LEGACY_DELEGATION_SURFACE_PRESENT")
     _expect("managedDelegateExecute" not in src and "DELEGATION_DAG" not in src,"LEGACY_DELEGATION_IMPLEMENTATION_PRESENT")
     _expect("worker_to_worker_delegation" in json.dumps(cap),"WORKER_DELEGATION_POLICY_MISSING")
-    _expect("canonicalSystemTextPart" in src and 'type:"text"' in src,"BETA18721_SYSTEMPART_CONSTRUCTOR_MISSING")
-    _expect("sessionAssistantSettled" in src and "time?.completed" in src,"BETA18721_ASSISTANT_SETTLEMENT_MISSING")
+    _expect("canonicalSystemTextPart" in src and 'type:"text"' in src,"BETA18743_SYSTEMPART_CONSTRUCTOR_MISSING")
+    _expect("sessionAssistantSettled" in src and "time?.completed" in src,"BETA18743_ASSISTANT_SETTLEMENT_MISSING")
     _expect("ADE_KERNEL_WORKER_EXECUTION_FAILED" in src and "ADE_KERNEL_WORKER_INTERRUPTED" in src and "ADE_KERNEL_WORKER_INVALID_OUTPUT" in src,"WORKER_FAILURE_TAXONOMY_MISSING")
     shim=read_text(root/"plugin/types/opencode-v2.d.ts");_expect("prompt(input: { id?: string; sessionID: string;" in shim,"PROMPT_ID_TYPE_SHIM_MISSING")
     _expect(not re.search(r'event\.system\.push\(\{\s*text\s*:',src),"NONCANONICAL_SYSTEMPART_PRODUCER_PRESENT")
@@ -120,9 +141,9 @@ def _group_workflow_state_machine(root: Path) -> None:
 
 def _group_verification_resume(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts");test=read_text(root/"plugin/tests/durable-kernel.test.mjs")
-    for marker in ("check_results","completed.has(name)","WAITING_APPROVAL","verification resumed from persisted worker result"):_expect(marker in src,f"VERIFICATION_RESUME_CODE_MISSING: {marker}")
-    _expect("verification resumes from persisted check progress" in test,"VERIFICATION_RESUME_FUNCTIONAL_TEST_MISSING")
-    _expect("must not rerun Verifier LLM" in test,"VERIFIER_RESPAWN_GUARD_TEST_MISSING")
+    for marker in ("check_results","completed.has(name)","ADE_CHECK_DEFINITION_STALE","verification resumed from persisted worker result"):_expect(marker in src,f"VERIFICATION_RESUME_CODE_MISSING: {marker}")
+    _expect("authorized project verification checks run through the kernel without per-check chat grants" in test,"POLICY_OWNED_VERIFICATION_FUNCTIONAL_TEST_MISSING")
+    _expect("verifierSessions" in test,"VERIFIER_SINGLE_RUN_GUARD_TEST_MISSING")
 
 
 def _group_leases_reconcile(root: Path) -> None:
@@ -191,7 +212,7 @@ def _group_commands(root: Path) -> None:
     src=read_text(root/"plugin/src/index.ts")
     for name in ("ade-init","ade-status","ade-workflow","ade-why","ade-resume","ade-authorize"):_expect(f'name:"{name}"' in src,f"COMMAND_MISSING: /{name}")
     _expect("WORKFLOW_STARTED" in src and "next_action" in src and "ade_workflow_start only" in src,"WORKFLOW_START_UX_CONTRACT_MISSING")
-    _expect("Resume the active ADE v6 durable workflow" in src,"V6_RESUME_COMMAND_NOT_KERNELIZED")
+    _expect("Resume the active ADE 6.1 durable workflow" in src,"V6_RESUME_COMMAND_NOT_KERNELIZED")
 
 
 def _group_skill(root: Path) -> None:
@@ -209,7 +230,7 @@ def _group_config(root: Path) -> None:
 
 def _group_installer(root: Path) -> None:
     text=read_text(root/"tooling/ade_tooling/install.py")
-    for marker in ("AI-DRIVEN-ENGINEERING:BEGIN v6","INSTALL_V6_1_0_OK","Plugin tools: 34"):_expect(marker in text,f"V6_INSTALLER_MARKER_MISSING: {marker}")
+    for marker in ("AI-DRIVEN-ENGINEERING:BEGIN v6","INSTALL_V6_1_3_OK","Plugin tools: 35"):_expect(marker in text,f"V6_INSTALLER_MARKER_MISSING: {marker}")
     _expect("LEGACY_BEGIN" in text and "BEGIN" in text,"V5_TO_V6_AMBIENT_REPLACEMENT_MISSING")
     from .install import _config_candidate
     merged=_config_candidate({"plugins":["vendor-plugin"]},default_agent=True)
@@ -255,13 +276,16 @@ def _group_agent_catalog(root: Path) -> None:
 def _group_migration(root: Path) -> None:
     text=read_text(root/"tooling/ade_tooling/migrate.py")
     _expect("_supported_predecessor" in text,"GENERIC_MIGRATION_SUPPORT_MISSING")
-    _expect("MIGRATION_TO_V6_1_0_OK" in text,"V6_MIGRATION_SUCCESS_MARKER_MISSING")
+    _expect("MIGRATION_TO_V6_1_3_OK" in text,"V6_MIGRATION_SUCCESS_MARKER_MISSING")
+    from .migrate import _supported_predecessor
+    for version in ("4.9.9","5.9.9","6.0.11","6.1.0","6.1.1","6.1.2"):_expect(_supported_predecessor(version),f"SUPPORTED_PREDECESSOR_REJECTED: {version}")
+    for version in ("6.0.12","6.1.3","6.2.0","7.0.0"):_expect(not _supported_predecessor(version),f"UNTESTED_PREDECESSOR_ACCEPTED: {version}")
 
 
 def _group_manifest(root: Path) -> None:
     text=read_text(root/"tooling/ade_tooling/manifest.py")
     _expect("active_agents=5" in text,"MANIFEST_ACTIVE_AGENT_REPORT_MISSING")
-    _expect("tools=34" in text,"MANIFEST_TOOL_REPORT_MISSING")
+    _expect("tools=35" in text,"MANIFEST_TOOL_REPORT_MISSING")
 
 
 def _group_validation(root: Path) -> None:
@@ -273,12 +297,12 @@ def _group_validation(root: Path) -> None:
 
 def _group_node_tests(root: Path) -> None:
     tests="\n".join(read_text(p) for p in (root/"plugin/tests").glob("*.test.mjs"))
-    for marker in ("analysis workflow is event-sourced","tampered journal forces SAFE_READ_ONLY","verification resumes from persisted check progress","tracker_sync workflow stops at WAITING_APPROVAL","workers cannot access kernel store","INC-BETA18743-WORKER-ZERO-TOKEN","canonical beta-18743 assistant must be settled","Git-optional BUILD uses filesystem mode","inconsistent native VCS blocks BUILD","worker lifecycle is mirrored to its parent","completed worker inspection redacts worker output"):_expect(marker in tests,f"V6_FUNCTIONAL_TEST_MISSING: {marker}")
+    for marker in ("analysis workflow is event-sourced","tampered journal forces SAFE_READ_ONLY","authorized project verification checks run through the kernel without per-check chat grants","tracker_sync workflow stops at WAITING_APPROVAL","workers cannot access kernel store","INC-BETA18743-WORKER-ZERO-TOKEN","canonical beta-18743 assistant must be settled","6.1 observation plane projects OpenCode worker events","6.1 observation falls back to polling fallback","6.1 reconcile reattaches observation","Git-optional BUILD uses bounded filesystem evidence","inconsistent VCS blocks engineering before any worker token is spent","filesystem BUILD recovery reuses persisted baseline","completed worker inspection is parent-bound","low-level worker events are normalized"):_expect(marker in tests,f"V6_FUNCTIONAL_TEST_MISSING: {marker}")
 
 
 def _group_docs(root: Path) -> None:
-    for rel in ("README.md","DURABLE_KERNEL.md","RELEASE_NOTES_v6.1.0.md","MIGRATION.md","VALIDATION.md","VALIDATION_REPORT.md","COMPATIBILITY.md","HARDENING.md"):
-        text=read_text(root/rel);_expect(VERSION in text or "v6" in text.lower(),f"V6_DOC_NOT_UPDATED: {rel}")
+    for rel in ("README.md","DURABLE_KERNEL.md","RELEASE_NOTES_v6.1.3.md","MIGRATION.md","VALIDATION.md","VALIDATION_REPORT.md","COMPATIBILITY.md","HARDENING.md"):
+        text=read_text(root/rel);_expect("6.1.3" in text or "v6" in text.lower(),f"V6_DOC_NOT_UPDATED: {rel}")
     _expect("agents are workers" in read_text(root/"DURABLE_KERNEL.md").lower() or "workers" in read_text(root/"DURABLE_KERNEL.md").lower(),"DURABLE_KERNEL_WORKER_MODEL_UNDOCUMENTED")
 
 
@@ -294,7 +318,7 @@ def _group_docs_integrity(root: Path) -> None:
 
 
 def _group_wrappers(root: Path) -> None:
-    for rel in ("install-opencode.ps1","migrate-to-v6.1.0.ps1","uninstall-opencode.ps1","validate-opencode.ps1","runtime/run-regression.ps1","runtime/static-policy-check.ps1"):
+    for rel in ("install-opencode.ps1","migrate-to-v6.1.3.ps1","uninstall-opencode.ps1","validate-opencode.ps1","runtime/run-regression.ps1","runtime/static-policy-check.ps1"):
         text=read_text(root/rel);_expect("ade.py" in text,f"WRAPPER_NOT_PYTHON_BACKED: {rel}")
 
 
@@ -318,7 +342,7 @@ def _group_release(root: Path) -> None:
 GROUPS: list[tuple[str, Callable[[Path], None]]] = [
     ("package-layout",_group_package_layout),("utf8-text",_group_utf8),("version-consistency",_group_version),("json-integrity",_group_json),
     ("active-worker-model",_group_active_agents),("capability-registry",_group_registry),("static-policy",_group_static_policy),
-    ("durable-kernel",_group_durable_kernel),("hash-chained-event-journal",_group_event_journal),("kernel-owned-scheduler",_group_scheduler),
+    ("durable-kernel",_group_durable_kernel),("observation-plane",_group_observation_plane),("git-optional-evidence",_group_git_optional_evidence),("hash-chained-event-journal",_group_event_journal),("kernel-owned-scheduler",_group_scheduler),
     ("workflow-state-machine",_group_workflow_state_machine),("verification-resume",_group_verification_resume),("leases-reconciliation",_group_leases_reconcile),
     ("mutation-serialization",_group_mutation_serialization),("exact-effect-authorization",_group_authorization),("grant-store-isolation",_group_grant_store),
     ("provider-wire-compat",_group_provider_compat),("provider-circuit-breaker",_group_retry),("secret-boundaries",_group_secrets),

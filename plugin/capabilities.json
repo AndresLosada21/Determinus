@@ -1,7 +1,7 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "plugin_id": "ai-driven-engineering.native",
-  "version": "6.1.0",
+  "version": "6.1.3",
   "tools": {
     "ade_status": {
       "capability": "STATUS_READ",
@@ -167,6 +167,12 @@
       "capability": "KERNEL_EVENTS_READ",
       "authority": "OBSERVE",
       "deterministic": true
+    },
+    "ade_worker_events": {
+      "capability": "WORKER_EVENTS_READ",
+      "authority": "OBSERVE",
+      "deterministic": false,
+      "canonical": false
     }
   },
   "agents": {
@@ -179,6 +185,7 @@
       "ade_workflow_cancel",
       "ade_kernel_reconcile",
       "ade_kernel_events",
+      "ade_worker_events",
       "ade_tracker_project_snapshot"
     ],
     "explorer": [],
@@ -259,12 +266,12 @@
     ]
   },
   "deterministic_control_plane": {
-    "architecture": "DURABLE_KERNEL",
+    "architecture": "DURABLE_OBSERVABLE_RUNTIME",
     "canonical_state": "external_hash_chained_event_journal",
     "snapshot": "derived_cache",
     "scheduler": "kernel_only",
     "worker_delegation": "forbidden",
-    "worker_sessions": "session.create/switchAgent/prompt/wait/context",
+    "worker_sessions": "session.create/switchAgent/prompt/wait/context + event.subscribe observation",
     "job_lease_ms": 300000,
     "job_max_attempts": 2,
     "mutating_worker_concurrency_per_project": 1,
@@ -274,7 +281,11 @@
       "tracker_sync workflow"
     ],
     "same_failure_signature_retry_max": 1,
-    "tool_choice_auto_only_retry": 0
+    "tool_choice_auto_only_retry": 0,
+    "observation_plane": "non_canonical_event_stream_with_heartbeat_fallback",
+    "host_baseline": "opencode2-0.0.0-beta-18743",
+    "workspace_observation": "git when valid; bounded external filesystem baseline/diff when no repository is present",
+    "git_requirement": "optional only for NO_REPOSITORY/VCS_UNAVAILABLE; inconsistent/nested VCS fails closed"
   },
   "hardening": {
     "project_state_realpath_boundary": true,
@@ -335,6 +346,34 @@
     "engineering_requires_deterministic_check": true,
     "crash_recovery": "lease_expiry_reconcile",
     "safe_mode_on_corruption": true,
-    "effect_authorization": "exact-effect external grants"
+    "effect_authorization": "exact-effect external grants",
+    "preflight_vcs": "engineering admission validates git toplevel and HEAD before worker creation"
+  },
+  "observation_plane": {
+    "schema_version": 1,
+    "canonical": false,
+    "source": "ctx.event.subscribe",
+    "fallback": "session.get/session.context polling + heartbeat",
+    "journal": "observations.jsonl",
+    "rotation_bytes": 12582912,
+    "live_projection": "Task-compatible tool metadata (title + metadata.sessionId + metadata.summary) with parent-linked worker session",
+    "worker_registry": "in-memory raw sessionID mapping; raw child ID is emitted only into host tool metadata for native navigation; ADE model-facing refs are sha256 prefixes",
+    "event_policy": "events explain runs but never mutate canonical workflow state",
+    "host_event_aliases": [
+      "message.part.updated",
+      "message.updated",
+      "session.status",
+      "session.text.delta",
+      "session.reasoning.delta",
+      "session.tool.called",
+      "session.tool.success",
+      "session.tool.failed",
+      "session.execution.succeeded",
+      "session.execution.failed"
+    ],
+    "reasoning_payload_projection": false,
+    "completed_worker_inspection": "parent-bound /ade-worker command with redaction",
+    "capture_semantics": "EVENT_NATIVE means host event ingestion only; TUI visibility requires target-host canary",
+    "child_session_link": "session.create(parentID=<orchestrator session>)"
   }
 }

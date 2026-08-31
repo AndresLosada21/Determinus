@@ -1,20 +1,32 @@
 {
   "schema_version": 3,
-  "version": "6.1.0",
-  "release_state": "VALIDATED",
-  "source_tree_hash_excludes": ["RELEASE.json"],
-  "source_tree_sha256": "551b7ba366198799c3d58b7da659b12be97efe69e3b8e528912dbe4ff0439bde",
+  "version": "6.1.3",
+  "release_state": "SOURCE_VALIDATED",
+  "source_tree_hash_excludes": [
+    "RELEASE.json"
+  ],
+  "source_tree_sha256": "7641cd0b6d0bc64862d0ed142d46a761546d266901d34238f1e8581700103c28",
   "target": {
     "opencode": "V2 Promise plugin API",
     "observed_windows_build": "0.0.0-beta-18743",
     "source_commit": "5894e4668872ecb071bd10ac01b32dfb7e93fb0c"
   },
   "validation": {
-    "python_regression_groups": 36,
-    "plugin_tests": 109,
+    "python_regression_groups": 38,
+    "plugin_tests": 115,
     "typescript_typecheck": "passed",
     "static_policy": "passed",
-    "runtime_catalog": "validated",
-    "host_canaries": "validated: beta-18743, 3/3 strict"
+    "runtime_catalog": "source-contract-tested",
+    "host_canaries": "6.1.1 real-host canary exposed UI projection gap; 6.1.3 additionally fixes real Perssua-TS engineering admission with authorized-empty-policy safe preset bootstrap; target-host rerun required for UI visibility only"
+  },
+  "architecture": "DURABLE_OBSERVABLE_RUNTIME",
+  "consolidation": {
+    "base": "assistant 6.1.0 observation/recovery implementation",
+    "merged_from_agent_6_1_0": [
+      "beta-18743 low-level event aliases",
+      "Git-optional engineering intent",
+      "parent-bound completed worker inspection"
+    ],
+    "review_policy": "6.1.3 preserves durable observation/recovery, Task-compatible projection, Git-optional evidence, and adds single-pass engineering admission with safe standard check provisioning after Perssua-TS real-flow blocker reproduction"
   }
 }

@@ -16,6 +16,7 @@ def validate(*, target: Path | None = None, model: str | None = None, behavioral
     if not model:
         if behavioral:raise ADEError("BEHAVIORAL_EVAL_REQUIRES_MODEL: provide --model provider/model")
         print("ADE_V6_STRUCTURAL_ASSURANCE_OK")
+        print("LIVE_TUI_PROJECTION_CANARY_PENDING: structural validation cannot certify parent-visible streaming")
         print("RUNTIME_PROVIDER_VALIDATION_PENDING: provide --model for provider + real tool execution")
         return
     print("ADE_V6_RUNTIME_CORE_VALIDATED")
@@ -28,3 +29,4 @@ def validate(*, target: Path | None = None, model: str | None = None, behavioral
     kernel_approval_smoke(target,model)
     kernel_proposal_smoke(target,model)
     print("V6_BEHAVIORAL_EVALS_VALIDATED")
+    print("LIVE_TUI_PROJECTION_CANARY_PENDING: verify child/progress rendering interactively on the OpenCode TUI")

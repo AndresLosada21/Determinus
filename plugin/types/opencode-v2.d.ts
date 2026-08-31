@@ -25,9 +25,6 @@ declare module "@opencode-ai/plugin" {
       readonly plugin: {
         list(input?: { location?: { directory?: string; workspace?: string } }): Promise<{ location: LocationInfo; data: readonly any[] }>
       }
-      readonly event: {
-        subscribe(options?: { signal?: AbortSignal }): AsyncIterable<any>
-      }
       readonly session: {
         create(input?: { title?: string; agent?: string; model?: { id: string; providerID: string; variant?: string }; location?: { directory: string; workspaceID?: string } }): Promise<{ id: string; sessionID?: string; location: { directory: string; workspaceID?: string }; agent?: string; model?: { id: string; providerID: string; variant?: string }; outcome?: "succeeded" | "failed" | "interrupted"; tokens?: { input?: number; output?: number; reasoning?: number } }>
         get(input: { sessionID: string }): Promise<{ id?: string; sessionID?: string; location: { directory: string; workspaceID?: string }; agent?: string; model?: { id: string; providerID: string; variant?: string }; outcome?: "succeeded" | "failed" | "interrupted"; tokens?: { input?: number; output?: number; reasoning?: number } }>
@@ -39,6 +36,9 @@ declare module "@opencode-ai/plugin" {
         prompt(input: { id?: string; sessionID: string; text: string; files?: readonly unknown[]; agents?: readonly unknown[]; skills?: readonly unknown[]; metadata?: Record<string, unknown>; delivery?: "steer" | "queue"; resume?: boolean }): Promise<{ id: string; sessionID: string; type: "user"; delivery: "steer" | "queue"; payload?: unknown }>
         switchAgent(input: { sessionID: string; agent: string }): Promise<void>
         switchModel(input: { sessionID: string; model: { id: string; providerID: string; variant?: string } }): Promise<void>
+      }
+      readonly event: {
+        subscribe(options?: { signal?: AbortSignal }): AsyncIterable<any>
       }
       readonly permission: {
         hook(name: "evaluate", callback: (event: any) => void | Promise<void>): Promise<Registration>

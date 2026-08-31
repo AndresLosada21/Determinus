@@ -51,8 +51,8 @@ def runtime_config_smoke(target: Path) -> dict[str, Any]:
     if not cap_path.is_file():raise ADEError("RUNTIME_INVARIANT_FAILED: capabilities.json missing")
     cap=load_json(cap_path)
     if set(cap.get("agents",{}))!=ACTIVE_AGENTS:raise ADEError(f"RUNTIME_INVARIANT_FAILED: active agents={sorted(cap.get('agents',{}))}")
-    if len(cap.get("tools",{}))!=34:raise ADEError(f"RUNTIME_INVARIANT_FAILED: tools={len(cap.get('tools',{}))}")
-    if (cap.get("deterministic_control_plane") or {}).get("architecture")!="DURABLE_KERNEL":raise ADEError("RUNTIME_INVARIANT_FAILED: architecture != DURABLE_KERNEL")
+    if len(cap.get("tools",{}))!=35:raise ADEError(f"RUNTIME_INVARIANT_FAILED: tools={len(cap.get('tools',{}))}")
+    if (cap.get("deterministic_control_plane") or {}).get("architecture")!="DURABLE_OBSERVABLE_RUNTIME":raise ADEError("RUNTIME_INVARIANT_FAILED: architecture != DURABLE_OBSERVABLE_RUNTIME")
     cfg_path=next((p for p in (target/"opencode.jsonc",target/"opencode.json") if p.is_file()),None)
     if not cfg_path:raise ADEError("RUNTIME_INVARIANT_FAILED: OpenCode config missing")
     cfg=load_jsonc(cfg_path)
@@ -72,7 +72,7 @@ def runtime_config_smoke(target: Path) -> dict[str, Any]:
     print("V6_SUBAGENT_DEPTH_CONFIGURED: experimental.subagent_depth=1 (native recursion unused)")
     print("AGENT_CONFIG_REGISTERED: managed=18 active=5")
     print("AGENT_CATALOG_VALIDATED: required_active_agents=5")
-    print("DURABLE_KERNEL_CONFIGURED: active_agents=5 managed_agent_files=18 tools=34")
+    print("DURABLE_KERNEL_CONFIGURED: active_agents=5 managed_agent_files=18 tools=35")
     print("RUNTIME_CONFIG_VALIDATED")
     return {"cli":cli,"config":cfg,"capabilities":cap}
 
@@ -102,9 +102,9 @@ def plugin_runtime_smoke(target: Path,model: str|None=None)->None:
     if not cli:raise ADEError("PLUGIN_RUNTIME_BLOCKED: OpenCode CLI not found")
     _plugin_list_with_startup_retry(cli,target)
     cap=load_json(target/"plugins/ai-driven-engineering/capabilities.json")
-    if set(cap.get("agents",{}))!=ACTIVE_AGENTS or len(cap.get("tools",{}))!=34:raise ADEError("PLUGIN_RUNTIME_BLOCKED: v6 capability surface mismatch")
+    if set(cap.get("agents",{}))!=ACTIVE_AGENTS or len(cap.get("tools",{}))!=35:raise ADEError("PLUGIN_RUNTIME_BLOCKED: v6 capability surface mismatch")
     print("PLUGIN_LOADED_VALIDATED")
-    print("AGENT_CAPABILITY_SURFACE_CONFIGURED: managed=18 active=5 tools=34 architecture=DURABLE_KERNEL")
+    print("AGENT_CAPABILITY_SURFACE_CONFIGURED: managed=18 active=5 tools=35 architecture=DURABLE_OBSERVABLE_RUNTIME")
     if not model:
         print("PLUGIN_TOOL_EXECUTION_NOT_PROBED: provide --model")
         return
@@ -144,8 +144,8 @@ def contract_runtime_smoke(target: Path)->None:
     cap=load_json(target/"plugins/ai-driven-engineering/capabilities.json");src=(target/"plugins/ai-driven-engineering/src/index.ts").read_text(encoding="utf-8")
     agents=cap.get("agents") or {};tools=cap.get("tools") or {}
     if set(agents)!=ACTIVE_AGENTS:raise ADEError(f"CONTRACT_ASSURANCE_FAILED: active agents={sorted(agents)}")
-    if len(tools)!=34:raise ADEError(f"CONTRACT_ASSURANCE_FAILED: typed tools={len(tools)}")
-    if (cap.get("deterministic_control_plane") or {}).get("architecture")!="DURABLE_KERNEL":raise ADEError("CONTRACT_ASSURANCE_FAILED: architecture not DURABLE_KERNEL")
+    if len(tools)!=35:raise ADEError(f"CONTRACT_ASSURANCE_FAILED: typed tools={len(tools)}")
+    if (cap.get("deterministic_control_plane") or {}).get("architecture")!="DURABLE_OBSERVABLE_RUNTIME":raise ADEError("CONTRACT_ASSURANCE_FAILED: architecture not DURABLE_OBSERVABLE_RUNTIME")
     if "ade_delegate" in tools or "ade_delegate" in set().union(*(set(x) for x in agents.values())):raise ADEError("CONTRACT_ASSURANCE_FAILED: legacy delegation surface present")
     if "managedDelegateExecute" in src or "DELEGATION_DAG" in src:raise ADEError("CONTRACT_ASSURANCE_FAILED: legacy delegation implementation present")
     high={"ade_tracker_project_sync","ade_tracker_write","ade_project_check","ade_diagnostic_check","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create"}
@@ -160,7 +160,7 @@ def contract_runtime_smoke(target: Path)->None:
     for name in set(AGENTS)-ACTIVE_AGENTS:
         text=(target/"agents"/f"{name}.md").read_text(encoding="utf-8")
         if "disabled: true" not in text:raise ADEError(f"CONTRACT_ASSURANCE_FAILED: legacy role {name} not disabled")
-    print("DURABLE_KERNEL_CONTRACT_VALIDATED: active_agents=5 managed_files=18 tools=34")
+    print("DURABLE_KERNEL_CONTRACT_VALIDATED: active_agents=5 managed_files=18 tools=35")
     print("WORKER_DELEGATION_PROHIBITION_VALIDATED")
     print("EXACT_EFFECT_ACTIVITY_BOUNDARY_VALIDATED")
     print("CONTRACT_ASSURANCE_VALIDATED")

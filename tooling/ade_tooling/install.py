@@ -345,11 +345,11 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
         }
         dump_json(previous_manifest, manifest)
         print(f"ADE v{VERSION} instalado em: {target}")
-        print(f"Managed agent files: {len(agent_hashes)} | Active workers: 5 | Plugin tools: 34 | Manifest schema: 7")
+        print(f"Managed agent files: {len(agent_hashes)} | Active workers: 5 | Plugin tools: 35 | Manifest schema: 7")
         if config_info.get("patched"):
             print(f"subagent_depth_mode: {config_info.get('subagent_depth_mode')}")
         _prune_backups(backup_base, backup_root, keep=10)
-        print("INSTALL_V6_1_0_OK")
+        print("INSTALL_V6_1_3_OK")
         return manifest
     except Exception as exc:
         # Transactional rollback: delete files created by this attempt, then restore every backed-up original.

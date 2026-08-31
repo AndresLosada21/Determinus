@@ -6,7 +6,7 @@ import crypto from "node:crypto"
 import os from "node:os"
 import { fileURLToPath } from "node:url"
 
-const VERSION = "6.1.0"
+const VERSION = "6.1.3"
 const PLUGIN_ID = "ai-driven-engineering.native"
 const TOOL_PREFIX = "ade_"
 const pluginDefine = typeof (OpenCodePlugin as any)?.Plugin?.define === "function"
@@ -65,6 +65,14 @@ const KERNEL_EVENT_MAX_BYTES = 64 * 1024 * 1024
 const KERNEL_JOB_LEASE_MS = 5 * 60 * 1000
 const KERNEL_JOB_MAX_ATTEMPTS = 2
 const KERNEL_WORKER_TIMEOUT_MS = 8 * 60 * 1000
+const OBSERVATION_SCHEMA_VERSION = 1
+const OBSERVATION_EVENT_MAX_BYTES = 12 * 1024 * 1024
+const OBSERVATION_HEARTBEAT_MS = 5 * 1000
+const FILESYSTEM_SNAPSHOT_MAX_FILES = 50_000
+const FILESYSTEM_SNAPSHOT_MAX_HASH_BYTES = 256 * 1024 * 1024
+const FILESYSTEM_SNAPSHOT_FULL_HASH_MAX_BYTES = 4 * 1024 * 1024
+const FILESYSTEM_SNAPSHOT_SAMPLE_BYTES = 64 * 1024
+const FILESYSTEM_SNAPSHOT_IGNORED_DIRS = new Set([".git",".ai","node_modules",".venv","venv","__pycache__",".pytest_cache",".mypy_cache",".ruff_cache",".cache",".next",".nuxt",".turbo","coverage"])
 const KERNEL_WORKER_AGENT: Record<string,string> = {
   ANALYZE: "explorer",
   BUILD: "implementer",
@@ -105,7 +113,7 @@ async function kernelProjectDir(root:string):Promise<string>{
 }
 async function kernelPaths(root:string){
   const dir=await kernelProjectDir(root)
-  return {dir,events:path.join(dir,"events.jsonl"),snapshot:path.join(dir,"snapshot.json"),lock:path.join(dir,"kernel.lock"),mutationLock:path.join(dir,"mutation.lock")}
+  return {dir,events:path.join(dir,"events.jsonl"),snapshot:path.join(dir,"snapshot.json"),lock:path.join(dir,"kernel.lock"),mutationLock:path.join(dir,"mutation.lock"),observations:path.join(dir,"observations.jsonl"),observationLock:path.join(dir,"observations.lock")}
 }
 function kernelEmptyState(projectHash:string):any{
   return {schema_version:KERNEL_SCHEMA_VERSION,runtime_version:VERSION,project_hash:projectHash,revision:0,last_event_hash:"",workflows:{},jobs:{},active_workflow_id:null,legacy_import:null,updated_at:null}
@@ -192,7 +200,7 @@ function kernelWorkflowJobs(state:any,workflowID:string):any[]{return Object.val
 function kernelWorkflowPublic(state:any,workflowID?:string):any{
   const id=workflowID||state.active_workflow_id,wf=id?state.workflows?.[id]:null
   if(!wf)return {status:"KERNEL_IDLE",revision:state.revision,active_workflow_id:null,legacy_import:state.legacy_import}
-  const jobs=kernelWorkflowJobs(state,id).map((j:any)=>({id:j.id,type:j.type,role:j.role,status:j.status,attempts:j.attempts||0,dependencies:j.dependencies||[],lease_expires_at:j.lease_expires_at||null,summary:j.summary||null,evidence_refs:j.evidence_refs||[],failure_domain:j.failure_domain||null,error:j.error?redactSensitiveText(String(j.error),900):null,observability:j.observability||null}))
+  const jobs=kernelWorkflowJobs(state,id).map((j:any)=>({id:j.id,type:j.type,role:j.role,status:j.status,attempts:j.attempts||0,dependencies:j.dependencies||[],lease_expires_at:j.lease_expires_at||null,started_at:j.started_at||null,completed_at:j.completed_at||null,summary:j.summary||null,evidence_refs:j.evidence_refs||[],worker_session_ref:j.worker_session_ref||null,changed_files:Array.isArray(j.changed_files)?j.changed_files.slice(0,200):[],workspace_observation:j.workspace_observation||null,failure_domain:j.failure_domain||null,error:j.error||null}))
   return {status:"KERNEL_WORKFLOW",revision:state.revision,workflow:{id:wf.id,kind:wf.kind,risk:wf.risk,status:wf.status,objective:wf.objective,check_names:wf.check_names||[],created_at:wf.created_at,updated_at:wf.updated_at||null},jobs}
 }
 function kernelWorkflowPlan(input:any):{workflow:any,jobs:any[]}{
@@ -225,15 +233,17 @@ function kernelContextCapsule(state:any,wf:any,job:any):any{
 }
 function kernelFailureDomain(error:any):string{
   const text=asError(error).toLowerCase()
-  if(text.includes("ade_kernel_vcs_inconsistent"))return "VCS_INCONSISTENT"
-  if(text.includes("ade_kernel_dirty_worktree"))return "VCS_DIRTY"
+  if(text.includes("ade_kernel_vcs_observe_failed")||text.includes("ade_kernel_vcs_precondition")||text.includes("ade_kernel_dirty_worktree"))return "VCS_PRECONDITION"
+  if(text.includes("ade_kernel_filesystem_"))return "WORKSPACE_PRECONDITION"
+  if(text.includes("state_blocked: lock timeout"))return "KERNEL_CONTENTION"
+  if(text.includes("ade_workflow_project_policy_required")||text.includes("execution policy"))return "EXECUTION_POLICY"
+  if(text.includes("ade_human_authorization_required")||text.includes("authorization")||text.includes("grant"))return "HUMAN_AUTHORIZATION"
   if(text.includes("ade_kernel_worker_execution_failed"))return "WORKER_EXECUTION_FAILED"
   if(text.includes("ade_kernel_worker_interrupted")||text.includes("ade_kernel_worker_execution_interrupted"))return "WORKER_INTERRUPTED"
   if(text.includes("ade_kernel_worker_invalid_output"))return "WORKER_INVALID_OUTPUT"
   if(text.includes("tool_choice")||text.includes("named function")||text.includes("only \"auto\""))return "PROVIDER_CAPABILITY"
   if(text.includes("429")||text.includes("rate limit"))return "PROVIDER_TRANSIENT"
   if(text.includes("ade_kernel_worker_timeout")||text.includes("timeout"))return "WORKER_TIMEOUT"
-  if(text.includes("authorization")||text.includes("grant"))return "AUTHORIZATION"
   if(text.includes("policy")||text.includes("blocked"))return "POLICY"
   return "WORKER_FAILURE"
 }
@@ -590,6 +600,7 @@ function redactForModel(value:any,depth=0):any{
     for(const [k,v] of Object.entries(value)){
       if(++count>500){out.__truncated__=true;break}
       if(/^(?:api[_-]?key|access[_-]?token|auth[_-]?token|token|secret|credential|credentials|authorization|password|passwd)$/i.test(k)){out[k]="[REDACTED_SECRET]";continue}
+      if(/^(?:session_?id|parent_?session_?id)$/i.test(k)&&typeof v==="string"){out[k]=sha256Hex(v).slice(0,16);continue}
       out[k]=redactForModel(v,depth+1)
     }
     return out
@@ -689,7 +700,7 @@ async function withFileLock<T>(lock:string,timeoutMs:number,fn:()=>Promise<T>):P
   const token=crypto.randomUUID(),started=Date.now();let handle:any
   while(Date.now()-started<timeoutMs){
     try{handle=await fs.open(lock,"wx",0o600);await handle.writeFile(JSON.stringify({pid:process.pid,token,at:now()})+"\n");break}
-    catch(e:any){if(e?.code!=="EEXIST")throw e;try{const raw=JSON.parse(await fs.readFile(lock,"utf8")),st=await fs.stat(lock);if(Date.now()-st.mtimeMs>120000&&!processAlive(Number(raw?.pid))){await fs.unlink(lock);continue}}catch{};await sleep(50)}
+    catch(e:any){if(e?.code!=="EEXIST")throw e;try{const raw=JSON.parse(await fs.readFile(lock,"utf8")),st=await fs.stat(lock),pid=Number(raw?.pid),age=Date.now()-st.mtimeMs;if((Number.isFinite(pid)&&pid>0&&!processAlive(pid))||((!Number.isFinite(pid)||pid<=0)&&age>120000)){await fs.unlink(lock);continue}}catch{};await sleep(50)}
   }
   if(!handle)throw new Error(`STATE_BLOCKED: lock timeout ${path.basename(lock)}`)
   try{return await fn()}finally{try{await handle.close()}catch{};try{const raw=JSON.parse(await fs.readFile(lock,"utf8"));if(raw?.token===token)await fs.unlink(lock)}catch{}}
@@ -723,10 +734,36 @@ async function initProject(root:string,pluginRoot:string,workItem:string,profile
 }
 type ProjectSelfHealResult = {changed:boolean;actions:string[];human_gates:string[]}
 function defaultExecutionPolicy(){return {schema_version:1,authorized:false,policy_owner:"human",cross_workspace_git_metadata:true,checks:{},hardening_defaults:{process_environment:"minimal; opt-in allowlist per check",docker_network:"none unless allow_network=true",docker_rootfs:"read-only",docker_capabilities:"drop ALL",docker_no_new_privileges:true,docker_image:"sha256 digest required unless allow_mutable_image=true",host_process:"runner=process is an explicit check-level opt-in; allow_host_process=false is an explicit veto; exact-effect human grant remains mandatory"}}}
-async function selfHealExecutionPolicy(root:string):Promise<ProjectSelfHealResult>{
+async function safeKnownCheckDefinition(root:string,name:string):Promise<any|undefined>{
+  if(name==="tsc-noEmit"){
+    const local=path.join(root,"node_modules","typescript","bin","tsc")
+    if(!(await exists(local)))return undefined
+    return {owner:"verifier",non_destructive:true,runner:"process",allow_host_process:true,executable:"node",arguments:["node_modules/typescript/bin/tsc","--noEmit"],working_directory:".",allowed_exit_codes:[0],timeout_ms:180000,provisioned_by:"ADE_SAFE_PRESET"}
+  }
+  if(name==="dist-build"){
+    const local=path.join(root,"node_modules","typescript","bin","tsc")
+    if(!(await exists(local)))return undefined
+    return {owner:"verifier",non_destructive:true,runner:"process",allow_host_process:true,executable:"node",arguments:["node_modules/typescript/bin/tsc"],working_directory:".",allowed_exit_codes:[0],timeout_ms:300000,provisioned_by:"ADE_SAFE_PRESET"}
+  }
+  if(name==="premium-grep-zero"){
+    return {owner:"verifier",non_destructive:true,runner:"builtin",builtin:"source_absence",roots:["src"],patterns:["premium","paywall","SubscriptionSyncPayload","notify-subscription-synced","notifySubscriptionSynced","open-premium-plans","stupidButtonClubMember","creditsRemaining","trialEndsAt","mergeAuthAndFirestore","trialPaywallAlwaysEnabled","Bk("],case_sensitive:false,max_files:5000,max_bytes:20_000_000,provisioned_by:"ADE_SAFE_PRESET"}
+  }
+  return undefined
+}
+async function executionPolicyDiagnostic(root:string){
+  const policyPath=path.join(root,".ai","execution-policy.json")
+  if(!(await exists(policyPath)))return {exists:false,authorized:false,registered_checks:[],auto_provisionable_checks:[],ready_for_standard_engineering:false}
+  let policy:any;try{policy=await readJson(policyPath)}catch(e){return {exists:true,authorized:false,registered_checks:[],auto_provisionable_checks:[],ready_for_standard_engineering:false,error:cleanErrorText(asError(e),300)}}
+  const standard=["tsc-noEmit","dist-build","premium-grep-zero"]
+  const registered=Object.keys(policy?.checks&&typeof policy.checks==="object"?policy.checks:{})
+  const auto:string[]=[]
+  for(const name of standard)if(registered.includes(name)||(await safeKnownCheckDefinition(root,name)))auto.push(name)
+  return {exists:true,authorized:policy?.authorized===true,policy_owner:String(policy?.policy_owner||"unknown"),registered_checks:registered.sort(),auto_provisionable_checks:auto,standard_checks:standard,ready_for_standard_engineering:policy?.authorized===true&&standard.every(x=>auto.includes(x))}
+}
+async function selfHealExecutionPolicy(root:string,requestedChecks:string[]=[]):Promise<ProjectSelfHealResult>{
   await assertProjectStateBoundary(root,true)
   const policyPath=path.join(root,".ai","execution-policy.json"),actions:string[]=[],human_gates:string[]=[]
-  if(!(await exists(policyPath))){await writeJsonAtomic(policyPath,defaultExecutionPolicy());actions.push("created:.ai/execution-policy.json:secure-default");return {changed:true,actions,human_gates:["execution-policy authorization required"]}}
+  if(!(await exists(policyPath))){await writeJsonAtomic(policyPath,defaultExecutionPolicy());actions.push("created:.ai/execution-policy.json:secure-default")}
   const st=await fs.lstat(policyPath);if(st.isSymbolicLink()||!st.isFile())throw new Error("ADE_PROJECT_SELF_HEAL_BLOCKED: execution-policy.json must be a regular non-symlink file")
   let policy:any;try{policy=await readJson(policyPath)}catch(e){throw new Error(`ADE_PROJECT_SELF_HEAL_BLOCKED: execution-policy.json invalid JSON: ${cleanErrorText(asError(e),300)}`)}
   if(!policy||typeof policy!=="object"||Array.isArray(policy))throw new Error("ADE_PROJECT_SELF_HEAL_BLOCKED: execution-policy.json root must be an object")
@@ -746,6 +783,12 @@ async function selfHealExecutionPolicy(root:string):Promise<ProjectSelfHealResul
       const defaults:any={network:"none",project_mount_mode:"ro",allow_workspace_writes:false,allow_network:false,allow_mutable_image:false}
       for(const [k,v] of Object.entries(defaults))if(c[k]===undefined){c[k]=v;actions.push(`normalized:${name}:${k}=${String(v)}`);changed=true}
     }
+  }
+  for(const name of [...new Set(requestedChecks.map(x=>String(x).trim()).filter(Boolean))]){
+    if(policy.checks?.[name])continue
+    const preset=await safeKnownCheckDefinition(root,name)
+    if(preset){policy.checks[name]=preset;actions.push(`registered:${name}:ADE_SAFE_PRESET`);changed=true}
+    else human_gates.push(`check:${name}:definition-required`)
   }
   if(changed)await writeJsonAtomic(policyPath,policy)
   if(policy.authorized!==true)human_gates.push("execution-policy authorization required")
@@ -1014,6 +1057,45 @@ async function nativeProjectCheck(root:string,name:string,expectedOwner:"verifie
 ${cleanErrorText(r.stderr)}`)
     return {status:validationAuthority?"PROJECT_CHECK_VALIDATED":"DIAGNOSTIC_CHECK_COMPLETED",evidence_state:validationAuthority?"VALIDADO":"OBSERVADO",validation_authority:validationAuthority,acceptance_authority:false,owner:expectedOwner,runner:"process",exit_code:r.code,stdout:redactSensitiveText(r.stdout),stderr:redactSensitiveText(r.stderr)}
   }
+  if(c.runner==="builtin") {
+    if(c.builtin!=="source_absence")throw new Error(`PROJECT_CHECK_BLOCKED: builtin '${String(c.builtin||"")}' não suportado`)
+    const roots=Array.isArray(c.roots)?c.roots.map(String):["src"],patterns=Array.isArray(c.patterns)?c.patterns.map(String):[]
+    if(!roots.length||roots.length>8||patterns.length<1||patterns.length>64||patterns.some((x:string)=>!x||x.length>256))throw new Error("PROJECT_CHECK_BLOCKED: source_absence roots/patterns inválidos")
+    const maxFiles=Math.min(Math.max(Number(c.max_files||5000),1),20_000),maxBytes=Math.min(Math.max(Number(c.max_bytes||20_000_000),1024),100_000_000)
+    const caseSensitive=c.case_sensitive===true,matches:any[]=[];let filesScanned=0,bytesScanned=0
+    const scanFile=async(abs:string,rel:string)=>{
+      const st=await fs.lstat(abs);if(st.isSymbolicLink()||!st.isFile())return
+      filesScanned++;if(filesScanned>maxFiles)throw new Error(`PROJECT_CHECK_BLOCKED: source_absence excede max_files=${maxFiles}`)
+      bytesScanned+=st.size;if(bytesScanned>maxBytes)throw new Error(`PROJECT_CHECK_BLOCKED: source_absence excede max_bytes=${maxBytes}`)
+      const buf=await fs.readFile(abs);if(buf.includes(0))return
+      const text=buf.toString("utf8"),hay=caseSensitive?text:text.toLowerCase()
+      for(const pattern of patterns){
+        const q=caseSensitive?pattern:pattern.toLowerCase(),idx=hay.indexOf(q)
+        if(idx>=0){const line=text.slice(0,idx).split(/\r?\n/).length;matches.push({path:rel.replaceAll("\\","/"),pattern,line});if(matches.length>=100)return}
+      }
+    }
+    const walk=async(abs:string,relBase:string)=>{
+      const st=await fs.lstat(abs);if(st.isSymbolicLink())return
+      if(st.isFile()){await scanFile(abs,relBase);return}
+      if(!st.isDirectory())return
+      const entries=await fs.readdir(abs,{withFileTypes:true})
+      for(const ent of entries){
+        if(matches.length>=100)return
+        if([".git",".ai","node_modules"].includes(ent.name))continue
+        const child=path.join(abs,ent.name),rel=relBase?`${relBase}/${ent.name}`:ent.name
+        if(ent.isSymbolicLink())continue
+        if(ent.isDirectory())await walk(child,rel);else if(ent.isFile())await scanFile(child,rel)
+      }
+    }
+    if(preSideEffect)await preSideEffect()
+    for(const relRoot of roots){
+      const abs=await safeExistingRealPath(root,relRoot,"source_absence root"),st=await fs.stat(abs)
+      if(!st.isDirectory()&&!st.isFile())throw new Error("PROJECT_CHECK_BLOCKED: source_absence root inválido")
+      await walk(abs,relRoot.replaceAll("\\","/"))
+    }
+    if(matches.length)throw new Error(`PROJECT_CHECK_FAILED source_absence matches=${matches.length}\n${matches.slice(0,20).map(x=>`${x.path}:${x.line}:${x.pattern}`).join("\n")}`)
+    return {status:validationAuthority?"PROJECT_CHECK_VALIDATED":"DIAGNOSTIC_CHECK_COMPLETED",evidence_state:validationAuthority?"VALIDADO":"OBSERVADO",validation_authority:validationAuthority,acceptance_authority:false,owner:expectedOwner,runner:"builtin",builtin:"source_absence",exit_code:0,files_scanned:filesScanned,bytes_scanned:bytesScanned,match_count:0}
+  }
   if(c.runner==="docker") {
     const mode=String(c.project_mount_mode||"ro");if(mode!=="ro"&&mode!=="rw")throw new Error("PROJECT_CHECK_BLOCKED: mount mode inválido");if(mode==="rw"&&c.allow_workspace_writes!==true)throw new Error("PROJECT_CHECK_BLOCKED: rw sem allow_workspace_writes")
     const image=safeImageRef(String(c.image||""));if(!image)throw new Error("PROJECT_CHECK_BLOCKED: image ausente");if(c.allow_mutable_image!==true&&!/@sha256:[0-9a-f]{64}$/i.test(image))throw new Error("PROJECT_CHECK_BLOCKED: docker image deve ser pinned por sha256 ou allow_mutable_image=true")
@@ -1084,10 +1166,83 @@ function canonicalSystemTextPart(text:string):{type:"text",text:string}{
   if(typeof text!=="string")throw new Error("ADE_KERNEL_WORKER_CONTEXT_INVALID: SystemPart.text must be a string")
   return {type:"text",text}
 }
-async function waitWorkerWithTimeout(ctx:any,sessionID:string,timeoutMs:number):Promise<void>{
-  let timer:any
-  try{await Promise.race([ctx.session.wait({sessionID}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(`ADE_KERNEL_WORKER_TIMEOUT: worker exceeded ${timeoutMs}ms`)),timeoutMs)})])}
-  finally{if(timer)clearTimeout(timer)}
+async function waitWorkerWithTimeout(ctx:any,sessionID:string,timeoutMs:number,onHeartbeat?:()=>void|Promise<void>):Promise<void>{
+  let timer:any,heartbeat:any
+  try{
+    if(onHeartbeat)heartbeat=setInterval(()=>{Promise.resolve(onHeartbeat()).catch(()=>{})},OBSERVATION_HEARTBEAT_MS)
+    await Promise.race([ctx.session.wait({sessionID}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(`ADE_KERNEL_WORKER_TIMEOUT: worker exceeded ${timeoutMs}ms`)),timeoutMs)})])
+  }
+  finally{if(timer)clearTimeout(timer);if(heartbeat)clearInterval(heartbeat)}
+}
+
+type ObservationRecord={schema_version:number,seq:number,ts:string,workflow_id:string,job_id:string,job_type:string,worker_agent:string,worker_session_ref:string,type:string,activity:string,source:string,elapsed_ms:number,status?:string,detail?:any}
+const observationSeqCache=new Map<string,{seq:number,size:number}>()
+async function observationTailSeq(file:string,size:number):Promise<number>{
+  if(size<=0)return 0
+  const len=Math.min(size,64*1024),h=await fs.open(file,"r")
+  try{const buf=Buffer.alloc(len);await h.read(buf,0,len,size-len);for(const line of buf.toString("utf8").split(/\r?\n/).reverse()){if(!line.trim())continue;try{const item=JSON.parse(line);const seq=Number(item?.seq||0);if(Number.isFinite(seq)&&seq>=0)return seq}catch{}}return 0}finally{await h.close()}
+}
+function observationEventSessionID(event:any):string{
+  const p=event?.properties||event?.data||{}
+  const candidates=[event?.sessionID,event?.sessionId,p?.sessionID,p?.sessionId,p?.info?.sessionID,p?.info?.sessionId,p?.message?.sessionID,p?.message?.sessionId,p?.part?.sessionID,p?.part?.sessionId]
+  return String(candidates.find((x:any)=>typeof x==="string"&&x.trim())||"")
+}
+function observationRelativePath(root:string,value:any):string{
+  const raw=String(value||"").trim();if(!raw)return ""
+  try{const abs=path.resolve(root,raw);if(inside(root,abs))return path.relative(root,abs).replaceAll("\\","/").slice(0,240)}catch{}
+  return path.basename(raw).slice(0,160)
+}
+function observationContextSample(messages:any):{activity:string,detail:any}{
+  const rows=Array.isArray(messages)?messages:Array.from(messages||[]),last=[...rows].reverse().find((m:any)=>String(m?.type||m?.role||"")==="assistant")||rows.at(-1)||{}
+  const parts=Array.isArray(last?.content)?last.content:Array.isArray(last?.parts)?last.parts:[],part=parts.at(-1)||{}
+  const partType=String(part?.type||"").slice(0,80),tool=String(part?.tool||part?.name||part?.toolName||part?.state?.tool||"").slice(0,120),toolState=String(part?.state?.status||part?.status||"").slice(0,80)
+  const detail:any={message_count:rows.length};if(partType)detail.latest_part_type=partType;if(tool)detail.tool=tool;if(toolState)detail.tool_status=toolState
+  const activity=tool?`context sample: tool ${tool}${toolState?` ${toolState}`:""}`:partType?`context sample: latest part ${partType}`:`context sample: ${rows.length} messages`
+  return {activity,detail}
+}
+function observationNormalize(event:any,worker:any):{type:string,activity:string,status?:string,detail?:any}|null{
+  const type=String(event?.type||"unknown"),p=event?.properties||event?.data||{}
+  // beta-18743 has shipped both higher-level message/session events and lower-level
+  // session.* deltas. Normalize both families into ADE-owned observation records.
+  if(type==="session.text.delta"){
+    const delta=redactSensitiveText(String(p?.delta||p?.text||""),220).replace(/[\r\n\t]+/g," ").trim()
+    return {type:"WORKER_TEXT_ACTIVITY",activity:delta?`worker text: ${delta}`:"worker text activity"}
+  }
+  // Never project model reasoning text. Presence is useful operational metadata;
+  // the hidden reasoning payload itself is not part of ADE observability.
+  if(type==="session.reasoning.delta")return {type:"WORKER_REASONING_ACTIVITY",activity:"worker reasoning activity"}
+  if(type==="message.part.updated"||type==="message.updated")return {type:"WORKER_MESSAGE_ACTIVITY",activity:type==="message.part.updated"?"assistant/message part updated":"assistant message updated"}
+  if(type==="session.status"){const status=String(p?.status?.type||p?.status||p?.type||"busy");return {type:"WORKER_STATUS",activity:`worker status ${status}`,status}}
+  if(type==="session.idle")return {type:"WORKER_IDLE",activity:"worker session became idle",status:"idle"}
+  if(type==="session.error"||type==="session.execution.failed")return {type:"WORKER_ERROR",activity:`worker session error: ${cleanErrorText(asError(p?.error||p?.message||"session error"),240)}`,status:"error"}
+  if(type==="session.execution.succeeded")return {type:"WORKER_EXECUTION_SUCCEEDED",activity:"worker execution succeeded",status:"done"}
+  if(type==="tool.execute.before"||type==="session.tool.called"){const tool=String(p?.tool||p?.name||p?.toolName||p?.id||"tool").slice(0,120);return {type:"WORKER_TOOL_STARTED",activity:`tool started: ${tool}`,detail:{tool}}}
+  if(type==="tool.execute.after"||type==="session.tool.success"){const tool=String(p?.tool||p?.name||p?.toolName||p?.id||"tool").slice(0,120);return {type:"WORKER_TOOL_FINISHED",activity:`tool finished: ${tool}`,detail:{tool}}}
+  if(type==="session.tool.failed"){const tool=String(p?.tool||p?.name||p?.toolName||p?.id||"tool").slice(0,120),error=cleanErrorText(asError(p?.error||p?.message||"tool failed"),200);return {type:"WORKER_TOOL_FAILED",activity:`tool failed: ${tool}: ${error}`,status:"error",detail:{tool}}}
+  if(type==="file.edited"){const file=observationRelativePath(worker.root,p?.file||p?.path||p?.filename);return {type:"WORKER_FILE_EDITED",activity:file?`file edited: ${file}`:"file edited",detail:file?{file}:undefined}}
+  if(type==="permission.asked")return {type:"WORKER_PERMISSION",activity:"worker requested permission"}
+  if(type==="session.updated")return {type:"WORKER_SESSION_UPDATED",activity:"worker session updated"}
+  if(type==="session.created")return {type:"WORKER_SESSION_EVENT",activity:"worker session created"}
+  return null
+}
+async function observationRead(root:string):Promise<ObservationRecord[]>{
+  const kp=await kernelPaths(root)
+  try{const st=await fs.lstat(kp.observations);if(st.isSymbolicLink()||!st.isFile())throw new Error("ADE_OBSERVATION_CORRUPT: observation journal is not a regular file");if(st.size>OBSERVATION_EVENT_MAX_BYTES*2)throw new Error("ADE_OBSERVATION_MAINTENANCE_REQUIRED: observation journal exceeds hard safety bound")}catch(e:any){if(e?.code==="ENOENT")return[];throw e}
+  const raw=await fs.readFile(kp.observations,"utf8"),out:ObservationRecord[]=[]
+  for(const line of raw.split(/\r?\n/)){if(!line.trim())continue;try{const item=JSON.parse(line);if(Number(item?.schema_version)===OBSERVATION_SCHEMA_VERSION)out.push(item)}catch{}}
+  return out
+}
+async function observationAppend(root:string,input:Omit<ObservationRecord,"schema_version"|"seq"|"ts">):Promise<ObservationRecord>{
+  const kp=await kernelPaths(root)
+  return withFileLock(kp.observationLock,5000,async()=>{
+    let size=0
+    try{const st=await fs.stat(kp.observations);size=st.size;if(size>=OBSERVATION_EVENT_MAX_BYTES){const backup=kp.observations+".1";try{await fs.rm(backup,{force:true})}catch{};await fs.rename(kp.observations,backup);size=0;observationSeqCache.delete(kp.observations)}}catch(e:any){if(e?.code!=="ENOENT")throw e}
+    const cached=observationSeqCache.get(kp.observations),lastSeq=cached&&cached.size===size?cached.seq:await observationTailSeq(kp.observations,size)
+    const ev:ObservationRecord={schema_version:OBSERVATION_SCHEMA_VERSION,seq:lastSeq+1,ts:now(),...JSON.parse(JSON.stringify(input))},line=JSON.stringify(ev)+"\n"
+    const h=await fs.open(kp.observations,"a",0o600);try{await h.writeFile(line,"utf8")}finally{await h.close()}
+    observationSeqCache.set(kp.observations,{seq:ev.seq,size:size+Buffer.byteLength(line,"utf8")})
+    return ev
+  })
 }
 
 // OpenCode V2 native Promise plugin contract. Local plugins are expected to import
@@ -1115,37 +1270,50 @@ export default pluginDefine({
     const hideCore: Record<string, readonly string[]> = capabilityRegistry.hide_core_tools || {}
     const registered = Object.keys(capabilityRegistry.tools || {})
     const retrySignatures=new Map<string,number>()
-    const workerObservations=new Map<string,{parentSessionID:string,workflowID:string,jobID:string,events:any[],lastDeltaAt:number,progress?:(update:any)=>Promise<void>}>()
-    const observeWorker=async(sessionID:string,kind:string,text?:string)=>{
-      const worker=workerObservations.get(sessionID);if(!worker)return
-      const nowMs=Date.now(),delta=kind==="text"||kind==="reasoning"
-      if(delta&&nowMs-worker.lastDeltaAt<500)return
-      if(delta)worker.lastDeltaAt=nowMs
-      const value=text?redactSensitiveText(text,800):""
-      worker.events.push({ts:now(),kind,...(value?{text:value}:{})})
-      if(worker.events.length>40)worker.events.shift()
-      try{await worker.progress?.({ade_worker:{workflow_id:worker.workflowID,job_id:worker.jobID,kind,...(value?{text:value}:{})}})}catch{}
+    const workerRegistry=new Map<string,any>()
+    const observationController=new AbortController()
+    // Capture and delivery are deliberately separate. `EVENT_NATIVE` means ADE is
+    // receiving host events; it does NOT imply the parent TUI is rendering them.
+    // beta-18743's native Task tool publishes child linkage/progress through tool
+    // metadata (`metadata.sessionId` + `metadata.summary`). ADE mirrors that shape
+    // while retaining its own noncanonical observation journal.
+    const observationState:any={mode:typeof ctx.event?.subscribe==="function"?"EVENT_NATIVE":"POLLING_FALLBACK",capture_mode:typeof ctx.event?.subscribe==="function"?"EVENT_NATIVE":"POLLING_FALLBACK",delivery_mode:"TASK_COMPAT_METADATA",visibility:"HOST_CANARY_REQUIRED",active:false,last_event_at:null,error:null,unknown_events:0}
+    const retireWorker=(sessionID:string,worker:any)=>{worker.terminal=true;const timer:any=setTimeout(()=>workerRegistry.delete(sessionID),10000);if(typeof timer?.unref==="function")timer.unref()}
+    const nativeToolSummary=(worker:any)=>Object.values(worker.native_tool_parts||{}).sort((a:any,b:any)=>String(a.id||"").localeCompare(String(b.id||""))).slice(-40)
+    const updateNativeToolSummary=(worker:any,event:any)=>{
+      const type=String(event?.type||""),p=event?.properties||event?.data||{},part=p?.part
+      worker.native_tool_parts??={}
+      if((type==="message.part.updated"||type==="message.updated")&&part?.type==="tool"){
+        const id=String(part.id||part.callID||part.callId||`${part.tool||"tool"}-${Object.keys(worker.native_tool_parts).length}`),tool=String(part.tool||part.name||"tool").slice(0,120),status=String(part.state?.status||part.status||"running").slice(0,40),title=status==="completed"?String(part.state?.title||part.title||"").slice(0,180):undefined
+        worker.native_tool_parts[id]={id,tool,state:{status,...(title?{title}: {})}}
+        return
+      }
+      if(type==="session.tool.called"||type==="session.tool.success"||type==="session.tool.failed"||type==="tool.execute.before"||type==="tool.execute.after"){
+        const tool=String(p?.tool||p?.name||p?.toolName||"tool").slice(0,120),id=String(p?.callID||p?.callId||p?.partID||p?.partId||tool),status=(type==="session.tool.called"||type==="tool.execute.before")?"running":(type==="session.tool.success"||type==="tool.execute.after")?"completed":"error"
+        worker.native_tool_parts[id]={id,tool,state:{status,...(status==="completed"?{title:String(p?.title||tool).slice(0,180)}:{})}}
+      }
     }
-    const eventController=typeof AbortController==="function"?new AbortController():null
+    const workerProgress=async(worker:any,event:any)=>{
+      worker.last_activity_at=now();worker.last_activity=event.activity;worker.status=event.status||worker.status||"running"
+      try{await observationAppend(worker.root,{workflow_id:worker.workflow_id,job_id:worker.job_id,job_type:worker.job_type,worker_agent:worker.agent,worker_session_ref:worker.session_ref,type:event.type,activity:redactSensitiveText(String(event.activity||"worker activity"),400),source:event.source||"opencode-event",elapsed_ms:Date.now()-worker.started_ms,status:event.status,detail:redactForModel(event.detail||undefined)})}catch{}
+      if(typeof worker.progress==="function")try{
+        const activity=redactSensitiveText(String(event.activity||"worker activity"),300),elapsed_ms=Date.now()-worker.started_ms,summary=nativeToolSummary(worker)
+        // OpenCode's native Task renderer keys child hydration/navigation from
+        // metadata.sessionId and consumes metadata.summary while the tool runs.
+        // The raw child id is intentionally limited to host tool metadata; model-
+        // facing ADE outputs continue to use the hashed worker_session_ref.
+        await worker.progress({
+          title:`ADE ${worker.job_type} · @${worker.agent}`,
+          metadata:{sessionId:worker.session_id,summary,activity,status:event.status||worker.status||"running",elapsed_ms,ade:{workflow_id:worker.workflow_id,job_id:worker.job_id,job_type:worker.job_type,agent:worker.agent,session_ref:worker.session_ref,event_type:event.type,capture_mode:observationState.mode}},
+          status:"worker-live",workflow_id:worker.workflow_id,job_id:worker.job_id,job_type:worker.job_type,worker_agent:worker.agent,worker_session_ref:worker.session_ref,event_type:event.type,activity,elapsed_ms,observation_mode:observationState.mode,ade_worker:{workflow_id:worker.workflow_id,job_id:worker.job_id,job_type:worker.job_type,agent:worker.agent,session_ref:worker.session_ref,kind:event.type,activity,elapsed_ms,observation_mode:observationState.mode}
+        })
+      }catch{}
+    }
     if(typeof ctx.event?.subscribe==="function"){
-      void (async()=>{
-        try{
-          for await(const event of ctx.event.subscribe({signal:eventController?.signal})){
-            const data=event?.data||{},sessionID=String(data.sessionID||"")
-            if(!workerObservations.has(sessionID))continue
-            const type=String(event?.type||"")
-            if(type==="session.text.delta")await observeWorker(sessionID,"text",String(data.delta||""))
-            else if(type==="session.reasoning.delta")await observeWorker(sessionID,"reasoning",String(data.delta||""))
-            else if(type==="session.tool.called")await observeWorker(sessionID,"tool.called",String(data.name||data.id||"tool"))
-            else if(type==="session.tool.success")await observeWorker(sessionID,"tool.success")
-            else if(type==="session.tool.failed")await observeWorker(sessionID,"tool.failed",String(data.error?.message||""))
-            else if(type==="session.execution.failed")await observeWorker(sessionID,"failed",String(data.error?.message||""))
-            else if(type==="session.execution.succeeded")await observeWorker(sessionID,"completed")
-          }
-        }catch{}
-      })()
+      observationState.active=true
+      void (async()=>{try{for await(const event of ctx.event.subscribe({signal:observationController.signal})){observationState.last_event_at=now();observationState.active=true;const sessionID=observationEventSessionID(event),worker=sessionID?workerRegistry.get(sessionID):undefined;if(!worker)continue;worker.last_native_event_ms=Date.now();if(observationState.mode==="EVENT_DEGRADED")observationState.mode="EVENT_NATIVE";observationState.capture_mode=observationState.mode;observationState.error=null;updateNativeToolSummary(worker,event);const normalized=observationNormalize(event,worker);if(normalized){if(normalized.type==="WORKER_MESSAGE_ACTIVITY"){const stamp=Date.now();if(stamp-Number(worker.last_message_observation_ms||0)<750)continue;worker.last_message_observation_ms=stamp}await workerProgress(worker,{...normalized,source:"opencode-event"})}else observationState.unknown_events++}if(!observationController.signal.aborted){observationState.active=false;observationState.mode="EVENT_DEGRADED";observationState.capture_mode=observationState.mode;observationState.error="event stream ended unexpectedly; polling fallback active"}}catch(e){if(!observationController.signal.aborted){observationState.active=false;observationState.mode="EVENT_DEGRADED";observationState.capture_mode=observationState.mode;observationState.error=cleanErrorText(asError(e),300)}}})()
     }
-    await ctx.storage.set("runtime/version",{plugin:VERSION,opencode:ctx.app?.version,plugin_contract:PLUGIN_CONTRACT,loaded_at:now()})
+    await ctx.storage.set("runtime/version",{plugin:VERSION,opencode:ctx.app?.version,plugin_contract:PLUGIN_CONTRACT,host_baseline:"0.0.0-beta-18743",observation_mode:observationState.mode,loaded_at:now()})
 
     await ctx.agent.transform((draft:any)=>{
       if(draft.get("orchestrator")) draft.default("orchestrator")
@@ -1434,21 +1602,83 @@ export default pluginDefine({
       const actual=await resolveAuthorizationFingerprint(root,name,input)
       if(actual!==expected)throw new Error(`ADE_AUTHORIZATION_STALE: ${name} target/effect changed after grant; re-authorize exact operation`)
     }
+    const kernelWorkspaceMode=async(root:string)=>{
+      try{
+        const probe=await runGit(root,["-C",root,"rev-parse","--show-toplevel"],{timeout:10000,maxOutput:20000})
+        if(probe.code!==0||!probe.stdout.trim()){
+          const reason=cleanErrorText(probe.stderr||probe.stdout||"git repository root unavailable",300)
+          if(/not a git repository|not a repository/i.test(reason))return {classification:"NO_REPOSITORY",mode:"filesystem",reason}
+          return {classification:"VCS_INCONSISTENT",mode:"blocked",reason}
+        }
+        const gitRoot=path.resolve(probe.stdout.trim())
+        if(normalizedPathKey(gitRoot)!==normalizedPathKey(root))return {classification:"VCS_INCONSISTENT",mode:"blocked",reason:`project root ${root} is not git toplevel ${gitRoot}`}
+        const head=await runGit(root,["-C",root,"rev-parse","HEAD"],{timeout:10000,maxOutput:20000})
+        if(head.code!==0||!head.stdout.trim())return {classification:"VCS_INCONSISTENT",mode:"blocked",reason:cleanErrorText(head.stderr||head.stdout||"git HEAD unavailable",300)}
+        return {classification:"REPOSITORY",mode:"git",head:head.stdout.trim(),reason:"git repository ready"}
+      }catch(e){
+        const reason=cleanErrorText(asError(e),300)
+        if(/executable|not found|enoent|git.*unavailable/i.test(reason))return {classification:"VCS_UNAVAILABLE",mode:"filesystem",reason}
+        if(/not a git repository|not a repository/i.test(reason))return {classification:"NO_REPOSITORY",mode:"filesystem",reason}
+        return {classification:"VCS_INCONSISTENT",mode:"blocked",reason}
+      }
+    }
+    const filesystemFileFingerprint=async(file:string,st:any,budget:{hashed:number})=>{
+      const size=Number(st?.size||0),mtime=Math.trunc(Number(st?.mtimeMs||0))
+      if(size<=FILESYSTEM_SNAPSHOT_FULL_HASH_MAX_BYTES&&budget.hashed+size<=FILESYSTEM_SNAPSHOT_MAX_HASH_BYTES){const data=await fs.readFile(file);budget.hashed+=data.length;return `sha256:${sha256Hex(data)}:${size}`}
+      let first=Buffer.alloc(0),last=Buffer.alloc(0),fh:any
+      try{fh=await fs.open(file,"r");const n=Math.min(size,FILESYSTEM_SNAPSHOT_SAMPLE_BYTES);if(n>0){first=Buffer.alloc(n);await fh.read(first,0,n,0);if(size>n){const m=Math.min(size-n,FILESYSTEM_SNAPSHOT_SAMPLE_BYTES);last=Buffer.alloc(m);await fh.read(last,0,m,Math.max(0,size-m))}}}finally{if(fh)await fh.close()}
+      budget.hashed+=first.length+last.length
+      return `sample:${sha256Hex(Buffer.concat([first,last]))}:${size}:${mtime}`
+    }
+    const filesystemSnapshot=async(root:string)=>{
+      const files:Record<string,string>={},budget={hashed:0};let count=0,skipped_symlinks=0
+      const walk=async(dir:string)=>{
+        const entries=await fs.readdir(dir,{withFileTypes:true})
+        entries.sort((a:any,b:any)=>String(a.name).localeCompare(String(b.name)))
+        for(const entry of entries){
+          const name=String(entry.name||"");if(!name)continue
+          const abs=path.join(dir,name),rel=path.relative(root,abs).replaceAll("\\","/")
+          if(entry.isSymbolicLink()){skipped_symlinks++;continue}
+          if(entry.isDirectory()){if(FILESYSTEM_SNAPSHOT_IGNORED_DIRS.has(name))continue;await walk(abs);continue}
+          if(!entry.isFile())continue
+          if(rel.startsWith(".ai/"))continue
+          count++;if(count>FILESYSTEM_SNAPSHOT_MAX_FILES)throw new Error(`ADE_KERNEL_FILESYSTEM_SNAPSHOT_LIMIT: project exceeds ${FILESYSTEM_SNAPSHOT_MAX_FILES} files outside ignored directories`)
+          const st=await fs.stat(abs);files[rel]=await filesystemFileFingerprint(abs,st,budget)
+        }
+      }
+      await walk(root)
+      const entries=Object.entries(files).sort((a,b)=>a[0].localeCompare(b[0])),digest=sha256Hex(canonicalStringify(entries))
+      return {schema_version:1,mode:"filesystem",created_at:now(),count,hashed_bytes:budget.hashed,skipped_symlinks,digest,files}
+    }
+    const filesystemDiff=(before:any,after:any)=>{
+      const a=before?.files||{},b=after?.files||{},paths=[...new Set([...Object.keys(a),...Object.keys(b)])].sort(),changed:string[]=[]
+      for(const rel of paths)if(a[rel]!==b[rel])changed.push(rel)
+      if(changed.length>10_000)throw new Error("ADE_KERNEL_FILESYSTEM_DIFF_LIMIT: more than 10000 changed files")
+      return changed
+    }
+    const filesystemBaselineFile=async(root:string,jobID:string)=>{const kp=await kernelPaths(root);return path.join(kp.dir,`fs-baseline-${sha256Hex(jobID).slice(0,20)}.json`)}
+    const writeFilesystemBaseline=async(root:string,jobID:string,snapshot:any)=>{const file=await filesystemBaselineFile(root,jobID),tmp=file+`.tmp-${crypto.randomUUID()}`;await fs.writeFile(tmp,JSON.stringify(snapshot),{encoding:"utf8",mode:0o600});await fs.rename(tmp,file);return {file,digest:String(snapshot.digest||"")}}
+    const readFilesystemBaseline=async(root:string,jobID:string)=>{const file=await filesystemBaselineFile(root,jobID);const st=await fs.lstat(file);if(st.isSymbolicLink()||!st.isFile())throw new Error("ADE_KERNEL_FILESYSTEM_BASELINE_UNSAFE: baseline is not a regular file");const data=JSON.parse(await fs.readFile(file,"utf8"));if(!data||data.mode!=="filesystem"||typeof data.files!=="object")throw new Error("ADE_KERNEL_FILESYSTEM_BASELINE_INVALID: malformed baseline");return {file,data}}
     const engineeringWorkflowPreflight=async(root:string,input:any)=>{
       if(String(input?.kind||"engineering")!=="engineering")return {changed:false,actions:[],human_gates:[]} as ProjectSelfHealResult
       const checks=Array.isArray(input?.check_names)?input.check_names.map((x:any)=>String(x).trim()).filter(Boolean):[]
       if(!checks.length)return {changed:false,actions:[],human_gates:[]} as ProjectSelfHealResult // kernelWorkflowPlan owns the canonical missing-check error
-      const heal=await selfHealExecutionPolicy(root)
+      const heal=await selfHealExecutionPolicy(root,checks)
       const policy=await readProjectJson(root,".ai/execution-policy.json","execution policy")
       const available=Object.keys(policy.checks||{}).sort()
-      if(policy.authorized!==true)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: execution policy authorized=false after SAFE_AUTO_REPAIR; no workers were started. Human review/authorization is required before engineering; requested=[${checks.join(",")}]; available=[${available.join(",")}]; self_heal=[${heal.actions.join(";")||"none"}]`)
+      if(policy.authorized!==true)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: execution policy authorized=false after SAFE_AUTO_REPAIR; no workers were started. Human review/authorization is required before engineering; requested=[${checks.join(",")}]; available=[${available.join(",")}]; self_heal=[${heal.actions.join(";")||"none"}]; gates=[${heal.human_gates.join(";")||"none"}]`)
+      const problems:string[]=[]
       for(const name of checks){
         const c=policy.checks?.[name]
-        if(!c)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: deterministic check '${name}' is not registered; no workers were started; available=[${available.join(",")}]; self_heal=[${heal.actions.join(";")||"none"}]`)
-        if(c.owner!=="verifier"||c.non_destructive!==true)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: deterministic check '${name}' must be owner=verifier and non_destructive=true; no workers were started`)
-        if(c.runner==="process"&&c.allow_host_process===false)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: deterministic check '${name}' explicitly denies host process via allow_host_process=false; no workers were started`)
+        if(!c){problems.push(`${name}:not-registered`);continue}
+        if(c.owner!=="verifier"||c.non_destructive!==true)problems.push(`${name}:requires-owner=verifier,non_destructive=true`)
+        if(c.runner==="process"&&c.allow_host_process===false)problems.push(`${name}:allow_host_process=false`)
+        if(!["process","docker","builtin"].includes(String(c.runner||"")))problems.push(`${name}:unsupported-runner=${String(c.runner||"")}`)
       }
-      return heal
+      if(problems.length)throw new Error(`ADE_WORKFLOW_PROJECT_POLICY_REQUIRED: execution policy admission failed; no workers were started; requested=[${checks.join(",")}]; available=[${available.join(",")}]; problems=[${problems.join(";")}]; self_heal=[${heal.actions.join(";")||"none"}]; gates=[${heal.human_gates.join(";")||"none"}]`)
+      const workspace=await kernelWorkspaceMode(root)
+      if(workspace.mode==="blocked")throw new Error(`ADE_KERNEL_VCS_PRECONDITION: engineering admission found inconsistent VCS state before workers start: ${workspace.reason}`)
+      return {...heal,vcs_preflight:workspace.mode==="git"?"OK":"FILESYSTEM_FALLBACK",workspace_mode:workspace.mode,vcs_classification:workspace.classification,vcs_reason:workspace.reason} as any
     }
     const kernelStartWorkflow=async(root:string,input:any)=>{
       const selfHeal=await engineeringWorkflowPreflight(root,input)
@@ -1459,56 +1689,52 @@ export default pluginDefine({
       const state=await kernelAppendDrafts(root,drafts),snapshot=kernelWorkflowPublic(state,plan.workflow.id)
       return {event:"WORKFLOW_STARTED",workflow_id:plan.workflow.id,...snapshot,project_self_heal:selfHeal,next_action:{tool:"ade_workflow_run",input:{workflow_id:plan.workflow.id,max_jobs:4}},note:"ade_workflow_start performs bounded SAFE_AUTO_REPAIR for ADE-owned project policy, then persists the durable workflow DAG; no worker session runs until ade_workflow_run. Security-sensitive gates remain human-controlled."}
     }
-    const kernelWorkerSession=async(root:string,parentSessionID:string,wf:any,job:any,t:any)=>{
-      const capsule=kernelContextCapsule(await kernelLoad(root),wf,job),agent=KERNEL_WORKER_AGENT[job.type]
+    const kernelWorkerSession=async(root:string,parentSessionID:string,wf:any,job:any,t:any,existingSessionID?:string)=>{
+      const capsule=kernelContextCapsule(await kernelLoad(root),wf,job),agent=KERNEL_WORKER_AGENT[job.type],resuming=Boolean(existingSessionID)
       if(!agent)throw new Error(`ADE_KERNEL_WORKER_ROUTE_BLOCKED: no worker for ${job.type}`)
-      const created=await ctx.session.create({title:`ADE6 ${job.type}: ${String(wf.objective).slice(0,72)}`}),sessionID=String(created?.id||created?.sessionID||created?.data?.id||"")
-      if(!sessionID)throw new Error("ADE_KERNEL_WORKER_FAILED: session.create returned no id")
-      workerObservations.set(sessionID,{parentSessionID,workflowID:wf.id,jobID:job.id,events:[],lastDeltaAt:0,progress:typeof t?.progress==="function"?t.progress.bind(t):undefined})
-      await observeWorker(sessionID,"started",`${agent} started`)
-      try{await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{session_id:sessionID,parent_session_ref:sha256Hex(parentSessionID).slice(0,16),worker_session_ref:sha256Hex(sessionID).slice(0,16),capsule_hash:capsule.context_hash,observability:{status:"RUNNING",events:[{ts:now(),kind:"started"}]}}}}])}catch{}
+      if(resuming&&job.capsule_hash&&String(job.capsule_hash)!==capsule.context_hash)throw new Error("ADE_KERNEL_STATE_INVALID: persisted worker capsule no longer matches durable job context")
+      let sessionID=String(existingSessionID||""),sessionRef=String(job.worker_session_ref||"")
+      if(!resuming){const created=await ctx.session.create({parentID:parentSessionID,title:`ADE ${VERSION} ${job.type}: ${String(wf.objective).slice(0,72)}`});sessionID=String(created?.id||created?.sessionID||created?.data?.id||"");if(!sessionID)throw new Error("ADE_KERNEL_WORKER_FAILED: session.create returned no id");sessionRef=sha256Hex(sessionID).slice(0,16)}
+      else if(!sessionID)throw new Error("ADE_KERNEL_STATE_INVALID: RUNNING worker has no session id")
+      if(!sessionRef)sessionRef=sha256Hex(sessionID).slice(0,16)
+      const persistedStarted=Date.parse(String(job.started_at||"")),existing=workerRegistry.get(sessionID),worker:any=existing||{root,workflow_id:wf.id,job_id:job.id,job_type:job.type,agent,parent_session_id:parentSessionID,session_ref:sessionRef,started_at:Number.isFinite(persistedStarted)?job.started_at:now(),started_ms:Number.isFinite(persistedStarted)?persistedStarted:Date.now(),last_activity_at:now(),last_activity:resuming?"worker session adopted after restart":"worker session created",status:resuming?"reattached":"starting"}
+      worker.root=root;worker.workflow_id=wf.id;worker.job_id=job.id;worker.job_type=job.type;worker.agent=agent;worker.parent_session_id=parentSessionID;worker.session_id=sessionID;worker.session_ref=sessionRef;worker.terminal=false;worker.native_tool_parts??={};worker.progress=typeof t?.progress==="function"?t.progress.bind(t):worker.progress
+      workerRegistry.set(sessionID,worker)
+      if(!resuming){try{await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{session_id:sessionID,parent_session_ref:sha256Hex(parentSessionID).slice(0,16),worker_session_ref:sessionRef,capsule_hash:capsule.context_hash}}}])}catch{};await workerProgress(worker,{type:"WORKER_CREATED",activity:"worker session created",status:"starting",source:"kernel"})}
+      else await workerProgress(worker,{type:"WORKER_REATTACHED",activity:"running worker adopted by workflow run",status:"reattached",source:"kernel-recovery"})
       try{
-        try{const info=await ctx.session.get({sessionID}),dir=String(info?.location?.directory||"");if(dir&&!inside(root,dir))throw new Error("ADE_KERNEL_WORKER_LOCATION_BLOCKED: child session outside project") }catch(e){if(/ADE_KERNEL_WORKER_LOCATION_BLOCKED/.test(asError(e)))throw e}
-        await ctx.session.switchAgent({sessionID,agent})
-        try{const p=await ctx.session.get({sessionID:parentSessionID}),m=p?.model||p?.info?.model,providerID=String(m?.providerID||""),id=String(m?.id||m?.modelID||"");if(providerID&&id&&typeof ctx.session.switchModel==="function")await ctx.session.switchModel({sessionID,model:{providerID,id}})}catch{}
-        if(typeof t?.progress==="function")try{await t.progress({status:"kernel-worker",workflow_id:wf.id,job_id:job.id,job_type:job.type,worker_agent:agent})}catch{}
-        // OpenCode V2 beta-18743 session.prompt returns a SessionInboxUser
-        // admission receipt, not the generated assistant message. `steer` is a
-        // valid V2 delivery mode and resume defaults to true. Wait for the child
-        // to become idle, then read the canonical SessionMessageInfo context.
-        await ctx.session.prompt({sessionID,text:kernelWorkerPrompt(capsule),delivery:"steer"})
-        await waitWorkerWithTimeout(ctx,sessionID,KERNEL_WORKER_TIMEOUT_MS)
+        try{const info=await ctx.session.get({sessionID}),dir=String(info?.location?.directory||"");if(dir&&!inside(root,dir))throw new Error("ADE_KERNEL_WORKER_LOCATION_BLOCKED: child session outside project") }catch(e){if(/ADE_KERNEL_WORKER_LOCATION_BLOCKED/.test(asError(e)))throw e;if(resuming)throw new Error(`ADE_KERNEL_WORKER_RECOVERY_FAILED: persisted session unavailable: ${cleanErrorText(asError(e),300)}`)}
+        if(!resuming){
+          await ctx.session.switchAgent({sessionID,agent})
+          try{const p=await ctx.session.get({sessionID:parentSessionID}),m=p?.model||p?.info?.model,providerID=String(m?.providerID||""),id=String(m?.id||m?.modelID||"");if(providerID&&id&&typeof ctx.session.switchModel==="function")await ctx.session.switchModel({sessionID,model:{providerID,id}})}catch{}
+          await workerProgress(worker,{type:"WORKER_READY",activity:`worker ready: ${agent}`,status:"running",source:"kernel"})
+          // OpenCode V2 beta-18743 session.prompt returns a SessionInboxUser admission receipt.
+          await ctx.session.prompt({sessionID,text:kernelWorkerPrompt(capsule),delivery:"steer"})
+          await workerProgress(worker,{type:"WORKER_PROMPTED",activity:"worker prompt admitted; awaiting live activity",status:"running",source:"kernel"})
+        }
+        await waitWorkerWithTimeout(ctx,sessionID,KERNEL_WORKER_TIMEOUT_MS,async()=>{
+          let status="running";try{const info=await ctx.session.get({sessionID});status=String(info?.outcome||info?.info?.outcome||info?.status?.type||"running")}catch{}
+          const age=Date.now()-worker.started_ms,nativeAge=Date.now()-Number(worker.last_native_event_ms||worker.started_ms)
+          if(observationState.mode==="EVENT_NATIVE"&&age>=OBSERVATION_HEARTBEAT_MS*2&&nativeAge>OBSERVATION_HEARTBEAT_MS*3){observationState.mode="EVENT_DEGRADED";observationState.capture_mode=observationState.mode;observationState.error="event stream produced no recent event for the active worker; polling fallback active"}
+          try{const sample=observationContextSample(await ctx.session.context({sessionID})),key=JSON.stringify(sample.detail);if(key!==worker.last_context_sample_key){worker.last_context_sample_key=key;await workerProgress(worker,{type:"WORKER_CONTEXT_SAMPLE",activity:sample.activity,status,detail:sample.detail,source:"session-context-poll"})}}catch{}
+          await workerProgress(worker,{type:"WORKER_HEARTBEAT",activity:"worker still running",status,source:observationState.mode==="EVENT_NATIVE"?"heartbeat":"polling-fallback"})
+        })
         const messages=await ctx.session.context({sessionID}),summary=latestAssistantText(messages as any[])
         if(!summary.trim()){
           const kinds=(messages as any[]).map(sessionMessageKind).filter(Boolean).slice(-8).join(",")||"none"
           let outcome="",tokens="unknown"
-          try{
-            const post=await ctx.session.get({sessionID});outcome=String(post?.outcome||post?.info?.outcome||"")
-            const usage=post?.tokens||post?.info?.tokens
-            if(usage&&typeof usage==="object")tokens=`input=${Number(usage.input||0)},output=${Number(usage.output||0)},reasoning=${Number(usage.reasoning||0)}`
-          }catch{}
+          try{const post=await ctx.session.get({sessionID});outcome=String(post?.outcome||post?.info?.outcome||"");const usage=post?.tokens||post?.info?.tokens;if(usage&&typeof usage==="object")tokens=`input=${Number(usage.input||0)},output=${Number(usage.output||0)},reasoning=${Number(usage.reasoning||0)}`}catch{}
           if(outcome==="failed")throw new Error(`ADE_KERNEL_WORKER_EXECUTION_FAILED: outcome=failed; context_kinds=${kinds}; tokens=${tokens}`)
           if(outcome==="interrupted")throw new Error(`ADE_KERNEL_WORKER_INTERRUPTED: outcome=interrupted; context_kinds=${kinds}; tokens=${tokens}`)
           throw new Error(`ADE_KERNEL_WORKER_INVALID_OUTPUT: empty assistant result; outcome=${outcome||"unknown"}; context_kinds=${kinds}; tokens=${tokens}`)
         }
-        await observeWorker(sessionID,"completed")
-        return {session_id:sessionID,session_ref:sha256Hex(sessionID).slice(0,16),agent,summary:redactSensitiveText(summary.slice(0,6000)),capsule_hash:capsule.context_hash,observability:{status:"COMPLETED",events:workerObservations.get(sessionID)?.events||[]}}
-      }catch(e){await observeWorker(sessionID,"failed",cleanErrorText(asError(e),400));try{await ctx.session.interrupt({sessionID,continue:false})}catch{};throw e}
-      finally{workerObservations.delete(sessionID)}
+        await workerProgress(worker,{type:"WORKER_RESULT_COLLECTED",activity:resuming?"recovered worker result collected":"worker result collected",status:"done",source:resuming?"kernel-recovery":"kernel"})
+        retireWorker(sessionID,worker)
+        return {session_id:sessionID,session_ref:sessionRef,agent,summary:summary.slice(0,6000),capsule_hash:capsule.context_hash,recovered:resuming}
+      }catch(e){await workerProgress(worker,{type:"WORKER_ERROR",activity:`worker failed: ${cleanErrorText(asError(e),240)}`,status:"error",source:resuming?"kernel-recovery":"kernel"});retireWorker(sessionID,worker);try{await ctx.session.interrupt({sessionID,continue:false})}catch{};throw e}
     }
-    const kernelWorkspaceObservation=async(parentSessionID:string)=>{
-      if(typeof ctx.vcs?.get!=="function"||typeof ctx.vcs?.status!=="function")return {classification:"VCS_UNAVAILABLE",mode:"filesystem",changes:[],reason:"native VCS API unavailable"}
-      try{
-        const scope=await resolveSessionScope(ctx,parentSessionID),info=await ctx.vcs.get({location:scope.location}),branch=String(info?.data?.branch?.current||"").trim()
-        if(!branch)return {classification:"NO_REPOSITORY",mode:"filesystem",changes:[],reason:"native VCS did not report an active branch"}
-        try{
-          const status=await ctx.vcs.status({location:scope.location}),rows=Array.isArray(status?.data)?status.data:[]
-          return {classification:"REPOSITORY",mode:"git",branch,changes:rows.map((x:any)=>String(x?.file||"").replaceAll("\\","/")).filter((x:string)=>x&&!x.startsWith(".ai/"))}
-        }catch(e){return {classification:"VCS_INCONSISTENT",mode:"blocked",changes:[],reason:cleanErrorText(asError(e),240)}}
-      }catch(e){
-        const reason=cleanErrorText(asError(e),240)
-        return {classification:/not a git repository|not a repository/i.test(reason)?"NO_REPOSITORY":"VCS_UNAVAILABLE",mode:"filesystem",changes:[],reason}
-      }
+    const kernelGitDirty=async(root:string)=>{
+      try{const r=await runGit(root,["-C",root,"status","--porcelain=v1","-z"],{timeout:15000,maxOutput:500000});if(r.code!==0)throw new Error(r.stderr||r.stdout);const rows=r.stdout.split("\0").filter(Boolean).map(x=>x.slice(3).replaceAll("\\","/"));return rows.filter(x=>!x.startsWith(".ai/"))}catch(e){throw new Error(`ADE_KERNEL_VCS_OBSERVE_FAILED: ${cleanErrorText(asError(e),400)}`)}
     }
     const kernelRunVerificationChecks=async(root:string,wf:any,job:any)=>{
       const checks=Array.isArray(wf.check_names)?wf.check_names.map(String):[],prior=Array.isArray(job.check_results)?job.check_results:[],results:any[]=[...prior],refs:string[]=prior.filter((x:any)=>String(x?.status||"").includes("VALIDATED")).map((x:any)=>`project-check:${String(x?.name||"")}:VALIDADO`)
@@ -1516,11 +1742,12 @@ export default pluginDefine({
       const completed=new Set(prior.filter((x:any)=>String(x?.status||"").includes("VALIDATED")).map((x:any)=>String(x?.name||"")))
       for(const name of checks){
         if(completed.has(name))continue
-        const input:any={name},fp=await resolveAuthorizationFingerprint(root,"ade_project_check",input),grant=await consumeHumanGrant(root,"ade_project_check",fp)
-        if(!grant.consumed)return {ok:false,waiting:true,error:`ADE_HUMAN_AUTHORIZATION_REQUIRED: /ade-authorize ade_project_check ${JSON.stringify({name})}`,results,refs}
-        input.__ade_authorization_fingerprint=fp
+        const expected=await projectCheckDefinitionMaterial(root,name,"verifier")
         try{
-          const raw=await nativeProjectCheck(root,name,"verifier",true,()=>assertAuthorizationUnchanged(root,"ade_project_check",input)),out={name,...raw}
+          const raw=await nativeProjectCheck(root,name,"verifier",true,async()=>{
+            const current=await projectCheckDefinitionMaterial(root,name,"verifier")
+            if(current.definition_sha256!==expected.definition_sha256)throw new Error(`ADE_CHECK_DEFINITION_STALE: ${name} changed after verification admission`)
+          }),out={name,...raw}
           results.push(out);refs.push(`project-check:${name}:VALIDADO`);completed.add(name)
           await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{check_results:results,evidence_refs:refs,updated_at:now()}}}])
         }catch(e){
@@ -1542,7 +1769,7 @@ export default pluginDefine({
       }else drafts.push({type:"WORKFLOW_PATCH",payload:{id:wfID,patch:{status:"RUNNING",updated_at:now()}}})
       return kernelAppendDrafts(root,drafts)
     }
-    const kernelExecuteJob=async(root:string,wf:any,job:any,t:any)=>{
+    const kernelExecuteJob=async(root:string,wf:any,job:any,t:any,resumeRunning=false)=>{
       if(job.type==="TRACKER_SYNC"){
         const updates=Array.isArray(wf.tracker_updates)?wf.tracker_updates:[]
         if(!updates.length)throw new Error("ADE_WORKFLOW_SCHEMA: tracker_sync requires tracker_updates")
@@ -1554,23 +1781,40 @@ export default pluginDefine({
         return {summary:`tracker sync requested=${result.requested} updated=${result.updated} verified=${result.verified}`,evidence_refs:(result.canonical_handoff?.evidence_refs||[]).slice(0,8),activity_result:redactForModel(result)}
       }
       if(job.type==="BUILD"){
-        const before=await kernelWorkspaceObservation(String(t?.sessionID||""));if(before.classification==="VCS_INCONSISTENT")throw new Error(`ADE_KERNEL_VCS_INCONSISTENT: ${before.reason}`);if(before.mode==="git"&&before.changes.length)throw new Error(`ADE_KERNEL_DIRTY_WORKTREE: non-.ai changes present before builder: ${before.changes.slice(0,12).join(",")}`)
+        const workspace=await kernelWorkspaceMode(root)
+        if(workspace.mode==="blocked")throw new Error(`ADE_KERNEL_VCS_PRECONDITION: BUILD observed inconsistent VCS state: ${workspace.reason}`)
+        if(workspace.mode==="git"&&!resumeRunning){const dirty=await kernelGitDirty(root);if(dirty.length)throw new Error(`ADE_KERNEL_DIRTY_WORKTREE: non-.ai changes present before builder: ${dirty.slice(0,12).join(",")}`)}
         const kp=await kernelPaths(root)
         return withFileLock(kp.mutationLock,1000,async()=>{
-          const worker=await kernelWorkerSession(root,String(t?.sessionID||""),wf,job,t),after=await kernelWorkspaceObservation(String(t?.sessionID||"")),changed=after.mode==="git"?after.changes:[]
-          return {summary:worker.summary,evidence_refs:[`workspace-vcs:${before.classification}`,...changed.slice(0,6).map((x:string)=>`changed:${x}`)],worker,changed_files:changed,observability:worker.observability}
+          if(workspace.mode==="git"){
+            let beforeHead=String(job.build_head_before||"");if(!beforeHead){beforeHead=String(workspace.head||await currentHeadSha(root));if(!resumeRunning)try{await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{workspace_mode:"git",build_head_before:beforeHead}}}])}catch{}}
+            const worker=await kernelWorkerSession(root,String(t?.sessionID||""),wf,job,t,resumeRunning?String(job.session_id||""):undefined),changed=await kernelGitDirty(root),afterHead=await currentHeadSha(root)
+            return {summary:worker.summary,evidence_refs:["workspace-mode:git",`git-head-before:${beforeHead||"unknown"}`,`git-head-after:${afterHead}`,...changed.slice(0,6).map((x:string)=>`changed:${x}`)],worker,changed_files:changed}
+          }
+          let before:any,baselineFile=""
+          if(resumeRunning){const baseline=await readFilesystemBaseline(root,job.id);before=baseline.data;baselineFile=baseline.file}
+          else{before=await filesystemSnapshot(root);const baseline=await writeFilesystemBaseline(root,job.id,before);baselineFile=baseline.file;try{await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{workspace_mode:"filesystem",filesystem_before_digest:before.digest}}}])}catch{}}
+          const worker=await kernelWorkerSession(root,String(t?.sessionID||""),wf,job,t,resumeRunning?String(job.session_id||""):undefined),after=await filesystemSnapshot(root),changed=filesystemDiff(before,after)
+          try{if(baselineFile)await fs.rm(baselineFile,{force:true})}catch{}
+          return {summary:worker.summary,evidence_refs:[`workspace-mode:filesystem`,`filesystem-before:${before.digest}`,`filesystem-after:${after.digest}`,...changed.slice(0,6).map((x:string)=>`changed:${x}`)],worker,changed_files:changed,workspace_observation:{mode:"filesystem",classification:workspace.classification,before_count:before.count,after_count:after.count,changed_count:changed.length}}
         })
       }
       const resumedApproval=job.status==="WAITING_APPROVAL"&&String(job.summary||"").trim().length>0
-      const worker=resumedApproval?null:await kernelWorkerSession(root,String(t?.sessionID||""),wf,job,t)
+      const worker=resumedApproval?null:await kernelWorkerSession(root,String(t?.sessionID||""),wf,job,t,resumeRunning?String(job.session_id||""):undefined)
       if(job.type==="VERIFY"){
         const current=(await kernelLoad(root)).jobs?.[job.id]||job,checks=await kernelRunVerificationChecks(root,wf,current)
         if(checks.waiting)return {waiting:true,authorization:checks.error,worker,summary:worker?.summary||job.summary||null,check_results:checks.results,evidence_refs:checks.refs}
         if(!checks.ok)throw new Error(checks.error)
-        return {summary:worker?.summary||job.summary||"verification resumed from persisted worker result",evidence_refs:checks.refs,worker,check_results:checks.results,observability:worker?.observability}
+        return {summary:worker?.summary||job.summary||"verification resumed from persisted worker result",evidence_refs:checks.refs,worker,check_results:checks.results}
       }
       if(!worker)throw new Error(`ADE_KERNEL_STATE_INVALID: ${job.type} cannot resume WAITING_APPROVAL without activity-specific handler`)
-      return {summary:worker.summary,evidence_refs:[`worker-session:${worker.session_ref}`],worker,observability:worker.observability}
+      return {summary:worker.summary,evidence_refs:[`worker-session:${worker.session_ref}`],worker}
+    }
+    const kernelObservedPublic=(root:string,state:any,workflowID?:string)=>{
+      const out:any=kernelWorkflowPublic(state,workflowID),id=workflowID||state.active_workflow_id
+      if(id){const active=[...workerRegistry.values()].find((w:any)=>w.root===root&&w.workflow_id===id&&!w.terminal);if(active)out.current_worker={job_id:active.job_id,job_type:active.job_type,agent:active.agent,session_ref:active.session_ref,status:active.status||"running",started_at:active.started_at,last_activity_at:active.last_activity_at,last_activity:active.last_activity,elapsed_ms:Date.now()-active.started_ms,observation_mode:observationState.mode}}
+      out.observation={mode:observationState.mode,active:observationState.active,last_event_at:observationState.last_event_at,error:observationState.error,unknown_events:observationState.unknown_events}
+      return out
     }
     const kernelRunWorkflow=async(root:string,workflowID:string,maxJobs:number,t:any)=>{
       await kernelEnsureInitialized(root)
@@ -1580,44 +1824,47 @@ export default pluginDefine({
         if(!wf)throw new Error(`ADE_WORKFLOW_NOT_FOUND: ${workflowID}`)
         if(KERNEL_TERMINAL_WORKFLOW.has(String(wf.status)))break
         const jobs=kernelWorkflowJobs(state,workflowID)
-        let job=jobs.find((j:any)=>j.status==="WAITING_APPROVAL")||jobs.find((j:any)=>j.status==="READY")
+        let job=jobs.find((j:any)=>j.status==="WAITING_APPROVAL")||jobs.find((j:any)=>j.status==="READY"),resumeRunning=false
         if(!job){
           const running=jobs.find((j:any)=>j.status==="RUNNING")
-          if(running)break
-          await kernelAppendDrafts(root,[{type:"WORKFLOW_PATCH",payload:{id:workflowID,patch:{status:"BLOCKED",updated_at:now(),blocker:"ADE_KERNEL_STALLED: no runnable job"}}}]);break
+          if(running?.session_id){job=running;resumeRunning=true}
+          else if(running)break
+          else{await kernelAppendDrafts(root,[{type:"WORKFLOW_PATCH",payload:{id:workflowID,patch:{status:"BLOCKED",updated_at:now(),blocker:"ADE_KERNEL_STALLED: no runnable job"}}}]);break}
         }
-        const leaseID=`lease-${crypto.randomUUID()}`,attempts=Number(job.attempts||0)+(job.status==="WAITING_APPROVAL"?0:1)
-        if(job.status!=="WAITING_APPROVAL"){
+        const leaseID=`lease-${crypto.randomUUID()}`,attempts=resumeRunning?Number(job.attempts||0):Number(job.attempts||0)+(job.status==="WAITING_APPROVAL"?0:1)
+        if(resumeRunning){state=await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{status:"RUNNING",lease_expires_at:new Date(Date.now()+KERNEL_JOB_LEASE_MS).toISOString(),recovered_at:now()}}}]);wf=state.workflows[workflowID];job=state.jobs[job.id]}
+        else if(job.status!=="WAITING_APPROVAL"){
           state=await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{status:"RUNNING",attempts,lease_id:leaseID,lease_expires_at:new Date(Date.now()+KERNEL_JOB_LEASE_MS).toISOString(),started_at:now()}}}]);wf=state.workflows[workflowID];job=state.jobs[job.id]
         }
         try{
-          const out:any=await kernelExecuteJob(root,wf,job,t)
+          const out:any=await kernelExecuteJob(root,wf,job,t,resumeRunning)
           if(out.waiting){
             await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{status:"WAITING_APPROVAL",lease_id:null,lease_expires_at:null,summary:out.summary||out.worker?.summary||job.summary||null,check_results:out.check_results||job.check_results||null,evidence_refs:out.evidence_refs||job.evidence_refs||[],pending_authorization:out.authorization}}},{type:"WORKFLOW_PATCH",payload:{id:workflowID,patch:{status:"WAITING_APPROVAL",pending_authorization:out.authorization,updated_at:now()}}}])
             executed.push({job_id:job.id,status:"WAITING_APPROVAL",approval_command:out.authorization});break
           }
-          await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{status:"DONE",lease_id:null,lease_expires_at:null,completed_at:now(),summary:String(out.summary||"").slice(0,6000),evidence_refs:(out.evidence_refs||[]).slice(0,12),worker_session_ref:out.worker?.session_ref||null,changed_files:out.changed_files||[],check_results:out.check_results||null,activity_result:out.activity_result||null,observability:out.observability||out.worker?.observability||null}}}])
+          await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{status:"DONE",lease_id:null,lease_expires_at:null,completed_at:now(),summary:String(out.summary||"").slice(0,6000),evidence_refs:(out.evidence_refs||[]).slice(0,12),worker_session_ref:out.worker?.session_ref||null,changed_files:out.changed_files||[],check_results:out.check_results||null,activity_result:out.activity_result||null,workspace_observation:out.workspace_observation||null}}}])
           await kernelFinalizeAfterJob(root,workflowID,job.id);executed.push({job_id:job.id,status:"DONE"})
         }catch(e){
-          const domain=kernelFailureDomain(e),message=cleanErrorText(asError(e),900),retryable=["PROVIDER_TRANSIENT","WORKER_TIMEOUT","WORKER_FAILURE"].includes(domain)&&attempts<KERNEL_JOB_MAX_ATTEMPTS
+          const domain=kernelFailureDomain(e),message=cleanErrorText(asError(e),900),retryable=["PROVIDER_TRANSIENT","WORKER_TIMEOUT","WORKER_FAILURE","KERNEL_CONTENTION"].includes(domain)&&attempts<KERNEL_JOB_MAX_ATTEMPTS
           await kernelAppendDrafts(root,[{type:"JOB_PATCH",payload:{id:job.id,patch:{status:retryable?"READY":"BLOCKED",lease_id:null,lease_expires_at:null,failure_domain:domain,error:message,updated_at:now()}}},{type:"WORKFLOW_PATCH",payload:{id:workflowID,patch:{status:retryable?"RUNNING":"BLOCKED",blocker:message,failure_domain:domain,updated_at:now()}}}])
           executed.push({job_id:job.id,status:retryable?"RETRYABLE":"BLOCKED",failure_domain:domain,error:message});break
         }
       }
-      const final=await kernelLoad(root);return {...kernelWorkflowPublic(final,workflowID),executed}
+      const final=await kernelLoad(root);return {...kernelObservedPublic(root,final,workflowID),executed}
     }
     const kernelReconcile=async(root:string)=>{
       await kernelEnsureInitialized(root);const state=await kernelLoad(root),drafts:any[]=[],nowMs=Date.now(),recovered:any[]=[]
       for(const job of Object.values(state.jobs||{}) as any[]){
         if(job.status!=="RUNNING")continue
+        if(job.session_id&&!workerRegistry.has(String(job.session_id))){try{const sessionID=String(job.session_id),info=await ctx.session.get({sessionID}),wf=state.workflows?.[job.workflow_id];if(info&&wf){const startedMs=Date.parse(String(job.started_at||""));const worker:any={root,workflow_id:job.workflow_id,job_id:job.id,job_type:job.type,agent:KERNEL_WORKER_AGENT[job.type]||String(info?.agent||"worker"),parent_session_id:"",session_ref:String(job.worker_session_ref||sha256Hex(sessionID).slice(0,16)),started_at:job.started_at||now(),started_ms:Number.isFinite(startedMs)?startedMs:Date.now(),last_activity_at:now(),last_activity:"observer reattached after reconcile",status:"reattached",progress:undefined};workerRegistry.set(sessionID,worker);await workerProgress(worker,{type:"WORKER_REATTACHED",activity:"observation reattached to persisted worker session",status:"reattached",source:"reconcile"});recovered.push({job_id:job.id,status:"REATTACHED",session_ref:worker.session_ref})}}catch{}}
         const exp=Date.parse(String(job.lease_expires_at||""));if(Number.isFinite(exp)&&exp>nowMs)continue
-        if(job.session_id)try{await ctx.session.interrupt({sessionID:String(job.session_id),continue:false})}catch{}
+        if(job.session_id)try{retireWorker(String(job.session_id),workerRegistry.get(String(job.session_id))||{});await ctx.session.interrupt({sessionID:String(job.session_id),continue:false})}catch{}
         const retryable=Number(job.attempts||0)<KERNEL_JOB_MAX_ATTEMPTS
         drafts.push({type:"JOB_PATCH",payload:{id:job.id,patch:{status:retryable?"READY":"BLOCKED",lease_id:null,lease_expires_at:null,failure_domain:"WORKER_LEASE_EXPIRED",error:"worker lease expired; reconciled by kernel",updated_at:now()}}})
         drafts.push({type:"WORKFLOW_PATCH",payload:{id:job.workflow_id,patch:{status:retryable?"RUNNING":"BLOCKED",updated_at:now()}}});recovered.push({job_id:job.id,status:retryable?"READY":"BLOCKED"})
       }
       const next=drafts.length?await kernelAppendDrafts(root,drafts):state
-      return {status:"KERNEL_RECONCILED",recovered,snapshot:kernelWorkflowPublic(next)}
+      return {status:"KERNEL_RECONCILED",recovered,snapshot:kernelObservedPublic(root,next)}
     }
 
     await ctx.tool.transform((draft:any)=>{
@@ -1644,22 +1891,23 @@ export default pluginDefine({
           } catch(e) {
             status="blocked"
             try{if(root){const msg=String((e as any)?.message||"");if(msg.includes("ADE_HUMAN_AUTHORIZATION_REQUIRED")||msg.includes("ADE_AUTHORIZATION_STALE"))await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.missing",session_ref:crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16),agent:String(t?.agent||"unknown"),tool:name,authorization:"NONE_OR_STALE"})}}catch{}
-            return result({status:"BLOCKED",error:cleanErrorText(asError(e))})
+            return result({status:"BLOCKED",failure_domain:kernelFailureDomain(e),error:cleanErrorText(asError(e))})
           } finally {
             if(root){try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"tool.call",session_ref:crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16),agent:String(t?.agent||"unknown"),tool:name,status,duration_ms:Date.now()-started,authorization:HUMAN_REQUIRED.has(name)&&i?.dry_run!==true?authorization:"N/A"})}catch{}}
           }
         },
       })
-      add("ade_status","Read canonical ADE v6 durable-kernel state. Repository .ai/control.json is legacy/non-authoritative.",schemaObject({}),async i=>{const root=projectRoot(ctx,i);try{const state=await kernelEnsureInitialized(root);return {plugin:{id:PLUGIN_ID,version:VERSION,opencode:ctx.app?.version},project_root:root,kernel_store:"external-user-state",canonical_state:"hash-chained-event-journal",...kernelWorkflowPublic(state)}}catch(e){return {plugin:{id:PLUGIN_ID,version:VERSION,opencode:ctx.app?.version},project_root:root,status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),900)}}})
+      add("ade_status","Read canonical ADE 6.1 durable-kernel state plus non-canonical observation projection. Repository .ai/control.json is legacy/non-authoritative.",schemaObject({}),async i=>{const root=projectRoot(ctx,i);try{const state=await kernelEnsureInitialized(root);return {plugin:{id:PLUGIN_ID,version:VERSION,opencode:ctx.app?.version},project_root:root,kernel_store:"external-user-state",canonical_state:"hash-chained-event-journal",observation_plane:"non-canonical",...kernelObservedPublic(root,state)}}catch(e){return {plugin:{id:PLUGIN_ID,version:VERSION,opencode:ctx.app?.version},project_root:root,status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),900)}}})
       add("ade_route_snapshot","Return the minimal state-driven routing decision for the current ADE state.",schemaObject({}),async i=>{const root=projectRoot(ctx,i),control=await getControl(root); return {status:"OBSERVADO",revision:Number(control.revision||0),global_status:control.global_status,routing_hint:routingHint(control),handoff_advisory:handoffAdvisory(control),planes:{product:compactPlane(control.product),delivery:compactPlane(control.delivery),engineering:compactPlane(control.engineering)},recent_handoffs:(Array.isArray(control.recent_handoffs)?control.recent_handoffs:[]).slice(-3)}})
       add("ade_handoff_submit","Publish the canonical bounded handoff consumed by ADE routing instead of relying on free-form child prose.",schemaObject({status:str({enum:["DONE","PARTIAL","BLOCKED","FAILED"]}),changed:boundedStringArray(8,180),evidence_refs:boundedStringArray(8,240),blocker:str({maxLength:800}),required_owner:str({enum:["none","orchestrator","product-owner","project-manager","engineer"]}),next:str({maxLength:500})},["status"]),async(i,t)=>submitHandoff(projectRoot(ctx,i),i,String(t?.agent||"unknown"),String(t?.sessionID||"")))
-      add("ade_doctor","Inspect ADE v6/OpenCode runtime and durable-kernel health without exposing credentials.",schemaObject({}),async i=>{const root=projectRoot(ctx,i); const agentsR=await ctx.agent.list({location:i.__ade_location}); const skillsR=await ctx.skill.list({location:i.__ade_location}); const pluginsR=await ctx.plugin.list({location:i.__ade_location}); const agents=agentsR.data||[],skills=skillsR.data||[],plugins=pluginsR.data||[],catalog=agentCatalog(agents); let vcs:any; try{const r=await ctx.vcs.get({location:i.__ade_location});vcs=r.data}catch(e){vcs={error:asError(e)}};let kernel:any;try{const state=await kernelEnsureInitialized(root),kp=await kernelPaths(root);kernel={status:"HEALTHY",revision:state.revision,store:path.basename(kp.dir),active_workflow_id:state.active_workflow_id,event_hash_chain:true}}catch(e){kernel={status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),700)}}; return {status:catalog.required_agents_ready?"ADE_DOCTOR_OK":"ADE_DOCTOR_AGENT_CATALOG_INVALID",version:VERSION,architecture:"DURABLE_ENGINEERING_RUNTIME",opencode:ctx.app?.version,project_root:root,canonical_root:i.__ade_canonical,agents_present:catalog.discovered_required_agents,active_worker_roles:Object.keys(KERNEL_WORKER_AGENT),...catalog,skill_present:skills.some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:plugins.some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),vcs,kernel,legacy_ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered}})
-      add("ade_workflow_start","Persist one durable ADE v6 workflow DAG and return immediately; this does NOT run workers. Call ade_workflow_run next. Engineering workflows require deterministic check_names; tracker_sync requires exact tracker_updates.",schemaObject({objective:str({minLength:1,maxLength:2400}),kind:str({enum:["analysis","engineering","implementation_proposal","tracker_sync"]}),risk:str({enum:["LOW","MEDIUM","HIGH","CRITICAL"]}),check_names:boundedStringArray(8,120),tracker_updates:{type:"array",maxItems:50,items:schemaObject({external_id:str({maxLength:120}),item_id:str({maxLength:160}),fields:{type:"array",minItems:1,maxItems:10,items:schemaObject({name:str({minLength:1,maxLength:120}),value:str({maxLength:240})},["name","value"])}},["fields"])}},["objective","kind"]),async i=>kernelStartWorkflow(projectRoot(ctx,i),i))
-      add("ade_workflow_run","Run ready durable jobs synchronously. The kernel alone creates worker sessions, owns leases/retries, and stops on approval/blockers.",schemaObject({workflow_id:str({minLength:1,maxLength:120}),max_jobs:integer({minimum:1,maximum:8})},["workflow_id"]),async(i,t)=>kernelRunWorkflow(projectRoot(ctx,i),String(i.workflow_id),Number(i.max_jobs||4),t))
-      add("ade_workflow_snapshot","Read a durable workflow reconstructed from the hash-chained event journal.",schemaObject({workflow_id:str({maxLength:120})}),async i=>{const root=projectRoot(ctx,i);try{const state=await kernelEnsureInitialized(root);return kernelWorkflowPublic(state,String(i.workflow_id||"")||undefined)}catch(e){return {status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),900)}}})
+      add("ade_doctor","Inspect ADE 6.1/OpenCode host contract, durable-kernel health, and observation-plane status without exposing credentials.",schemaObject({}),async i=>{const root=projectRoot(ctx,i); const agentsR=await ctx.agent.list({location:i.__ade_location}); const skillsR=await ctx.skill.list({location:i.__ade_location}); const pluginsR=await ctx.plugin.list({location:i.__ade_location}); const agents=agentsR.data||[],skills=skillsR.data||[],plugins=pluginsR.data||[],catalog=agentCatalog(agents); let vcs:any; try{const r=await ctx.vcs.get({location:i.__ade_location});vcs=r.data}catch(e){vcs={error:asError(e)}};let kernel:any;try{const state=await kernelEnsureInitialized(root),kp=await kernelPaths(root);kernel={status:"HEALTHY",revision:state.revision,store:path.basename(kp.dir),active_workflow_id:state.active_workflow_id,event_hash_chain:true}}catch(e){kernel={status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),700)}}; const host_contract={baseline:"0.0.0-beta-18743",runtime:String(ctx.app?.version||"unknown"),session_create:typeof ctx.session?.create==="function",session_parent_link:true,session_prompt:typeof ctx.session?.prompt==="function",session_wait:typeof ctx.session?.wait==="function",session_context:typeof ctx.session?.context==="function",event_subscribe:typeof ctx.event?.subscribe==="function",task_compatible_progress_metadata:true}; const execution_policy=await executionPolicyDiagnostic(root); return {status:catalog.required_agents_ready?"ADE_DOCTOR_OK":"ADE_DOCTOR_AGENT_CATALOG_INVALID",version:VERSION,architecture:"DURABLE_OBSERVABLE_RUNTIME",opencode:ctx.app?.version,host_contract,observation:{...observationState,capture_mode:observationState.mode,delivery_mode:"TASK_COMPAT_METADATA",visibility:"HOST_CANARY_REQUIRED",note:"capture_mode reports event ingestion only; it does not claim the host TUI rendered live progress",worker_registry_size:workerRegistry.size},project_root:root,canonical_root:i.__ade_canonical,agents_present:catalog.discovered_required_agents,active_worker_roles:Object.keys(KERNEL_WORKER_AGENT),...catalog,skill_present:skills.some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:plugins.some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),vcs,kernel,execution_policy,legacy_ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered}})
+      add("ade_workflow_start","Persist one durable ADE 6.1 workflow DAG and return immediately; this does NOT run workers. Call ade_workflow_run next. Engineering workflows require deterministic check_names; tracker_sync requires exact tracker_updates.",schemaObject({objective:str({minLength:1,maxLength:2400}),kind:str({enum:["analysis","engineering","implementation_proposal","tracker_sync"]}),risk:str({enum:["LOW","MEDIUM","HIGH","CRITICAL"]}),check_names:boundedStringArray(8,120),tracker_updates:{type:"array",maxItems:50,items:schemaObject({external_id:str({maxLength:120}),item_id:str({maxLength:160}),fields:{type:"array",minItems:1,maxItems:10,items:schemaObject({name:str({minLength:1,maxLength:120}),value:str({maxLength:240})},["name","value"])}},["fields"])}},["objective","kind"]),async i=>kernelStartWorkflow(projectRoot(ctx,i),i))
+      add("ade_workflow_run","Run ready durable jobs synchronously with live non-canonical worker projection. The kernel alone owns leases/retries/canonical state.",schemaObject({workflow_id:str({minLength:1,maxLength:120}),max_jobs:integer({minimum:1,maximum:8})},["workflow_id"]),async(i,t)=>kernelRunWorkflow(projectRoot(ctx,i),String(i.workflow_id),Number(i.max_jobs||4),t))
+      add("ade_workflow_snapshot","Read a durable workflow reconstructed from the hash-chained event journal plus the current live worker projection when available.",schemaObject({workflow_id:str({maxLength:120})}),async i=>{const root=projectRoot(ctx,i);try{const state=await kernelEnsureInitialized(root);return kernelObservedPublic(root,state,String(i.workflow_id||"")||undefined)}catch(e){return {status:"SAFE_READ_ONLY",error:cleanErrorText(asError(e),900)}}})
       add("ade_workflow_cancel","Cancel a non-terminal durable workflow. Does not delete history.",schemaObject({workflow_id:str({minLength:1,maxLength:120}),reason:str({maxLength:500})},["workflow_id"]),async i=>{const root=projectRoot(ctx,i),state=await kernelEnsureInitialized(root),id=String(i.workflow_id),wf=state.workflows?.[id];if(!wf)throw new Error(`ADE_WORKFLOW_NOT_FOUND: ${id}`);if(KERNEL_TERMINAL_WORKFLOW.has(String(wf.status)))return kernelWorkflowPublic(state,id);const next=await kernelAppendDrafts(root,[{type:"WORKFLOW_CANCELLED",payload:{id,reason:String(i.reason||"").slice(0,500)}}]);return kernelWorkflowPublic(next,id)})
       add("ade_kernel_reconcile","Recover expired worker leases after crashes/restarts. Retries are bounded and state remains durable.",schemaObject({}),async i=>kernelReconcile(projectRoot(ctx,i)))
-      add("ade_kernel_events","Read recent durable kernel events without exposing the external store path.",schemaObject({limit:integer({minimum:1,maximum:100})}),async i=>{const events=await kernelReadEvents(projectRoot(ctx,i)),limit=Number(i.limit||20);return {status:"KERNEL_EVENTS",count:events.length,events:events.slice(-limit).map((e:any)=>({seq:e.seq,ts:e.ts,type:e.type,event_hash:String(e.event_hash).slice(0,16),payload:redactForModel(e.payload)}))}})
+      add("ade_kernel_events","Read recent canonical durable kernel events without exposing the external store path.",schemaObject({limit:integer({minimum:1,maximum:100})}),async i=>{const events=await kernelReadEvents(projectRoot(ctx,i)),limit=Number(i.limit||20);return {status:"KERNEL_EVENTS",canonical:true,count:events.length,events:events.slice(-limit).map((e:any)=>({seq:e.seq,ts:e.ts,type:e.type,event_hash:String(e.event_hash).slice(0,16),payload:redactForModel(e.payload)}))}})
+      add("ade_worker_events","Read recent non-canonical worker observation events. These explain execution but never control workflow state.",schemaObject({workflow_id:str({maxLength:120}),job_id:str({maxLength:160}),limit:integer({minimum:1,maximum:200})}),async i=>{let events=await observationRead(projectRoot(ctx,i));if(i.workflow_id)events=events.filter((e:any)=>e.workflow_id===String(i.workflow_id));if(i.job_id)events=events.filter((e:any)=>e.job_id===String(i.job_id));const limit=Number(i.limit||50);return {status:"WORKER_EVENTS",canonical:false,observation_mode:observationState.mode,count:events.length,events:events.slice(-limit).map((e:any)=>redactForModel(e))}})
       add("ade_vcs_status","Read working-copy status through OpenCode VCS API.",schemaObject({}),async i=>{const r=await ctx.vcs.status({location:i.__ade_location});return {status:"OBSERVADO",changes:redactForModel(r.data),location:r.location}})
       add("ade_vcs_diff","Read repository diff through OpenCode VCS API.",schemaObject({mode:str({enum:["working","branch","committed"]}),base:str(),context:integer({minimum:0,maximum:20})}),async i=>{const r=await ctx.vcs.diff({location:i.__ade_location,mode:i.mode||"working",base:i.base||undefined,context:i.context??3});return {status:"OBSERVADO",diff:redactForModel(r.data),location:r.location}})
       add("ade_vcs_branches","List repository branches through OpenCode VCS API.",schemaObject({search:str(),limit:integer({minimum:1,maximum:100})}),async i=>{const r=await ctx.vcs.branches({location:i.__ade_location,search:i.search||undefined,limit:i.limit||20});return {status:"OBSERVADO",branches:r.data,location:r.location}})
@@ -1716,18 +1964,18 @@ export default pluginDefine({
     })
 
     await ctx.command.transform((draft:any)=>{
-      draft.add({name:"ade-init",description:"Initialize ADE project configuration and create the external v6 durable kernel. Usage: /ade-init [WORK-ITEM] [LEAN|STANDARD|HIGH_ASSURANCE]",execute:async({sessionID,prompt}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;const req=parseInitRequest(prompt);const initialized=await initProject(root,pluginRoot,req.workItem,req.profile);const kernel=await kernelEnsureInitialized(root);await ctx.session.synthetic({sessionID,text:`ADE_INIT_OK v${VERSION}: config=${initialized.ai} | kernel=external | kernel_revision=${kernel.revision} | work_item=${initialized.work_item_id} | profile=${initialized.profile} | created=${initialized.created.length} | preserved=${initialized.preserved.length}`})}})
-      draft.add({name:"ade-status",description:"Show ADE v6 durable-kernel state",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;try{const state=await kernelEnsureInitialized(root);await ctx.session.synthetic({sessionID,text:JSON.stringify(kernelWorkflowPublic(state),null,2)})}catch(e){await ctx.session.synthetic({sessionID,text:`ADE SAFE_READ_ONLY: ${cleanErrorText(asError(e))}`})}}})
-      draft.add({name:"ade-workflow",description:"Show the active durable workflow, next runnable job, and how to continue; custom ADE tool rows in the TUI are not task cards.",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;try{const state=await kernelEnsureInitialized(root),pub=kernelWorkflowPublic(state),id=state.active_workflow_id,jobs=id?kernelWorkflowJobs(state,id):[],next=jobs.find((j:any)=>j.status==="WAITING_APPROVAL")||jobs.find((j:any)=>j.status==="READY")||jobs.find((j:any)=>j.status==="RUNNING")||null;await ctx.session.synthetic({sessionID,text:JSON.stringify({status:"ADE_WORKFLOW_STATUS",kernel:pub,next_job:next?{id:next.id,type:next.type,status:next.status,lease_expires_at:next.lease_expires_at||null,pending_authorization:next.pending_authorization||null}:null,continue_with:id?"/ade-resume":null,note:"ade_workflow_start only creates/persists the DAG. ade_workflow_run executes workers synchronously; use /ade-workflow or /ade-status instead of trying to click a custom tool row."},null,2)})}catch(e){await ctx.session.synthetic({sessionID,text:`ADE SAFE_READ_ONLY: ${cleanErrorText(asError(e))}`})}}})
-      draft.add({name:"ade-doctor",description:"Show native ADE runtime diagnostics without an LLM round-trip",execute:async({sessionID}:any)=>{const scope=await resolveSessionScope(ctx,String(sessionID)),root=scope.root;const agentsR=await ctx.agent.list({location:scope.location});const skillsR=await ctx.skill.list({location:scope.location});const pluginsR=await ctx.plugin.list({location:scope.location}),catalog=agentCatalog(agentsR.data||[]);const text={status:catalog.required_agents_ready?"ADE_DOCTOR_OK":"ADE_DOCTOR_AGENT_CATALOG_INVALID",version:VERSION,opencode:ctx.app?.version,project_root:root,agents_present:catalog.discovered_required_agents,...catalog,skill_present:(skillsR.data||[]).some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:(pluginsR.data||[]).some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered};await ctx.session.synthetic({sessionID,text:JSON.stringify(text,null,2)})}})
-      draft.add({name:"ade-why",description:"Explain the current durable workflow state and next runnable job",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,state=await kernelEnsureInitialized(root),pub=kernelWorkflowPublic(state),id=state.active_workflow_id,jobs=id?kernelWorkflowJobs(state,id):[],next=jobs.find((j:any)=>j.status==="WAITING_APPROVAL")||jobs.find((j:any)=>j.status==="READY")||null;await ctx.session.synthetic({sessionID,text:JSON.stringify({kernel:pub,next_job:next?{id:next.id,type:next.type,status:next.status,pending_authorization:next.pending_authorization||null}:null},null,2)})}})
-      draft.add({name:"ade-trace",description:"Show recent ADE tool-routing telemetry",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,p=controlPaths(root).telemetry;const rows=(await readJsonl(p)).slice(-20);await ctx.session.synthetic({sessionID,text:`ADE_TRACE_LAST_20\n${rows.map((x:any)=>`${x.ts} agent=${x.agent} tool=${x.tool} status=${x.status} duration_ms=${x.duration_ms}`).join("\n")}`})}})
+      draft.add({name:"ade-init",description:"Initialize ADE project configuration and create the external 6.1 durable kernel. Usage: /ade-init [WORK-ITEM] [LEAN|STANDARD|HIGH_ASSURANCE]",execute:async({sessionID,prompt}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;const req=parseInitRequest(prompt);const initialized=await initProject(root,pluginRoot,req.workItem,req.profile);const kernel=await kernelEnsureInitialized(root);await ctx.session.synthetic({sessionID,text:`ADE_INIT_OK v${VERSION}: config=${initialized.ai} | kernel=external | kernel_revision=${kernel.revision} | work_item=${initialized.work_item_id} | profile=${initialized.profile} | created=${initialized.created.length} | preserved=${initialized.preserved.length}`})}})
+      draft.add({name:"ade-status",description:"Show ADE 6.1 durable-observable state",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;try{const state=await kernelEnsureInitialized(root);await ctx.session.synthetic({sessionID,text:JSON.stringify(kernelObservedPublic(root,state),null,2)})}catch(e){await ctx.session.synthetic({sessionID,text:`ADE SAFE_READ_ONLY: ${cleanErrorText(asError(e))}`})}}})
+      draft.add({name:"ade-workflow",description:"Show the active durable workflow, next runnable job, and how to continue; custom ADE tool rows in the TUI are not task cards.",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;try{const state=await kernelEnsureInitialized(root),pub=kernelObservedPublic(root,state),id=state.active_workflow_id,jobs=id?kernelWorkflowJobs(state,id):[],next=jobs.find((j:any)=>j.status==="WAITING_APPROVAL")||jobs.find((j:any)=>j.status==="READY")||jobs.find((j:any)=>j.status==="RUNNING")||null;await ctx.session.synthetic({sessionID,text:JSON.stringify({status:"ADE_WORKFLOW_STATUS",kernel:pub,next_job:next?{id:next.id,type:next.type,status:next.status,lease_expires_at:next.lease_expires_at||null,pending_authorization:next.pending_authorization||null}:null,continue_with:id?"/ade-resume":null,note:"ade_workflow_start only creates/persists the DAG. ade_workflow_run executes workers synchronously; use /ade-workflow or /ade-status instead of trying to click a custom tool row."},null,2)})}catch(e){await ctx.session.synthetic({sessionID,text:`ADE SAFE_READ_ONLY: ${cleanErrorText(asError(e))}`})}}})
+      draft.add({name:"ade-doctor",description:"Show native ADE runtime diagnostics without an LLM round-trip",execute:async({sessionID}:any)=>{const scope=await resolveSessionScope(ctx,String(sessionID)),root=scope.root;const agentsR=await ctx.agent.list({location:scope.location});const skillsR=await ctx.skill.list({location:scope.location});const pluginsR=await ctx.plugin.list({location:scope.location}),catalog=agentCatalog(agentsR.data||[]);const execution_policy=await executionPolicyDiagnostic(root);const text={status:catalog.required_agents_ready?"ADE_DOCTOR_OK":"ADE_DOCTOR_AGENT_CATALOG_INVALID",version:VERSION,opencode:ctx.app?.version,project_root:root,agents_present:catalog.discovered_required_agents,...catalog,skill_present:(skillsR.data||[]).some((x:any)=>x.id==="ai-driven-engineering"),plugin_present:(pluginsR.data||[]).some((x:any)=>String(x.id||x.name||"").includes("ai-driven-engineering")),execution_policy,ai_control:await exists(path.join(root,".ai","control.json")),tools_registered:registered};await ctx.session.synthetic({sessionID,text:JSON.stringify(text,null,2)})}})
+      draft.add({name:"ade-why",description:"Explain the current durable workflow state, failure domain, active worker, and deterministic next action",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,state=await kernelEnsureInitialized(root),pub=kernelObservedPublic(root,state),id=state.active_workflow_id,jobs=id?kernelWorkflowJobs(state,id):[],blocked=jobs.find((j:any)=>j.status==="BLOCKED"||j.status==="FAILED"),waiting=jobs.find((j:any)=>j.status==="WAITING_APPROVAL"),next=waiting||jobs.find((j:any)=>j.status==="READY")||jobs.find((j:any)=>j.status==="RUNNING")||blocked||null;const explanation={status:"ADE_WHY",workflow:id?pub.workflow:null,current_worker:pub.current_worker||null,decision:next?{job_id:next.id,phase:next.type,status:next.status,failure_domain:next.failure_domain||pub.workflow?.failure_domain||null,error:next.error||null,worker_started:Boolean(next.worker_session_ref),pending_authorization:next.pending_authorization||null,next_action:next.status==="READY"?"ade_workflow_run":next.status==="WAITING_APPROVAL"?next.pending_authorization||"explicit authorization required":next.status==="RUNNING"?"observe worker or reconcile after lease expiry":next.status==="BLOCKED"?"resolve the reported precondition/blocker, then start or resume deterministically":null}:null,observation:pub.observation};await ctx.session.synthetic({sessionID,text:JSON.stringify(redactForModel(explanation),null,2)})}})
+      draft.add({name:"ade-trace",description:"Show a merged timeline of canonical kernel, non-canonical worker observation, and ADE routing telemetry",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,kernel=(await kernelReadEvents(root)).slice(-40).map((x:any)=>({ts:x.ts,plane:"control",seq:x.seq,type:x.type,canonical:true,detail:redactForModel(x.payload)})),workers=(await observationRead(root)).slice(-80).map((x:any)=>({ts:x.ts,plane:"observation",seq:x.seq,type:x.type,canonical:false,detail:{workflow_id:x.workflow_id,job_id:x.job_id,agent:x.worker_agent,session_ref:x.worker_session_ref,activity:x.activity,status:x.status}})),routing=(await readJsonl(controlPaths(root).telemetry)).slice(-40).map((x:any)=>({ts:x.ts,plane:"telemetry",type:x.kind||"tool.call",canonical:false,detail:redactForModel(x)}));const timeline=[...kernel,...workers,...routing].sort((a:any,b:any)=>String(a.ts).localeCompare(String(b.ts))).slice(-100);await ctx.session.synthetic({sessionID,text:JSON.stringify({status:"ADE_TRACE",count:timeline.length,timeline},null,2)})}})
       draft.add({name:"ade-metrics",description:"Summarize routing, retry and estimated context-cost signals without storing prompts",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).telemetry)).slice(-500);const byAgent:any={},byTool:any={},byModel:any={};let blocked=0,totalMs=0,dispatches=0,retries=0,approxInput=0,requestedOutput=0;for(const x of rows){const a=String(x.agent||"unknown");byAgent[a]??={tool_calls:0,model_dispatches:0,retries:0,approx_input_tokens:0,requested_output_budget:0};if(x.kind==="tool.call"||x.tool){byAgent[a].tool_calls++;byTool[x.tool]=(byTool[x.tool]||0)+1;if(x.status!=="completed")blocked++;totalMs+=Number(x.duration_ms||0)}if(x.kind==="model.dispatch"){dispatches++;byAgent[a].model_dispatches++;const n=Number(x.approx_context_tokens||0);approxInput+=n;byAgent[a].approx_input_tokens+=n;const b=Number(x.generation_budget||0);requestedOutput+=b;byAgent[a].requested_output_budget+=b;const key=`${x.provider||"?"}/${x.model||"?"}`;byModel[key]=(byModel[key]||0)+1}if(x.kind==="provider.retry"){retries++;byAgent[a].retries++}}await ctx.session.synthetic({sessionID,text:JSON.stringify({window:rows.length,tool_calls:Object.values(byTool).reduce((a:any,b:any)=>a+Number(b),0),blocked_tool_calls:blocked,total_tool_duration_ms:totalMs,model_dispatches:dispatches,provider_retries:retries,approx_input_tokens_dispatched:approxInput,requested_output_token_budget:requestedOutput,exact_provider_usage:false,note:"approx_input_tokens_dispatched is chars/4 context estimate, not billed tokens",by_agent:byAgent,by_tool:byTool,by_model:byModel},null,2)})}})
       draft.add({name:"ade-cost",description:"Show exact provider usage from session messages when exposed, plus ADE dispatch estimates",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root;let messages:any[]=[];try{messages=Array.from(await ctx.session.context({sessionID})) as any[]}catch{}const exact=exactUsageFromMessages(messages);const activity=sessionActivity(messages);const rows=(await readJsonl(controlPaths(root).telemetry)).filter((x:any)=>x.session_ref===crypto.createHash("sha256").update(String(sessionID)).digest("hex").slice(0,16)&&x.kind==="model.dispatch");const estimate={dispatches:rows.length,approx_input_tokens_dispatched:rows.reduce((n:number,x:any)=>n+Number(x.approx_context_tokens||0),0),requested_output_token_budget:rows.reduce((n:number,x:any)=>n+Number(x.generation_budget||0),0)};await ctx.session.synthetic({sessionID,text:JSON.stringify({exact_provider_usage:exact,session_activity:activity,estimate,note:exact.available?"exact usage fields were exposed by session context":"provider usage fields unavailable; estimates are not billing"},null,2)})}})
       draft.add({name:"ade-handoffs",description:"Show recent canonical structured handoffs",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).handoffs)).slice(-10);await ctx.session.synthetic({sessionID,text:JSON.stringify(redactForModel({count:rows.length,handoffs:rows}),null,2)})}})
-      draft.add({name:"ade-worker",description:"Show the redacted completed output for one job in the active workflow. Usage: /ade-worker <job-id>",execute:async({sessionID,prompt}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,state=await kernelEnsureInitialized(root),id=state.active_workflow_id,requested=String(prompt?.text||prompt||"").trim(),jobs=id?kernelWorkflowJobs(state,id):[],job=jobs.find((x:any)=>x.id===requested)||jobs.find((x:any)=>x.id.endsWith(`:${requested}`));if(!job||!job.session_id){await ctx.session.synthetic({sessionID,text:"ADE_WORKER_NOT_FOUND: provide a job id from /ade-workflow"});return}if(job.parent_session_ref!==sha256Hex(String(sessionID)).slice(0,16)){await ctx.session.synthetic({sessionID,text:"ADE_WORKER_BLOCKED: worker output belongs to a different parent session"});return}let messages:any[]=[];try{messages=await ctx.session.context({sessionID:String(job.session_id)})}catch{}await ctx.session.synthetic({sessionID,text:JSON.stringify({status:"ADE_WORKER_OUTPUT",job_id:job.id,role:job.role,worker_session_ref:job.worker_session_ref,observability:job.observability||null,output:redactSensitiveText(latestAssistantText(messages))},null,2),description:"ADE worker observability"})}})
       draft.add({name:"ade-failures",description:"Show recent provider/runtime failure signatures and circuit-breaker decisions",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).telemetry)).filter((x:any)=>x.kind==="provider.retry").slice(-20);await ctx.session.synthetic({sessionID,text:JSON.stringify({count:rows.length,failures:rows.map((x:any)=>({ts:x.ts,agent:x.agent,provider:x.provider,model:x.model,failure_signature:x.failure_signature,failure_domain:x.failure_domain,seen_signature:x.seen_signature,retry:x.retry,delay_ms:x.delay_ms}))},null,2)})}})
-      draft.add({name:"ade-resume",description:"Resume the active durable workflow via orchestrator",execute:async({sessionID,prompt,delivery}:any)=>{await ctx.session.switchAgent({sessionID,agent:"orchestrator"});await ctx.session.prompt({sessionID,text:"Resume the active ADE v6 durable workflow. Read ade_workflow_snapshot, run ade_kernel_reconcile if needed, then ade_workflow_run. Stop on WAITING_APPROVAL/BLOCKED/RESULT_PROPOSED/DONE. Never delegate or implement directly.",delivery})}})
+      draft.add({name:"ade-worker",description:"Show redacted completed output and recent observation events for one worker job. Usage: /ade-worker <job-id>",execute:async({sessionID,prompt}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,state=await kernelEnsureInitialized(root),id=state.active_workflow_id,requested=String(prompt?.text||prompt||"").trim(),jobs=id?kernelWorkflowJobs(state,id):[],job=jobs.find((x:any)=>x.id===requested)||jobs.find((x:any)=>x.id.endsWith(`:${requested}`));if(!job||!job.session_id){await ctx.session.synthetic({sessionID,text:"ADE_WORKER_NOT_FOUND: provide a job id from /ade-workflow"});return}const parentRef=sha256Hex(String(sessionID)).slice(0,16);if(job.parent_session_ref&&job.parent_session_ref!==parentRef){await ctx.session.synthetic({sessionID,text:"ADE_WORKER_BLOCKED: worker belongs to a different parent session"});return}let messages:any[]=[];try{messages=await ctx.session.context({sessionID:String(job.session_id)})}catch{}const observations=(await observationRead(root)).filter((e:any)=>e.job_id===job.id).slice(-30).map((e:any)=>({ts:e.ts,type:e.type,activity:e.activity,status:e.status,source:e.source}));await ctx.session.synthetic({sessionID,text:JSON.stringify(redactForModel({status:"ADE_WORKER_OUTPUT",job_id:job.id,role:job.role,worker_session_ref:job.worker_session_ref||sha256Hex(String(job.session_id)).slice(0,16),output:redactSensitiveText(latestAssistantText(messages),6000),observations}),null,2),description:"ADE worker observability"})}})
+      draft.add({name:"ade-resume",description:"Resume the active durable workflow via orchestrator",execute:async({sessionID,prompt,delivery}:any)=>{await ctx.session.switchAgent({sessionID,agent:"orchestrator"});await ctx.session.prompt({sessionID,text:"Resume the active ADE 6.1 durable workflow. Read ade_workflow_snapshot, run ade_kernel_reconcile if needed, then ade_workflow_run. Stop on WAITING_APPROVAL/BLOCKED/RESULT_PROPOSED/DONE. Never delegate or implement directly.",delivery})}})
       draft.add({name:"ade-audit",description:"Show recent canonical ADE audit events",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,p=controlPaths(root).audit;let lines:string[]=[];if(await exists(p))lines=(await fs.readFile(p,"utf8")).trim().split(/\r?\n/).slice(-20);await ctx.session.synthetic({sessionID,text:`ADE_AUDIT_LAST_20\n${redactSensitiveText(lines.join("\n"),50000)}`})}})
       draft.add({name:"ade-authorize",description:"Create a short-lived single-use external grant for an exact high-impact effect. Usage: /ade-authorize <tool> <json-input>. The command resolves current remote/VCS/check state and binds the grant to it; agents have no ADE tool that can issue grants.",execute:async({sessionID,prompt}:any)=>{
         const scope=await resolveSessionScope(ctx,String(sessionID)),root=scope.root,text=String(prompt?.text||prompt||"").trim()
@@ -1744,6 +1992,6 @@ export default pluginDefine({
       }})
     })
 
-    return async()=>{ eventController?.abort(); await ctx.storage.set("runtime/last_unload",{version:VERSION,at:now()}) }
+    return async()=>{ observationController.abort();workerRegistry.clear();await ctx.storage.set("runtime/last_unload",{version:VERSION,at:now()}) }
   },
 })
