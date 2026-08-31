@@ -1,4 +1,4 @@
-# ADE 6.0.11
+# ADE 6.1.0
 
 AI-Driven Engineering for OpenCode. ADE uses a durable, hash-chained kernel for workflow state and treats LLM sessions as disposable workers.
 
@@ -15,7 +15,7 @@ AI-Driven Engineering for OpenCode. ADE uses a durable, hash-chained kernel for 
 ```powershell
 py -B .\install-opencode.py
 # Existing ADE installation
-py -B .\migrate-to-v6.0.11.py
+py -B .\migrate-to-v6.1.0.py
 opencode2 service restart
 py -B .\validate-opencode.py
 ```
@@ -34,4 +34,4 @@ npm test
 npx tsc -p tsconfig.json --noEmit
 ```
 
-See `COMPATIBILITY.md`, `HARDENING.md`, `DURABLE_KERNEL.md`, and `HOST_VALIDATION_ADE_6.0.11.md` for the current contract and validation evidence.
+See `COMPATIBILITY.md`, `HARDENING.md`, `DURABLE_KERNEL.md`, and `HOST_VALIDATION_ADE_6.1.0.md` for the current contract and validation evidence.

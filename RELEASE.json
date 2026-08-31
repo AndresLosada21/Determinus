@@ -1,20 +1,20 @@
 {
   "schema_version": 3,
-  "version": "6.0.11",
-  "release_state": "HOST_VALIDATED",
+  "version": "6.1.0",
+  "release_state": "VALIDATED",
   "source_tree_hash_excludes": ["RELEASE.json"],
-  "source_tree_sha256": "da7adafdd797306566f4d26734938be24a4bf3dbbe914af86c32ad27b2b43312",
+  "source_tree_sha256": "551b7ba366198799c3d58b7da659b12be97efe69e3b8e528912dbe4ff0439bde",
   "target": {
     "opencode": "V2 Promise plugin API",
-    "observed_windows_build": "0.0.0-beta-18721",
-    "source_commit": "90fb6562ce09782c311040ba39a9d50edec6ad0e"
+    "observed_windows_build": "0.0.0-beta-18743",
+    "source_commit": "5894e4668872ecb071bd10ac01b32dfb7e93fb0c"
   },
   "validation": {
     "python_regression_groups": 36,
-    "plugin_tests": 104,
+    "plugin_tests": 109,
     "typescript_typecheck": "passed",
     "static_policy": "passed",
-    "runtime_catalog": "passed",
-    "host_canaries": "passed"
+    "runtime_catalog": "validated",
+    "host_canaries": "validated: beta-18743, 3/3 strict"
   }
 }

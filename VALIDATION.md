@@ -1,4 +1,4 @@
-# Validation - ADE 6.0.11
+# Validation - ADE 6.1.0
 
 Required release gates:
 
@@ -9,4 +9,6 @@ Required release gates:
 - Clean artifact validation.
 - Fresh install or generic managed upgrade.
 - Runtime catalog validation for all five active roles.
-- Real OpenCode host canaries before a `HOST_VALIDATED` claim.
+- Git and Git-optional engineering canaries.
+- Redacted worker-event observability canary.
+- Real OpenCode beta-18743 host canaries before a `HOST_VALIDATED` claim.

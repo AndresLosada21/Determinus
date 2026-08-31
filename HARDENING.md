@@ -1,6 +1,6 @@
-# Hardening — ADE 6.0.11
+# Hardening — ADE 6.1.0
 
-ADE 6.0.11 introduces bounded self-healing without self-authorization.
+ADE 6.1.0 introduces bounded self-healing without self-authorization.
 
 ## Recovery classes
 

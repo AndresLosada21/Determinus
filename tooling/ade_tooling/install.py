@@ -349,7 +349,7 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
         if config_info.get("patched"):
             print(f"subagent_depth_mode: {config_info.get('subagent_depth_mode')}")
         _prune_backups(backup_base, backup_root, keep=10)
-        print("INSTALL_V6_0_11_OK")
+        print("INSTALL_V6_1_0_OK")
         return manifest
     except Exception as exc:
         # Transactional rollback: delete files created by this attempt, then restore every backed-up original.

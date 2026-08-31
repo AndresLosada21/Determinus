@@ -25,6 +25,9 @@ declare module "@opencode-ai/plugin" {
       readonly plugin: {
         list(input?: { location?: { directory?: string; workspace?: string } }): Promise<{ location: LocationInfo; data: readonly any[] }>
       }
+      readonly event: {
+        subscribe(options?: { signal?: AbortSignal }): AsyncIterable<any>
+      }
       readonly session: {
         create(input?: { title?: string; agent?: string; model?: { id: string; providerID: string; variant?: string }; location?: { directory: string; workspaceID?: string } }): Promise<{ id: string; sessionID?: string; location: { directory: string; workspaceID?: string }; agent?: string; model?: { id: string; providerID: string; variant?: string }; outcome?: "succeeded" | "failed" | "interrupted"; tokens?: { input?: number; output?: number; reasoning?: number } }>
         get(input: { sessionID: string }): Promise<{ id?: string; sessionID?: string; location: { directory: string; workspaceID?: string }; agent?: string; model?: { id: string; providerID: string; variant?: string }; outcome?: "succeeded" | "failed" | "interrupted"; tokens?: { input?: number; output?: number; reasoning?: number } }>
