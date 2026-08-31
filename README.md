@@ -1,6 +1,8 @@
-# AI-Driven Engineering v5.2.6 Hardened — Human Authorization Boundary
+# AI-Driven Engineering v5.2.7 — Windows + Zen Compatibility Hardening
 
-ADE v5.2.6 Hardened keeps the v5.2 Product / Delivery / Engineering governance model, STATE_DRIVEN Orchestrator, lazy Skill, bounded context, structured handoffs and deterministic control plane, but enforces **repo policy != human authority** via OpenCode `ask` permissions for high-impact mutations.
+ADE v5.2.7 retains the hardened v5.2.6 control plane and exact-effect external grants, and adds two compatibility fixes proven necessary by real Windows/OpenCode testing: Windows-normalized grant identity parity and a narrowly scoped OpenCode Zen `tool_choice` compatibility shim for known free models that accept only `auto`.
+
+High-impact mutations still require **repo policy + deterministic guards + OpenCode permission + `EXPLICIT_EXTERNAL_GRANT`**. The provider shim does not weaken that boundary.
 
 The design rule is: **LLMs decide content; ADE decides mechanics.**
 
@@ -103,4 +105,4 @@ For complete release assurance:
 py -B .\tooling\ade.py assure --source --model "provider/model"
 ```
 
-See `HARDENING.md`, `DETERMINISTIC_CONTROL_PLANE.md`, `STRUCTURED_HANDOFFS.md`, `DELEGATION_DRIVEN.md`, `LIVE_TESTING.md`, `VALIDATION.md` and `RELEASE_NOTES_v5.2.6.md`. `HUMAN_REQUIRED` é two-channel: `ask` em `--auto` vira `AUTO_APPROVED` e não basta; exige `grant` externo single-use via `/ade-authorize` fora de `.ai` com `resource_hash` exato, senão `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations.
+See `HARDENING.md`, `DETERMINISTIC_CONTROL_PLANE.md`, `STRUCTURED_HANDOFFS.md`, `DELEGATION_DRIVEN.md`, `LIVE_TESTING.md`, `VALIDATION.md` and `RELEASE_NOTES_v5.2.7.md`. `HUMAN_REQUIRED` é two-channel: `ask` em `--auto` vira `AUTO_APPROVED` e não basta; exige `grant` externo single-use via `/ade-authorize` fora de `.ai` com `resource_hash` exato, senão `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations.

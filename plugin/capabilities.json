@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "plugin_id": "ai-driven-engineering.native",
-  "version": "5.2.6",
+  "version": "5.2.7",
   "tools": {
     "ade_status": {
       "capability": "STATUS_READ",
@@ -396,5 +396,17 @@
     "session_identifiers": "sha256-prefix pseudonymized",
     "installer_jsonc_comment_preservation": "fail-closed",
     "backup_retention": 10
+  },
+  "provider_compat": {
+    "auto_only_tool_choice_models": [
+      "muse-spark-1.2-contributor-free",
+      "mimo-v2.5-free",
+      "hy3-free",
+      "ling-3.0-flash-fin-free",
+      "nemotron-3-ultra-free",
+      "nemotron-3.5-lightning-free"
+    ],
+    "policy": "required_or_named_to_auto; none_to_tools_omitted",
+    "scope": "known OpenCode Zen free models only"
   }
 }

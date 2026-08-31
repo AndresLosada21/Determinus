@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.2.7 — Windows + Zen Compatibility Hardening
+
+- Fixed Windows grant-test identity parity: test project hashes now normalize `realpath` exactly like production; positive C/G/L grant flows issue via real `/ade-authorize`.
+- Added scoped OpenCode Zen auto-only `tool_choice` wire compatibility using `session.hook("http.request")`: `required`/named → `auto`, `none` → tools omitted, unknown providers untouched.
+- Added `provider-tool-choice-compat` and `windows-grant-test-parity` Python gates plus six Node provider compatibility tests.
+- Preserved v5.2.6 exact-effect grants, grant-store isolation, TOCTOU revalidation, deterministic tracker adapter, VCS/Docker/filesystem/secrets hardening and retry circuit breaker.
+- Added direct managed migration `5.2.6 → 5.2.7`; install/migrate remain FAST PATH without behavioral matrix.
+
 ## 5.2.6 Hardened — Human Authorization Boundary
 
 - **Authorization boundary**: `repo policy != human authority`. `.ai/*-policy.json` define limites máximos; mutações de alto impacto exigem `ask` via permissão nativa OpenCode **e** `EXPLICIT_EXTERNAL_GRANT` single-use fora do projeto (`ade_tracker_project_sync`, `ade_tracker_write`, `ade_vcs_stage/commit/push`, `ade_pr_create`, `ade_project_check`/`ade_diagnostic_check` com host process). `project-manager`, `tracker-operator`, `verifier`, `debugger`, `vcs-operator` agora têm `ask` para essas tools; leituras permanecem `allow`.

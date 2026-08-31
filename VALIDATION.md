@@ -1,10 +1,10 @@
-# Validation — ADE v5.2.6 Hardened
+# Validation — ADE v5.2.7
 
 ## A. Source/static — determinística
 
 Antes de empacotar:
-- 41 grupos Python (inclui `human-authorization-boundary`, `authorization-effect-binding` + `docs-integrity`);
-- 79 testes Node (base/human-auth/security-negative + grants A-L + exact-effect/TOCTOU M-AB);
+- 43 grupos Python (inclui `provider-tool-choice-compat`, `windows-grant-test-parity`, `human-authorization-boundary`, `authorization-effect-binding` e `docs-integrity`);
+- 85 testes Node (79 herdados + 6 provider-compat; base/human-auth/security-negative + grants A-L + exact-effect/TOCTOU M-AB);
 - TypeScript `tsc --noEmit` (com `node-shim` corrigido para Windows);
 - 18 agents / 28 typed tools;
 - structured handoff ownership/schema/limits;
@@ -61,7 +61,7 @@ Falha é real behavioral regression para aquela combinação host/provider/model
 ```powershell
 py -B .\tooling\ade.py assure --source --model "provider/model"
 # ou legado:
-py -B .\assure-opencode-v5.2.6.py --source --model "provider/model"
+py -B .\assure-opencode-v5.2.7.py --source --model "provider/model"
 ```
 
 Com `--model`, behavioral canary é executado por padrão. Só então sai:
@@ -87,7 +87,7 @@ Add `--strict` to return a failing exit code if any trial fails. A reliability r
 `ade live-test` is the multi-model real-runtime layer above Core, Contract and the single-model Behavioral Canary. It reuses the strict behavioral functions; it does not relax individual assertions. Use `--strict` when every requested model and every trial must pass. See `LIVE_TESTING.md`.
 
 
-## v5.2.6 hardened checks
+## v5.2.7 hardened + compatibility checks
 
 Contract Assurance verifies that Project Manager owns `ade_tracker_project_snapshot`/`ade_tracker_project_sync` com `ask` para sync, generic tracker mutation isolada em Tracker Operator com `ask`, VCS `stage/commit/push/pr_create` com `ask`, `project-check`/`diagnostic-check` com `ask` quando host process, runtime-generated handoffs com `post_state`, e provider retries com circuit breaker. `HUMAN_AUTHORIZATION_REQUIRED` é forçado via `ctx.permission.hook("evaluate")` mesmo se frontmatter divergir; repo `authorized=true` não substitui `ask`.
 
@@ -97,6 +97,11 @@ Contract Assurance verifies that Project Manager owns `ade_tracker_project_snaps
 
 Migration/install do not run Behavioral Assurance or Live Matrix. Use those explicitly after the runtime is healthy.
 
-## Two-channel grant limitation (v5.2.6 Hardened)
+## Two-channel grant limitation (v5.2.7)
 
-`ask` em `opencode --auto` é auto-aprovado (`AUTO_APPROVED`), então `ask` sozinho não prova humano. Por isso v5.2.6 exige **grant externo** (`/ade-authorize`) para mutações `HUMAN_REQUIRED`; sem grant → `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations mesmo com `ask` auto-aprovado ou `always allow`. Grants são single-use, 10min TTL, `resource_hash` exato e `project_hash` de `realpath`; consumo é atômico antes do side effect. `dry_run` não exige grant. Nunca registra `AUTO_APPROVED` como `human authorized`.
+`ask` em `opencode --auto` é auto-aprovado (`AUTO_APPROVED`), então `ask` sozinho não prova humano. Por isso v5.2.7 exige **grant externo** (`/ade-authorize`) para mutações `HUMAN_REQUIRED`; sem grant → `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations mesmo com `ask` auto-aprovado ou `always allow`. Grants são single-use, 10min TTL, `resource_hash` exato e `project_hash` de `realpath`; consumo é atômico antes do side effect. `dry_run` não exige grant. Nunca registra `AUTO_APPROVED` como `human authorized`.
+
+
+## Provider compatibility gate (v5.2.7)
+
+Source/static validation exige `session.hook("http.request")`, scoped auto-only Zen model registry, `required/named → auto`, `none → tools omitted`, unknown-provider no-op, 2 MB body bound e testes Node contra o endpoint `/zen/v1/responses`. O gate Windows também exige que grant helper parity normalize `realpath` case-insensitively e que C/G/L usem `/ade-authorize` real.

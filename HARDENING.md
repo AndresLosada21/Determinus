@@ -1,4 +1,4 @@
-# Hardening — ADE v5.2.6 Hardened
+# Hardening — ADE v5.2.7
 
 ## Princípio
 
@@ -6,7 +6,7 @@
 
 Fluxo exigido: `PROJECT POLICY (max) → ADE DETERMINISTIC GUARDS (validate) → OPENCODE PERMISSION LAYER (deny/ask/allow) → EXPLICIT EXTERNAL GRANT (outside .ai, single-use, TTL, exact-effect fingerprint) → execução`. Sem grant → `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations. `ask` em `--auto` é `AUTO_APPROVED` e não substitui grant.
 
-## Two-channel Human Authorization (v5.2.6 Hardened)
+## Two-channel Human Authorization (v5.2.7)
 
 Para operações `HUMAN_REQUIRED` (`tracker sync/write`, `vcs stage/commit/push/pr_create`, `project/diagnostic check` com host process), o plugin exige **grant efêmero** fora do repo:
 
@@ -25,7 +25,13 @@ Para VCS, stage liga o grant ao conteúdo atual dos paths; commit inclui branch,
 
 ## Auto-approve e `ask`
 
-`opencode --auto` aprova automaticamente `ask` não negado. `ask` sozinho **não** é considerado `USER_APPROVED`; o grant é a prova. A API V2 não distingue `AUTO_APPROVED` vs `USER_APPROVED` confiavelmente, então v5.2.6 mantém fail-closed via grant e documenta a limitação. Recomenda não usar `--auto` para sessões sensíveis sem grant, e nunca registra `AUTO_APPROVED` como humano.
+`opencode --auto` aprova automaticamente `ask` não negado. `ask` sozinho **não** é considerado `USER_APPROVED`; o grant é a prova. A API V2 não distingue `AUTO_APPROVED` vs `USER_APPROVED` confiavelmente, então v5.2.7 mantém fail-closed via grant e documenta a limitação. Recomenda não usar `--auto` para sessões sensíveis sem grant, e nunca registra `AUTO_APPROVED` como humano.
+
+## Provider wire compatibility (v5.2.7)
+
+O `http.request` hook normaliza `tool_choice` somente para modelos OpenCode Zen free explicitamente declarados como auto-only no capability registry. `required`/named vira `auto`; `none` remove também `tools`; requests de providers/modelos desconhecidos permanecem byte-semantically untouched. O body é limitado a 2 MB e nenhum token/header/prompt é persistido na telemetry. O shim é compatibility-only: ele não concede capabilities, não cria grants e não contorna permission/policy.
+
+Os testes de grant no Windows usam a mesma normalização de `realpath` do runtime e os cenários positivos C/G/L emitem grants via comando real `/ade-authorize`, evitando helpers de teste que possam divergir do código de produção.
 
 ## Filesystem
 
@@ -103,7 +109,7 @@ Defaults seguros exigidos, só relaxados com opt-in:
 - Rollback fail-visible: `try/except` coleta `ROLLBACK_INCOMPLETE` com até 10 erros, nunca silencia.
 - Uninstall recusa `managed files` convertidos em links (`is_reparse` em `previous_manifest` e destinos).
 - Nunca segue paths controlados pelo manifesto para fora das roots permitidas (`assert_safe_chain` em cada `dst.parent`).
-- `migrate` só aceita `4.x`/`5.0.x`/`5.1.x`/`5.2.0`–`5.2.5` → `5.2.6`; `uninstall` valida `schema_version 7`.
+- `migrate` aceita `4.x`/`5.0.x`/`5.1.x`/`5.2.0`–`5.2.6` → `5.2.7`; `uninstall` valida `schema_version 7`.
 
 ## Control Plane
 
@@ -127,7 +133,7 @@ Runtime-generated handoffs (`origin=runtime`) quando a operação determinístic
 
 Instalação é FAST PATH: `validate package/static → backup → install/migrate → manifest → rollback capability → finish`. Não roda behavioral matrix durante `install/migrate`. `validate` = Core+Contract; `assure` e `live-test` são explícitos após restart.
 
-## Limitações conhecidas (v5.2.6)
+## Limitações conhecidas (v5.2.7)
 
 - Distinguir `USER_APPROVED` vs `AUTO_APPROVED` depende de expor `permission.replied` com `reply: once|always` e detectar `auto` flag — atualmente não confiável, então documentado como `AUTO_APPROVED` não humano.
 - Windows `fs.realpath` para junctions requer `FILE_ATTRIBUTE_REPARSE_POINT`; alguns reparse points podem exigir privilégio para `lstat`.

@@ -68,7 +68,7 @@ function canonicalStringify(value) {
   return JSON.stringify(value)
 }
 function hashResource(obj) { return crypto.createHash("sha256").update(canonicalStringify(obj)).digest("hex") }
-async function projectHashForRoot(root) { const real = await fs.realpath(root); return crypto.createHash("sha256").update(real).digest("hex") }
+async function projectHashForRoot(root) { const real = await fs.realpath(root); return crypto.createHash("sha256").update(process.platform==="win32"?real.toLowerCase():real).digest("hex") }
 function resourceFingerprintFor(tool,input,extra={}){
   let obj={tool}
   if(tool==="ade_tracker_project_sync"){
@@ -227,7 +227,7 @@ test("OpenCode V2-shaped lifecycle registers and executes session-scoped native 
     const status = await state.tools.get("ade_status").execute({}, orchestratorContext)
     const statusValue = JSON.parse(status.content)
     assert.equal(path.resolve(statusValue.project_root), path.resolve(fx.project))
-    assert.equal(statusValue.plugin.version, "5.2.6")
+    assert.equal(statusValue.plugin.version, "5.2.7")
 
     const evidenceContext = { sessionID: "ses_lifecycle", agent: "researcher", messageID: "msg", id: "call-evidence", async progress() {} }
     const evidence = await state.tools.get("ade_evidence_record").execute({ plane: "engineering", state: "OBSERVADO", summary: "legacy evidence shape migration" }, evidenceContext)

@@ -1,5 +1,5 @@
 <!-- AI-DRIVEN-ENGINEERING:BEGIN v5 -->
-## AI-Driven Engineering Runtime v5.2.6
+## AI-Driven Engineering Runtime v5.2.7
 
 Use ADE como plano de controle, não como formato de conversa.
 

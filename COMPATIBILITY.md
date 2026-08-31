@@ -1,34 +1,44 @@
-# Compatibility — ADE v5.2.6 Hardened
+# Compatibility — ADE v5.2.7
 
 | ADE | OpenCode | Python | Estado |
 |---|---|---:|---|
-| 5.2.6 | V2 Promise plugin API | 3.9+ | source/static validated |
-| 5.2.6 | `opencode2 beta-18684` Windows | 3.9+ | revalidate core+contract after upgrade |
-| 5.2.5 | V2 Promise plugin API | 3.9+ | superseded — migrate to 5.2.6 |
+| 5.2.7 | V2 Promise plugin API | 3.9+ | source/lifecycle validated; runtime revalidation pending |
+| 5.2.7 | `opencode2 beta-18707` Windows | 3.9+ | target observed in real validation; re-test required after this fix |
+| 5.2.6 | V2 Promise plugin API | 3.9+ | superseded by 5.2.7 Windows/Zen compatibility fix |
 
 ## Upgrade inputs aceitos
 
-Migrator aceita instalações gerenciadas v4.x, v5.0.x, v5.1.x, v5.2.0–v5.2.5.
+Migrator aceita instalações gerenciadas v4.x, v5.0.x, v5.1.x e v5.2.0–v5.2.6. O caminho recomendado desta release é `5.2.6 → 5.2.7`.
 
 ## API V2 usada
-- `Plugin.define` Promise contract;
-- session-scoped Location via `session.get` + agent list envelope;
-- `session.hook("context")` para tool visibility + generation budget + dispatch metadata;
-- `session.hook("retry")` para retry bounded;
-- `session.context` best-effort para exact usage/cost quando exposto;
-- commands synthetic para diagnostics/metrics.
 
-Structured Handoff não depende de um output-final hook inexistente: o canal canônico é a typed tool `ade_handoff_submit`.
+- `Plugin.define` Promise contract, com raw-default adapter para SDK beta sem named export;
+- session-scoped Location via `session.get`;
+- `session.hook("context")` para capability visibility e generation budget;
+- `session.hook("http.request")` para compatibility normalization imediatamente antes do provider;
+- `session.hook("retry")` para circuit breaker bounded;
+- commands synthetic para diagnostics/metrics e `/ade-authorize`.
 
+## Zen free model compatibility (v5.2.7)
 
-## Authorization boundary (v5.2.6 Hardened)
+O runtime real em Windows mostrou upstream `invalid_request_error` quando subagent requests usavam `tool_choice=required/named` contra modelos Zen free auto-only. v5.2.7 aplica um shim **somente** aos modelos declarados em `plugin/capabilities.json::provider_compat.auto_only_tool_choice_models` e ao provider/host OpenCode Zen:
 
-**Repo policy != mutation authority.** Project policies define maximum scope only. High-impact operations remain `ask`-gated in OpenCode **and** require an external single-use `/ade-authorize` grant stored outside the project. `--auto` or saved `always allow` cannot replace that grant. The grant is bound to the exact resolved effect and revalidated before side effects. Provenance is `EXPLICIT_EXTERNAL_GRANT`; this means the capability came from the command channel external to ADE agent tools, not that the plugin can cryptographically prove physical human presence. See `HARDENING.md`.
+- `required` ou named choice → `auto`;
+- `none` → remove `tool_choice` **e `tools`**, preservando a semântica no-tools;
+- `auto` → sem mudança;
+- provider/model desconhecido → sem mudança;
+- body não JSON/oversized → sem mudança.
 
-## Plugin definition compatibility adapter (v5.2.5–v5.2.6)
+A normalização altera somente o wire request ao provider. As capabilities ADE, permission hooks, exact-effect grants e deterministic guards continuam bloqueantes.
 
-The documented OpenCode V2 Promise plugin contract uses `Plugin.define(...)`. The Windows build `0.0.0-beta-18684` observed in runtime validation can expose an SDK shape where the named `Plugin` export is absent. v5.2.5 imports the SDK as a namespace and uses `Plugin.define` when available, otherwise exporting the same `{ id, setup }` definition directly. This avoids a named-export load failure while retaining the documented contract on newer hosts. Runtime validation remains authoritative for the target build.
+## Windows grant identity parity
 
-## GitHub Projects V2 deterministic adapter
+`project_hash` usa `realpath` com normalização case-insensitive no Windows. Os testes de grants agora exercitam `/ade-authorize` real nos cenários de sucesso, em vez de fabricar grants com um helper divergente. Isso elimina a falsa divergência 73/79 observada no Windows v5.2.6.
 
-The adapter uses the configured GitHub Project V2 node/field model and `updateProjectV2ItemFieldValue`. It currently handles single-select, iteration, number, date and text field values. GitHub/Jira/Linear generic adapters remain available through Tracker Operator for fallback compatibility.
+## Authorization boundary
+
+Project policy define escopo máximo, não autoridade. Mutações `HUMAN_REQUIRED` exigem `EXPLICIT_EXTERNAL_GRANT` single-use fora do projeto, com exact-effect fingerprint e TOCTOU revalidation. `--auto`/saved `always allow` não substituem o grant.
+
+## GitHub Projects V2
+
+O adapter determinístico continua responsável por snapshot, batch sync, field/option/iteration resolution, write, read-back e verification. Tracker Operator é fallback, não caminho crítico normal.

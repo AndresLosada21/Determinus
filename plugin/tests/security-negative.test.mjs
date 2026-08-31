@@ -25,7 +25,7 @@ function canonicalStringify(value) {
   return JSON.stringify(value)
 }
 function hashResource(obj) { return crypto.createHash("sha256").update(canonicalStringify(obj)).digest("hex") }
-async function projectHashForRoot(root) { const real = await fs.realpath(root); return crypto.createHash("sha256").update(real).digest("hex") }
+async function projectHashForRoot(root) { const real = await fs.realpath(root); return crypto.createHash("sha256").update(process.platform==="win32"?real.toLowerCase():real).digest("hex") }
 function resourceFingerprintFor(tool,input,extra={}){
   let obj={tool}
   if(tool==="ade_tracker_project_sync"){

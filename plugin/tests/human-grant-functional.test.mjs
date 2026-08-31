@@ -31,7 +31,7 @@ async function fixture(){
 function grantsRootDir(){ const home=os.homedir(); if(process.platform==="win32"){ const base=process.env.LOCALAPPDATA||path.join(home,"AppData","Local"); return path.join(base,"opencode","ade-grants")} const base=process.env.XDG_STATE_HOME||path.join(home,".local","state"); return path.join(base,"opencode","ade-grants")}
 function canonicalStringify(v){ if(Array.isArray(v)) return "["+v.map(canonicalStringify).join(",")+"]"; if(v&&typeof v==="object"){ const keys=Object.keys(v).sort(); return "{"+keys.map(k=>JSON.stringify(k)+":"+canonicalStringify(v[k])).join(",")+"}"} return JSON.stringify(v)}
 function hashResource(o){ return crypto.createHash("sha256").update(canonicalStringify(o)).digest("hex")}
-async function projectHashForRoot(root){ const real=await fs.realpath(root); return crypto.createHash("sha256").update(real).digest("hex")}
+async function projectHashForRoot(root){ const real=await fs.realpath(root); return crypto.createHash("sha256").update(process.platform==="win32"?real.toLowerCase():real).digest("hex")}
 function resourceFingerprintFor(tool,input,extra={}){
   let obj={tool}
   if(tool==="ade_tracker_project_sync"){
@@ -48,6 +48,12 @@ function resourceFingerprintFor(tool,input,extra={}){
 async function createTestGrant(root,tool,input,extra={},opts={}){ if(tool==="ade_tracker_project_sync"&&!extra.target){ const cfg=JSON.parse(await fs.readFile(path.join(root,".ai","integrations.json"),"utf8")); const g=cfg.work_management?.github||{}; extra={...extra,target:{provider:"github",connection_id:String(g.connection_id||"github"),host:"api.github.com",owner:String(g.owner||""),repository:String(g.repository||""),project_owner:String(g.project_owner||g.owner||""),project_number:Number(g.project_number||0),project_id:""}} } const ph=await projectHashForRoot(root); const fp=resourceFingerprintFor(tool,input,extra); const file=path.join(grantsRootDir(),`${ph}.jsonl`); await fs.mkdir(path.dirname(file),{recursive:true,mode:0o700}); let handle; for(let i=0;i<50;i++){ try{ handle=await fs.open(path.join(grantsRootDir(),`${ph}.jsonl.lock`),"wx",0o600); await handle.writeFile(JSON.stringify({pid:process.pid})); break }catch(e){ if(e.code!=="EEXIST") throw e; await new Promise(r=>setTimeout(r,20))}} if(!handle) throw new Error("lock timeout"); try{ let grants=[]; try{ const raw=await fs.readFile(file,"utf8"); for(const line of raw.split(/\r?\n/)){ if(!line.trim()) continue; try{ grants.push(JSON.parse(line)) }catch{}}}catch{}; const now=Date.now(); grants=grants.filter(g=>{ const exp=Date.parse(g.expires_at||""); return Number.isFinite(exp)&&exp>now&&(g.remaining_uses??0)>0 }); const ttl=opts.ttlMs??10*60*1000; const grant={id:`gr-${crypto.randomUUID()}`,action:tool,project_hash:ph,resource_hash:fp,issued_at:new Date(now).toISOString(),expires_at:new Date(now+ttl).toISOString(),max_uses:opts.maxUses??1,remaining_uses:opts.maxUses??1,nonce:crypto.randomUUID()}; grants.push(grant); const tmp=`${file}.tmp-${crypto.randomUUID()}`; const h=await fs.open(tmp,"wx",0o600); try{ await h.writeFile(grants.map(g=>JSON.stringify(g)).join("\n")+"\n","utf8"); await h.sync()} finally{ await h.close()} await fs.rename(tmp,file); return grant } finally{ try{ await handle.close(); await fs.unlink(path.join(grantsRootDir(),`${ph}.jsonl.lock`))}catch{}} }
 async function cleanupGrant(project){ try{ const ph=await projectHashForRoot(project); await fs.unlink(path.join(grantsRootDir(),`${ph}.jsonl`)).catch(()=>{}); await fs.unlink(path.join(grantsRootDir(),`${ph}.jsonl.lock`)).catch(()=>{}) }catch{} }
 function makeContext(project,cap){ const hooks={}; const tools=new Map(); const commands=new Map(); const vcsCalls=[]; const agentRecords=Object.keys(cap.agents).map(id=>({id,description:id})); let defaultAgent; const locationInfo={directory:project,project:{id:"test",directory:project,canonical:project}}; const ctx={app:{version:"0.0.0-beta-test"},location:{directory:path.join(project,".."),project:{id:"host",directory:path.join(project,".."),canonical:path.join(project,"..")}},storage:{async set(){},async get(){},async remove(){},async scan(){return{entries:[]}}},agent:{async transform(cb){ const draft={get(id){return agentRecords.find(x=>x.id===id)},list(){return agentRecords},default(id){defaultAgent=id},update(id,fn){ const item=agentRecords.find(x=>x.id===id); if(item) fn(item)},remove(){},}; cb(draft)},async list(input){return{location:locationInfo,data:agentRecords,input}}},skill:{async list(){return{location:locationInfo,data:[{id:"ai-driven-engineering"}]}}},plugin:{async list(){return{location:locationInfo,data:[{id:"ai-driven-engineering.native"}]}}},session:{async get({sessionID}){return{id:sessionID,location:{directory:project}}},async hook(name,cb){hooks[`session:${name}`]=cb},async synthetic(){},async prompt(){},async switchAgent(){},async context(){return[]}},permission:{async hook(name,cb){hooks[`permission:${name}`]=cb}},tool:{async transform(cb){ cb({add(def){ const ns=def.options?.namespace?`${def.options.namespace}_`:""; tools.set(`${ns}${def.name}`,def)},list(){return[...tools.values()]},get(id){return tools.get(id)},update(){},remove(id){tools.delete(id)}})}},command:{async transform(cb){ cb({add(def){ commands.set(def.name,def)}})}},vcs:{async get(input){vcsCalls.push(["get",input]);return{location:locationInfo,data:{branch:{current:"feature",default:"main"}}}},async status(input){vcsCalls.push(["status",input]);return{location:locationInfo,data:[]}},async branches(input){vcsCalls.push(["branches",input]);return{location:locationInfo,data:[]}},async diff(input){vcsCalls.push(["diff",input]);return{location:locationInfo,data:[]}}},integration:{connection:{async active(id){return{id,type:"test"}},async resolve(){return{token:"test-token"}}}}}; return {ctx,hooks,tools,commands,vcsCalls,get defaultAgent(){return defaultAgent}}}
+
+async function authorizeViaCommand(state,sessionID,tool,input){
+  const cmd=state.commands.get("ade-authorize")
+  assert.ok(cmd,"ade-authorize command must be registered")
+  await cmd.execute({sessionID,prompt:{text:`${tool} ${JSON.stringify(input)}`}})
+}
 
 // A repo authorized=true + no ADE grant → mutation=0
 test("A no grant with authorized=true yields zero mutations", async()=>{
@@ -112,7 +118,7 @@ test("C valid grant matching operation yields one mutation", async()=>{
     try{
       const pmCtx={sessionID:"sesC",agent:"project-manager",messageID:"msg",id:"call",async progress(){}}
       const updates=[{external_id:"1",fields:[{name:"Status",value:"Done"}]}]
-      await createTestGrant(fx.project,"ade_tracker_project_sync",{updates})
+      await authorizeViaCommand(state,"sesC","ade_tracker_project_sync",{updates})
       const res=await state.tools.get("ade_tracker_project_sync").execute({updates},pmCtx)
       const val=JSON.parse(res.content)
       assert.equal(val.status,"TRACKER_SYNC_DONE")
@@ -207,7 +213,7 @@ test("G replay single-use grant second mutation blocked", async()=>{
     try{
       const pmCtx={sessionID:"sesG",agent:"project-manager",messageID:"msg",id:"call",async progress(){}}
       const updates=[{external_id:"1",fields:[{name:"Status",value:"Done"}]}]
-      await createTestGrant(fx.project,"ade_tracker_project_sync",{updates})
+      await authorizeViaCommand(state,"sesG","ade_tracker_project_sync",{updates})
       const res1=await state.tools.get("ade_tracker_project_sync").execute({updates},pmCtx)
       const v1=JSON.parse(res1.content)
       assert.equal(v1.status,"TRACKER_SYNC_DONE")
@@ -342,7 +348,7 @@ test("L telemetry records authorization without secret", async()=>{
       assert.ok(tel1.includes("NONE")||tel1.includes("human.grant.missing"),"telemetry should record NONE/missing for blocked")
       assert.ok(!tel1.includes("github_pat")&&!tel1.includes("ghp_"),"telemetry must not contain secret")
       // Now with grant → EXPLICIT_EXTERNAL_GRANT
-      await createTestGrant(fx.project,"ade_tracker_project_sync",{updates:[{external_id:"1",fields:[{name:"Status",value:"Done"}]}]})
+      await authorizeViaCommand(state,"sesL","ade_tracker_project_sync",{updates:[{external_id:"1",fields:[{name:"Status",value:"Done"}]}]})
       const resOk=await state.tools.get("ade_tracker_project_sync").execute({updates:[{external_id:"1",fields:[{name:"Status",value:"Done"}]}]},pmCtx)
       assert.equal(JSON.parse(resOk.content).status,"TRACKER_SYNC_DONE")
       const tel2=await fs.readFile(path.join(fx.project,".ai","telemetry.jsonl"),"utf8").catch(()=>"")

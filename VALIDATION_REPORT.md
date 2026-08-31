@@ -1,43 +1,43 @@
-# Validation report — ADE v5.2.6 Hardened
+# Validation report — ADE v5.2.7
+
+## Why this release exists
+
+Real Windows validation of v5.2.6 on OpenCode beta-18707 found two issues after Core+Contract passed: the Node grant success fixtures diverged from production Windows path normalization (73/79), and Muse/Zen subagents were rejected upstream because only `tool_choice=auto` was supported. v5.2.7 fixes both without relaxing ADE semantic assertions.
 
 ## Source gates
 
-- Python regression groups: **41/41 PASS** before release sealing (inclui `human-authorization-boundary` + `authorization-effect-binding` + `docs-integrity`).
+- Python regression: **43 groups** after release sealing.
 - Static Policy: **PASS**.
-- Plugin Node tests: **79/79 PASS** (base/human-auth/security-negative + grants A-L + exact-effect/TOCTOU M-AB).
-- TypeScript `tsc --noEmit`: **PASS** (Windows shim fix: `fileURLToPath`, `Buffer`, `node:os`).
-- V2 plugin lifecycle mock: **PASS** for `Plugin.define` SDK and raw-default compatibility SDK.
-- Security negative tests: **PASS** (25 cenários: self-auth, human approval, policy outside root, symlink, `.git/config`, secret outbound, staged secret, allowlists, duplicate/verification, JSONL corrupt, oversized, traversal, junction, minimal env, Docker defaults, circuit breaker, handoff revision, post_state, auto-approve).
+- Plugin Node tests: **85 tests** expected after provider compatibility coverage.
+- TypeScript `tsc --noEmit`: **PASS required**.
+- 18 agents / 28 typed tools unchanged.
+- Human grant exact-effect/TOCTOU A-AB retained.
 
-## Deterministic control-plane coverage
+## v5.2.7 additions
 
-- 18 agents / 28 typed tools.
-- Project Manager direct GitHub Project V2 snapshot/sync capability: **PASS static + lifecycle mock**.
-- Project field mapping and `updateProjectV2ItemFieldValue`: **PASS lifecycle mock**.
-- Write → read-back → expected/actual verification: **PASS lifecycle mock**.
-- Runtime-generated tracker handoff (`origin=runtime`): **PASS lifecycle mock**.
-- Runtime-generated Engineering state-transition handoff + `post_state`: **PASS lifecycle mock**.
-- Same-signature provider circuit breaker: **PASS lifecycle mock**.
-- Tool-choice auto-only deterministic error gets zero retry: **PASS lifecycle mock**.
-- `reasoning item expired` gets one retry then circuit open: **PASS lifecycle mock**.
+- Windows project-hash test parity matches production lowercase-realpath behavior.
+- Successful grant scenarios issue grants via the production `/ade-authorize` command.
+- `session.hook("http.request")` compatibility shim is scoped to known OpenCode Zen free auto-only models.
+- `required`/named `tool_choice` becomes `auto`; `none` removes tools; unknown providers/models are untouched.
+- Existing retry circuit breaker remains a fallback diagnostic, not the primary compatibility path.
 
-## Managed lifecycle simulation
+## Managed lifecycle
 
-A clean managed v5.2.5 installation was created in a temporary target, then migrated directly to v5.2.6.
+Validated in an isolated managed target:
 
-- v5.2.5 → v5.2.6: **PASS** (39/39 regression, 51/51 Node, TypeScript PASS).
-- Installed manifest: schema 7 / package 5.2.6 / 18 agents / 28 tools: **PASS**.
-- Contract Assurance after migration: **PASS** (human-auth boundary validated).
-- v5.2.6 uninstall → v5.2.5: **PASS** (byte-identical `orchestrator.md` restored).
-- `preserved_modified=0`: **PASS**.
-- ZIP integrity + secret scan + no hardcoded personal paths: **PASS**.
+- fresh v5.2.7 install: **PASS** (`INSTALL_V5_2_7_OK`);
+- manifest schema 7 / package 5.2.7 / 18 agents / 28 tools: **PASS**;
+- managed v5.2.6 → v5.2.7 migration: **PASS** (`MIGRATION_TO_V5_2_7_OK`);
+- Contract Assurance after migration: **PASS**;
+- v5.2.7 uninstall → v5.2.6 restore: **PASS** (`preserved_modified=0`);
+- restored `orchestrator.md`: **byte-identical PASS**.
 
-## Deliberately pending
+Extracted-ZIP rerun is the final packaging gate and is performed after source freeze.
 
-This build environment cannot call the user's real Windows OpenCode/Zen runtime. Therefore:
+## Deliberately pending after source release
 
-- OpenCode `0.0.0-beta-18684` Windows runtime revalidation: **PENDING**.
-- Provider/model Behavioral Assurance: **PENDING BY DESIGN**.
-- Real GitHub Project write against the user's Project 4: **PENDING**.
+- OpenCode beta-18707 Windows runtime revalidation of v5.2.7.
+- Real Muse/MiMo subagent flow through the provider shim.
+- Real GitHub Project 4 snapshot/write/read-back.
 
-These pending items do not invalidate source/lifecycle validation, but they are not represented as completed evidence.
+Release state remains `SOURCE_HARDENED_VALIDATED_RUNTIME_PENDING` until those host/provider checks pass.

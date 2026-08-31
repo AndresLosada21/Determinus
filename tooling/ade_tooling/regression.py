@@ -17,7 +17,7 @@ def _expect(cond: bool, message: str) -> None:
 def _group_package_layout(root: Path) -> None:
     required = [
         "VERSION","README.md","VALIDATION.md","AGENTS.managed.md","plugin/package.json","plugin/capabilities.json",
-        "plugin/src/index.ts","plugin/tests/lifecycle.test.mjs","plugin/tests/authorization-toctou.test.mjs","OPENCODE_V2_AUDIT.md","tooling/ade.py","tooling/ade_tooling/common.py",
+        "plugin/src/index.ts","plugin/tests/lifecycle.test.mjs","plugin/tests/authorization-toctou.test.mjs","plugin/tests/provider-compat.test.mjs","OPENCODE_V2_AUDIT.md","tooling/ade.py","tooling/ade_tooling/common.py",
         "tooling/ade_tooling/install.py","tooling/ade_tooling/smoke.py","tooling/ade_tooling/regression.py","tooling/ade_tooling/live_test.py",
     ]
     for rel in required: _expect((root/rel).is_file(), f"arquivo obrigatório ausente: {rel}")
@@ -214,6 +214,40 @@ def _group_provider_wire_schema(root: Path) -> None:
     for marker in ("_plugin_list_with_startup_retry","(0.0, 0.5, 1.0, 2.0)","PLUGIN_LIST_STARTUP_RETRY_RECOVERED"):_expect(marker in smoke,f"plugin startup race guard missing {marker}")
 
 
+def _group_provider_tool_choice_compat(root: Path) -> None:
+    src=read_text(root/"plugin/src/index.ts")
+    cap=load_json(root/"plugin/capabilities.json")
+    tests=read_text(root/"plugin/tests/provider-compat.test.mjs")
+    compat=cap.get("provider_compat") or {}
+    models={str(x) for x in compat.get("auto_only_tool_choice_models") or []}
+    for model in ("muse-spark-1.2-contributor-free","mimo-v2.5-free","nemotron-3-ultra-free"):
+        _expect(model in models,f"provider compat model missing {model}")
+    _expect('ctx.session.hook("http.request"' in src,"http.request provider compatibility hook missing")
+    _expect('kind:"provider.compat.tool_choice"' in src,"provider compatibility telemetry missing")
+    _expect('mode="none->tools-omitted"' in src,"tool_choice none semantic preservation missing")
+    _expect('mode="required-or-named->auto"' in src,"required/named auto normalization missing")
+    _expect('delete body.tools' in src,"tool_choice none must remove tools")
+    _expect('if(!knownZen)return' in src,"provider compatibility shim must be narrowly scoped")
+    _expect('Buffer.byteLength(raw,"utf8")>2_000_000' in src,"provider request body bound missing")
+    _expect('https://opencode.ai/zen/v1/responses' in tests,"Muse Responses endpoint compatibility test missing")
+    for label in ("required tool_choice is normalized to auto","named tool_choice is normalized to auto","none preserves no-tools semantics","unknown provider/model request is never rewritten","invalid JSON provider body is left untouched","providerID is absent"):
+        _expect(label in tests,f"provider compatibility test missing: {label}")
+
+
+def _group_windows_grant_test_parity(root: Path) -> None:
+    files=[root/"plugin/tests/human-grant-functional.test.mjs",root/"plugin/tests/security-negative.test.mjs",root/"plugin/tests/lifecycle.test.mjs"]
+    marker='process.platform==="win32"?real.toLowerCase():real'
+    for p in files:
+        _expect(marker in read_text(p),f"Windows grant project-hash parity missing in {p.name}")
+    grant_tests=read_text(root/"plugin/tests/human-grant-functional.test.mjs")
+    _expect("authorizeViaCommand" in grant_tests,"grant success tests must exercise real /ade-authorize command")
+    for key in ('?C=', '?G=', '?L='):
+        pos=grant_tests.find(key)
+        _expect(pos>=0,f"grant success scenario {key} missing")
+        window=grant_tests[pos:pos+4500]
+        _expect("authorizeViaCommand" in window,f"grant success scenario {key} does not issue production grant command")
+
+
 def _group_behavioral_separation(root: Path) -> None:
     validate=read_text(root/"tooling/ade_tooling/validate.py");cli=read_text(root/"tooling/ade_tooling/cli.py");smoke=read_text(root/"tooling/ade_tooling/smoke.py")
     _expect("behavioral: bool = False" in validate,"behavioral default false missing")
@@ -246,7 +280,7 @@ def _group_managed_upgrade_safety(root: Path) -> None:
     for marker in ("previous_manifest_data","previous_hashes: dict[str, str] | None","old_hash = previous_hashes.get(rel)",'previous_hashes=old_files("skill")','previous_hashes=old_files("runtime")','previous_hashes=old_files("tooling")','previous_hashes=old_files("plugin")'):_expect(marker in src,f"managed upgrade guard missing {marker}")
     _expect("current_hash != source_hash and not force" in src,"managed upgrade conflict guard missing")
     migrate=read_text(root/"tooling/ade_tooling/migrate.py")
-    _expect('"5.2.5"' in migrate and 'MIGRATION_TO_V5_2_6_OK' in migrate,"v5.2.5 -> v5.2.6 migration support missing")
+    _expect('"5.2.6"' in migrate and 'MIGRATION_TO_V5_2_7_OK' in migrate,"v5.2.6 -> v5.2.7 migration support missing")
 
 
 def _group_delegation_driven_children(root: Path) -> None:
@@ -403,7 +437,7 @@ def _group_docs_integrity(root: Path) -> None:
             snippet = re.search(r"#\s+[^\n]{1,80}#\s+", txt)
             if snippet:
                 # Only fail if the concatenated part is exactly duplicate heading without newline and no content between
-                # e.g., "# Changelog# Changelog" or "# Validation — ADE v5.2.5# Validation — ADE v5.2.6"
+                # e.g., "# Changelog# Changelog" or "# Validation — ADE v5.2.5# Validation — ADE v5.2.7"
                 if re.search(r"^#\s+[^\n]+#\s+[^\n]+$", txt, flags=re.MULTILINE):
                     raise ADEError(f"DOCS_CORRUPT_CONCAT_HEADING: {p.relative_to(root)}: {snippet.group(0)[:80]}")
         # duplicate consecutive identical lines (patcher double-apply)
@@ -463,7 +497,7 @@ GROUPS: list[tuple[str, Callable[[Path], None]]] = [
     ("vcs-schema-constraints",_group_vcs_surface),("validation-authority",_group_validation_authority),("tracker-read-write-separation",_group_tracker_split),
     ("project-check-bypass-guards",_group_project_check),("runtime-observe-redaction",_group_runtime_observe),("template-parity",_group_templates),
     ("opencode-v2-plugin-contract",_group_plugin_v2_contract),("session-scoped-location",_group_session_scoped_location),("v2-location-envelopes",_group_v2_location_envelopes),
-    ("native-bootstrap",_group_bootstrap),("plugin-commands",_group_commands),("provider-wire-schema-compat",_group_provider_wire_schema),
+    ("native-bootstrap",_group_bootstrap),("plugin-commands",_group_commands),("provider-wire-schema-compat",_group_provider_wire_schema),("provider-tool-choice-compat",_group_provider_tool_choice_compat),("windows-grant-test-parity",_group_windows_grant_test_parity),
     ("behavioral-eval-separation",_group_behavioral_separation),("delegation-driven-children",_group_delegation_driven_children),("deterministic-control-plane",_group_deterministic_control_plane),("live-integration-harness",_group_live_integration_harness),("security-hardening",_group_security_hardening),("human-authorization-boundary",_group_human_authorization_boundary),("authorization-effect-binding",_group_authorization_effect_binding),("docs-integrity",_group_docs_integrity),("managed-upgrade-safety",_group_managed_upgrade_safety),("opencode-config-fragment",_group_config_fragment),
     ("python-first-tooling",_group_python_tooling),("package-hygiene",_group_unwanted_artifacts),("release-integrity",_group_release),
 ]

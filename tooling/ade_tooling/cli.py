@@ -22,7 +22,7 @@ def _target(value: str | None) -> Path | None:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.6 state-driven runtime tooling")
+    p = argparse.ArgumentParser(prog="ade", description="AI-Driven Engineering v5.2.7 state-driven runtime tooling")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     sub = p.add_subparsers(dest="command", required=True)
 

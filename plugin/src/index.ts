@@ -6,7 +6,7 @@ import crypto from "node:crypto"
 import os from "node:os"
 import { fileURLToPath } from "node:url"
 
-const VERSION = "5.2.6"
+const VERSION = "5.2.7"
 const PLUGIN_ID = "ai-driven-engineering.native"
 const TOOL_PREFIX = "ade_"
 const pluginDefine = typeof (OpenCodePlugin as any)?.Plugin?.define === "function"
@@ -845,6 +845,48 @@ export default pluginDefine({
       for(const name of hideCore[event.agent] || []) delete event.tools[name]
       const budget=Number(generationBudgets[event.agent]||0); if(budget>0) event.generation.maxTokens=budget
       try { const scope=await resolveSessionScope(ctx,String(event.sessionID||"")); if(await exists(controlPaths(scope.root).control)){ const est=estimateContext(event); await appendJsonl(controlPaths(scope.root).telemetry,{ts:now(),kind:"model.dispatch",session_ref:crypto.createHash("sha256").update(String(event.sessionID||"")).digest("hex").slice(0,16),agent:String(event.agent||"unknown"),provider:String(event.model?.providerID||""),model:String(event.model?.id||event.model?.modelID||""),generation_budget:budget,...est}) } } catch {}
+    })
+
+    const autoOnlyToolChoiceModels:readonly string[] = Array.isArray(capabilityRegistry.provider_compat?.auto_only_tool_choice_models)
+      ? capabilityRegistry.provider_compat.auto_only_tool_choice_models.map((x:any)=>String(x).toLowerCase())
+      : []
+    await ctx.session.hook("http.request",async(event:any)=>{
+      // Compatibility shim for specific OpenCode Zen free models whose upstream accepts only tool_choice=auto.
+      // Preserve `none` semantics by removing tools entirely; never rewrite requests for unknown models/providers.
+      try{
+        const request=event?.request
+        if(!request||typeof request.clone!=="function")return
+        const contentType=String(request.headers?.get?.("content-type")||"").toLowerCase()
+        if(!contentType.includes("application/json"))return
+        const clone=request.clone(),raw=await clone.text()
+        if(Buffer.byteLength(raw,"utf8")>2_000_000)return
+        let body:any;try{body=JSON.parse(raw)}catch{return}
+        if(!body||typeof body!=="object"||Array.isArray(body))return
+        const model=String(event?.model?.id||event?.model?.modelID||body.model||"").toLowerCase()
+        const provider=String(event?.model?.providerID||event?.providerID||"").toLowerCase()
+        let host="";try{host=new URL(String(request.url||"")).hostname.toLowerCase()}catch{}
+        const knownModel=autoOnlyToolChoiceModels.some((x:string)=>model===x||model.endsWith(`/`+x)||model.includes(x))
+        const knownZen=(provider==="opencode"||provider==="console"||host==="opencode.ai")&&knownModel
+        if(!knownZen)return
+        const hasSnake=Object.prototype.hasOwnProperty.call(body,"tool_choice"),hasCamel=Object.prototype.hasOwnProperty.call(body,"toolChoice")
+        if(!hasSnake&&!hasCamel)return
+        const current=hasSnake?body.tool_choice:body.toolChoice
+        if(current==="auto")return
+        let mode=""
+        const isNone=current==="none"||(current&&typeof current==="object"&&String(current.type||"").toLowerCase()==="none")
+        if(isNone){
+          delete body.tool_choice;delete body.toolChoice;delete body.tools
+          mode="none->tools-omitted"
+        }else{
+          body.tool_choice="auto";delete body.toolChoice
+          mode="required-or-named->auto"
+        }
+        const headers=new Headers(request.headers);headers.delete("content-length")
+        event.request=new Request(request,{headers,body:JSON.stringify(body)})
+        try{const scope=await resolveSessionScope(ctx,String(event.sessionID||""));if(await exists(controlPaths(scope.root).control))await appendJsonl(controlPaths(scope.root).telemetry,{ts:now(),kind:"provider.compat.tool_choice",session_ref:crypto.createHash("sha256").update(String(event.sessionID||"")).digest("hex").slice(0,16),agent:String(event.agent||"unknown"),provider,model,mode})}catch{}
+      }catch{
+        // Compatibility normalization is best-effort. Never corrupt or block an otherwise valid provider request.
+      }
     })
 
     await ctx.session.hook("retry",async(event:any)=>{
