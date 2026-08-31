@@ -1,108 +1,114 @@
-# AI-Driven Engineering v5.2.7 — Windows + Zen Compatibility Hardening
+# ADE 6.0.1 — Durable Engineering Runtime
 
-ADE v5.2.7 retains the hardened v5.2.6 control plane and exact-effect external grants, and adds two compatibility fixes proven necessary by real Windows/OpenCode testing: Windows-normalized grant identity parity and a narrowly scoped OpenCode Zen `tool_choice` compatibility shim for known free models that accept only `auto`.
+ADE 6 replaces agent-to-agent orchestration with a durable local workflow kernel. OpenCode remains the session/model executor; the ADE kernel owns workflow state, scheduling, retries, worker lifecycle, authorization boundaries, reconciliation and canonical completion.
 
-High-impact mutations still require **repo policy + deterministic guards + OpenCode permission + `EXPLICIT_EXTERNAL_GRANT`**. The provider shim does not weaken that boundary.
+## Core rule
 
-The design rule is: **LLMs decide content; ADE decides mechanics.**
+**The runtime coordinates. LLMs are disposable workers.**
 
-## Architecture
+- No active worker can create another worker.
+- No LLM writes canonical workflow state directly.
+- Engineering `DONE` requires deterministic project checks.
+- External mutations remain behind exact-effect, single-use external grants.
+- Canonical workflow state lives outside the repository in a hash-chained event journal.
+- A derived snapshot can be deleted and rebuilt from the journal.
+- Journal corruption puts the kernel into `SAFE_READ_ONLY`.
+- Running jobs use leases; expired leases are reconciled after interruption/restart.
+
+## Active runtime roles
+
+ADE 6 has 5 active OpenCode agents:
+
+| Agent | Kernel role | Mutation authority |
+|---|---|---|
+| `orchestrator` | conversation gateway | none |
+| `explorer` | Analyst worker | read-only |
+| `implementer` | Builder worker | workspace edit only |
+| `verifier` | Verifier worker | read-only; deterministic checks are kernel activities |
+| `reviewer` | Reviewer worker | read-only |
+
+The 13 v5 organizational agents remain installed as explicit `disabled: true` tombstones so a managed v6 uninstall can restore the previous release byte-for-byte. They have no v6 capability surface.
+
+## Durable workflow kinds
+
+- `analysis`: Analyst → Reviewer → `DONE`.
+- `engineering`: Analyst → Builder → Verifier + deterministic checks → Reviewer → `DONE`.
+- `implementation_proposal`: Analyst → Builder → Reviewer → `RESULT_PROPOSED`; never silently promoted to verified completion.
+- `tracker_sync`: deterministic tracker activity with exact-effect approval and remote read-back verification.
+
+The gateway uses `ade_workflow_start`, then `ade_workflow_run`. The kernel alone creates worker sessions via OpenCode `session.create → switchAgent → prompt → wait → context`.
+
+## Durable state
+
+Windows:
 
 ```text
-canonical .ai state
-        ↓
-ade_route_snapshot
-        ↓
-Orchestrator chooses only the authority needed now
-        ↓
-owner/specialist reasoning when reasoning is required
-        ↓
-typed runtime operation / state transition
-        ↓
-runtime receipt + canonical handoff + post_state
-        ↓
-Orchestrator reads post-operation route_snapshot
-        ↓
-concise USER_BRIEF
+%LOCALAPPDATA%\opencode\ade-kernel\<project_hash>\
+  events.jsonl
+  snapshot.json
+  *.lock
 ```
 
-### Deterministic GitHub Project path
+Unix:
 
-For configured GitHub Projects V2, Project Manager no longer needs a Tracker Operator subagent in the normal path:
+```text
+$XDG_STATE_HOME/opencode/ade-kernel/<project_hash>/
+```
 
-- `ade_tracker_project_snapshot` resolves the configured project, fields, single-select options, iterations and items.
-- `ade_tracker_project_sync` applies a bounded batch, maps field/option/iteration IDs, performs GitHub GraphQL writes, reads the project back and verifies expected vs actual values.
-- The sync returns `requested`, `updated`, `verified`, `failed`, verification details, a runtime-generated `canonical_handoff` and `post_state`.
-- `tracker-operator` remains a fallback for providers/operations not covered by the deterministic adapter or genuine ambiguity.
+`events.jsonl` is canonical. Every event contains a monotonic sequence, `prev_hash` and `event_hash`. The snapshot is only a cache.
 
-GitHub Project writes remain gated by `.ai/tracker-policy.json`. Credentials are resolved from the authorized OpenCode integration and are not written to ADE files.
+Legacy `.ai/control.json` is not canonical in v6. If present on first use, a compact legacy state is imported as a non-authoritative event so history is not silently lost.
 
-### Runtime-generated handoffs
+## Approval model
 
-`ade_handoff_submit` remains available for conclusions that exist only in agent reasoning. However, state transitions and deterministic tracker syncs now emit `origin=runtime` handoffs themselves. Agents must not duplicate those handoffs.
+Repository policy defines the maximum permitted scope but cannot authorize itself. High-impact deterministic activities require an external `/ade-authorize` grant that is:
 
-Product/Delivery/Engineering transition tools also return `post_state`, so acceptance cannot depend on a child agent's prose.
+- outside the repository;
+- exact-effect scoped;
+- project-realpath scoped;
+- short-lived;
+- single-use;
+- atomically consumed before the side effect;
+- revalidated immediately before the side effect.
 
-### Circuit breaker
+`--auto` or saved OpenCode `allow` does not replace that grant.
 
-Provider failures are normalized into stable signatures:
+## Upgrade 6.0.0 → 6.0.1
 
-- deterministic `tool_choice` auto-only incompatibility: **0 retries**;
-- identical `reasoning item expired`: at most **1 retry** per session/agent/provider/model/signature;
-- repeated identical signature: circuit open / no retry.
-
-Use `/ade-failures` to inspect recent signature/domain/retry decisions.
-
-## Surface
-
-- 18 agents.
-- 28 typed ADE tools.
-- Orchestrator remains minimal: `ade_status` + `ade_route_snapshot` only.
-- Project Manager owns deterministic Project V2 snapshot/sync plus Delivery transition/validation.
-- Tracker Operator keeps only generic tracker read/write + handoff fallback capabilities.
-- Raw shell/execute remain hidden from ADE agents.
-
-## Context/UX efficiency
-
-- `opencode/autoinvoke: false` keeps the Skill lazy.
-- Child agents use bounded generation budgets.
-- `ade_state_get` is compact by default and evidence queries default to 5.
-- User-facing Orchestrator responses target ~3–6 bullets / ~180 words.
-- Telemetry stores metadata, not prompts or tool arguments.
-
-## Validation layers
-
-These responsibilities are intentionally separate:
-
-1. **Install/Migrate** — managed files/config only; no behavioral matrix.
-2. **Core Runtime** — plugin/provider/catalog/one real ADE tool/config.
-3. **Contract Assurance** — deterministic capability/schema/state/security checks.
-4. **Behavioral Assurance** — strict model-driven routing/recovery canaries.
-5. **Live Matrix** — repeated multi-model reliability measurement in isolated temporary projects.
-
-A Core/Contract PASS does not imply Behavioral PASS. A failed behavioral trial is not converted into success by a pass-rate threshold.
-
-## Upgrade from v5.2.5 (validated)
+If ADE 6.0.0 is already installed, use the managed patch migration:
 
 ```powershell
-py -B .\tooling\ade.py migrate --target "$HOME\.config\opencode"
-# ou shim legado:
-py -B .\migrate-v4-to-v5.py --target "$HOME\.config\opencode"
+py -B .\migrate-v6.0.0-to-v6.0.1.py
 opencode2 service restart
-py -B .\tooling\ade.py validate --model "opencode/muse-spark-1.2-contributor-free"
+py -B .\validate-opencode.py --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
-Do **not** run a Live Matrix during installation. Return to normal work first. For model reliability:
+6.0.1 fixes the ChatGPT/Codex OpenAI HTTP 400 caused by the host lowering ADE generation budgets into `max_output_tokens` on the private Codex responses route. It also makes workflow creation explicit: `ade_workflow_start` persists the DAG and returns `WORKFLOW_STARTED`; `/ade-workflow` shows what is active and what runs next.
+
+## Install / replace v5.2.8
+
+From the release bundle:
 
 ```powershell
-py -B .\tooling\ade.py behavioral-reliability --model "provider/model" --trials 5 --strict
-py -B .\tooling\ade.py live-test --models "opencode/muse-spark-1.2-contributor-free" --trials 2
+py -B .\migrate-opencode-v5.2.8-to-v6.0.1.py
+opencode2 service restart
+py -B .\validate-opencode-v6.0.1.py --model "opencode/muse-spark-1.2-contributor-free"
 ```
 
-For complete release assurance:
+The migration is transactional. Uninstalling v6 restores the managed prior ADE installation from the installer backup. Project-local `.ai/*` files are preserved; v6 simply stops treating legacy state as canonical.
 
-```powershell
-py -B .\tooling\ade.py assure --source --model "provider/model"
-```
+## Verification philosophy
 
-See `HARDENING.md`, `DETERMINISTIC_CONTROL_PLANE.md`, `STRUCTURED_HANDOFFS.md`, `DELEGATION_DRIVEN.md`, `LIVE_TESTING.md`, `VALIDATION.md` and `RELEASE_NOTES_v5.2.7.md`. `HUMAN_REQUIRED` é two-channel: `ask` em `--auto` vira `AUTO_APPROVED` e não basta; exige `grant` externo single-use via `/ade-authorize` fora de `.ai` com `resource_hash` exato, senão `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations.
+Worker prose is a proposal, not evidence of reality. Engineering completion requires deterministic checks configured in `.ai/execution-policy.json`. If several checks need approval, completed check results are journaled individually; a later `WAITING_APPROVAL` resume does not rerun the Verifier worker or consume a previous grant again.
+
+## Validation surfaces
+
+- Python source regression + static policy.
+- Node functional/plugin tests.
+- TypeScript typecheck.
+- install/migrate/uninstall lifecycle.
+- extracted-ZIP rerun.
+- optional provider/runtime core validation.
+- optional live behavioral matrix.
+
+See `DURABLE_KERNEL.md`, `HARDENING.md`, `VALIDATION.md` and `MIGRATION_v5.2.8_to_v6.0.1.md`.

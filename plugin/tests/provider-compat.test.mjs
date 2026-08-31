@@ -124,3 +124,28 @@ test("Zen host plus known model is sufficient when providerID is absent",async()
     assert.equal(Object.hasOwn(body,"toolChoice"),false)
   }finally{await fs.rm(fx.temp,{recursive:true,force:true})}
 })
+
+test("ChatGPT Codex Responses omits incompatible max_output_tokens but preserves the request",async()=>{
+  const {fx,hook}=await setup()
+  try{
+    const event={sessionID:"s7",agent:"orchestrator",model:{providerID:"openai",id:"gpt-5.6-terra"},request:req({model:"gpt-5.6-terra",max_output_tokens:1200,reasoning:{effort:"high"},tools:[{type:"function",name:"ade_status",parameters:{type:"object"}}]},"https://chatgpt.com/backend-api/codex/responses")}
+    await hook(event)
+    const body=await bodyOf(event.request)
+    assert.equal(Object.hasOwn(body,"max_output_tokens"),false)
+    assert.deepEqual(body.reasoning,{effort:"high"})
+    assert.equal(body.tools.length,1)
+    assert.equal(event.request.headers.get("authorization"),"Bearer test-secret")
+    assert.equal(event.request.headers.get("x-keep"),"yes")
+  }finally{await fs.rm(fx.temp,{recursive:true,force:true})}
+})
+
+test("public OpenAI API keeps max_output_tokens budget intact",async()=>{
+  const {fx,hook}=await setup()
+  try{
+    const event={sessionID:"s8",agent:"orchestrator",model:{providerID:"openai",id:"gpt-5.6-terra"},request:req({model:"gpt-5.6-terra",max_output_tokens:1200,tools:[]},"https://api.openai.com/v1/responses")}
+    const before=await event.request.clone().text()
+    await hook(event)
+    assert.equal(await event.request.clone().text(),before)
+    assert.equal((await bodyOf(event.request)).max_output_tokens,1200)
+  }finally{await fs.rm(fx.temp,{recursive:true,force:true})}
+})

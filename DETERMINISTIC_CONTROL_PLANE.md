@@ -36,3 +36,7 @@ The Orchestrator must read one `ade_route_snapshot` after owner mutations/accept
 ## Validation boundary
 
 Installation/migration, Core/Contract validation, Behavioral Assurance and Live Matrix remain separate responsibilities. Migration does not run behavioral trials. Behavioral reliability is evidence about a model/provider, not a prerequisite for copying managed files.
+
+## Managed delegation (v5.2.8)
+
+Reasoning delegation now follows the same control-plane principle: the LLM decides delegated content, while `ade_delegate` controls the allowed DAG, child lifecycle, context contract, wait semantics and fallback handoff. Mechanical tracker/state operations remain deterministic typed tools and do not gain new LLM hops.

@@ -42,5 +42,10 @@ def validate_installed_manifest(target: Path) -> dict[str, Any]:
         raise ADEError(f"INSTALL_INTEGRITY_FAILED: agents manifesto={len(m.get('agents') or {})} esperado=18")
     if not (target / "plugins/ai-driven-engineering/capabilities.json").is_file():
         raise ADEError("INSTALL_INTEGRITY_FAILED: capabilities.json ausente")
-    print(f"INSTALLED_MANIFEST_VALIDATED: schema=7 package={VERSION} agents=18 plugin={PLUGIN_ID}")
+    cap = load_json(target / "plugins/ai-driven-engineering/capabilities.json")
+    if len(cap.get("agents") or {}) != 5:
+        raise ADEError(f"INSTALL_INTEGRITY_FAILED: active agents={len(cap.get('agents') or {})} esperado=5")
+    if len(cap.get("tools") or {}) != 34:
+        raise ADEError(f"INSTALL_INTEGRITY_FAILED: tools={len(cap.get('tools') or {})} esperado=34")
+    print(f"INSTALLED_MANIFEST_VALIDATED: schema=7 package={VERSION} managed_agents=18 active_agents=5 tools=34 plugin={PLUGIN_ID}")
     return m

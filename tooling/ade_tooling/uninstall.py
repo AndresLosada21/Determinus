@@ -116,7 +116,7 @@ def uninstall(*, target: Path | None = None) -> dict[str, Any]:
     else:
         manifest_path.unlink(missing_ok=True)
 
-    print(f"UNINSTALL_V5_2_7_OK: preserved_modified={len(preserved)}")
+    print(f"UNINSTALL_V6_0_5_OK: preserved_modified={len(preserved)}")
     for p in preserved:
         print(f"PRESERVED_MODIFIED: {p}")
     return {"preserved": preserved}

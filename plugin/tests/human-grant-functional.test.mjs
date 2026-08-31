@@ -89,7 +89,7 @@ test("B allow/auto without grant still zero mutations", async()=>{
     const ev={sessionID:"sesB",agent:"project-manager",action:"ade_tracker_project_sync",resources:[],effect:"allow"}
     await hook(ev)
     // In --auto, allow would be auto-approved to allow, but plugin forces ask; we simulate auto-like by setting effect allow and then not providing grant
-    assert.equal(ev.effect,"ask","plugin forces ask even if caller tried allow")
+    assert.equal(ev.effect,"deny","v6 active capability surface denies direct high-impact tool use; kernel activity still requires external grant")
     let fetchCalls=0
     const orig=globalThis.fetch
     globalThis.fetch= async ()=>{ fetchCalls++; return{ok:true,status:200,text:async()=>JSON.stringify({data:{}}),json:async()=>({})} }

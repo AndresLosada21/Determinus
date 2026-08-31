@@ -1,44 +1,12 @@
-# Compatibility — ADE v5.2.7
+# Compatibility — ADE 6.0.1
 
-| ADE | OpenCode | Python | Estado |
-|---|---|---:|---|
-| 5.2.7 | V2 Promise plugin API | 3.9+ | source/lifecycle validated; runtime revalidation pending |
-| 5.2.7 | `opencode2 beta-18707` Windows | 3.9+ | target observed in real validation; re-test required after this fix |
-| 5.2.6 | V2 Promise plugin API | 3.9+ | superseded by 5.2.7 Windows/Zen compatibility fix |
+ADE 6 targets the OpenCode V2 Promise plugin API and programmatic session lifecycle used by the durable scheduler (`session.create`, `switchAgent`, `prompt`, `wait`, `context`).
 
-## Upgrade inputs aceitos
+Raw native subagent recursion is not part of the v6 architecture. Installed config uses `experimental.subagent_depth=1` only as a shallow host compatibility setting.
 
-Migrator aceita instalações gerenciadas v4.x, v5.0.x, v5.1.x e v5.2.0–v5.2.6. O caminho recomendado desta release é `5.2.6 → 5.2.7`.
+The provider compatibility shim from v5.2.7 remains narrowly scoped to known OpenCode Zen free models that only accept `tool_choice=auto`; unknown providers/models are not rewritten.
 
-## API V2 usada
+The major migrator accepts managed ADE v4/v5 manifests, with v5.2.8 as the tested/recommended direct source release. Real OpenCode builds are validated separately because the V2 API is still evolving.
 
-- `Plugin.define` Promise contract, com raw-default adapter para SDK beta sem named export;
-- session-scoped Location via `session.get`;
-- `session.hook("context")` para capability visibility e generation budget;
-- `session.hook("http.request")` para compatibility normalization imediatamente antes do provider;
-- `session.hook("retry")` para circuit breaker bounded;
-- commands synthetic para diagnostics/metrics e `/ade-authorize`.
-
-## Zen free model compatibility (v5.2.7)
-
-O runtime real em Windows mostrou upstream `invalid_request_error` quando subagent requests usavam `tool_choice=required/named` contra modelos Zen free auto-only. v5.2.7 aplica um shim **somente** aos modelos declarados em `plugin/capabilities.json::provider_compat.auto_only_tool_choice_models` e ao provider/host OpenCode Zen:
-
-- `required` ou named choice → `auto`;
-- `none` → remove `tool_choice` **e `tools`**, preservando a semântica no-tools;
-- `auto` → sem mudança;
-- provider/model desconhecido → sem mudança;
-- body não JSON/oversized → sem mudança.
-
-A normalização altera somente o wire request ao provider. As capabilities ADE, permission hooks, exact-effect grants e deterministic guards continuam bloqueantes.
-
-## Windows grant identity parity
-
-`project_hash` usa `realpath` com normalização case-insensitive no Windows. Os testes de grants agora exercitam `/ade-authorize` real nos cenários de sucesso, em vez de fabricar grants com um helper divergente. Isso elimina a falsa divergência 73/79 observada no Windows v5.2.6.
-
-## Authorization boundary
-
-Project policy define escopo máximo, não autoridade. Mutações `HUMAN_REQUIRED` exigem `EXPLICIT_EXTERNAL_GRANT` single-use fora do projeto, com exact-effect fingerprint e TOCTOU revalidation. `--auto`/saved `always allow` não substituem o grant.
-
-## GitHub Projects V2
-
-O adapter determinístico continua responsável por snapshot, batch sync, field/option/iteration resolution, write, read-back e verification. Tracker Operator é fallback, não caminho crítico normal.
+## ChatGPT/Codex OpenAI compatibility (6.0.1)
+OpenCode sessions authenticated through ChatGPT/Codex may use `https://chatgpt.com/backend-api/codex/responses` while still reporting `providerID=openai`. On the observed beta-18707 host this route rejects `max_output_tokens` with HTTP 400. ADE keeps its semantic generation budget but removes the incompatible wire field only for that exact host/path in the `http.request` hook. Public `api.openai.com/v1/responses` is not rewritten.

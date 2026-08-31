@@ -16,8 +16,10 @@ from .common import (
 )
 from .regression import run_regression
 
-BEGIN = "<!-- AI-DRIVEN-ENGINEERING:BEGIN v5 -->"
-END = "<!-- AI-DRIVEN-ENGINEERING:END v5 -->"
+LEGACY_BEGIN = "<!-- AI-DRIVEN-ENGINEERING:BEGIN v5 -->"
+LEGACY_END = "<!-- AI-DRIVEN-ENGINEERING:END v5 -->"
+BEGIN = "<!-- AI-DRIVEN-ENGINEERING:BEGIN v6 -->"
+END = "<!-- AI-DRIVEN-ENGINEERING:END v6 -->"
 
 
 def _default_target() -> Path:
@@ -83,16 +85,27 @@ def _managed_copy(src_root: Path, dst_root: Path, target: Path, backup_root: Pat
 
 
 def _config_candidate(base: dict[str, Any], *, default_agent: bool) -> dict[str, Any]:
-    # Native V2: top-level subagent_depth is accepted-but-unsupported. Canonicalize to experimental.subagent_depth.
+    # ADE v6 creates worker sessions programmatically; raw native subagent recursion is denied.
+    # Keep a shallow V2-compatible depth only as a host compatibility guard.
     cfg = json.loads(json.dumps(base))
     cfg.pop("subagent_depth", None)
     if default_agent:
         cfg["default_agent"] = "orchestrator"
+    # Recent OpenCode V2 builds do not discover this package directory implicitly.
+    # Keep an explicit relative entry so the managed native plugin and its tools load.
+    plugin_entry = "./plugins/ai-driven-engineering"
+    plugins = cfg.get("plugins")
+    if plugins is None:
+        cfg["plugins"] = [plugin_entry]
+    elif not isinstance(plugins, list):
+        raise ADEError("CONFIG_PLUGINS_INVALID: plugins must be an array")
+    elif plugin_entry not in plugins:
+        plugins.append(plugin_entry)
     exp = cfg.get("experimental")
     if not isinstance(exp, dict):
         exp = {}
         cfg["experimental"] = exp
-    exp["subagent_depth"] = 2
+    exp["subagent_depth"] = 1
     return cfg
 
 
@@ -119,7 +132,7 @@ def _patch_config(target: Path, *, default_agent: bool, skip_runtime_check: bool
     chosen = _config_candidate(base, default_agent=default_agent)
     ok, detail = _preflight_config(cli, chosen, path.name)
     if not ok:
-        raise ADEError(f"CONFIG_PREFLIGHT_FAILED experimental.subagent_depth: {detail}")
+        raise ADEError(f"CONFIG_PREFLIGHT_FAILED v6 experimental.subagent_depth: {detail}")
 
     version_text = ""
     if cli:
@@ -139,15 +152,20 @@ def _patch_config(target: Path, *, default_agent: bool, skip_runtime_check: bool
 def _patch_ambient(target: Path, managed: str, backup_root: Path, prior: dict[str, str]) -> dict[str, Any]:
     path = target / "AGENTS.md"
     existing = read_text(path) if path.exists() else ""
-    begin_count, end_count = existing.count(BEGIN), existing.count(END)
-    if (begin_count, end_count) not in {(0, 0), (1, 1)}:
-        raise ADEError(f"AMBIENT_MARKERS_INVALID: BEGIN={begin_count} END={end_count}")
-    start = existing.find(BEGIN)
-    end = existing.find(END)
-    if begin_count == 1:
-        if end < start:
-            raise ADEError("AMBIENT_MARKERS_INVALID: END precede BEGIN")
-        end += len(END)
+    blocks = []
+    for b, e, label in ((BEGIN, END, "v6"), (LEGACY_BEGIN, LEGACY_END, "v5")):
+        bc, ec = existing.count(b), existing.count(e)
+        if (bc, ec) not in {(0, 0), (1, 1)}:
+            raise ADEError(f"AMBIENT_MARKERS_INVALID: {label} BEGIN={bc} END={ec}")
+        if bc == 1:
+            start, end = existing.find(b), existing.find(e)
+            if end < start:
+                raise ADEError(f"AMBIENT_MARKERS_INVALID: {label} END precede BEGIN")
+            blocks.append((start, end + len(e), label))
+    if len(blocks) > 1:
+        raise ADEError("AMBIENT_MARKERS_INVALID: simultaneous v5 and v6 managed blocks")
+    if blocks:
+        start, end, _ = blocks[0]
         new = existing[:start].rstrip() + "\n\n" + managed.strip() + "\n" + existing[end:].lstrip("\r\n")
     else:
         prefix = existing.rstrip()
@@ -280,11 +298,11 @@ def install(*, target: Path | None = None, force: bool = False, no_default_agent
         }
         dump_json(previous_manifest, manifest)
         print(f"ADE v{VERSION} instalado em: {target}")
-        print(f"Agents: {len(agent_hashes)} | Plugin tools: 28 | Manifest schema: 7")
+        print(f"Managed agent files: {len(agent_hashes)} | Active workers: 5 | Plugin tools: 34 | Manifest schema: 7")
         if config_info.get("patched"):
             print(f"subagent_depth_mode: {config_info.get('subagent_depth_mode')}")
         _prune_backups(backup_base, backup_root, keep=10)
-        print("INSTALL_V5_2_7_OK")
+        print("INSTALL_V6_0_5_OK")
         return manifest
     except Exception as exc:
         # Transactional rollback: delete files created by this attempt, then restore every backed-up original.

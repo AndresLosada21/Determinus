@@ -1,5 +1,45 @@
 # Changelog
 
+## 6.0.5 - Synchronous Worker Result Capture
+
+- Persist the assistant message returned directly by `session.prompt`; context is fallback-only.
+
+## 6.0.4 - OpenCode Directory Entrypoint
+
+- Add the required root `plugin/index.ts` entrypoint for configured OpenCode V2 plugin directories.
+
+## 6.0.3 - Explicit Plugin Registration
+
+- Register the managed native plugin explicitly in the OpenCode V2 `plugins` configuration array.
+- Preserve existing plugin entries and reject an invalid non-array `plugins` setting.
+
+## 6.0.2 - Durable Worker Dispatch Fix
+
+- Dispatch newly-created durable workers with `steer`, not queued delivery.
+- Reject non-assistant session input as worker output; user capsules cannot cause false `DONE`.
+
+## 6.0.1 — Durable Engineering Runtime
+
+- Replaced agent-to-agent orchestration with a durable kernel and 5 active gateway/worker agents.
+- Added external hash-chained event journal, derived snapshots, leases, reconciliation and safe read-only corruption mode.
+- Added workflow DAGs for analysis, engineering, implementation proposals and deterministic tracker sync.
+- Made engineering verification deterministic and approval-resumable without rerunning completed checks/workers.
+- Preserved exact-effect authorization, VCS/tracker/process/Docker/secret hardening and scoped Zen provider compatibility.
+- Added transactional major migration from managed v5 releases, with v5.2.8 as the tested direct baseline.
+- Physically removed the v5 Managed Delegation implementation/tool surface; only the durable kernel may create worker sessions.
+
+## 5.2.8 — Managed Delegation Runtime
+
+- Added `ade_delegate` as the 29th typed ADE tool and moved child-session mechanics into the plugin runtime.
+- Raw native `subagent` is hidden and denied for all ADE agents; coordinators use the runtime DAG.
+- `ADE_DELEGATION_CONTEXT: COMPLETE` is enforced as session metadata: Skill/canonical rehydration are blocked and `DISCOVERY_ALLOWED=false` removes discovery tools.
+- `required_child` is exact, one-shot and enforced before child creation; coordinator pre-delegation discovery is capped at two actions; fan-out <=3 and depth <=2.
+- Managed delegation is synchronous (`session.create → switchAgent → prompt → wait → context`), preventing the parent from completing while the child is still delegating.
+- Missing final structured handoff produces a runtime `PARTIAL` fallback, never synthetic `DONE`; managed failures return BLOCKED and interrupt the child.
+- Behavioral smokes now validate `ade_delegate` and persisted canonical handoffs instead of the prohibited raw `subagent`.
+- Retains v5.2.7 Windows grant parity and scoped Zen auto-only `tool_choice` compatibility plus all v5.2.6 exact-effect security hardening.
+- Direct managed migration `5.2.7 → 5.2.8`; install/migrate remain FAST PATH.
+
 ## 5.2.7 — Windows + Zen Compatibility Hardening
 
 - Fixed Windows grant-test identity parity: test project hashes now normalize `realpath` exactly like production; positive C/G/L grant flows issue via real `/ade-authorize`.

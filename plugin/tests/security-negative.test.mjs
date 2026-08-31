@@ -155,15 +155,16 @@ test("repo policy cannot self-authorize without human ask", async () => {
     const mod = await import(url)
     await mod.default.setup(state.ctx)
     const hook = state.hooks["permission:evaluate"]
-    // project-manager tracker sync must be ask, not allow, even if policy says authorized=true
+    // Legacy organizational agents cannot directly mutate even if repo policy says authorized=true.
     const ev = { sessionID: "ses1", agent: "project-manager", action: "ade_tracker_project_sync", resources: [], effect: "allow" }
     await hook(ev)
-    assert.equal(ev.effect, "ask", "tracker sync must require ask even when policy would allow")
-    assert.match(ev.message, /HUMAN_AUTHORIZATION_REQUIRED/)
-    // vcs push must also be ask
+    assert.equal(ev.effect, "deny", "v6 agents cannot directly invoke tracker sync; kernel owns the mutation")
+    assert.match(ev.message, /CAPABILITY_DENIED/)
+    // Disabled legacy VCS operator is also denied; only kernel activities may reach mutation adapters.
     const ev2 = { sessionID: "ses1", agent: "vcs-operator", action: "ade_vcs_push", resources: [], effect: "allow" }
     await hook(ev2)
-    assert.equal(ev2.effect, "ask")
+    assert.equal(ev2.effect, "deny")
+    assert.match(ev2.message, /CAPABILITY_DENIED/)
   } finally { await fs.rm(fx.temp, { recursive: true, force: true }) }
 })
 

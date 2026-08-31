@@ -1,108 +1,30 @@
 ---
 name: ai-driven-engineering
-description: Constituição e referência operacional do ADE para decisões de routing, acceptance, evidence e troubleshooting do próprio runtime.
-compatibility: OpenCode V2; experimental.subagent_depth >= 2 quando nesting owner->leaf é necessário.
-metadata:
-  opencode/autoinvoke: "false"
+description: Reference documentation for ADE 6 Durable Engineering Runtime. Runtime operation does not require loading this skill.
+opencode/autoinvoke: "false"
+compatibility: OpenCode V2 Promise plugin API; ADE kernel owns worker sessions and does not depend on native subagent nesting.
 ---
-# AI-Driven Engineering v5.2.5
 
-Esta skill é **explícita e sob demanda**. Agents ADE já possuem seus contratos essenciais no próprio system prompt; não carregue esta skill em todo trabalho. Carregue-a quando o usuário pedir a metodologia, quando houver dúvida de governança/routing, ao depurar o ADE ou ao consultar uma referência detalhada abaixo.
+# ADE 6 Durable Engineering Runtime
 
-## Constituição
+This skill is reference-only. Do not load it automatically during normal workflows.
 
-- Product: WHY/WHAT e Product Acceptance.
-- Delivery: ordem, dependências, readiness, tracker e Delivery Acceptance.
-- Engineering: HOW, implementação, verificação e Engineering Acceptance.
-- Orchestrator: routing entre planos e síntese; não absorve autoridade dos owners.
-- `implemented != validated != engineering accepted != delivery accepted != product accepted`.
-- Evidência: `OBSERVADO`, `INFERIDO`, `PROPOSTO`, `VALIDADO`, `DESCONHECIDO`.
-- Segredos nunca são evidência.
+## Runtime model
 
-## Routing v5.2
+The kernel owns workflow state, scheduling, retries, leases, reconciliation and deterministic activities. The active LLM roles are Orchestrator gateway, Analyst, Builder, Verifier and Reviewer. Workers do not delegate.
 
-`ROUTING_POLICY: STATE_DRIVEN`
+Canonical state is the external hash-chained event journal. `.ai/control.json` is legacy/non-authoritative in v6.
 
-1. Leia primeiro `ade_status` ou `ade_route_snapshot` quando precisar decidir o owner.
-2. Invoque **somente** o owner necessário para a próxima autoridade/transition.
-3. Não invoque PO/PM/Engineer apenas para reconfirmar estado sem mudança de revision/entrada relevante.
-4. Owner pode delegar leaf specialist quando a execução exigir especialidade ou independência.
-5. Um erro idêntico e determinístico não deve ser repetido indefinidamente; registre a assinatura e aplique no máximo a recuperação específica prevista.
-6. `PARENT_EXECUTION_REQUIRED` descreve blocker, owner necessário e evidência faltante; não significa hand-back automático ao usuário.
+## Normal path
 
-## Comunicação
+1. `ade_workflow_start` with an explicit workflow kind.
+2. `ade_workflow_run` to execute ready jobs synchronously.
+3. If `WAITING_APPROVAL`, the user issues the exact `/ade-authorize` command surfaced by the kernel.
+4. Resume the same workflow; do not create a replacement workflow.
+5. Observe final state with `ade_workflow_snapshot`.
 
-### COMPACT_HANDOFF (agent -> parent)
-Use somente os campos necessários:
-- `status`
-- `changed`
-- `evidence_refs`
-- `blocker`
-- `required_owner`
-- `next`
+For engineering workflows, deterministic project checks are mandatory and are executed by kernel activities after the Verifier worker proposal.
 
-Não replique contratos inteiros, file:line massivo, session IDs ou toda a cadeia de decisões salvo quando forem necessários para resolver o blocker.
+## Failure handling
 
-### USER_BRIEF (orchestrator -> usuário)
-Por padrão, diga apenas:
-1. o que mudou;
-2. estado atual;
-3. blocker real, se houver;
-4. próxima ação que o sistema executará ou decisão humana realmente necessária.
-
-Use `/ade-audit` ou `/ade-trace` para detalhes, não transforme cada resposta em relatório de auditoria.
-
-## Evidence e estado
-
-- `.ai/control.json` guarda estado corrente e uma janela pequena de evidências recentes.
-- `.ai/evidence.jsonl` guarda o histórico completo de evidências.
-- `.ai/audit.jsonl` guarda eventos/decisões.
-- `ade_state_get` é compacto por padrão; `detail=full` é excepcional.
-- `ade_evidence_query` deve buscar apenas o necessário; default curto.
-
-## Validação e acceptance
-
-- Implementer pode produzir `IMPLEMENTED_NOT_VALIDATED`; não concede `VALIDADO`.
-- Verifier executa `ade_project_check` e registra validação técnica independente.
-- Reviewer/Security Reviewer entram quando o perfil de risco/contrato exigir; não por ritual em toda mudança.
-- Acceptance final exige evidência `VALIDADO` vigente para a revision/status do plano.
-
-## OpenCode V2
-
-- Use `experimental.subagent_depth`, não o top-level legado `subagent_depth`.
-- `AGENTS.md` contém somente guidance persistente e global; não replique esta skill nele.
-- Permissions usam `permissions`, ações `shell`, `subagent`, `skill`, etc., com last-match-wins.
-- Skills são lazy-loaded; esta skill usa `opencode/autoinvoke: false` para evitar custo automático.
-
-## Referências
-
-Leia somente quando necessário:
-- `references/opencode-runtime.md` — runtime/config V2.
-- `references/opencode-routing.md` — hierarchy e delegation.
-- `references/operating-model.md` — Product/Delivery/Engineering.
-- `references/evidence-model.md` — evidence/acceptance.
-- `references/security.md` — boundaries e secrets.
-- `references/tdd-ultra.md` — TDD Ultra quando explicitamente aplicável.
-- `references/release-and-git.md` — release/VCS.
-
-## Troubleshooting do ADE
-
-1. `/ade-status` para estado curto.
-2. `/ade-doctor` somente quando houver indício de problema de runtime/plugin.
-3. `/ade-trace` para routing/tool calls recentes.
-4. `/ade-metrics` para custo operacional (tool calls, blockers, duração).
-5. Behavioral evals são separados da certificação determinística do runtime; não torne um smoke permissivo só para ficar verde.
-## Structured handoff contract
-
-Todo agent ADE diferente do Orchestrator deve publicar `ade_handoff_submit` exatamente uma vez antes de finalizar. O registro é canônico; texto livre não é fonte de routing/acceptance. Limites: 4 KiB, até 8 `changed`, 8 `evidence_refs`, blocker <= 800 chars e next <= 500 chars.
-
-## Validation tiers
-
-1. **Core runtime**: instalação, plugin/provider/tool execution e config.
-2. **Contract assurance**: determinística; valida schemas, tool ownership, handoff persistence/limits, state-driven routing e telemetry privacy. Sempre faz parte de `validate`.
-3. **Behavioral canary**: model-driven; valida que agents realmente usam os contratos e rotas no host/provider. Opcional para uso local do runtime, mas obrigatório em `assurance` de release quando há `--model`.
-
-
-
-## Deterministic control-plane rule
-LLMs decide content; ADE decides mechanics. Prefer typed deterministic runtime operations over subagent chains for mechanical routing, tracker synchronization, state transitions and verification receipts.
+Use `ade_kernel_reconcile` for expired worker leases. Do not manually retry external mutations, invoke raw shell or create nested subagents. A corrupt event journal is `SAFE_READ_ONLY` and must be diagnosed rather than reconstructed from agent text.

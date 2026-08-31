@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "plugin_id": "ai-driven-engineering.native",
-  "version": "5.2.7",
+  "version": "6.0.5",
   "tools": {
     "ade_status": {
       "capability": "STATUS_READ",
@@ -136,218 +136,108 @@
       "acceptance_authority": false,
       "deterministic": true,
       "runtime_handoff": true
+    },
+    "ade_workflow_start": {
+      "capability": "WORKFLOW_START",
+      "authority": "KERNEL",
+      "deterministic": true
+    },
+    "ade_workflow_run": {
+      "capability": "WORKFLOW_RUN",
+      "authority": "KERNEL",
+      "deterministic": true,
+      "durable": true
+    },
+    "ade_workflow_snapshot": {
+      "capability": "WORKFLOW_READ",
+      "authority": "OBSERVE",
+      "deterministic": true
+    },
+    "ade_workflow_cancel": {
+      "capability": "WORKFLOW_CANCEL",
+      "authority": "KERNEL",
+      "deterministic": true
+    },
+    "ade_kernel_reconcile": {
+      "capability": "KERNEL_RECONCILE",
+      "authority": "KERNEL",
+      "deterministic": true
+    },
+    "ade_kernel_events": {
+      "capability": "KERNEL_EVENTS_READ",
+      "authority": "OBSERVE",
+      "deterministic": true
     }
   },
   "agents": {
     "orchestrator": [
       "ade_status",
-      "ade_route_snapshot"
+      "ade_doctor",
+      "ade_workflow_start",
+      "ade_workflow_run",
+      "ade_workflow_snapshot",
+      "ade_workflow_cancel",
+      "ade_kernel_reconcile",
+      "ade_kernel_events",
+      "ade_tracker_project_snapshot"
     ],
-    "product-owner": [
-      "ade_product_transition",
-      "ade_product_validation_record",
-      "ade_handoff_submit"
-    ],
-    "project-manager": [
-      "ade_delivery_transition",
-      "ade_delivery_validation_record",
-      "ade_tracker_project_snapshot",
-      "ade_tracker_project_sync",
-      "ade_handoff_submit"
-    ],
-    "engineer": [
-      "ade_engineering_transition",
-      "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_vcs_branches",
-      "ade_handoff_submit"
-    ],
-    "explorer": [
-      "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_vcs_branches",
-      "ade_runtime_observe",
-      "ade_handoff_submit"
-    ],
-    "researcher": [
-      "ade_evidence_record",
-      "ade_handoff_submit"
-    ],
-    "modeler": [
-      "ade_evidence_record",
-      "ade_handoff_submit"
-    ],
-    "engineering-planner": [
-      "ade_evidence_record",
-      "ade_handoff_submit"
-    ],
-    "tester": [
-      "ade_vcs_diff",
-      "ade_self_check",
-      "ade_evidence_record",
-      "ade_handoff_submit"
-    ],
+    "explorer": [],
     "implementer": [
       "ade_vcs_status",
       "ade_vcs_diff",
-      "ade_self_check",
-      "ade_handoff_submit"
+      "ade_self_check"
     ],
     "verifier": [
       "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_project_check",
-      "ade_engineering_validation_record",
-      "ade_handoff_submit"
-    ],
-    "debugger": [
-      "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_self_check",
-      "ade_evidence_record",
-      "ade_diagnostic_check",
-      "ade_handoff_submit"
+      "ade_vcs_diff"
     ],
     "reviewer": [
       "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_evidence_record",
-      "ade_evidence_query",
-      "ade_handoff_submit"
-    ],
-    "security-reviewer": [
-      "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_evidence_record",
-      "ade_evidence_query",
-      "ade_handoff_submit"
-    ],
-    "integrator": [
-      "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_evidence_query",
-      "ade_handoff_submit"
-    ],
-    "documenter": [
-      "ade_vcs_diff",
-      "ade_evidence_record",
-      "ade_handoff_submit"
-    ],
-    "tracker-operator": [
-      "ade_tracker_read",
-      "ade_tracker_write",
-      "ade_handoff_submit"
-    ],
-    "vcs-operator": [
-      "ade_vcs_status",
-      "ade_vcs_diff",
-      "ade_vcs_branches",
-      "ade_vcs_stage",
-      "ade_vcs_commit",
-      "ade_vcs_push",
-      "ade_pr_create",
-      "ade_evidence_record",
-      "ade_evidence_query",
-      "ade_handoff_submit"
+      "ade_vcs_diff"
     ]
   },
   "hide_core_tools": {
     "orchestrator": [
       "shell",
-      "execute"
-    ],
-    "product-owner": [
-      "shell",
-      "execute"
-    ],
-    "project-manager": [
-      "shell",
-      "execute"
-    ],
-    "engineer": [
-      "shell",
-      "execute"
+      "execute",
+      "edit",
+      "subagent",
+      "skill"
     ],
     "explorer": [
       "shell",
-      "execute"
-    ],
-    "researcher": [
-      "shell",
-      "execute"
-    ],
-    "modeler": [
-      "shell",
-      "execute"
-    ],
-    "engineering-planner": [
-      "shell",
-      "execute"
-    ],
-    "tester": [
-      "shell",
-      "execute"
+      "execute",
+      "edit",
+      "subagent",
+      "skill"
     ],
     "implementer": [
       "shell",
-      "execute"
+      "execute",
+      "subagent",
+      "skill"
     ],
     "verifier": [
       "shell",
-      "execute"
-    ],
-    "debugger": [
-      "shell",
-      "execute"
+      "execute",
+      "edit",
+      "subagent",
+      "skill"
     ],
     "reviewer": [
       "shell",
-      "execute"
-    ],
-    "security-reviewer": [
-      "shell",
-      "execute"
-    ],
-    "integrator": [
-      "shell",
-      "execute"
-    ],
-    "documenter": [
-      "shell",
-      "execute"
-    ],
-    "tracker-operator": [
-      "shell",
       "execute",
-      "read",
-      "glob",
-      "grep",
+      "edit",
+      "subagent",
       "skill"
-    ],
-    "vcs-operator": [
-      "shell",
-      "execute"
     ]
   },
   "generation_max_tokens": {
     "orchestrator": 1200,
-    "product-owner": 900,
-    "project-manager": 1000,
-    "engineer": 1400,
-    "explorer": 700,
-    "researcher": 700,
-    "modeler": 700,
-    "engineering-planner": 700,
-    "tester": 1000,
-    "implementer": 1200,
-    "verifier": 1000,
-    "debugger": 1000,
-    "reviewer": 800,
-    "security-reviewer": 1000,
-    "integrator": 800,
-    "documenter": 800,
-    "tracker-operator": 700,
-    "vcs-operator": 700
+    "explorer": 1200,
+    "implementer": 1600,
+    "verifier": 1200,
+    "reviewer": 1000
   },
   "handoff_contract": {
     "statuses": [
@@ -369,15 +259,22 @@
     ]
   },
   "deterministic_control_plane": {
-    "routing_source": "ade_route_snapshot",
+    "architecture": "DURABLE_KERNEL",
+    "canonical_state": "external_hash_chained_event_journal",
+    "snapshot": "derived_cache",
+    "scheduler": "kernel_only",
+    "worker_delegation": "forbidden",
+    "worker_sessions": "session.create/switchAgent/prompt/wait/context",
+    "job_lease_ms": 300000,
+    "job_max_attempts": 2,
+    "mutating_worker_concurrency_per_project": 1,
+    "legacy_plane_tools": "registered_but_unexposed",
     "tracker_primary": [
       "ade_tracker_project_snapshot",
-      "ade_tracker_project_sync"
+      "tracker_sync workflow"
     ],
-    "tracker_llm_fallback": "tracker-operator",
     "same_failure_signature_retry_max": 1,
-    "tool_choice_auto_only_retry": 0,
-    "post_operation_snapshot": true
+    "tool_choice_auto_only_retry": 0
   },
   "hardening": {
     "project_state_realpath_boundary": true,
@@ -395,7 +292,16 @@
     "jira_host_allowlist": "human-owned tracker policy",
     "session_identifiers": "sha256-prefix pseudonymized",
     "installer_jsonc_comment_preservation": "fail-closed",
-    "backup_retention": 10
+    "backup_retention": 10,
+    "managed_delegation_runtime": false,
+    "complete_context_rehydration_guard": true,
+    "required_child_runtime_enforcement": true,
+    "raw_subagent_blocked": true,
+    "durable_kernel": true,
+    "worker_to_worker_delegation": "denied",
+    "canonical_state_outside_repo": true,
+    "hash_chained_event_journal": true,
+    "project_mutation_lease": true
   },
   "provider_compat": {
     "auto_only_tool_choice_models": [
@@ -408,5 +314,27 @@
     ],
     "policy": "required_or_named_to_auto; none_to_tools_omitted",
     "scope": "known OpenCode Zen free models only"
+  },
+  "durable_kernel": {
+    "schema_version": 1,
+    "runtime": "file_backed_event_sourcing",
+    "event_hash_chain": "sha256",
+    "project_state_location": "user_state_outside_repository",
+    "workflow_kinds": [
+      "analysis",
+      "engineering",
+      "implementation_proposal",
+      "tracker_sync"
+    ],
+    "worker_roles": {
+      "ANALYST": "explorer",
+      "BUILDER": "implementer",
+      "VERIFIER": "verifier",
+      "REVIEWER": "reviewer"
+    },
+    "engineering_requires_deterministic_check": true,
+    "crash_recovery": "lease_expiry_reconcile",
+    "safe_mode_on_corruption": true,
+    "effect_authorization": "exact-effect external grants"
   }
 }

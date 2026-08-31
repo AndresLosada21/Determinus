@@ -20,10 +20,10 @@ from typing import Any, Callable
 from .common import ADEError, config_env, find_opencode_cli, load_json, run_cmd
 from .manifest import validate_installed_manifest
 from .smoke import (
-    capability_recovery_smoke,
     contract_runtime_smoke,
-    engineering_recovery_routing_smoke,
-    nested_delegation_smoke,
+    kernel_analysis_smoke,
+    kernel_approval_smoke,
+    kernel_proposal_smoke,
     plugin_runtime_smoke,
     runtime_config_smoke,
 )
@@ -39,9 +39,9 @@ DEFAULT_ZEN_FREE_MODELS = [
 ]
 
 SCENARIOS: dict[str, Callable[[Path, str], None]] = {
-    "nested-delegation": nested_delegation_smoke,
-    "capability-recovery": capability_recovery_smoke,
-    "engineering-recovery": engineering_recovery_routing_smoke,
+    "kernel-analysis": kernel_analysis_smoke,
+    "approval-boundary": kernel_approval_smoke,
+    "worker-lifecycle": kernel_proposal_smoke,
 }
 
 _SECRET_PATTERNS = [
@@ -149,7 +149,7 @@ def _markdown(report: dict[str, Any]) -> str:
         "",
         "## Model matrix",
         "",
-        "| Model | Probe | Nested | Capability | Engineering | Total | Mean latency |",
+        "| Model | Probe | Analysis | Approval | Worker lifecycle | Total | Mean latency |",
         "|---|---:|---:|---:|---:|---:|---:|",
     ]
     for model in report["models"]:
@@ -158,8 +158,8 @@ def _markdown(report: dict[str, Any]) -> str:
             s = m["scenarios"].get(name) or {}
             return f"{s.get('passed', 0)}/{s.get('executed', 0)}"
         lines.append(
-            f"| `{model}` | {m['probe']} | {cell('nested-delegation')} | {cell('capability-recovery')} | "
-            f"{cell('engineering-recovery')} | {m['passed']}/{m['executed']} | {m['mean_duration_s']:.1f}s |"
+            f"| `{model}` | {m['probe']} | {cell('kernel-analysis')} | {cell('approval-boundary')} | "
+            f"{cell('worker-lifecycle')} | {m['passed']}/{m['executed']} | {m['mean_duration_s']:.1f}s |"
         )
     lines += ["", "## Failure domains", ""]
     if report["failure_domains"]:
@@ -171,7 +171,7 @@ def _markdown(report: dict[str, Any]) -> str:
         "",
         "## Interpretation",
         "",
-        "Each behavioral trial uses the existing strict ADE canary assertions. The matrix never converts a failed trial into success. "
+        "Each behavioral trial uses strict ADE v6 durable-kernel canary assertions. The matrix never converts a failed trial into success. "
         "A pass rate is a reliability measurement, not a relaxed acceptance criterion.",
         "",
         "`MODEL_UNAVAILABLE` is reported as unavailable and is not counted as a passing trial. Logs are redacted before being written.",

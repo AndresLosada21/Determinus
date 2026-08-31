@@ -1,7 +1,5 @@
-# ADE v5.2.7 Python tooling
+# ADE 6.0.1 Python tooling
 
-Entry point: `python tooling/ade.py <command>`. Python 3.9+, standard library only.
+Python tooling owns package regression, static policy, transactional install/migrate/uninstall, installed-manifest validation, runtime core validation, optional durable-workflow canaries and multi-model live testing.
 
-Main commands: `regression`, `static-policy`, `install`, `migrate`, `uninstall`, `manifest-check`, `validate`, `assurance`. Behavioral probes are also available as dedicated subcommands.
-
-Security-critical tests assert schemas, ownership, executable code paths and allow/deny structure; they do not depend on localized prose.
+Install/migrate never run long behavioral matrices.

@@ -1,12 +1,12 @@
 {
   "name": "@ai-driven-engineering/opencode-plugin",
-  "version": "5.2.7",
+  "version": "6.0.5",
   "private": true,
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": "./index.ts",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test --test-concurrency=1 tests/*.test.mjs"
   },
   "description": "OpenCode V2-native runtime for AI-Driven Engineering, aligned to the official Promise plugin contract",
   "peerDependencies": {

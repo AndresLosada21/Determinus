@@ -7,191 +7,23 @@ const pkg=JSON.parse(fs.readFileSync(new URL("../package.json",import.meta.url))
 const src=fs.readFileSync(new URL("../src/index.ts",import.meta.url),"utf8")
 const tools=Object.keys(cap.tools)
 
-test("registry has 18 agents and 28 typed tools",()=>{
-  assert.equal(Object.keys(cap.agents).length,18)
-  assert.equal(tools.length,28)
-  assert.ok(tools.includes("ade_route_snapshot"))
-})
-
-test("orchestrator surface is compact and state-driven",()=>{
-  assert.deepEqual(new Set(cap.agents.orchestrator),new Set(["ade_status","ade_route_snapshot"]))
-  assert.ok(!cap.agents.orchestrator.includes("ade_doctor"))
-  assert.ok(!cap.agents.orchestrator.includes("ade_state_get"))
-})
-
-test("least privilege role boundaries",()=>{
-  assert.ok(!cap.agents.explorer.includes("ade_tracker_read"))
-  assert.ok(!cap.agents.explorer.includes("ade_tracker_write"))
-  assert.ok(!cap.agents.implementer.includes("ade_project_check"))
-  assert.ok(cap.agents.implementer.includes("ade_self_check"))
-  assert.ok(!cap.agents.debugger.includes("ade_project_check"))
-  assert.ok(cap.agents.debugger.includes("ade_diagnostic_check"))
-  assert.ok(cap.agents.verifier.includes("ade_project_check"))
-  assert.ok(!cap.agents.verifier.includes("ade_vcs_push"))
-})
-
-test("generation budgets are defined for every agent",()=>{
-  assert.deepEqual(new Set(Object.keys(cap.generation_max_tokens)),new Set(Object.keys(cap.agents)))
-  for(const n of Object.values(cap.generation_max_tokens)) assert.ok(Number.isInteger(n)&&n>=500&&n<=2000)
-  assert.ok(src.includes("event.generation.maxTokens=budget"))
-})
-
-test("OpenCode V2 Promise plugin contract is explicit",()=>{
-  assert.ok(src.includes('import * as OpenCodePlugin from "@opencode-ai/plugin"'))
-  assert.ok(src.includes("raw-default-compat"))
-  assert.ok(src.includes("export default pluginDefine({"))
-  assert.equal(pkg.peerDependencies["@opencode-ai/plugin"],">=1.18.15")
-  assert.equal(pkg.exports,"./src/index.ts")
-})
-
-test("session-scoped project location replaces plugin instance location",()=>{
-  assert.ok(src.includes("async function resolveSessionScope"))
-  assert.ok(src.includes("ctx.session.get({ sessionID })"))
-  assert.ok(src.includes("ctx.agent.list({ location: { directory } })"))
-  assert.ok(src.includes("project.directory || directory"))
-  assert.ok(!src.includes("ctx.location?.project"))
-  assert.ok(!src.includes("ctx.location?.directory"))
-})
-
-test("context hook restricts tools and caps generation without modifying system",()=>{
-  assert.ok(src.includes('ctx.session.hook("context"'))
-  assert.ok(src.includes("delete event.tools[name]"))
-  assert.ok(src.includes("event.generation.maxTokens=budget"))
-  assert.ok(!src.includes("event.system.push"))
-  assert.ok(!src.includes("event.system ="))
-})
-
-test("provider failure signatures use a bounded circuit breaker",()=>{
-  assert.ok(src.includes('ctx.session.hook("retry"'))
-  assert.ok(src.includes('event.error?.type==="provider.invalid-request"'))
-  for(const marker of ["normalizedFailureSignature","retrySignatures","tool_choice:auto-only","reasoning item expired","seen===0","seen>0"]) assert.ok(src.includes(marker),marker)
-  assert.ok(src.includes("if(autoOnly) event.decision={retry:false}"))
-  assert.ok(src.includes("event.decision={retry:true,delay:400}"))
-})
-
-test("evidence storage normalizes legacy shapes and uses durable log",()=>{
-  assert.ok(src.includes("function normalizeEvidence"))
-  assert.ok(src.includes("Array.isArray(value)"))
-  assert.ok(src.includes("evidence.jsonl"))
-  assert.ok(src.includes("persistEvidence"))
-  assert.ok(src.includes("const limit=i.limit||5"))
-})
-
-test("state reads are compact by default",()=>{
-  assert.ok(src.includes('add("ade_route_snapshot"'))
-  assert.ok(src.includes('detail:str({enum:["compact","full"]})'))
-  assert.ok(src.includes("compactControl"))
-})
-
-test("native VCS reads are location-aware and use current V2 modes",()=>{
-  assert.ok(src.includes("ctx.vcs.status({location:i.__ade_location})"))
-  assert.ok(src.includes("ctx.vcs.branches({location:i.__ade_location"))
-  assert.ok(src.includes("ctx.vcs.diff({location:i.__ade_location"))
-  assert.ok(src.includes('enum:["working","branch","committed"]'))
-})
-
-test("tool public schemas do not expose project_root or artificial wire scope",()=>{
-  assert.ok(!src.includes("project_root:str()"))
-  assert.ok(!src.includes("WIRE_SCOPE"))
-  assert.ok(src.includes('...(required.length ? { required: [...required] } : {})'))
-})
-
-test("plane validation authority is exclusive",()=>{
-  for(const [tool,owner] of [["ade_product_validation_record","product-owner"],["ade_delivery_validation_record","project-manager"],["ade_engineering_validation_record","verifier"]]){
-    for(const [agent,owned] of Object.entries(cap.agents)) assert.equal(owned.includes(tool),agent===owner,`${tool} ownership on ${agent}`)
-  }
-  assert.ok(src.includes('state:str({enum:["OBSERVADO","INFERIDO","PROPOSTO","DESCONHECIDO"]})'))
-})
-
-test("acceptance requires current revision-bound validation",()=>{
-  for(const marker of ["plane_revision","validated_status","evidência VALIDADO vigente","VALIDATION_BLOCKED"]) assert.ok(src.includes(marker),marker)
-})
-
-test("project check missing-check diagnostics expose root policy request and available ids",()=>{
-  assert.ok(src.includes("project_root=${root}"))
-  assert.ok(src.includes("policy=.ai/execution-policy.json"))
-  assert.ok(src.includes("available=[${availableChecks.join(\",\")}]") )
-})
-
-test("vcs mutation surface is constrained",()=>{
-  assert.ok(!src.includes("--force"))
-  assert.ok(!src.includes("force-with-lease"))
-  assert.ok(src.includes("--literal-pathspecs"))
-  assert.ok(src.includes("assertNoSecretStaged"))
-})
-
-test("tracker write is policy gated",()=>{
-  assert.ok(src.includes('trackerPolicy=await readProjectJson(root,".ai/tracker-policy.json","tracker policy")'))
-  assert.ok(src.includes('mode==="write"&&!i.dry_run&&trackerPolicy.write?.authorized!==true'))
-})
-
-test("project-manager owns deterministic GitHub Project sync while tracker agent remains fallback",()=>{
-  assert.ok(cap.agents["project-manager"].includes("ade_tracker_project_snapshot"))
-  assert.ok(cap.agents["project-manager"].includes("ade_tracker_project_sync"))
-  assert.deepEqual(new Set(cap.agents["tracker-operator"]),new Set(["ade_tracker_read","ade_tracker_write","ade_handoff_submit"]))
-  for(const marker of ["githubProjectSnapshot","githubSetProjectField","updateProjectV2ItemFieldValue","TRACKER_VERIFY_FAILED","canonical_handoff","post_state"]) assert.ok(src.includes(marker),marker)
-  assert.equal(cap.deterministic_control_plane.tool_choice_auto_only_retry,0)
-  assert.equal(cap.deterministic_control_plane.same_failure_signature_retry_max,1)
-})
-
-test("debugger diagnostic check stays non-validating",()=>{
-  assert.ok(src.includes('i.name,"debugger",false'))
-  assert.ok(src.includes('DIAGNOSTIC_CHECK_COMPLETED'))
-  assert.ok(src.includes('evidence_state:validationAuthority?"VALIDADO":"OBSERVADO"'))
-})
-
-test("GitHub PR authentication comes only from authorized OpenCode integration",()=>{
-  assert.ok(src.includes('integrationSecret(ctx,String(g.connection_id||"github"))'))
-  assert.ok(!src.includes('process.env.GH_TOKEN'))
-  assert.ok(!src.includes('process.env.GITHUB_TOKEN'))
-})
-
-test("runtime observation does not expose Docker env or labels",()=>{
-  assert.ok(src.includes('{{.ID}}\\t{{.Image}}\\t{{.Names}}\\t{{.Status}}\\t{{.Ports}}'))
-  assert.ok(src.includes('{{.Id}}\\t{{json .RepoTags}}\\t{{.Size}}\\t{{.Created}}'))
-})
-
-test("content-executing paths resolve realpath inside project",()=>{
-  assert.ok(src.includes("safeExistingRealPath"))
-  assert.ok(src.includes("fs.realpath(root)"))
-  assert.ok(src.includes("fs.realpath(lexical)"))
-})
-
-test("all ADE agents hide raw shell and execute",()=>{
-  for(const agent of Object.keys(cap.agents)){
-    const hidden=new Set(cap.hide_core_tools?.[agent]||[])
-    assert.ok(hidden.has("shell"),`${agent}: shell visible`)
-    assert.ok(hidden.has("execute"),`${agent}: execute visible`)
-  }
-})
-
-test("observability commands are registered",()=>{
-  for(const cmd of ["ade-why","ade-trace","ade-metrics","ade-doctor","ade-failures"]) assert.ok(src.includes(`name:"${cmd}"`))
-  assert.ok(src.includes("telemetry.jsonl"))
-  assert.ok(src.includes("duration_ms"))
-})
-
-
-test("structured handoff is canonical and bounded",()=>{
-  assert.ok(tools.includes("ade_handoff_submit"))
-  for(const [agent,list] of Object.entries(cap.agents)) if(agent!=="orchestrator") assert.ok(list.includes("ade_handoff_submit"),`${agent} missing handoff`)
-  assert.ok(!cap.agents.orchestrator.includes("ade_handoff_submit"))
-  assert.equal(cap.handoff_contract.max_handoff_bytes,4096)
-  for(const marker of ["HANDOFF_SCHEMA_VIOLATION","HANDOFF_AUTHORITY_VIOLATION","handoffs.jsonl","recent_handoffs"]) assert.ok(src.includes(marker))
-})
-
-test("cost intelligence records estimates without prompt payload",()=>{
-  for(const marker of ["model.dispatch","provider.retry","approx_context_tokens","ade-cost","ade-handoffs","exactUsageFromMessages"]) assert.ok(src.includes(marker))
-  assert.ok(!src.includes("prompt_text"))
-})
-
-
-test("heavy hardening guards are present",()=>{
-  for(const marker of ["readProjectJson","assertRegularNoSymlink","LOG_CORRUPT","redactForModel","minimalEnv","resolveTrustedExecutable",'redirect:"error"',"AbortController","assertNoSecretStaged","--read-only","--cap-drop","no-new-privileges","allow_network","allow_mutable_image"]) assert.ok(src.includes(marker),marker)
-  assert.ok(!src.includes("commit.gpgSign=false"))
-  assert.ok(src.includes("policy.hooks?.allow_bypass===true"))
-  assert.ok(src.includes("session_ref"))
-  assert.ok(!src.includes("session_id:"))
-  assert.equal(cap.hardening.docker_network_default,"none")
-  assert.equal(cap.hardening.git_hooks_bypass_default,false)
-})
+test("v6 registry is kernel-centric",()=>{assert.equal(cap.version,"6.0.5");assert.equal(Object.keys(cap.agents).length,5);assert.equal(tools.length,34);for(const t of ["ade_workflow_start","ade_workflow_run","ade_workflow_snapshot","ade_workflow_cancel","ade_kernel_reconcile","ade_kernel_events"])assert.ok(tools.includes(t),t);assert.equal(cap.durable_kernel.runtime,"file_backed_event_sourcing")})
+test("orchestrator submits intent but cannot delegate or mutate code",()=>{const a=cap.agents.orchestrator;assert.ok(a.includes("ade_workflow_start")&&a.includes("ade_workflow_run"));assert.ok(!a.includes("ade_delegate"));assert.ok(!a.includes("ade_vcs_commit"));assert.ok(cap.hide_core_tools.orchestrator.includes("subagent"));assert.ok(cap.hide_core_tools.orchestrator.includes("edit"));assert.ok(cap.hide_core_tools.orchestrator.includes("shell"))})
+test("workers are disposable and never coordinate workers",()=>{for(const a of ["explorer","implementer","verifier","reviewer"]){assert.ok(cap.hide_core_tools[a].includes("subagent"));assert.ok(!cap.agents[a].includes("ade_workflow_start"));assert.ok(!cap.agents[a].includes("ade_workflow_run"))}assert.deepEqual(cap.durable_kernel.worker_roles,{ANALYST:"explorer",BUILDER:"implementer",VERIFIER:"verifier",REVIEWER:"reviewer"})})
+test("builder is the only active editing worker",()=>{assert.ok(!cap.hide_core_tools.implementer.includes("edit"));for(const a of ["explorer","verifier","reviewer"])assert.ok(cap.hide_core_tools[a].includes("edit"),a)})
+test("generation budgets are bounded for every active agent",()=>{assert.deepEqual(new Set(Object.keys(cap.generation_max_tokens)),new Set(Object.keys(cap.agents)));for(const n of Object.values(cap.generation_max_tokens))assert.ok(Number.isInteger(n)&&n>=500&&n<=2000)})
+test("OpenCode V2 Promise plugin contract remains explicit",()=>{assert.ok(src.includes('import * as OpenCodePlugin from "@opencode-ai/plugin"'));assert.ok(src.includes("raw-default-compat"));assert.ok(src.includes("export default pluginDefine({"));assert.equal(pkg.exports,"./index.ts");assert.equal(fs.readFileSync(new URL("../index.ts",import.meta.url),"utf8").trim(),'// OpenCode V2 resolves configured plugin directories from this root entrypoint.\nexport { default } from "./src/index.ts"')})
+test("durable event journal is hash chained and snapshot is derived",()=>{for(const marker of ["KERNEL_SCHEMA_VERSION","events.jsonl","snapshot.json","prev_hash","event_hash","kernelReadEvents","kernelReduceEvent","kernelAppendDrafts","ADE_KERNEL_CORRUPT"])assert.ok(src.includes(marker),marker);assert.ok(src.includes("sha256Hex(canonicalStringify(kernelEventHashMaterial(ev)))"))})
+test("kernel store is external and protected from agents",()=>{for(const marker of ["kernelBaseDir","assertGrantStoreSafeForProject","resourceTouchesKernelStore","ADE_KERNEL_STORE_UNSAFE","durable kernel store is outside agent authority"])assert.ok(src.includes(marker),marker);assert.ok(src.includes('path.join(base,"opencode","ade-kernel")'))})
+test("workflow state machine requires deterministic verification for engineering",()=>{assert.ok(src.includes('kind==="engineering"&&!checks.length'));assert.ok(src.includes("ADE_WORKFLOW_VERIFICATION_REQUIRED"));assert.ok(src.includes("RESULT_PROPOSED"));assert.ok(src.includes("WAITING_APPROVAL"))})
+test("scheduler owns worker sessions and waits synchronously",()=>{for(const marker of ["kernelWorkerSession","ctx.session.create","ctx.session.switchAgent","ctx.session.prompt","waitWorkerWithTimeout","ctx.session.context"])assert.ok(src.includes(marker),marker);assert.ok(src.includes("only the durable kernel scheduler may create worker sessions"))})
+test("worker execution has leases, bounded attempts, and reconciliation",()=>{for(const marker of ["KERNEL_JOB_LEASE_MS","KERNEL_JOB_MAX_ATTEMPTS","lease_expires_at","kernelReconcile","WORKER_LEASE_EXPIRED"])assert.ok(src.includes(marker),marker);assert.equal(cap.deterministic_control_plane.job_max_attempts,2)})
+test("mutating builder jobs are project-serialized and reject dirty baselines",()=>{assert.ok(src.includes("mutation.lock"));assert.ok(src.includes("ADE_KERNEL_DIRTY_WORKTREE"));assert.ok(src.includes("withFileLock(kp.mutationLock"))})
+test("tracker sync can run as a deterministic kernel activity",()=>{assert.ok(src.includes('job.type==="TRACKER_SYNC"'));assert.ok(src.includes('consumeHumanGrant(root,"ade_tracker_project_sync"'));assert.ok(src.includes("executeProjectSync(input"));assert.equal(cap.deterministic_control_plane.tracker_primary[1],"tracker_sync workflow")})
+test("engineering checks consume exact external grants inside kernel activity",()=>{assert.ok(src.includes("kernelRunVerificationChecks"));assert.ok(src.includes('consumeHumanGrant(root,"ade_project_check"'));assert.ok(src.includes("nativeProjectCheck(root"))})
+test("legacy delegation is physically absent from the v6 tool surface",()=>{assert.ok(!tools.includes("ade_delegate"));assert.ok(!src.includes("managedDelegateExecute"));assert.ok(!src.includes("DELEGATION_DAG"));for(const a of Object.values(cap.agents))assert.ok(!a.includes("ade_delegate"))})
+test("provider tool_choice compatibility and retry circuit breaker are preserved",()=>{assert.ok(src.includes('ctx.session.hook("http.request"'));assert.ok(src.includes('ctx.session.hook("retry"'));for(const marker of ["auto_only_tool_choice_models","tool_choice:auto-only","reasoning item expired","seen===0","seen>0"])assert.ok(src.includes(marker),marker)})
+test("exact-effect authorization hardening is preserved",()=>{for(const marker of ["EXPLICIT_EXTERNAL_GRANT","ADE_AUTHORIZATION_STALE","resourceFingerprintFor","consumeHumanGrant","assertAuthorizationUnchanged","GRANT_MAX_USES = 1"])assert.ok(src.includes(marker),marker)})
+test("VCS hardening is preserved",()=>{for(const marker of ["assertNoSecretStaged","--no-verify","allowed_remote_urls","ls-remote","authorized HEAD","commit.gpgSign=false"]) { if(marker==="commit.gpgSign=false") assert.ok(!src.includes(marker)); else assert.ok(src.includes(marker),marker)}})
+test("process and Docker hardening is preserved",()=>{for(const marker of ["minimalEnv","--network","--read-only","--cap-drop","ALL","no-new-privileges","pids-limit"])assert.ok(src.includes(marker),marker)})
+test("active ADE agents hide raw shell",()=>{for(const a of Object.keys(cap.agents))assert.ok(cap.hide_core_tools[a].includes("shell"),a)})

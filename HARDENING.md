@@ -1,140 +1,31 @@
-# Hardening — ADE v5.2.7
+# Hardening — ADE 6.0.1
 
-## Princípio
+ADE 6 preserves v5 security hardening and adds durable-runtime invariants.
 
-`repo policy != autorização humana`. Arquivos sob controle do repositório (`.ai/*-policy.json`, `integrations.json`) definem escopo máximo, mas nunca concedem sozinhos autoridade para mutação destrutiva/externa. A autoridade para mutações sensíveis vem de um **explicit external grant** fora de `.ai` (criado via `/ade-authorize`), validado por guards determinísticos antes de qualquer efeito externo. O plugin não alega prova criptográfica de presença física humana; prova que o fluxo normal de agent tools/repo policy não consegue autoemitir a capability.
+## Durable control-plane hardening
 
-Fluxo exigido: `PROJECT POLICY (max) → ADE DETERMINISTIC GUARDS (validate) → OPENCODE PERMISSION LAYER (deny/ask/allow) → EXPLICIT EXTERNAL GRANT (outside .ai, single-use, TTL, exact-effect fingerprint) → execução`. Sem grant → `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations. `ask` em `--auto` é `AUTO_APPROVED` e não substitui grant.
+- Canonical state is outside the repository.
+- Event journal is append-only, locked, bounded and SHA-256 hash chained.
+- Snapshot is derived and never trusted over the journal.
+- Unsafe/symlinked external state roots are rejected.
+- Corruption produces `SAFE_READ_ONLY`.
+- Workers cannot access kernel/grant stores or create subagents.
+- Builder mutation is serialized per project and starts only from a clean non-`.ai` baseline.
+- Worker leases and bounded attempts prevent indefinite zombie work.
+- Reconciliation interrupts expired sessions when possible before retry/block decisions.
+- Deterministic check progress is persisted incrementally across approval waits.
 
-## Two-channel Human Authorization (v5.2.7)
+## Exact-effect authorization
 
-Para operações `HUMAN_REQUIRED` (`tracker sync/write`, `vcs stage/commit/push/pr_create`, `project/diagnostic check` com host process), o plugin exige **grant efêmero** fora do repo:
+Repository policy defines bounds but cannot self-authorize. High-impact tracker/VCS/project-check activities require short-lived, single-use external grants bound to the exact resolved effect. Relevant state is revalidated immediately before the side effect. Saved `allow` or `--auto` never replaces the external grant.
 
-- Criado via command channel `/ade-authorize <tool> <json-input>`; agente/modelo não recebe uma ADE tool para criar grants. Provenance registrada: `EXPLICIT_EXTERNAL_GRANT`.
-- Armazenado em `$XDG_STATE_HOME/opencode/ade-grants/<project_hash>.jsonl` (fallback Unix: `~/.local/state/opencode/ade-grants`; Windows: `%LOCALAPPDATA%\opencode\ade-grants`) com `withFileLock`, `fsync`, `0o600`, **fora de `.ai`**; grants dentro de `.ai` são ignorados.
-- Contém `{project_hash=sha256(realpath(root)), action, resource_hash=sha256(canonical(exact_effect)), nonce, issued_at, expires_at (10min), max_uses=1, remaining_uses}`; `resource_hash` é fingerprint do efeito exato: target/config remoto + updates para tracker, body completo por digest, conteúdo worktree para stage, HEAD + staged raw/tree para commit, HEAD + remote URL para push, owner/repo/base/head SHA + body digest para PR e hash integral da definição de project-check.
-- Consumo é **atômico antes do side effect** via `withFileLock`; sem grant → ZERO `fetch`/`spawn`/`git`; grant expirado, `max_uses` esgotado, `action`/`resource` mismatch, ou `project_hash` diferente (alias) → bloqueado.
-- `always allow` salvo não substitui grant; `dry_run` não exige grant.
-- Telemetry registra `human.grant.create`/`consume`/`missing` com `authorization=EXPLICIT_EXTERNAL_GRANT` ou `NONE_OR_STALE` sem segredo.
+## Filesystem / secrets / processes
 
-## Exact-effect binding e TOCTOU
+The prior hardened realpath, symlink/reparse, sensitive-resource, output redaction, outbound-secret, staged-secret, minimal-environment and bounded JSON/JSONL guards remain. Host process checks require explicit policy; generic shell interpreters are blocked. Docker defaults to no network, read-only rootfs, capability drop, no-new-privileges and bounded resources unless policy explicitly grants more.
 
-A emissão e o consumo calculam o mesmo fingerprint a partir do estado resolvido. Após o grant ser consumido, a tool recalcula o fingerprint **imediatamente antes do primeiro side effect**; divergência resulta em `ADE_AUTHORIZATION_STALE`. Campos grandes não são truncados: bodies são ligados por SHA-256 completo. O store rejeita corrupção/oversize e agents não podem ler ou editar seu path via permission hook.
+## VCS and remote operations
 
-Para VCS, stage liga o grant ao conteúdo atual dos paths; commit inclui branch, HEAD, staged raw digest e tree SHA; push inclui branch/remote/URL/HEAD e usa refspec com o **SHA autorizado explícito**; PR inclui owner/repo/base/head/head SHA/title/body digest. Project/diagnostic checks incluem o hash canônico da definição executável.
+Commit hooks/signing are preserved by default, force-push surfaces are absent, push targets are allowlisted and read back, tracker writes are preflighted and read back, HTTP redirects are rejected for protected remote clients, and credentials come from authorized integration resolution rather than project content.
 
-## Auto-approve e `ask`
-
-`opencode --auto` aprova automaticamente `ask` não negado. `ask` sozinho **não** é considerado `USER_APPROVED`; o grant é a prova. A API V2 não distingue `AUTO_APPROVED` vs `USER_APPROVED` confiavelmente, então v5.2.7 mantém fail-closed via grant e documenta a limitação. Recomenda não usar `--auto` para sessões sensíveis sem grant, e nunca registra `AUTO_APPROVED` como humano.
-
-## Provider wire compatibility (v5.2.7)
-
-O `http.request` hook normaliza `tool_choice` somente para modelos OpenCode Zen free explicitamente declarados como auto-only no capability registry. `required`/named vira `auto`; `none` remove também `tools`; requests de providers/modelos desconhecidos permanecem byte-semantically untouched. O body é limitado a 2 MB e nenhum token/header/prompt é persistido na telemetry. O shim é compatibility-only: ele não concede capabilities, não cria grants e não contorna permission/policy.
-
-Os testes de grant no Windows usam a mesma normalização de `realpath` do runtime e os cenários positivos C/G/L emitem grants via comando real `/ade-authorize`, evitando helpers de teste que possam divergir do código de produção.
-
-## Filesystem
-
-- Containment por `realpath` (`safeFile`, `safeExistingRealPath`, `assertProjectStateBoundary`) em todo acesso a `.ai/control.json`, policies e paths de tool.
-- Rejeição de symlink/reparse (`is_reparse`, `FILE_ATTRIBUTE_REPARSE_POINT` no Windows, `lstat` no Unix) para `.ai/`, `control.json`, `*.jsonl`, policies e arquivos gerenciados.
-- Proteção Windows e Unix: `inside(root, candidate)` com `toLowerCase` no Windows e `relative_to` no Python; `assert_safe_chain` verifica toda a cadeia até `/`.
-- Paths sensíveis bloqueados em `permission.hook("evaluate")` para `read` com `SECRET_FILE` e `SENSITIVE_RESOURCE` usando `/` e `\` normalizados.
-- Atomic writes com `fsync`: `writeTextAtomic`, `writeJsonAtomic`, `copy_file_atomic` com `tmp` + `rename` + `sync`.
-- Bounded JSON/JSONL: `MAX_JSON_BYTES 2MB`, `MAX_TOOL_TEXT 200KB`, `LOG_LIMITS` (audit/evidence 8MB/3 backups, telemetry 12MB/2, handoffs 6MB/3).
-- Corrupção fail-visible: `readJsonl` conta `invalid_records` e lança `LOG_CORRUPT`; `readProjectJson` valida JSON e rejeita oversized.
-
-Protege pelo menos: `.git`, `.ssh`, `.aws`, `.config/gh`, `.docker/config.json`, `.env*`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `credentials/secrets/tokens`, `*credential*.json`.
-
-## Secrets
-
-Detecção e redaction em `SENSITIVE_TEXT_PATTERNS` (private keys, `github_pat_`, `gh[pousr]_`, `sk-*`, `AKIA*`, `xox*`, `glpat-*`, `npm_*`, `AIza*`, JWT `eyJ...`, `Bearer|Basic`, assignments `token|secret|password|api_key`).
-
-- `redactSensitiveText` e `redactForModel` aplicados em todo `stdout/stderr`, diffs, payloads e telemetria.
-- `assertNoSecretOutbound` bloqueia envio se payload contém `secretLikeText`.
-- `assertNoSecretStaged` escaneia `git diff --cached --name-only -z` e blobs staged até 2MB antes de `commit`.
-- `cleanErrorText` redige erros antes de persistir.
-
-Nenhum adapter de tracker/VCS/remote envia payload detectado como secret sem política explícita e segura.
-
-## Tracker (GitHub Project V2 / Jira / Linear)
-
-Deny-by-default para hosts, repositories, projects, Jira projects, Linear teams via `tracker-policy.json` (`allowed_https_hosts`, `allowed_github_repositories`, `allowed_github_projects`, `allowed_jira_projects`, `allowed_linear_team_ids`) e `assertTrackerRemoteScope`.
-
-GitHub Project sync (`ade_tracker_project_sync`):
-
-`preflight → resolve item/field/option/iteration → validate full batch → write → read-back → verify desired==actual → runtime receipt/handoff`.
-
-- `updates ≤50`, cada `fields ≤10`, valores validados por tipo (`SINGLE_SELECT`, `ITERATION`, `NUMBER`, `DATE`, `TEXT`).
-- Duplicatas/conflitos no batch falham antes da primeira mutação (`duplicate item/field update`).
-- Sem mutação antes de preflight completo.
-- Verification failure gera `PARTIAL`/`FAILED` com `failures` e `verification` detalhado.
-- `assertNoSecretOutbound` antes de qualquer `fetch`.
-- `fetch` com `redirect:"error"`, `AbortController` 30s, `response` size ≤5MB, `TRACKER_VERIFY_FAILED` se `actual != expected`.
-- Remote evidence só é `REMOTE_UNTRUSTED_DATA` até read-back confirmar.
-
-## VCS
-
-- Hooks habilitados por padrão; sem `--no-verify` implícito; sem `commit.gpgSign=false`.
-- Bypass somente via `policy.hooks.allow_bypass === true`.
-- `push.remote` allowlist (`allowed_remote_urls`) verificada via `git remote get-url` antes de `push`.
-- PR repository allowlist (`allowed_repositories`) verificada antes de `fetch` para `pulls`.
-- `protected_branches` bloqueia `commit`/`push` em `main/master` sem `allow_protected_branches`.
-- `assertNoSecretStaged` antes de `stage` e `commit`.
-- `relativeLiteralPath` + `--literal-pathspecs` para `add`.
-- Post-push verificação `git ls-remote --heads` compara `SHA` local vs remoto; diverge → `VCS_VERIFY_FAILED`.
-
-## Processes
-
-- Env mínimo (`minimalEnv`: `PATH`, `SystemRoot`, `HOME`, etc.) — não herda tokens.
-- `vcsEnv` adiciona apenas `SSH_AUTH_SOCK`, `GIT_ASKPASS`, `GIT_SSH*` quando necessário.
-- Host process checks exigem `allow_host_process=true` e `runner: process` explícito; caso contrário bloqueia com `prefira docker sandbox`.
-- Interpreters genéricos bloqueados em `blockedExecutables`: `pwsh`, `powershell`, `cmd`, `bash`, `sh`, `zsh`, `fish`, `wsl`, `docker`, `podman`, `git` — não podem ser `executable` por caminho genérico.
-- Argumentos limitados (`≤64`, cada `≤4096`, total `≤65536`, sem `\0`).
-- `environment.allow` ≤32 entradas, cada `^[A-ABa-z_][A-ABa-z0-9_]{0,63}$`; secret env exige `allow_secret_environment=true`.
-
-## Docker
-
-Defaults seguros exigidos, só relaxados com opt-in:
-
-- `network=none` (exige `allow_network=true` para outro).
-- Root filesystem `read-only` (`--read-only`).
-- `cap-drop=ALL`, `no-new-privileges`, `pids-limit 256`, `memory` e `cpus` limitados, `/tmp` `rw,noexec,nosuid,size=256m`, workspace `ro` a menos que `allow_workspace_writes=true`.
-- Image digest pinning: exige `@sha256:[0-9a-f]{64}` a menos que `allow_mutable_image=true`.
-- Timeout por `timeout_ms` (1s–300s) e cleanup por `cidfile` (`docker rm -f`).
-
-## Installer / migrate / uninstall
-
-- `manifest size bounds` (`MAX_JSON_BYTES`), symlink/reparse rejection (`assert_tree_no_links`, `is_reparse`), `atomic install/restore` com `fsync` e `sha256` verification (`copy_file_verified`).
-- Backup containment: `_backup_base` fora do target customizado, `within(base,target)` check, `_backup_file` com `relative_to` e `secure_mkdir`.
-- Rollback fail-visible: `try/except` coleta `ROLLBACK_INCOMPLETE` com até 10 erros, nunca silencia.
-- Uninstall recusa `managed files` convertidos em links (`is_reparse` em `previous_manifest` e destinos).
-- Nunca segue paths controlados pelo manifesto para fora das roots permitidas (`assert_safe_chain` em cada `dst.parent`).
-- `migrate` aceita `4.x`/`5.0.x`/`5.1.x`/`5.2.0`–`5.2.6` → `5.2.7`; `uninstall` valida `schema_version 7`.
-
-## Control Plane
-
-`LLM decide conteúdo; ADE decide mecânica.` Routing determinístico via `ade_route_snapshot` + `routingHint` (produto → entrega → engenharia). Operações CRUD determinísticas não passam por chains LLM.
-
-Orchestrator → Project Manager → `ade_tracker_project_snapshot` → `ade_tracker_project_sync` → GitHub → read-back → verified → runtime handoff. Evita `Orchestrator → PM LLM → Tracker LLM → shell/gh → retries`.
-
-## Retries / Circuit Breaker
-
-- Mesma `failure signature` não gera retries infinitos.
-- `tool_choice only auto` → `retry:false` determinístico, zero retry.
-- `reasoning item expired` → no máximo uma recuperação (`retry:true,delay:400` primeira vez, segunda `retry:false`).
-- Repetição da mesma assinatura abre circuito (`seen>0` → deny).
-- Failure domain explícito (`PROVIDER_OR_OPENCODE_RUNTIME`, `AUTH`, `PERMISSION`, `UNKNOWN`) em `telemetry`.
-
-## Handoff / Post State
-
-Runtime-generated handoffs (`origin=runtime`) quando a operação determinística conhece o resultado. `transition` e `executeProjectSync` retornam `{canonical_handoff, post_state}`. `post_state` é `compactControl` após mutação, com `global_status` recomputado. Orchestrator constrói resposta após `ade_route_snapshot` pós-operação; `canonical post_state` vence prose de subagent.
-
-## Performance / Instalação
-
-Instalação é FAST PATH: `validate package/static → backup → install/migrate → manifest → rollback capability → finish`. Não roda behavioral matrix durante `install/migrate`. `validate` = Core+Contract; `assure` e `live-test` são explícitos após restart.
-
-## Limitações conhecidas (v5.2.7)
-
-- Distinguir `USER_APPROVED` vs `AUTO_APPROVED` depende de expor `permission.replied` com `reply: once|always` e detectar `auto` flag — atualmente não confiável, então documentado como `AUTO_APPROVED` não humano.
-- Windows `fs.realpath` para junctions requer `FILE_ATTRIBUTE_REPARSE_POINT`; alguns reparse points podem exigir privilégio para `lstat`.
-- `log rotation` é cooperativa (verifica `size + incomingBytes` sob lock), não atômica com `appendFile` concorrente externo.
+## Scoped OpenAI Codex wire compatibility (6.0.1)
+Provider compatibility is fail-minimal: the native request hook removes only `max_output_tokens` on `chatgpt.com/backend-api/codex/responses`. It does not disable generation budgets globally and leaves public OpenAI API requests untouched. The compatibility path does not log prompts, authorization headers or request bodies.

@@ -41,3 +41,7 @@ Isso evita que um leaf capture autoridade por texto ou handoff incorreto.
 ## UX
 
 Depois de publicar a tool, o child responde em até 3 linhas. Behavioral canaries medem esse contrato no provider/model real.
+
+## Managed delegation fallback (v5.2.8)
+
+When OpenCode removes tools on the final allowed step, `ade_delegate` may persist a runtime `PARTIAL` handoff from the child factual summary. This fallback is explicitly non-authoritative and cannot satisfy a required `DONE` canary or acceptance gate.
