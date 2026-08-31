@@ -61,18 +61,17 @@ test("plugin enforces repo policy != human authority via ask", () => {
   assert.ok(src.includes("HUMAN_AUTHORIZATION_REQUIRED"), "missing HUMAN_AUTHORIZATION_REQUIRED set")
   assert.ok(src.includes("ADE_HUMAN_AUTHORIZATION_REQUIRED"), "missing ask message")
   assert.ok(src.includes('event.effect="ask"'), "missing ask enforcement")
-  assert.ok(src.includes("AUTO_APPROVED") && src.includes("USER_APPROVED"), "missing auto vs user distinction")
+  assert.ok(src.includes("AUTO_APPROVED") && src.includes("EXPLICIT_EXTERNAL_GRANT"), "missing auto vs external-grant distinction")
   assert.ok(src.toLowerCase().includes("repo policy") || src.toLowerCase().includes("repositório"), "missing repo vs human doc")
   for (const tool of ["ade_tracker_project_sync","ade_tracker_write","ade_project_check","ade_diagnostic_check","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create"]) {
     assert.ok(src.includes(tool), `tool ${tool} not in human auth set`)
   }
 })
 
-test("permission hook distinguishes POLICY_ALLOWED vs USER_APPROVED vs AUTO_APPROVED vs DENIED conceptually", () => {
+test("permission hook distinguishes ask/auto from explicit external grant", () => {
   // documentation-level check: plugin comments must mention fail-closed when auto-approve cannot be distinguished
   assert.ok(src.includes("auto-approve") || src.includes("auto") , "auto-approve documentation missing")
-  // ensure we do not invent human approval: no code that treats AUTO_APPROVED as human
-  assert.ok(!src.includes("USER_APPROVED = true") || src.includes("não deve ser registrado como human"), "should document not to mislabel auto-approved")
+  assert.ok(src.includes("EXPLICIT_EXTERNAL_GRANT"), "explicit external grant provenance missing")
 })
 
 test("high-impact tools are not allow-listed in any other agent", () => {

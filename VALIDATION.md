@@ -3,8 +3,8 @@
 ## A. Source/static — determinística
 
 Antes de empacotar:
-- 40 grupos Python (inclui `human-authorization-boundary` + `docs-integrity`);
-- 63 testes Node (29 lifecycle/static + 4 human-auth + 18 security-negative + 12 human-grant-functional);
+- 41 grupos Python (inclui `human-authorization-boundary`, `authorization-effect-binding` + `docs-integrity`);
+- 79 testes Node (base/human-auth/security-negative + grants A-L + exact-effect/TOCTOU M-AB);
 - TypeScript `tsc --noEmit` (com `node-shim` corrigido para Windows);
 - 18 agents / 28 typed tools;
 - structured handoff ownership/schema/limits;
@@ -14,7 +14,8 @@ Antes de empacotar:
 - telemetry privacy + cost intelligence;
 - bounded provider retry;
 - installer/migrator/uninstaller safety;
-- human authorization boundary (`repo policy != human authority`, `ask` para mutações de alto impacto, `AUTO_APPROVED` vs `USER_APPROVED` fail-closed).
+- authorization boundary (`repo policy != mutation authority`; `ask` + explicit external grant; `--auto`/`always` não substituem grant).
+- exact-effect authorization binding + TOCTOU guards (M-AB) e grant-store isolation/corruption fail-closed.
 
 ## B. Core runtime — bloqueante para operação
 

@@ -2,9 +2,9 @@
 
 ## Source gates
 
-- Python regression groups: **40/40 PASS** before release sealing (inclui `human-authorization-boundary` + `docs-integrity`).
+- Python regression groups: **41/41 PASS** before release sealing (inclui `human-authorization-boundary` + `authorization-effect-binding` + `docs-integrity`).
 - Static Policy: **PASS**.
-- Plugin Node tests: **63/63 PASS** (29 base + 4 human-auth + 18 security-negative + 12 human-grant-functional).
+- Plugin Node tests: **79/79 PASS** (base/human-auth/security-negative + grants A-L + exact-effect/TOCTOU M-AB).
 - TypeScript `tsc --noEmit`: **PASS** (Windows shim fix: `fileURLToPath`, `Buffer`, `node:os`).
 - V2 plugin lifecycle mock: **PASS** for `Plugin.define` SDK and raw-default compatibility SDK.
 - Security negative tests: **PASS** (25 cenários: self-auth, human approval, policy outside root, symlink, `.git/config`, secret outbound, staged secret, allowlists, duplicate/verification, JSONL corrupt, oversized, traversal, junction, minimal env, Docker defaults, circuit breaker, handoff revision, post_state, auto-approve).

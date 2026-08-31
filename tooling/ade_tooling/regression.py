@@ -17,7 +17,7 @@ def _expect(cond: bool, message: str) -> None:
 def _group_package_layout(root: Path) -> None:
     required = [
         "VERSION","README.md","VALIDATION.md","AGENTS.managed.md","plugin/package.json","plugin/capabilities.json",
-        "plugin/src/index.ts","plugin/tests/lifecycle.test.mjs","OPENCODE_V2_AUDIT.md","tooling/ade.py","tooling/ade_tooling/common.py",
+        "plugin/src/index.ts","plugin/tests/lifecycle.test.mjs","plugin/tests/authorization-toctou.test.mjs","OPENCODE_V2_AUDIT.md","tooling/ade.py","tooling/ade_tooling/common.py",
         "tooling/ade_tooling/install.py","tooling/ade_tooling/smoke.py","tooling/ade_tooling/regression.py","tooling/ade_tooling/live_test.py",
     ]
     for rel in required: _expect((root/rel).is_file(), f"arquivo obrigatório ausente: {rel}")
@@ -335,7 +335,7 @@ def _group_human_authorization_boundary(root: Path) -> None:
     _expect("ADE_HUMAN_AUTHORIZATION_REQUIRED" in src, "human authorization message missing")
     _expect('grantsRootDir' in src and 'createHumanGrant' in src and 'consumeHumanGrant' in src, "grant create/consume missing")
     _expect("grantsRootDir" in src and ".ai" not in src.split("grantsRootDir")[1].split(")")[0] or True, "grant storage must be outside .ai")
-    _expect("AUTO_APPROVED" in src and "USER_APPROVED" in src, "auto-approve distinction missing")
+    _expect("AUTO_APPROVED" in src and "EXPLICIT_EXTERNAL_GRANT" in src, "auto-approve distinction missing")
     _expect("single-use" in src.lower() or "single_use" in src.lower() or "max_uses" in src.lower(), "single-use grant missing")
     _expect("resourceFingerprintFor" in src, "resource fingerprint missing")
     _expect("projectHashForRoot" in src and "realpath" in src, "project hash realpath missing")
@@ -376,6 +376,20 @@ def _group_human_authorization_boundary(root: Path) -> None:
     # command ade-authorize must exist and be outside .ai
     _expect('name:"ade-authorize"' in src, "ade-authorize command missing")
     _expect("grantsRootDir" in src and "ade-grants" in src, "grant storage outside .ai missing")
+
+
+def _group_authorization_effect_binding(root: Path) -> None:
+    src=read_text(root/"plugin/src/index.ts")
+    tests=read_text(root/"plugin/tests/authorization-toctou.test.mjs")
+    fp=src[src.find("function resourceFingerprintFor"):src.find("const PRODUCT_TRANSITIONS")]
+    for marker in ("body_sha256", "target: extra.target", "worktree_content_sha256", "staged_diff_sha256", "tree_sha", "head_sha", "definition_sha256"):
+        _expect(marker in fp, f"authorization effect binding missing {marker}")
+    _expect("slice(0, 200)" not in fp and "slice(0,200)" not in fp, "authorization fingerprint must not truncate semantic payloads")
+    for marker in ("assertAuthorizationUnchanged", "resourceTouchesGrantStore", "EXPLICIT_EXTERNAL_GRANT", "ADE_AUTHORIZATION_STALE", "ADE_GRANT_STORE_CORRUPT"):
+        _expect(marker in src, f"authorization runtime hardening missing {marker}")
+    _expect("`${authorizedSha}:refs/heads/${b}`" in src, "push must use explicit authorized SHA refspec")
+    for label in ("M full tracker body", "N full PR body", "O tracker project target change", "P commit staged-state change", "Q push HEAD change", "R PR repository/base/head change", "S project-check definition change", "T agent read", "U agent edit/write", "V canonicalization", "W stage worktree change", "X corrupted grant store", "Y valid push", "Z valid project-check", "AA grant store redirected inside project", "AB grant store parent symlink"):
+        _expect(label in tests, f"functional authorization test missing {label}")
 
 def _group_docs_integrity(root: Path) -> None:
     # Detect headings/lines duplicated by patcher: concatenated headings without newline or duplicate consecutive lines
@@ -450,7 +464,7 @@ GROUPS: list[tuple[str, Callable[[Path], None]]] = [
     ("project-check-bypass-guards",_group_project_check),("runtime-observe-redaction",_group_runtime_observe),("template-parity",_group_templates),
     ("opencode-v2-plugin-contract",_group_plugin_v2_contract),("session-scoped-location",_group_session_scoped_location),("v2-location-envelopes",_group_v2_location_envelopes),
     ("native-bootstrap",_group_bootstrap),("plugin-commands",_group_commands),("provider-wire-schema-compat",_group_provider_wire_schema),
-    ("behavioral-eval-separation",_group_behavioral_separation),("delegation-driven-children",_group_delegation_driven_children),("deterministic-control-plane",_group_deterministic_control_plane),("live-integration-harness",_group_live_integration_harness),("security-hardening",_group_security_hardening),("human-authorization-boundary",_group_human_authorization_boundary),("docs-integrity",_group_docs_integrity),("managed-upgrade-safety",_group_managed_upgrade_safety),("opencode-config-fragment",_group_config_fragment),
+    ("behavioral-eval-separation",_group_behavioral_separation),("delegation-driven-children",_group_delegation_driven_children),("deterministic-control-plane",_group_deterministic_control_plane),("live-integration-harness",_group_live_integration_harness),("security-hardening",_group_security_hardening),("human-authorization-boundary",_group_human_authorization_boundary),("authorization-effect-binding",_group_authorization_effect_binding),("docs-integrity",_group_docs_integrity),("managed-upgrade-safety",_group_managed_upgrade_safety),("opencode-config-fragment",_group_config_fragment),
     ("python-first-tooling",_group_python_tooling),("package-hygiene",_group_unwanted_artifacts),("release-integrity",_group_release),
 ]
 

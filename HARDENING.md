@@ -2,20 +2,26 @@
 
 ## Princípio
 
-`repo policy != autorização humana`. Arquivos sob controle do repositório (`.ai/*-policy.json`, `integrations.json`) definem escopo máximo, mas nunca concedem sozinhos autoridade para mutação destrutiva/externa. A autorização humana vem de **capability grant externo** fora de `.ai` (criado via `/ade-authorize`), validado por guards determinísticos antes de qualquer efeito externo.
+`repo policy != autorização humana`. Arquivos sob controle do repositório (`.ai/*-policy.json`, `integrations.json`) definem escopo máximo, mas nunca concedem sozinhos autoridade para mutação destrutiva/externa. A autoridade para mutações sensíveis vem de um **explicit external grant** fora de `.ai` (criado via `/ade-authorize`), validado por guards determinísticos antes de qualquer efeito externo. O plugin não alega prova criptográfica de presença física humana; prova que o fluxo normal de agent tools/repo policy não consegue autoemitir a capability.
 
-Fluxo exigido: `PROJECT POLICY (max) → ADE DETERMINISTIC GUARDS (validate) → OPENCODE PERMISSION LAYER (deny/ask/allow) → HUMAN GRANT (outside .ai, single-use, TTL, fingerprint) → execução`. Sem grant → `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations. `ask` em `--auto` é `AUTO_APPROVED` e não substitui grant.
+Fluxo exigido: `PROJECT POLICY (max) → ADE DETERMINISTIC GUARDS (validate) → OPENCODE PERMISSION LAYER (deny/ask/allow) → EXPLICIT EXTERNAL GRANT (outside .ai, single-use, TTL, exact-effect fingerprint) → execução`. Sem grant → `ADE_HUMAN_AUTHORIZATION_REQUIRED` e ZERO external mutations. `ask` em `--auto` é `AUTO_APPROVED` e não substitui grant.
 
 ## Two-channel Human Authorization (v5.2.6 Hardened)
 
 Para operações `HUMAN_REQUIRED` (`tracker sync/write`, `vcs stage/commit/push/pr_create`, `project/diagnostic check` com host process), o plugin exige **grant efêmero** fora do repo:
 
-- Criado **apenas** via comando humano `/ade-authorize <tool> [json-resource]` no TUI; agente/modelo não tem tool para criar grants.
-- Armazenado em `~/.config/opencode/ade-grants/<project_hash>.jsonl` (Windows: `%LOCALAPPDATA%\opencode\ade-grants`) com `withFileLock`, `fsync`, `0o600`, **fora de `.ai`**; grants dentro de `.ai` são ignorados.
-- Contém `{project_hash=sha256(realpath(root)), action, resource_hash=sha256(canonical(resource)), nonce, issued_at, expires_at (10min), max_uses=1, remaining_uses}`; `resource_hash` é fingerprint exato (ex: `updates` sorted para tracker sync, `{branch,remote,remote_url}` para push, `{paths}` sorted para stage).
+- Criado via command channel `/ade-authorize <tool> <json-input>`; agente/modelo não recebe uma ADE tool para criar grants. Provenance registrada: `EXPLICIT_EXTERNAL_GRANT`.
+- Armazenado em `$XDG_STATE_HOME/opencode/ade-grants/<project_hash>.jsonl` (fallback Unix: `~/.local/state/opencode/ade-grants`; Windows: `%LOCALAPPDATA%\opencode\ade-grants`) com `withFileLock`, `fsync`, `0o600`, **fora de `.ai`**; grants dentro de `.ai` são ignorados.
+- Contém `{project_hash=sha256(realpath(root)), action, resource_hash=sha256(canonical(exact_effect)), nonce, issued_at, expires_at (10min), max_uses=1, remaining_uses}`; `resource_hash` é fingerprint do efeito exato: target/config remoto + updates para tracker, body completo por digest, conteúdo worktree para stage, HEAD + staged raw/tree para commit, HEAD + remote URL para push, owner/repo/base/head SHA + body digest para PR e hash integral da definição de project-check.
 - Consumo é **atômico antes do side effect** via `withFileLock`; sem grant → ZERO `fetch`/`spawn`/`git`; grant expirado, `max_uses` esgotado, `action`/`resource` mismatch, ou `project_hash` diferente (alias) → bloqueado.
 - `always allow` salvo não substitui grant; `dry_run` não exige grant.
-- Telemetry registra `human.grant.create`/`consume`/`missing` com `authorization=USER_GRANT` ou `NONE`/`AUTO_UNTRUSTED` sem segredo.
+- Telemetry registra `human.grant.create`/`consume`/`missing` com `authorization=EXPLICIT_EXTERNAL_GRANT` ou `NONE_OR_STALE` sem segredo.
+
+## Exact-effect binding e TOCTOU
+
+A emissão e o consumo calculam o mesmo fingerprint a partir do estado resolvido. Após o grant ser consumido, a tool recalcula o fingerprint **imediatamente antes do primeiro side effect**; divergência resulta em `ADE_AUTHORIZATION_STALE`. Campos grandes não são truncados: bodies são ligados por SHA-256 completo. O store rejeita corrupção/oversize e agents não podem ler ou editar seu path via permission hook.
+
+Para VCS, stage liga o grant ao conteúdo atual dos paths; commit inclui branch, HEAD, staged raw digest e tree SHA; push inclui branch/remote/URL/HEAD e usa refspec com o **SHA autorizado explícito**; PR inclui owner/repo/base/head/head SHA/title/body digest. Project/diagnostic checks incluem o hash canônico da definição executável.
 
 ## Auto-approve e `ask`
 
@@ -78,7 +84,7 @@ GitHub Project sync (`ade_tracker_project_sync`):
 - Host process checks exigem `allow_host_process=true` e `runner: process` explícito; caso contrário bloqueia com `prefira docker sandbox`.
 - Interpreters genéricos bloqueados em `blockedExecutables`: `pwsh`, `powershell`, `cmd`, `bash`, `sh`, `zsh`, `fish`, `wsl`, `docker`, `podman`, `git` — não podem ser `executable` por caminho genérico.
 - Argumentos limitados (`≤64`, cada `≤4096`, total `≤65536`, sem `\0`).
-- `environment.allow` ≤32 entradas, cada `^[A-Za-z_][A-Za-z0-9_]{0,63}$`; secret env exige `allow_secret_environment=true`.
+- `environment.allow` ≤32 entradas, cada `^[A-ABa-z_][A-ABa-z0-9_]{0,63}$`; secret env exige `allow_secret_environment=true`.
 
 ## Docker
 

@@ -46,11 +46,34 @@ function grantsRootDir(): string {
   const base = process.env.XDG_STATE_HOME || path.join(home, ".local", "state")
   return path.join(base, "opencode", "ade-grants")
 }
+function normalizedPathKey(value:string):string{
+  const resolved=path.resolve(value)
+  return process.platform==="win32" ? resolved.toLowerCase() : resolved
+}
+function pathEqOrInside(base:string,candidate:string):boolean{
+  const b=normalizedPathKey(base),c=normalizedPathKey(candidate),rel=path.relative(b,c)
+  return rel==="" || (!rel.startsWith("..")&&!path.isAbsolute(rel))
+}
+function resourceTouchesGrantStore(resource:any):boolean{
+  let raw=String(resource||"").trim(); if(!raw) return false
+  if(raw.startsWith("file://")){try{raw=fileURLToPath(raw)}catch{}}
+  if(!path.isAbsolute(raw)) return false
+  return pathEqOrInside(grantsRootDir(),raw)
+}
 async function ensureGrantsDir(): Promise<string> {
-  const dir = grantsRootDir()
+  const dir = path.resolve(grantsRootDir())
   await fs.mkdir(dir, { recursive: true, mode: 0o700 })
+  const st=await fs.lstat(dir); if(st.isSymbolicLink()||!st.isDirectory()) throw new Error("ADE_GRANT_STORE_UNSAFE: grants root must be a regular directory")
+  const real=await fs.realpath(dir)
+  if(normalizedPathKey(real)!==normalizedPathKey(dir)) throw new Error("ADE_GRANT_STORE_UNSAFE: grants root or parent resolves through symlink/junction")
   if (process.platform !== "win32") try { await fs.chmod(dir, 0o700) } catch {}
-  return dir
+  return real
+}
+async function assertGrantStoreSafeForProject(root:string):Promise<string>{
+  const store=await ensureGrantsDir()
+  const project=await fs.realpath(root)
+  if(pathEqOrInside(project,store)||pathEqOrInside(store,project)) throw new Error("ADE_GRANT_STORE_UNSAFE: grant store must be disjoint from project root")
+  return store
 }
 function canonicalStringify(value: any): string {
   if (Array.isArray(value)) return "[" + value.map(canonicalStringify).join(",") + "]"
@@ -60,12 +83,17 @@ function canonicalStringify(value: any): string {
   }
   return JSON.stringify(value)
 }
+function sha256Hex(value: string | Uint8Array): string {
+  return crypto.createHash("sha256").update(value).digest("hex")
+}
 function hashResource(obj: any): string {
-  return crypto.createHash("sha256").update(canonicalStringify(obj)).digest("hex").slice(0, 32)
+  // Authorization fingerprints use the full SHA-256. Only the digest is persisted;
+  // semantic payloads remain transient.
+  return sha256Hex(canonicalStringify(obj))
 }
 async function projectHashForRoot(root: string): Promise<string> {
   const real = await fs.realpath(root)
-  return crypto.createHash("sha256").update(real).digest("hex").slice(0, 16)
+  return crypto.createHash("sha256").update(process.platform==="win32"?real.toLowerCase():real).digest("hex")
 }
 function grantFileForProjectHash(projectHash: string): string {
   return path.join(grantsRootDir(), `${projectHash}.jsonl`)
@@ -77,15 +105,18 @@ async function readGrants(projectHash: string): Promise<any[]> {
     const st = await fs.lstat(file)
     if (st.isSymbolicLink() || !st.isFile()) return []
   } catch { return [] }
+  const st=await fs.stat(file);if(st.size>1_000_000)throw new Error("ADE_GRANT_STORE_CORRUPT: grant file exceeds 1MB")
   const raw = await fs.readFile(file, "utf8")
-  const out: any[] = []
+  const out: any[] = [];let corrupt=0
   for (const line of raw.split(/\r?\n/)) {
     if (!line.trim()) continue
     try {
       const g = JSON.parse(line)
-      if (g && typeof g === "object" && typeof g.id === "string") out.push(g)
-    } catch { /* ignore corrupt line, will be cleaned */ }
+      const valid=g&&typeof g==="object"&&/^gr-[0-9a-f-]{20,}$/i.test(String(g.id||""))&&HUMAN_REQUIRED.has(String(g.action||""))&&/^[0-9a-f]{64}$/i.test(String(g.project_hash||""))&&/^[0-9a-f]{64}$/i.test(String(g.resource_hash||""))&&Number(g.max_uses)===1&&Number(g.remaining_uses)===1&&Number.isFinite(Date.parse(String(g.expires_at||"")))
+      if(!valid){corrupt++;continue} out.push(g)
+    } catch { corrupt++ }
   }
+  if(corrupt)throw new Error(`ADE_GRANT_STORE_CORRUPT: invalid_records=${corrupt}`)
   return out
 }
 async function writeGrantsAtomic(projectHash: string, grants: any[]): Promise<void> {
@@ -99,16 +130,18 @@ async function writeGrantsAtomic(projectHash: string, grants: any[]): Promise<vo
 }
 async function createHumanGrant(root: string, action: string, resourceHash: string, opts: { ttlMs?: number, maxUses?: number } = {}): Promise<any> {
   const projectHash = await projectHashForRoot(root)
-  const now = Date.now()
+  await assertGrantStoreSafeForProject(root)
+  const now = Date.now(),ttl=Math.min(Math.max(Number(opts.ttlMs ?? GRANT_TTL_MS),1000),GRANT_TTL_MS),maxUses=Number(opts.maxUses ?? GRANT_MAX_USES)
+  if(maxUses!==1)throw new Error("ADE_GRANT_BLOCKED: grants are single-use only")
   const grant = {
     id: `gr-${crypto.randomUUID()}`,
     action,
     project_hash: projectHash,
     resource_hash: resourceHash,
     issued_at: new Date(now).toISOString(),
-    expires_at: new Date(now + (opts.ttlMs ?? GRANT_TTL_MS)).toISOString(),
-    max_uses: opts.maxUses ?? GRANT_MAX_USES,
-    remaining_uses: opts.maxUses ?? GRANT_MAX_USES,
+    expires_at: new Date(now + ttl).toISOString(),
+    max_uses: maxUses,
+    remaining_uses: maxUses,
     nonce: crypto.randomUUID(),
   }
   const file = grantFileForProjectHash(projectHash)
@@ -129,7 +162,7 @@ async function createHumanGrant(root: string, action: string, resourceHash: stri
 }
 async function consumeHumanGrant(root: string, action: string, resourceHash: string): Promise<{ consumed: boolean, grantId?: string, reason?: string }> {
   const projectHash = await projectHashForRoot(root)
-  await ensureGrantsDir()
+  await assertGrantStoreSafeForProject(root)
   const file = grantFileForProjectHash(projectHash)
   const lock = `${file}.lock`
   return withFileLock(lock, 5000, async () => {
@@ -169,35 +202,132 @@ async function consumeHumanGrant(root: string, action: string, resourceHash: str
   })
 }
 function resourceFingerprintFor(tool: string, input: any, extra: any = {}): string {
-  let obj: any = {}
+  let obj: any = { tool }
   if (tool === "ade_tracker_project_sync") {
     const updates = Array.isArray(input.updates) ? input.updates : []
     const norm = updates.map((u: any) => ({
       external_id: String(u.external_id || ""),
       item_id: String(u.item_id || ""),
-      fields: Array.isArray(u.fields) ? [...u.fields].map((f: any) => ({ name: String(f.name || ""), value: String(f.value || "") })).sort((a: any, b: any) => a.name.localeCompare(b.name)) : []
-    })).sort((a: any, b: any) => (a.external_id + a.item_id).localeCompare(b.external_id + b.item_id))
-    obj = { updates: norm }
+      fields: Array.isArray(u.fields)
+        ? [...u.fields].map((f: any) => ({ name: String(f.name || ""), value: String(f.value ?? "") })).sort((a: any, b: any) => a.name.localeCompare(b.name))
+        : []
+    })).sort((a: any, b: any) => (a.external_id + "|" + a.item_id).localeCompare(b.external_id + "|" + b.item_id))
+    obj = { tool, target: extra.target || null, updates: norm }
   } else if (tool === "ade_tracker_write") {
-    obj = { action: String(input.action || ""), external_id: String(input.external_id || ""), internal_id: String(input.internal_id || ""), title: String(input.title || ""), body: String(input.body || "").slice(0, 200), status: String(input.status || ""), url: String(input.url || ""), query: String(input.query || "") }
-    obj = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== ""))
+    obj = {
+      tool,
+      target: extra.target || null,
+      action: String(input.action || ""),
+      external_id: String(input.external_id || ""),
+      internal_id: String(input.internal_id || ""),
+      title: String(input.title || ""),
+      body_sha256: sha256Hex(String(input.body || "")),
+      status: String(input.status || ""),
+      url: String(input.url || ""),
+      query_sha256: sha256Hex(String(input.query || "")),
+    }
   } else if (tool === "ade_vcs_stage") {
     const paths = Array.isArray(input.paths) ? [...input.paths].map(String).sort() : []
-    obj = { paths }
+    obj = { tool, paths, worktree_content_sha256: String(extra.worktree_content_sha256 || "") }
   } else if (tool === "ade_vcs_commit") {
-    obj = { message: String(input.message || ""), branch: String(extra.branch || "") }
+    obj = {
+      tool,
+      message: String(input.message || ""),
+      branch: String(extra.branch || ""),
+      head_sha: String(extra.head_sha || ""),
+      staged_diff_sha256: String(extra.staged_diff_sha256 || ""),
+      tree_sha: String(extra.tree_sha || ""),
+    }
   } else if (tool === "ade_vcs_push") {
-    obj = { branch: String(extra.branch || ""), remote: String(extra.remote || ""), remote_url: String(extra.remote_url || "") }
+    obj = {
+      tool,
+      branch: String(extra.branch || ""),
+      remote: String(extra.remote || ""),
+      remote_url: String(extra.remote_url || ""),
+      head_sha: String(extra.head_sha || ""),
+    }
   } else if (tool === "ade_pr_create") {
-    obj = { title: String(input.title || ""), base: String(input.base || ""), head: String(extra.head || ""), body: String(input.body || "").slice(0, 200) }
-    if (!obj.body) delete obj.body
+    obj = {
+      tool,
+      owner: String(extra.owner || ""),
+      repository: String(extra.repository || ""),
+      title: String(input.title || ""),
+      base: String(input.base || extra.base || ""),
+      head: String(extra.head || ""),
+      head_sha: String(extra.head_sha || ""),
+      body_sha256: sha256Hex(String(input.body || "")),
+    }
   } else if (tool === "ade_project_check" || tool === "ade_diagnostic_check") {
-    obj = { name: String(input.name || "") }
+    obj = {
+      tool,
+      name: String(input.name || ""),
+      definition_sha256: String(extra.definition_sha256 || ""),
+    }
   } else {
-    obj = { input: canonicalStringify(input) }
+    obj = { tool, input_sha256: sha256Hex(canonicalStringify(input)) }
   }
   return hashResource(obj)
 }
+
+async function hashFileStreaming(file: string): Promise<{sha256:string,size:number}> {
+  const h = crypto.createHash("sha256")
+  const fh = await fs.open(file, "r")
+  let size = 0
+  try {
+    const buf = Buffer.allocUnsafe(256 * 1024)
+    for (;;) {
+      const { bytesRead } = await fh.read(buf, 0, buf.length, null)
+      if (!bytesRead) break
+      h.update(buf.subarray(0, bytesRead)); size += bytesRead
+      if (size > 256 * 1024 * 1024) throw new Error("VCS_BLOCKED: authorization fingerprint file exceeds 256MB")
+    }
+  } finally { await fh.close() }
+  return { sha256: h.digest("hex"), size }
+}
+
+async function currentHeadSha(root: string): Promise<string> {
+  const r = await runGit(root,["-C",root,"rev-parse","HEAD"],{timeout:10000})
+  if(r.code!==0) throw new Error(cleanErrorText(r.stderr||"VCS_BLOCKED: HEAD indisponível"))
+  const sha=r.stdout.trim(); if(!/^[0-9a-f]{40,64}$/i.test(sha)) throw new Error("VCS_BLOCKED: HEAD inválido")
+  return sha
+}
+
+async function worktreeAuthorizationMaterial(root: string, rawPaths: any): Promise<any> {
+  const paths=(Array.isArray(rawPaths)?rawPaths:[]).map((p:any)=>relativeLiteralPath(root,String(p))).sort()
+  if(!paths.length) throw new Error("VCS_BLOCKED: paths vazios")
+  const listed=await runGit(root,["-C",root,"ls-files","-z","--cached","--others","--exclude-standard","--",...paths],{timeout:20000,maxOutput:2_000_000})
+  if(listed.code!==0||listed.truncated)throw new Error("VCS_BLOCKED: authorization file list unavailable or exceeds 2MB")
+  const deletedR=await runGit(root,["-C",root,"ls-files","-z","--deleted","--",...paths],{timeout:15000,maxOutput:2_000_000})
+  if(deletedR.code!==0||deletedR.truncated)throw new Error("VCS_BLOCKED: authorization deleted-file list unavailable or exceeds 2MB")
+  const names=[...new Set(listed.stdout.split("\0").filter(Boolean))].sort();if(names.length>1000)throw new Error("VCS_BLOCKED: authorization path expansion exceeds 1000 files")
+  const files:any[]=[]
+  for(const rel of names){
+    const lexical=path.resolve(root,rel);if(!inside(root,lexical))throw new Error("VCS_BLOCKED: authorization path escaped project")
+    const st=await fs.lstat(lexical)
+    if(st.isSymbolicLink()){const target=await fs.readlink(lexical);files.push({path:rel.replaceAll("\\","/"),type:"symlink",target_sha256:sha256Hex(target),mode:st.mode&0o777})}
+    else if(st.isFile()){const digest=await hashFileStreaming(lexical);files.push({path:rel.replaceAll("\\","/"),type:"file",...digest,executable:Boolean(st.mode&0o111)})}
+  }
+  return {paths,files,deleted:[...new Set(deletedR.stdout.split("\0").filter(Boolean))].sort()}
+}
+
+async function stagedAuthorizationMaterial(root: string): Promise<any> {
+  const branch=await currentBranch(root),head_sha=await currentHeadSha(root)
+  const raw=await runGit(root,["-C",root,"diff","--cached","--raw","-z","--no-abbrev"],{timeout:30000,maxOutput:2_000_000})
+  if(raw.code!==0||raw.truncated)throw new Error("VCS_BLOCKED: staged authorization metadata unavailable or exceeds 2MB")
+  const tree=await runGit(root,["-C",root,"write-tree"],{timeout:15000,maxOutput:10000});if(tree.code!==0||tree.truncated)throw new Error("VCS_BLOCKED: staged tree unavailable")
+  const tree_sha=tree.stdout.trim();if(!/^[0-9a-f]{40,64}$/i.test(tree_sha))throw new Error("VCS_BLOCKED: staged tree hash inválido")
+  return {branch,head_sha,staged_diff_sha256:sha256Hex(raw.stdout),tree_sha}
+}
+
+
+async function projectCheckDefinitionMaterial(root:string,name:string,expectedOwner:"verifier"|"debugger"):Promise<any>{
+  const policy=await readProjectJson(root,".ai/execution-policy.json","execution policy")
+  if(policy.authorized!==true) throw new Error("PROJECT_CHECK_BLOCKED: policy authorized=false")
+  const c=policy.checks?.[name]; if(!c) throw new Error(`PROJECT_CHECK_BLOCKED: check '${name}' ausente`)
+  if(c.owner!==expectedOwner || c.non_destructive!==true) throw new Error(`PROJECT_CHECK_BLOCKED: owner/non_destructive inválido; expected=${expectedOwner}`)
+  return {name,definition_sha256:sha256Hex(canonicalStringify({authorized:true,check:c}))}
+}
+
 
 const PRODUCT_TRANSITIONS: Record<string, readonly string[]> = {
   DRAFT: ["NEEDS_HUMAN_DECISION","AUTHORIZED_BY_REQUEST","SUPERSEDED"],
@@ -406,8 +536,8 @@ async function resolveTrustedExecutable(executable:string,root:string){
   if(executable.includes("/")||executable.includes("\\"))throw new Error("EXECUTABLE_BLOCKED: relative executable path")
   const entries=String(process.env.PATH||process.env.Path||"").split(path.delimiter).filter(Boolean);for(const entry of entries){const base=path.resolve(entry);if(inside(root,base))continue;for(const name of candidateExecutableNames(executable)){const c=path.join(base,name);try{const st=await fs.stat(c);if(st.isFile()){const real=await fs.realpath(c);if(!inside(root,real))return real}}catch{}}}throw new Error(`EXECUTABLE_NOT_FOUND: ${executable}`)
 }
-function run(executable:string,args:string[],options:{cwd:string,env?:NodeJS.ProcessEnv,timeout?:number,maxOutput?:number}):Promise<{code:number,stdout:string,stderr:string}>{
-  return new Promise((resolve,reject)=>{const child=spawn(executable,args,{cwd:options.cwd,env:options.env||minimalEnv(),shell:false,windowsHide:true});let out="",err="";const cap=Math.max(1024,Math.min(Number(options.maxOutput||1000000),2000000));let settled=false;const add=(cur:string,d:any)=>(cur+String(d)).slice(0,cap);child.stdout?.on("data",d=>out=add(out,d));child.stderr?.on("data",d=>err=add(err,d));const timer=setTimeout(()=>{if(settled)return;settled=true;try{child.kill("SIGKILL")}catch{};reject(new Error(`timeout após ${options.timeout||120000}ms`))},options.timeout||120000);child.on("error",e=>{if(settled)return;settled=true;clearTimeout(timer);reject(e)});child.on("close",c=>{if(settled)return;settled=true;clearTimeout(timer);resolve({code:c??-1,stdout:redactSensitiveText(out,cap),stderr:redactSensitiveText(err,cap)})})})
+function run(executable:string,args:string[],options:{cwd:string,env?:NodeJS.ProcessEnv,timeout?:number,maxOutput?:number}):Promise<{code:number,stdout:string,stderr:string,truncated:boolean}>{
+  return new Promise((resolve,reject)=>{const child=spawn(executable,args,{cwd:options.cwd,env:options.env||minimalEnv(),shell:false,windowsHide:true});let out="",err="",truncated=false;const cap=Math.max(1024,Math.min(Number(options.maxOutput||1000000),2000000));let settled=false;const add=(cur:string,d:any)=>{const next=cur+String(d);if(next.length>cap)truncated=true;return next.slice(0,cap)};child.stdout?.on("data",d=>out=add(out,d));child.stderr?.on("data",d=>err=add(err,d));const timer=setTimeout(()=>{if(settled)return;settled=true;try{child.kill("SIGKILL")}catch{};reject(new Error(`timeout após ${options.timeout||120000}ms`))},options.timeout||120000);child.on("error",e=>{if(settled)return;settled=true;clearTimeout(timer);reject(e)});child.on("close",c=>{if(settled)return;settled=true;clearTimeout(timer);resolve({code:c??-1,stdout:redactSensitiveText(out,cap),stderr:redactSensitiveText(err,cap),truncated})})})
 }
 async function runTrusted(executable:string,args:string[],options:{cwd:string,env?:NodeJS.ProcessEnv,timeout?:number,maxOutput?:number}){const resolved=await resolveTrustedExecutable(executable,options.cwd);return run(resolved,args,{...options,env:options.env||minimalEnv()})}
 async function runGit(root:string,args:string[],options:{timeout?:number,maxOutput?:number}={}){return runTrusted("git",args,{cwd:root,env:vcsEnv(),...options})}
@@ -634,7 +764,7 @@ async function integrationSecret(ctx:any,id:string):Promise<string|undefined>{
   try{const c=await ctx.integration.connection.active(id);if(!c)return undefined;const candidates=credentialCandidates(await ctx.integration.connection.resolve(c));if(candidates.length>1)throw new Error("INTEGRATION_AUTH_AMBIGUOUS");return candidates[0]}catch(e){if(asError(e).includes("AMBIGUOUS"))throw e;return undefined}
 }
 
-async function nativeProjectCheck(root:string,name:string,expectedOwner:"verifier"|"debugger"="verifier",validationAuthority=true) {
+async function nativeProjectCheck(root:string,name:string,expectedOwner:"verifier"|"debugger"="verifier",validationAuthority=true,preSideEffect?:()=>Promise<void>) {
   const policyPath=path.join(root,".ai","execution-policy.json")
   if(!(await exists(policyPath))) throw new Error(`PROJECT_CHECK_BLOCKED: execution policy ausente; project_root=${root}; policy=.ai/execution-policy.json`)
   const policy=await readProjectJson(root,".ai/execution-policy.json","execution policy")
@@ -655,6 +785,7 @@ async function nativeProjectCheck(root:string,name:string,expectedOwner:"verifie
     const envNames=Array.isArray(c.environment?.allow)?c.environment.allow.map(String):[];if(envNames.length>32||envNames.some((x:string)=>!/^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(x)))throw new Error("PROJECT_CHECK_BLOCKED: environment.allow inválido")
     const deniedEnv=/TOKEN|SECRET|PASSWORD|PASSWD|KEY|CREDENTIAL|AUTH/i;if(c.environment?.allow_secret_environment!==true&&envNames.some((x:string)=>deniedEnv.test(x)))throw new Error("PROJECT_CHECK_BLOCKED: secret environment exige allow_secret_environment=true")
     const extra:any={};for(const k of envNames)if(process.env[k]!=null)extra[k]=process.env[k]
+    if(preSideEffect)await preSideEffect()
     const r=await run(exe,args,{cwd,env:minimalEnv(extra),timeout:Math.min(Math.max(Number(c.timeout_ms||120000),1000),300000)});if(!allowed.includes(r.code))throw new Error(`PROJECT_CHECK_FAILED exit=${r.code}
 ${cleanErrorText(r.stderr)}`)
     return {status:validationAuthority?"PROJECT_CHECK_VALIDATED":"DIAGNOSTIC_CHECK_COMPLETED",evidence_state:validationAuthority?"VALIDADO":"OBSERVADO",validation_authority:validationAuthority,acceptance_authority:false,owner:expectedOwner,runner:"process",exit_code:r.code,stdout:redactSensitiveText(r.stdout),stderr:redactSensitiveText(r.stderr)}
@@ -670,6 +801,7 @@ ${cleanErrorText(r.stderr)}`)
     const tmp=await fs.mkdtemp(path.join(os.tmpdir(),"ade-docker-"));try{await fs.chmod(tmp,0o700)}catch{};const cidfile=path.join(tmp,"cid")
     const args=["run","--rm","--cidfile",cidfile,"--network",safeNetwork(network),"--read-only","--cap-drop","ALL","--security-opt","no-new-privileges","--pids-limit","256","--memory",memory,"--cpus",String(cpus),"--tmpfs","/tmp:rw,noexec,nosuid,size=256m","--mount",`type=bind,source=${root},target=${target}${mode==="ro"?",readonly":""}`,"-w",workdir,image,...command]
     let r:{code:number,stdout:string,stderr:string}|undefined
+    if(preSideEffect)await preSideEffect()
     try{r=await runTrusted("docker",args,{cwd:root,timeout:Math.min(Math.max(Number(c.timeout_ms||180000),1000),300000)})}
     finally{try{const cid=(await fs.readFile(cidfile,"utf8")).trim();if(/^[0-9a-f]{12,64}$/i.test(cid))await runTrusted("docker",["rm","-f",cid],{cwd:root,timeout:15000})}catch{};try{await fs.rm(tmp,{recursive:true,force:true})}catch{}}
     if(!r)throw new Error("PROJECT_CHECK_FAILED: docker não retornou resultado");if(!allowed.includes(r.code))throw new Error(`PROJECT_CHECK_FAILED exit=${r.code}
@@ -733,13 +865,14 @@ export default pluginDefine({
     const HUMAN_AUTHORIZATION_REQUIRED = new Set(["ade_tracker_project_sync","ade_tracker_write","ade_project_check","ade_diagnostic_check","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create"])
     await ctx.permission.hook("evaluate",(event:any)=>{
       const agent=String(event.agent||""); const allowed=new Set(agentTools[agent] || [])
+      if((event.resources||[]).some((r:any)=>resourceTouchesGrantStore(r))){event.effect="deny";event.message="ADE_CAPABILITY_DENIED: authorization grant store is outside agent authority";return}
       if(agentTools[agent] && event.action==="read" && (event.resources||[]).some((r:any)=>SECRET_FILE.test(String(r).replaceAll("\\",path.sep))||SENSITIVE_RESOURCE.test(String(r).replaceAll("\\",path.sep)))){event.effect="deny";event.message="ADE_CAPABILITY_DENIED: sensitive path boundary";return}
       if(String(event.action).startsWith(TOOL_PREFIX) && !allowed.has(String(event.action))) { event.effect="deny"; event.message=`ADE_CAPABILITY_DENIED: ${agent} não possui ${event.action}`; return }
       if((hideCore[agent] || []).includes("shell") && event.action==="shell") { event.effect="deny"; event.message=`ADE_CAPABILITY_DENIED: raw shell não pertence a ${agent}`; return }
       if(HUMAN_AUTHORIZATION_REQUIRED.has(String(event.action))){
         if(event.effect!=="deny"){
           event.effect="ask"
-          event.message=`ADE_HUMAN_AUTHORIZATION_REQUIRED: ${event.action} exige aprovação humana; policy do repositório (authorized=true) não substitui autorização humana. Em --auto, ask vira AUTO_APPROVED (não USER_APPROVED) e não deve ser registrado como human authorized.`
+          event.message=`ADE_HUMAN_AUTHORIZATION_REQUIRED: ${event.action} é high-impact; repo policy e OpenCode ask/allow não bastam. --auto pode autoaprovar ask (AUTO_APPROVED), mas isso não satisfaz esta barreira. O side effect exige EXPLICIT_EXTERNAL_GRANT single-use emitido via /ade-authorize para o efeito exato.`
         }
         return
       }
@@ -833,6 +966,7 @@ export default pluginDefine({
       for(const u of updates){const item=(u.item_id?itemsById.get(String(u.item_id)):undefined)||(u.external_id?itemsByExternal.get(String(u.external_id)):undefined);if(!item){preflightFailures.push({external_id:u.external_id||null,item_id:u.item_id||null,error:"TRACKER_MAPPING_FAILED: item não encontrado no project"});continue}const fspec=Array.isArray(u.fields)?u.fields:[];if(!fspec.length){preflightFailures.push({external_id:item.external_id,item_id:item.item_id,error:"TRACKER_MAPPING_FAILED: fields vazio"});continue}for(const fv of fspec){const fieldName=String(fv.name||"").trim(),targetKey=`${String(item.item_id).toLowerCase()}|${fieldName.toLowerCase()}`;if(seenTargets.has(targetKey)){preflightFailures.push({external_id:item.external_id,item_id:item.item_id,field:fieldName,error:"TRACKER_SCHEMA_FAILED: duplicate item/field update"});continue}seenTargets.add(targetKey);const field=fieldsByName.get(fieldName.toLowerCase());if(!field){preflightFailures.push({external_id:item.external_id,item_id:item.item_id,field:fv.name,error:"TRACKER_MAPPING_FAILED: field não encontrado"});continue}try{requested.push({item,field,value:fv.value,fieldValue:githubFieldValue(field,fv.value)})}catch(e){preflightFailures.push({external_id:item.external_id,item_id:item.item_id,field:field.name,error:cleanErrorText(asError(e),500)})}}}
       if(preflightFailures.length&&i.allow_partial!==true)return {status:"TRACKER_SYNC_BLOCKED_PREFLIGHT",requested:requested.length,updated:0,verified:0,failed:preflightFailures.length,failures:preflightFailures.slice(0,20),canonical_handoff:null,post_state:compactControl(await getControl(root))}
       if(i.dry_run)return {status:"TRACKER_SYNC_DRY_RUN",requested:requested.length,failures:preflightFailures,plan:requested.map((x:any)=>({external_id:x.item.external_id,item_id:x.item.item_id,field:x.field.name,value:x.value})),canonical_handoff:null}
+      await assertAuthorizationUnchanged(root,"ade_tracker_project_sync",i)
       let updated=0;const failures=[...preflightFailures];for(const r of requested){try{await githubSetProjectField(before.token,before.project.id,r.item.item_id,r.field,r.fieldValue);updated++}catch(e){failures.push({external_id:r.item.external_id,item_id:r.item.item_id,field:r.field.name,error:cleanErrorText(asError(e),500)})}}
       const after=await githubProjectSnapshot(root),afterById=new Map<string,any>(after.items.map((x:any)=>[String(x.item_id),x]));let verified=0;const verification:any[]=[];for(const r of requested){const actual=afterById.get(String(r.item.item_id))?.fields?.[r.field.name],ok=String(actual??"").toLowerCase()===String(r.value??"").toLowerCase();if(ok)verified++;else failures.push({external_id:r.item.external_id,item_id:r.item.item_id,field:r.field.name,error:`TRACKER_VERIFY_FAILED: expected='${String(r.value).slice(0,120)}' actual='${String(actual).slice(0,120)}'`});verification.push({external_id:r.item.external_id,field:r.field.name,expected:r.value,actual,verified:ok})}
       const status=failures.length===0?"DONE":verified>0?"PARTIAL":"BLOCKED",changed=[`tracker sync requested=${requested.length} updated=${updated} verified=${verified} failed=${failures.length}`],evidenceRefs=verification.filter((x:any)=>x.verified).slice(0,8).map((x:any)=>`github-project:${after.project.id}:item:${x.external_id||"?"}:${x.field}=${String(x.actual).slice(0,120)}`)
@@ -869,57 +1003,86 @@ export default pluginDefine({
       if(provider==="jira"&&typeof providerCfg.email==="string"&&providerCfg.email.trim())env.JIRA_EMAIL=providerCfg.email.trim()
       const allowedHosts=Array.isArray(trackerPolicy.remote?.allowed_https_hosts)?trackerPolicy.remote.allowed_https_hosts.map((x:any)=>String(x).toLowerCase()):[]
       if(provider==="jira"){let u:URL;try{u=new URL(String(providerCfg.base_url||""))}catch{throw new Error("TRACKER_BLOCKED: jira.base_url inválida")};if(u.protocol!=="https:"||u.username||u.password||!allowedHosts.includes(u.hostname.toLowerCase()))throw new Error("TRACKER_BLOCKED: jira host não autorizado em tracker-policy.remote.allowed_https_hosts")}
+      if(mode==="write"&&!i.dry_run)await assertAuthorizationUnchanged(root,"ade_tracker_write",i)
       const r=await runTrusted(ps,args,{cwd:root,env,timeout:120000})
       if(r.code!==0)throw new Error(r.stderr||r.stdout)
       let parsed:any; try{parsed=JSON.parse(r.stdout)}catch{parsed={raw:r.stdout}}
       return {status:"OBSERVADO",provider,mode,backend:"typed-plugin/v4-compat",result:parsed}
     }
 
+    const trackerTargetIdentity=(provider:string,providerCfg:any,project?:any)=>{
+      const base:any={provider,connection_id:String(providerCfg?.connection_id||provider||"")}
+      if(provider==="github") return {...base,host:"api.github.com",owner:String(providerCfg?.owner||""),repository:String(providerCfg?.repository||""),project_owner:String(providerCfg?.project_owner||providerCfg?.owner||""),project_number:Number(providerCfg?.project_number||0),project_id:String(project?.id||"")}
+      if(provider==="jira"){let host="";try{host=new URL(String(providerCfg?.base_url||"")).hostname.toLowerCase()}catch{};return {...base,host,project_key:String(providerCfg?.project_key||"")}}
+      if(provider==="linear") return {...base,host:"api.linear.app",team_id:String(providerCfg?.team_id||"")}
+      return {...base}
+    }
+    const resolveAuthorizationFingerprint=async(root:string,name:string,input:any):Promise<string>=>{
+      if(name==="ade_tracker_project_sync"){
+        const {provider,providerCfg}=await trackerSettings(root,true);if(provider!=="github")throw new Error(`TRACKER_BLOCKED: deterministic project sync supports github; provider=${provider}`)
+        const target=trackerTargetIdentity(provider,providerCfg)
+        return resourceFingerprintFor(name,input,{target})
+      }
+      if(name==="ade_tracker_write"){
+        const {provider,providerCfg}=await trackerSettings(root,true);return resourceFingerprintFor(name,input,{target:trackerTargetIdentity(provider,providerCfg)})
+      }
+      if(name==="ade_vcs_stage"){
+        const material=await worktreeAuthorizationMaterial(root,input.paths);return resourceFingerprintFor(name,input,{worktree_content_sha256:sha256Hex(canonicalStringify(material))})
+      }
+      if(name==="ade_vcs_commit"){
+        const material=await stagedAuthorizationMaterial(root);return resourceFingerprintFor(name,input,material)
+      }
+      if(name==="ade_vcs_push"){
+        const policy=await vcsPolicy(root);if(policy.push?.allowed!==true)throw new Error("VCS_BLOCKED: push disabled")
+        const branch=await currentBranch(root),remote=String(policy.push?.remote||"origin");if(!/^[A-Za-z0-9._-]+$/.test(remote))throw new Error("VCS_BLOCKED: remote inválido")
+        const remote_url=await assertPushRemoteAllowed(root,policy,remote),head_sha=await currentHeadSha(root)
+        return resourceFingerprintFor(name,input,{branch,remote,remote_url,head_sha})
+      }
+      if(name==="ade_pr_create"){
+        const policy=await vcsPolicy(root);if(policy.pull_request?.allowed!==true)throw new Error("VCS_BLOCKED: pull_request disabled")
+        const cfg=await readProjectJson(root,".ai/integrations.json","integrations"),g=cfg.work_management?.github||{},owner=String(g.owner||""),repository=String(g.repository||"")
+        if(!owner||!repository)throw new Error("VCS_BLOCKED: github owner/repository ausente");assertPullRequestRepositoryAllowed(policy,owner,repository)
+        const head=await currentBranch(root),head_sha=await currentHeadSha(root),defaultBase=String(policy.pull_request?.base_branch||"main"),base=String(input.base||defaultBase)
+        const allowedBases=Array.isArray(policy.pull_request?.allowed_base_branches)?policy.pull_request.allowed_base_branches.map(String):[defaultBase];if(!allowedBases.includes(base))throw new Error(`VCS_BLOCKED: base branch não autorizada: ${base}`)
+        return resourceFingerprintFor(name,{...input,base},{owner,repository,head,head_sha,base})
+      }
+      if(name==="ade_project_check"||name==="ade_diagnostic_check"){
+        const expected=name==="ade_project_check"?"verifier":"debugger",m=await projectCheckDefinitionMaterial(root,String(input.name||""),expected as any)
+        return resourceFingerprintFor(name,input,m)
+      }
+      throw new Error(`ADE_HUMAN_AUTHORIZATION_REQUIRED: unsupported authorization fingerprint for ${name}`)
+    }
+    const assertAuthorizationUnchanged=async(root:string,name:string,input:any)=>{
+      const expected=String(input?.__ade_authorization_fingerprint||"");if(!expected)throw new Error(`ADE_HUMAN_AUTHORIZATION_REQUIRED: ${name} missing authorization fingerprint`)
+      const actual=await resolveAuthorizationFingerprint(root,name,input)
+      if(actual!==expected)throw new Error(`ADE_AUTHORIZATION_STALE: ${name} target/effect changed after grant; re-authorize exact operation`)
+    }
     await ctx.tool.transform((draft:any)=>{
       const add=(name:string,description:string,input:Json,execute:(input:Json,tool:any)=>Promise<Json>)=>draft.add({
         name:name.replace(/^ade_/,""), description, input,
         options:{namespace:"ade",codemode:false,permission:name},
         execute:async(i:any,t:any)=>{
-          const started=Date.now(); let root=""; let status="completed"; let grantId: string | undefined; let authMode: string = "NONE"
+          const started=Date.now(); let root=""; let status="completed"; let grantId: string | undefined; let authorization="N/A"
           try {
             const scope=await resolveSessionScope(ctx,String(t?.sessionID||"")); root=scope.root
-            // Two-channel authorization: for HUMAN_REQUIRED tools, require external single-use grant outside .ai, not just permission ask.
-            // This is fail-closed even in --auto (ask auto-approved) and with saved always allow.
-            const needsGrant = HUMAN_REQUIRED.has(name) && i?.dry_run !== true
-            // For input-only tools, check grant here. For tools needing derived extra (vcs_commit/push/pr_create), the tool itself re-checks with full fingerprint.
-            const inputOnlyGrants = new Set(["ade_tracker_project_sync","ade_tracker_write","ade_vcs_stage","ade_project_check","ade_diagnostic_check"])
-            if (needsGrant && inputOnlyGrants.has(name)) {
-              const fp = resourceFingerprintFor(name, i, {})
-              const res = await consumeHumanGrant(root, name, fp)
-              if (!res.consumed) throw new Error(res.reason || `ADE_HUMAN_AUTHORIZATION_REQUIRED: ${name} requires /ade-authorize grant for this resource; project policy alone insufficient (auto-approve is AUTO_APPROVED, not USER_APPROVED)`)
-              grantId = res.grantId
-              authMode = "USER_GRANT"
-            } else if (needsGrant) {
-              // For vcs_commit/push/pr_create, defer full fingerprint check to tool execution which has extra (branch, remote_url, head).
-              // Still mark that grant is required; tool will consume.
-              authMode = "PENDING_GRANT"
+            const needsGrant=HUMAN_REQUIRED.has(name)&&i?.dry_run!==true
+            let authFp=""
+            if(needsGrant){
+              authFp=await resolveAuthorizationFingerprint(root,name,i)
+              const res=await consumeHumanGrant(root,name,authFp)
+              if(!res.consumed)throw new Error(res.reason||`ADE_HUMAN_AUTHORIZATION_REQUIRED: ${name} requires explicit external /ade-authorize grant for this exact effect`)
+              grantId=res.grantId;authorization="EXPLICIT_EXTERNAL_GRANT"
             }
-            const scoped={...i,__ade_root:scope.root,__ade_location:scope.location,__ade_canonical:scope.canonical,__ade_grant_id:grantId,__ade_auth_mode:authMode}
+            const scoped={...i,__ade_root:scope.root,__ade_location:scope.location,__ade_canonical:scope.canonical,__ade_grant_id:grantId,__ade_authorization:authorization,__ade_authorization_fingerprint:authFp}
             const value=await execute(scoped,t)
-            // Record grant consumption in telemetry as USER_GRANT, otherwise NONE/AUTO_UNTRUSTED
-            if (grantId) {
-              try { await appendJsonl(controlPaths(root).telemetry, { ts: now(), kind: "human.grant.consume", session_ref: crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16), agent: String(t?.agent||"unknown"), tool: name, grant_id: grantId.slice(0,8), authorization: "USER_GRANT" }) } catch {}
-            }
+            if(grantId){try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.consume",session_ref:crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16),agent:String(t?.agent||"unknown"),tool:name,grant_id:grantId.slice(0,8),authorization})}catch{}}
             return result(redactForModel(value))
           } catch(e) {
             status="blocked"
-            // Log failed authorization without leaking grant token
-            try {
-              if (root) {
-                const msg = String((e as any)?.message || "")
-                if (msg.includes("ADE_HUMAN_AUTHORIZATION_REQUIRED")) {
-                  await appendJsonl(controlPaths(root).telemetry, { ts: now(), kind: "human.grant.missing", session_ref: crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16), agent: String(t?.agent||"unknown"), tool: name, authorization: msg.includes("AUTO_APPROVED") ? "AUTO_UNTRUSTED" : "NONE" })
-                }
-              }
-            } catch {}
+            try{if(root){const msg=String((e as any)?.message||"");if(msg.includes("ADE_HUMAN_AUTHORIZATION_REQUIRED")||msg.includes("ADE_AUTHORIZATION_STALE"))await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.missing",session_ref:crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16),agent:String(t?.agent||"unknown"),tool:name,authorization:"NONE_OR_STALE"})}}catch{}
             return result({status:"BLOCKED",error:cleanErrorText(asError(e))})
           } finally {
-            if(root){try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"tool.call",session_ref:crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16),agent:String(t?.agent||"unknown"),tool:name,status,duration_ms:Date.now()-started,authorization:grantId? "USER_GRANT" : (HUMAN_REQUIRED.has(name) && i?.dry_run!==true ? "NONE" : "N/A")})}catch{}}
+            if(root){try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"tool.call",session_ref:crypto.createHash("sha256").update(String(t?.sessionID||"")).digest("hex").slice(0,16),agent:String(t?.agent||"unknown"),tool:name,status,duration_ms:Date.now()-started,authorization:HUMAN_REQUIRED.has(name)&&i?.dry_run!==true?authorization:"N/A"})}catch{}}
           }
         },
       })
@@ -932,8 +1095,8 @@ export default pluginDefine({
       add("ade_vcs_branches","List repository branches through OpenCode VCS API.",schemaObject({search:str(),limit:integer({minimum:1,maximum:100})}),async i=>{const r=await ctx.vcs.branches({location:i.__ade_location,search:i.search||undefined,limit:i.limit||20});return {status:"OBSERVADO",branches:r.data,location:r.location}})
       add("ade_runtime_observe","Observe container/image runtime without mutation.",schemaObject({kind:str({enum:["containers","image"]}),image:str()},["kind"]),async i=>{const root=projectRoot(ctx,i); const image=i.kind==="image"?safeImageRef(String(i.image||"")):""; const args=i.kind==="containers"?["ps","--format","{{.ID}}\t{{.Image}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"]:["image","inspect",image,"--format","{{.Id}}\t{{json .RepoTags}}\t{{.Size}}\t{{.Created}}"] ; if(i.kind==="image"&&!i.image)throw new Error("image obrigatório"); const r=await runTrusted("docker",args,{cwd:root,env:minimalEnv(),timeout:15000}); return {status:r.code===0?"OBSERVADO":"DESCONHECIDO",fields:i.kind==="containers"?["id","image","name","status","ports"]:["id","repo_tags","size","created"],exit_code:r.code,stdout:r.stdout,stderr:r.stderr}})
       add("ade_self_check","Run a non-destructive syntax/parse self-check. Does not grant validation authority.",schemaObject({kind:str({enum:["php-syntax","json-parse","python-syntax","node-syntax"]}),path:str()},["kind","path"]),async i=>{const root=projectRoot(ctx,i),file=await safeExistingRealPath(root,i.path,"self-check path"); let out:any={status:"SELF_CHECK_PASSED",evidence_state:"OBSERVADO",validation_authority:false,acceptance_authority:false,kind:i.kind,path:path.relative(root,file)}; if(i.kind==="json-parse"){JSON.parse(await fs.readFile(file,"utf8"));return out} let exe:string,args:string[]; if(i.kind==="php-syntax"){exe="php";args=["-l",file]} else if(i.kind==="python-syntax"){exe=process.platform==="win32"?"python":"python3";args=["-c","import pathlib,sys; compile(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'), sys.argv[1], 'exec')",file]} else {exe="node";args=["--check",file]} const r=await runTrusted(exe,args,{cwd:root,env:minimalEnv(),timeout:30000}); if(r.code!==0)throw new Error(`${i.kind} failed: ${r.stderr||r.stdout}`); return {...out,stdout:r.stdout}})
-      add("ade_project_check","Execute one authorized verifier-owned project check from .ai/execution-policy.json.",schemaObject({name:str()},["name"]),async i=>nativeProjectCheck(projectRoot(ctx,i),i.name,"verifier",true))
-      add("ade_diagnostic_check","Execute one authorized non-destructive project check for diagnosis without validation authority.",schemaObject({name:str()},["name"]),async i=>nativeProjectCheck(projectRoot(ctx,i),i.name,"debugger",false))
+      add("ade_project_check","Execute one authorized verifier-owned project check from .ai/execution-policy.json.",schemaObject({name:str()},["name"]),async i=>{const root=projectRoot(ctx,i);return nativeProjectCheck(root,i.name,"verifier",true,()=>assertAuthorizationUnchanged(root,"ade_project_check",i))})
+      add("ade_diagnostic_check","Execute one authorized non-destructive project check for diagnosis without validation authority.",schemaObject({name:str()},["name"]),async i=>{const root=projectRoot(ctx,i);return nativeProjectCheck(root,i.name,"debugger",false,()=>assertAuthorizationUnchanged(root,"ade_diagnostic_check",i))})
       add("ade_state_get","Read canonical control state; compact by default, full only when explicitly required.",schemaObject({detail:str({enum:["compact","full"]})}),async i=>{const s=await getControl(projectRoot(ctx,i));return i.detail==="full"?{status:"OBSERVADO",control:s}:{status:"OBSERVADO",control:compactControl(s)}})
       add("ade_product_transition","Apply a valid Product-plane state transition.",schemaObject({target:str({maxLength:64}),note:str({maxLength:1200}),evidence:boundedStringArray(16,512)},["target"]),async(i,t)=>transitionWithRuntimeHandoff(i,t,"product"))
       add("ade_delivery_transition","Apply a valid Delivery-plane state transition.",schemaObject({target:str({maxLength:64}),note:str({maxLength:1200}),evidence:boundedStringArray(16,512)},["target"]),async(i,t)=>transitionWithRuntimeHandoff(i,t,"delivery"))
@@ -947,35 +1110,39 @@ export default pluginDefine({
       add("ade_tracker_project_sync","Synchronize configured GitHub Project V2 fields as a deterministic batch, read back the result, and emit a runtime canonical handoff.",schemaObject({updates:{type:"array",maxItems:50,items:schemaObject({external_id:str({maxLength:120}),item_id:str({maxLength:160}),fields:{type:"array",minItems:1,maxItems:10,items:schemaObject({name:str({minLength:1,maxLength:120}),value:str({maxLength:240})},["name","value"])}},["fields"])},dry_run:bool(),allow_partial:bool()},["updates"]),async(i,t)=>executeProjectSync(i,t))
       add("ade_tracker_read","Read-only Delivery-plane tracker adapter.",schemaObject({action:str({enum:["discover","list","get"]}),external_id:str(),query:str()},["action"]),async i=>executeTracker(i,"read"))
       add("ade_tracker_write","Mutating Delivery-plane tracker adapter; write policy required unless dry_run.",schemaObject({action:str({enum:["create","update","comment","transition","link-pr","sync"]}),internal_id:str(),external_id:str(),title:str({maxLength:240}),body:str({maxLength:20000}),status:str({maxLength:240}),url:str({maxLength:2048}),query:str({maxLength:1000}),dry_run:bool()},["action"]),async i=>executeTracker(i,"write"))
-      add("ade_vcs_stage","Stage explicit workspace paths under VCS policy.",schemaObject({paths:boundedStringArray(100,1024)},["paths"]),async i=>{const root=projectRoot(ctx,i); // grant already consumed in wrapper for input-only tools; verify still required for direct calls
-      const policy=await vcsPolicy(root);if(policy.stage?.allowed!==true)throw new Error("VCS_BLOCKED: stage disabled");const paths=(i.paths||[]).map((p:string)=>relativeLiteralPath(root,p));if(!paths.length)throw new Error("VCS_BLOCKED: paths vazios");const r=await runGit(root,["-C",root,"--literal-pathspecs","add","--",...paths]);if(r.code!==0)throw new Error(cleanErrorText(r.stderr));await assertNoSecretStaged(root);return {status:"VCS_STAGED",paths}})
-      add("ade_vcs_commit","Create a non-amending commit under VCS policy without bypassing hooks/signing by default.",schemaObject({message:str({minLength:1,maxLength:240})},["message"]),async i=>{const root=projectRoot(ctx,i),policy=await vcsPolicy(root);if(policy.commit?.allowed!==true)throw new Error("VCS_BLOCKED: commit disabled");if(/[\r\n]/.test(i.message))throw new Error("VCS_BLOCKED: commit message multiline");assertNoSecretOutbound("VCS_OUTBOUND_BLOCKED",i.message);const b=await currentBranch(root);if(protectedBranch(policy,b)&&policy.commit?.allow_protected_branches!==true)throw new Error(`VCS_BLOCKED: protected branch ${b}`);
-      // Two-channel grant: require human grant with fingerprint {message, branch}
-      {
-        const fp=resourceFingerprintFor("ade_vcs_commit", i, {branch:b})
-        const res=await consumeHumanGrant(root,"ade_vcs_commit",fp)
-        if(!res.consumed) throw new Error(res.reason || `ADE_HUMAN_AUTHORIZATION_REQUIRED: ade_vcs_commit requires /ade-authorize for this message/branch; policy alone insufficient`)
-        try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.consume",session_ref:crypto.createHash("sha256").update(String((i as any).__ade_grant_id||"")).digest("hex").slice(0,16),agent:"vcs-operator",tool:"ade_vcs_commit",grant_id:res.grantId?.slice(0,8),authorization:"USER_GRANT"})}catch{}
-      }
-      const staged=await runGit(root,["-C",root,"diff","--cached","--quiet"]);if(staged.code===0)throw new Error("VCS_BLOCKED: nada staged");if(staged.code!==1)throw new Error(cleanErrorText(staged.stderr||"VCS_BLOCKED: staged diff check falhou"));await assertNoSecretStaged(root);const args=["-C",root,"commit","-m",i.message];if(policy.hooks?.allow_bypass===true)args.splice(3,0,"--no-verify");const r=await runGit(root,args,{timeout:120000});if(r.code!==0)throw new Error(cleanErrorText(r.stderr||r.stdout));const sha=await runGit(root,["-C",root,"rev-parse","HEAD"]);await appendJsonl(controlPaths(root).audit,{ts:now(),event:"vcs.commit",actor:"vcs-operator",status:"OBSERVADO",evidence_refs:[`git:${sha.stdout.trim()}`],branch:b,hooks_bypassed:policy.hooks?.allow_bypass===true});return {status:"VCS_COMMITTED",sha:sha.stdout.trim(),branch:b,hooks_bypassed:policy.hooks?.allow_bypass===true}})
-      add("ade_vcs_push","Push current branch to configured remote; force/refspec bypasses are impossible and remote HEAD is verified.",schemaObject({}),async i=>{const root=projectRoot(ctx,i),policy=await vcsPolicy(root);if(policy.push?.allowed!==true)throw new Error("VCS_BLOCKED: push disabled");const b=await currentBranch(root);if(protectedBranch(policy,b)&&policy.push?.allow_protected_branches!==true)throw new Error(`VCS_BLOCKED: protected branch ${b}`);const remote=String(policy.push?.remote||"origin");if(!/^[A-Za-z0-9._-]+$/.test(remote))throw new Error("VCS_BLOCKED: remote inválido");const remoteUrl=await assertPushRemoteAllowed(root,policy,remote);
-      // Two-channel grant: fingerprint {branch, remote, remote_url}
-      {
-        const fp=resourceFingerprintFor("ade_vcs_push", i, {branch:b, remote, remote_url:remoteUrl})
-        const res=await consumeHumanGrant(root,"ade_vcs_push",fp)
-        if(!res.consumed) throw new Error(res.reason || `ADE_HUMAN_AUTHORIZATION_REQUIRED: ade_vcs_push requires /ade-authorize for branch ${b} remote ${remote}; policy alone insufficient`)
-        try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.consume",session_ref:crypto.createHash("sha256").update(String((i as any).__ade_grant_id||"")).digest("hex").slice(0,16),agent:"vcs-operator",tool:"ade_vcs_push",grant_id:res.grantId?.slice(0,8),authorization:"USER_GRANT"})}catch{}
-      }
-      const args=["-C",root,"push","-u",remote,b];if(policy.hooks?.allow_bypass===true)args.splice(3,0,"--no-verify");const r=await runGit(root,args,{timeout:120000});if(r.code!==0)throw new Error(cleanErrorText(r.stderr||r.stdout));const sha=await runGit(root,["-C",root,"rev-parse","HEAD"]),remoteHead=await runGit(root,["-C",root,"ls-remote","--heads",remote,`refs/heads/${b}`],{timeout:30000}),remoteSha=remoteHead.stdout.trim().split(/\s+/)[0]||"";if(remoteHead.code!==0||remoteSha!==sha.stdout.trim())throw new Error("VCS_VERIFY_FAILED: remote branch não confirma HEAD local");await appendJsonl(controlPaths(root).audit,{ts:now(),event:"vcs.push",actor:"vcs-operator",status:"OBSERVADO",evidence_refs:[`git:${sha.stdout.trim()}`],branch:b,remote,hooks_bypassed:policy.hooks?.allow_bypass===true});return {status:"VCS_PUSHED",sha:sha.stdout.trim(),remote_sha:remoteSha,verified:true,branch:b,remote,remote_url:remoteUrl,force:false,hooks_bypassed:policy.hooks?.allow_bypass===true}})
-      add("ade_pr_create","Create a GitHub pull request from current branch through OpenCode integration auth.",schemaObject({title:str({minLength:1,maxLength:240}),body:str({maxLength:65000}),base:str({maxLength:240})},["title"]),async i=>{const root=projectRoot(ctx,i),policy=await vcsPolicy(root); if(policy.pull_request?.allowed!==true)throw new Error("VCS_BLOCKED: pull_request disabled"); const cfg=await readProjectJson(root,".ai/integrations.json","integrations"); const g=cfg.work_management?.github||{}; const owner=String(g.owner||""),repo=String(g.repository||""); if(!owner||!repo)throw new Error("VCS_BLOCKED: github owner/repository ausente"); assertPullRequestRepositoryAllowed(policy,owner,repo);assertNoSecretOutbound("VCS_BLOCKED",i.title,i.body); const token=await integrationSecret(ctx,String(g.connection_id||"github")); if(!token)throw new Error("VCS_BLOCKED: conexão GitHub autorizada do OpenCode indisponível"); const head=await currentBranch(root);
-      // Two-channel grant for PR: fingerprint {title, base, head}
-      {
-        const baseTmp=String(i.base||String(policy.pull_request?.base_branch||"main"))
-        const fp=resourceFingerprintFor("ade_pr_create", i, {head})
-        const res=await consumeHumanGrant(root,"ade_pr_create",fp)
-        if(!res.consumed) throw new Error(res.reason || `ADE_HUMAN_AUTHORIZATION_REQUIRED: ade_pr_create requires /ade-authorize for head ${head} base ${baseTmp}; policy alone insufficient`)
-        try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.consume",session_ref:crypto.createHash("sha256").update(String((i as any).__ade_grant_id||"")).digest("hex").slice(0,16),agent:"vcs-operator",tool:"ade_pr_create",grant_id:res.grantId?.slice(0,8),authorization:"USER_GRANT"})}catch{}
-      } const defaultBase=String(policy.pull_request?.base_branch||"main"); const allowedBases=Array.isArray(policy.pull_request?.allowed_base_branches)?policy.pull_request.allowed_base_branches.map(String):[defaultBase]; const base=String(i.base||defaultBase); if(!allowedBases.includes(base))throw new Error(`VCS_BLOCKED: base branch não autorizada: ${base}`); const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),30000);let response:any;try{response=await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/pulls`,{method:"POST",redirect:"error",signal:ctl.signal,headers:{"accept":"application/vnd.github+json","authorization":`Bearer ${token}`,"x-github-api-version":"2022-11-28","content-type":"application/json","user-agent":`ade-opencode/${VERSION}`},body:JSON.stringify({title:i.title,body:i.body||"",head,base})})}finally{clearTimeout(tm)}const raw=await response.text();if(Buffer.byteLength(raw,"utf8")>1000000)throw new Error("GitHub PR response too large");let data:any={};try{data=raw?JSON.parse(raw):{}}catch{}if(!response.ok)throw new Error(`GitHub PR failed ${response.status}: ${cleanErrorText(data?.message||"unknown",300)}`); await appendJsonl(controlPaths(root).audit,{ts:now(),event:"vcs.pull-request",actor:"vcs-operator",status:"OBSERVADO",evidence_refs:[String(data.html_url||"")],head,base}); return {status:"PR_CREATED",number:data.number,url:data.html_url,head,base}})
+      add("ade_vcs_stage","Stage explicit workspace paths under VCS policy.",schemaObject({paths:boundedStringArray(100,1024)},["paths"]),async i=>{
+        const root=projectRoot(ctx,i),policy=await vcsPolicy(root);if(policy.stage?.allowed!==true)throw new Error("VCS_BLOCKED: stage disabled")
+        const paths=(i.paths||[]).map((p:string)=>relativeLiteralPath(root,p));if(!paths.length)throw new Error("VCS_BLOCKED: paths vazios")
+        await assertAuthorizationUnchanged(root,"ade_vcs_stage",i)
+        const r=await runGit(root,["-C",root,"--literal-pathspecs","add","--",...paths]);if(r.code!==0)throw new Error(cleanErrorText(r.stderr));await assertNoSecretStaged(root);return {status:"VCS_STAGED",paths}
+      })
+      add("ade_vcs_commit","Create a non-amending commit under VCS policy without bypassing hooks/signing by default.",schemaObject({message:str({minLength:1,maxLength:240})},["message"]),async i=>{
+        const root=projectRoot(ctx,i),policy=await vcsPolicy(root);if(policy.commit?.allowed!==true)throw new Error("VCS_BLOCKED: commit disabled");if(/[\r\n]/.test(i.message))throw new Error("VCS_BLOCKED: commit message multiline");assertNoSecretOutbound("VCS_OUTBOUND_BLOCKED",i.message)
+        const b=await currentBranch(root);if(protectedBranch(policy,b)&&policy.commit?.allow_protected_branches!==true)throw new Error(`VCS_BLOCKED: protected branch ${b}`)
+        const staged=await runGit(root,["-C",root,"diff","--cached","--quiet"]);if(staged.code===0)throw new Error("VCS_BLOCKED: nada staged");if(staged.code!==1)throw new Error(cleanErrorText(staged.stderr||"VCS_BLOCKED: staged diff check falhou"));await assertNoSecretStaged(root)
+        await assertAuthorizationUnchanged(root,"ade_vcs_commit",i)
+        const args=["-C",root,"commit","-m",i.message];if(policy.hooks?.allow_bypass===true)args.splice(3,0,"--no-verify")
+        const r=await runGit(root,args,{timeout:120000});if(r.code!==0)throw new Error(cleanErrorText(r.stderr||r.stdout));const sha=await currentHeadSha(root)
+        await appendJsonl(controlPaths(root).audit,{ts:now(),event:"vcs.commit",actor:"vcs-operator",status:"OBSERVADO",evidence_refs:[`git:${sha}`],branch:b,hooks_bypassed:policy.hooks?.allow_bypass===true});return {status:"VCS_COMMITTED",sha,branch:b,hooks_bypassed:policy.hooks?.allow_bypass===true}
+      })
+      add("ade_vcs_push","Push current branch to configured remote; force/refspec bypasses are impossible and remote HEAD is verified.",schemaObject({}),async i=>{
+        const root=projectRoot(ctx,i),policy=await vcsPolicy(root);if(policy.push?.allowed!==true)throw new Error("VCS_BLOCKED: push disabled");const b=await currentBranch(root);if(protectedBranch(policy,b)&&policy.push?.allow_protected_branches!==true)throw new Error(`VCS_BLOCKED: protected branch ${b}`)
+        const remote=String(policy.push?.remote||"origin");if(!/^[A-Za-z0-9._-]+$/.test(remote))throw new Error("VCS_BLOCKED: remote inválido");const remoteUrl=await assertPushRemoteAllowed(root,policy,remote)
+        await assertAuthorizationUnchanged(root,"ade_vcs_push",i)
+        const authorizedSha=await currentHeadSha(root),args=["-C",root,"push",remote,`${authorizedSha}:refs/heads/${b}`];if(policy.hooks?.allow_bypass===true)args.splice(3,0,"--no-verify");const r=await runGit(root,args,{timeout:120000});if(r.code!==0)throw new Error(cleanErrorText(r.stderr||r.stdout))
+        const sha=authorizedSha,remoteHead=await runGit(root,["-C",root,"ls-remote","--heads",remote,`refs/heads/${b}`],{timeout:30000}),remoteSha=remoteHead.stdout.trim().split(/\s+/)[0]||"";if(remoteHead.code!==0||remoteSha!==sha)throw new Error("VCS_VERIFY_FAILED: remote branch não confirma authorized HEAD")
+        await appendJsonl(controlPaths(root).audit,{ts:now(),event:"vcs.push",actor:"vcs-operator",status:"OBSERVADO",evidence_refs:[`git:${sha}`],branch:b,remote,hooks_bypassed:policy.hooks?.allow_bypass===true});return {status:"VCS_PUSHED",sha,remote_sha:remoteSha,verified:true,branch:b,remote,remote_url:remoteUrl,force:false,hooks_bypassed:policy.hooks?.allow_bypass===true}
+      })
+      add("ade_pr_create","Create a GitHub pull request from current branch through OpenCode integration auth.",schemaObject({title:str({minLength:1,maxLength:240}),body:str({maxLength:65000}),base:str({maxLength:240})},["title"]),async i=>{
+        const root=projectRoot(ctx,i),policy=await vcsPolicy(root);if(policy.pull_request?.allowed!==true)throw new Error("VCS_BLOCKED: pull_request disabled")
+        const cfg=await readProjectJson(root,".ai/integrations.json","integrations"),g=cfg.work_management?.github||{},owner=String(g.owner||""),repo=String(g.repository||"");if(!owner||!repo)throw new Error("VCS_BLOCKED: github owner/repository ausente");assertPullRequestRepositoryAllowed(policy,owner,repo);assertNoSecretOutbound("VCS_BLOCKED",i.title,i.body)
+        const defaultBase=String(policy.pull_request?.base_branch||"main"),allowedBases=Array.isArray(policy.pull_request?.allowed_base_branches)?policy.pull_request.allowed_base_branches.map(String):[defaultBase],base=String(i.base||defaultBase);if(!allowedBases.includes(base))throw new Error(`VCS_BLOCKED: base branch não autorizada: ${base}`)
+        const token=await integrationSecret(ctx,String(g.connection_id||"github"));if(!token)throw new Error("VCS_BLOCKED: conexão GitHub autorizada do OpenCode indisponível");const head=await currentBranch(root)
+        await assertAuthorizationUnchanged(root,"ade_pr_create",{...i,base})
+        const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),30000);let response:any;try{response=await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/pulls`,{method:"POST",redirect:"error",signal:ctl.signal,headers:{"accept":"application/vnd.github+json","authorization":`Bearer ${token}`,"x-github-api-version":"2022-11-28","content-type":"application/json","user-agent":`ade-opencode/${VERSION}`},body:JSON.stringify({title:i.title,body:i.body||"",head,base})})}finally{clearTimeout(tm)}
+        const raw=await response.text();if(Buffer.byteLength(raw,"utf8")>1000000)throw new Error("GitHub PR response too large");let data:any={};try{data=raw?JSON.parse(raw):{}}catch{}if(!response.ok)throw new Error(`GitHub PR failed ${response.status}: ${cleanErrorText(data?.message||"unknown",300)}`)
+        await appendJsonl(controlPaths(root).audit,{ts:now(),event:"vcs.pull-request",actor:"vcs-operator",status:"OBSERVADO",evidence_refs:[String(data.html_url||"")],head,base});return {status:"PR_CREATED",number:data.number,url:data.html_url,head,base}
+      })
     })
 
     await ctx.command.transform((draft:any)=>{
@@ -990,67 +1157,18 @@ export default pluginDefine({
       draft.add({name:"ade-failures",description:"Show recent provider/runtime failure signatures and circuit-breaker decisions",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,rows=(await readJsonl(controlPaths(root).telemetry)).filter((x:any)=>x.kind==="provider.retry").slice(-20);await ctx.session.synthetic({sessionID,text:JSON.stringify({count:rows.length,failures:rows.map((x:any)=>({ts:x.ts,agent:x.agent,provider:x.provider,model:x.model,failure_signature:x.failure_signature,failure_domain:x.failure_domain,seen_signature:x.seen_signature,retry:x.retry,delay_ms:x.delay_ms}))},null,2)})}})
       draft.add({name:"ade-resume",description:"Resume from canonical .ai state via orchestrator",execute:async({sessionID,prompt,delivery}:any)=>{await ctx.session.switchAgent({sessionID,agent:"orchestrator"});await ctx.session.prompt({sessionID,text:"Retome o trabalho a partir de .ai/control.json, contracts, checkpoint, traceability e audit. Preserve gates/autoridades e continue automaticamente até DONE, gate real ou decisão humana genuína.",delivery})}})
       draft.add({name:"ade-audit",description:"Show recent canonical ADE audit events",execute:async({sessionID}:any)=>{const root=(await resolveSessionScope(ctx,String(sessionID))).root,p=controlPaths(root).audit;let lines:string[]=[];if(await exists(p))lines=(await fs.readFile(p,"utf8")).trim().split(/\r?\n/).slice(-20);await ctx.session.synthetic({sessionID,text:`ADE_AUDIT_LAST_20\n${redactSensitiveText(lines.join("\n"),50000)}`})}})
-      draft.add({name:"ade-authorize",description:"Create single-use human grant for high-impact operation (outside .ai). Usage: /ade-authorize <tool> [json-resource]  e.g. /ade-authorize ade_vcs_push '{\"branch\":\"main\",\"remote\":\"origin\"}'  Grants are 10min TTL, single-use, project-scoped and resource-scoped; agent cannot create grants.",execute:async({sessionID,prompt}:any)=>{
-        const scope=await resolveSessionScope(ctx,String(sessionID)); const root=scope.root
-        const text=String(prompt?.text||prompt||"").trim()
-        if(!text) { await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_USAGE: /ade-authorize <tool> [json-resource]\nTools: ${[...HUMAN_REQUIRED].join(", ")}\nExample: /ade-authorize ade_tracker_project_sync '{\"updates\":[{\"external_id\":\"1\",\"fields\":[{\"name\":\"Status\",\"value\":\"Done\"}]}]}'\nFor vcs: /ade-authorize ade_vcs_push '{\"branch\":\"feature\",\"remote\":\"origin\",\"remote_url\":\"https://github.com/octo/repo.git\"}'\nGrants are stored outside .ai (${grantsRootDir()}) and are single-use 10min.`}); return }
-        const firstSpace=text.indexOf(" ")
-        const tool=firstSpace===-1?text: text.slice(0,firstSpace).trim()
-        let resourceJson=firstSpace===-1? "" : text.slice(firstSpace+1).trim()
-        // Strip surrounding quotes if present
-        if((resourceJson.startsWith("'")&&resourceJson.endsWith("'"))||(resourceJson.startsWith('"')&&resourceJson.endsWith('"'))) resourceJson=resourceJson.slice(1,-1)
-        if(!HUMAN_REQUIRED.has(tool)) { await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: tool ${tool} not in HUMAN_REQUIRED set`}); return }
-        let resourceObj:any={}
-        let extra:any={}
-        // For vcs tools, we can auto-fill branch/remote if not provided, by reading current project state
-        try {
-          if(resourceJson) {
-            const parsed=JSON.parse(resourceJson)
-            if(parsed && typeof parsed==="object" && !Array.isArray(parsed)) resourceObj=parsed
-            else resourceObj={value:parsed}
-          }
-        } catch { await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: resource JSON invalid: ${resourceJson.slice(0,200)}`}); return }
-        // If resource empty for tools that require derived extra, try to infer
-        try {
-          if(tool==="ade_vcs_push" && !resourceObj.remote_url) {
-            const policy=await vcsPolicy(root); const b=await currentBranch(root); const remote=String(resourceObj.remote||policy.push?.remote||"origin"); const url=await assertPushRemoteAllowed(root,policy,remote).catch(()=>String(resourceObj.remote_url||""))
-            resourceObj={branch:resourceObj.branch||b, remote, remote_url: url || resourceObj.remote_url || ""}
-          }
-          if(tool==="ade_vcs_commit" && !resourceObj.branch) {
-            const b=await currentBranch(root); resourceObj={message:resourceObj.message||"", branch:b}
-            // If message not provided, use placeholder that will not match any real commit; require explicit message
-            if(!resourceObj.message) { await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: ade_vcs_commit requires {\"message\":\"...\",\"branch\":\"...\"}`}); return }
-          }
-          if(tool==="ade_pr_create" && !resourceObj.head) {
-            const head=await currentBranch(root); resourceObj={title:resourceObj.title||"", base:resourceObj.base||String((await vcsPolicy(root).catch(()=>({pull_request:{base_branch:"main"}}) as any)).pull_request?.base_branch||"main"), head, body:resourceObj.body||""}
-            if(!resourceObj.title) { await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: ade_pr_create requires {\"title\":\"...\",\"base\":\"...\",\"head\":\"...\"}`}); return }
-          }
-        } catch(e) { await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: failed to infer resource: ${cleanErrorText(asError(e),400)}`}); return }
-        // For tracker sync/write etc, if resource empty, hash of empty will not match any real operation with content, so it will correctly fail D/E.
-        let fp=""
-        try {
-          // For tools where fingerprint includes extra derived, we need to handle specially:
-          if(tool==="ade_vcs_push") fp=resourceFingerprintFor(tool, {}, resourceObj)
-          else if(tool==="ade_vcs_commit") fp=resourceFingerprintFor(tool, {message:resourceObj.message}, {branch:resourceObj.branch})
-          else if(tool==="ade_pr_create") fp=resourceFingerprintFor(tool, {title:resourceObj.title, base:resourceObj.base, body:resourceObj.body}, {head:resourceObj.head})
-          else {
-            // For others, resourceObj is the canonical resource representation; we need to map to tool's input shape
-            // For tracker sync, resourceObj should be {updates:[...]}
-            // For vcs_stage, {paths:[...]}
-            // For project_check, {name:...}
-            // So we pass resourceObj as input to fingerprint
-            let inputForFp:any={}
-            if(tool==="ade_tracker_project_sync") inputForFp={updates:resourceObj.updates||resourceObj}
-            else if(tool==="ade_tracker_write") inputForFp=resourceObj
-            else if(tool==="ade_vcs_stage") inputForFp={paths:resourceObj.paths||resourceObj}
-            else if(tool==="ade_project_check"||tool==="ade_diagnostic_check") inputForFp={name:resourceObj.name||resourceObj.value||""}
-            else inputForFp=resourceObj
-            fp=resourceFingerprintFor(tool, inputForFp, {})
-          }
-        } catch(e) { await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: fingerprint failed: ${cleanErrorText(asError(e),400)}`}); return }
-        const grant=await createHumanGrant(root, tool, fp)
-        await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_OK tool=${tool} grant=${grant.id.slice(0,8)} project_hash=${grant.project_hash} resource_hash=${grant.resource_hash.slice(0,8)} expires=${grant.expires_at} max_uses=1`})
-        try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.create",session_ref:crypto.createHash("sha256").update(String(sessionID)).digest("hex").slice(0,16),tool,grant_id:grant.id.slice(0,8),authorization:"USER_GRANT"})}catch{}
+      draft.add({name:"ade-authorize",description:"Create a short-lived single-use external grant for an exact high-impact effect. Usage: /ade-authorize <tool> <json-input>. The command resolves current remote/VCS/check state and binds the grant to it; agents have no ADE tool that can issue grants.",execute:async({sessionID,prompt}:any)=>{
+        const scope=await resolveSessionScope(ctx,String(sessionID)),root=scope.root,text=String(prompt?.text||prompt||"").trim()
+        if(!text){await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_USAGE: /ade-authorize <tool> <json-input>\nTools: ${[...HUMAN_REQUIRED].join(", ")}\nExamples:\n/ade-authorize ade_tracker_project_sync '{"updates":[{"external_id":"95","fields":[{"name":"Status","value":"Done"}]}]}'\n/ade-authorize ade_vcs_stage '{"paths":["src/app.ts"]}'\n/ade-authorize ade_vcs_commit '{"message":"fix: validation"}'\n/ade-authorize ade_vcs_push '{}'\n/ade-authorize ade_pr_create '{"title":"Release","body":"...","base":"main"}'\n/ade-authorize ade_project_check '{"name":"php-lint"}'\nGrant provenance=EXPLICIT_EXTERNAL_GRANT, TTL=10min, max_uses=1, store=${grantsRootDir()}`});return}
+        const firstSpace=text.indexOf(" "),tool=firstSpace===-1?text:text.slice(0,firstSpace).trim();let resourceJson=firstSpace===-1?"{}":text.slice(firstSpace+1).trim()
+        if(!HUMAN_REQUIRED.has(tool)){await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: tool ${tool} not in HUMAN_REQUIRED set`});return}
+        if((resourceJson.startsWith("'")&&resourceJson.endsWith("'"))||(resourceJson.startsWith('"')&&resourceJson.endsWith('"')))resourceJson=resourceJson.slice(1,-1)
+        let input:any={};try{const parsed=JSON.parse(resourceJson||"{}");if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("input must be JSON object");input=parsed}catch(e){await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: invalid JSON input: ${cleanErrorText(asError(e),240)}`});return}
+        try{
+          const fp=await resolveAuthorizationFingerprint(root,tool,input),grant=await createHumanGrant(root,tool,fp)
+          await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_OK tool=${tool} grant=${grant.id.slice(0,8)} project_hash=${grant.project_hash} resource_hash=${grant.resource_hash.slice(0,12)} expires=${grant.expires_at} max_uses=1 provenance=EXPLICIT_EXTERNAL_GRANT`})
+          try{await appendJsonl(controlPaths(root).telemetry,{ts:now(),kind:"human.grant.create",session_ref:crypto.createHash("sha256").update(String(sessionID)).digest("hex").slice(0,16),tool,grant_id:grant.id.slice(0,8),authorization:"EXPLICIT_EXTERNAL_GRANT"})}catch{}
+        }catch(e){await ctx.session.synthetic({sessionID,text:`ADE_AUTHORIZE_BLOCKED: ${cleanErrorText(asError(e),600)}`})}
       }})
     })
 

@@ -21,9 +21,9 @@ Migrator aceita instalações gerenciadas v4.x, v5.0.x, v5.1.x, v5.2.0–v5.2.5.
 Structured Handoff não depende de um output-final hook inexistente: o canal canônico é a typed tool `ade_handoff_submit`.
 
 
-## Human authorization boundary (v5.2.6 Hardened)
+## Authorization boundary (v5.2.6 Hardened)
 
-**Repo policy != human authority.** Arquivos como `.ai/tracker-policy.json`, `.ai/vcs-policy.json` e `.ai/execution-policy.json` definem escopo máximo e limites, mas nunca concedem sozinhos autorização humana para operações destrutivas/externas. Operações de alto impacto (`ade_tracker_project_sync`, `ade_tracker_write`, `ade_vcs_stage/commit/push`, `ade_pr_create`, `ade_project_check`/`ade_diagnostic_check` com host process) exigem `ask` no OpenCode permission layer (`POLICY_ALLOWED` + `USER_APPROVED` vs `AUTO_APPROVED` vs `DENIED`). Em `opencode --auto`, `ask` vira `AUTO_APPROVED` — não deve ser registrado como `USER_APPROVED`. Se a API não distinguir confiavelmente, documenta-se a limitação e mantém-se fail-closed para mutações sensíveis. Ver `HARDENING.md`.
+**Repo policy != mutation authority.** Project policies define maximum scope only. High-impact operations remain `ask`-gated in OpenCode **and** require an external single-use `/ade-authorize` grant stored outside the project. `--auto` or saved `always allow` cannot replace that grant. The grant is bound to the exact resolved effect and revalidated before side effects. Provenance is `EXPLICIT_EXTERNAL_GRANT`; this means the capability came from the command channel external to ADE agent tools, not that the plugin can cryptographically prove physical human presence. See `HARDENING.md`.
 
 ## Plugin definition compatibility adapter (v5.2.5–v5.2.6)
 

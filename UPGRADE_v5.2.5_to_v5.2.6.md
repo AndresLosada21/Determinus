@@ -44,7 +44,7 @@ O rollback de `v5.2.6 → v5.2.5` restaura `agents/*.md` byte-a-byte se o manife
 ## Verificações manuais
 
 - `agentes`: `project-manager` `ade_tracker_project_sync: ask`, `tracker-operator` `ade_tracker_write: ask`, `verifier` `ade_project_check: ask`, `debugger` `ade_diagnostic_check: ask`, `vcs-operator` `stage/commit/push/pr_create: ask`.
-- `plugin/src/index.ts`: `HUMAN_AUTHORIZATION_REQUIRED` + `ADE_HUMAN_AUTHORIZATION_REQUIRED` + `AUTO_APPROVED` vs `USER_APPROVED`.
+- `plugin/src/index.ts`: `HUMAN_AUTHORIZATION_REQUIRED` + `ADE_HUMAN_AUTHORIZATION_REQUIRED` + external grant exact-effect binding; `AUTO_APPROVED`/saved allow não substituem grant.
 - `HARDENING.md` descreve limitação de `--auto`.
 
 ## Checklist pós-upgrade

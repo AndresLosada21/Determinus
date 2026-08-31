@@ -140,7 +140,7 @@ def static_policy(root: Path | None = None) -> list[str]:
 
     _expect("ade_diagnostic_check" in cap["agents"]["debugger"] and "ade_project_check" not in cap["agents"]["debugger"], "debugger boundary inválida")
     _expect("ade_project_check" in cap["agents"]["verifier"], "verifier project check ausente")
-    _expect('nativeProjectCheck(root:string,name:string,expectedOwner:"verifier"|"debugger"="verifier",validationAuthority=true)' in src, "executor separation ausente")
+    _expect('nativeProjectCheck(root:string,name:string,expectedOwner:"verifier"|"debugger"="verifier",validationAuthority=true,preSideEffect?:()=>Promise<void>)' in src, "executor separation ausente")
     _expect('DIAGNOSTIC_CHECK_COMPLETED' in src, "diagnostic marker ausente")
 
     _expect(cap["agents"]["tracker-operator"].count("ade_tracker_read") == 1 and cap["agents"]["tracker-operator"].count("ade_tracker_write") == 1, "tracker split inválido")
@@ -169,10 +169,12 @@ def static_policy(root: Path | None = None) -> list[str]:
     # Human authorization boundary: repo policy != human authority, high-impact tools must be ask-gated.
     _expect('HUMAN_AUTHORIZATION_REQUIRED' in src and 'ADE_HUMAN_AUTHORIZATION_REQUIRED' in src, "human authorization boundary ausente no plugin")
     _expect('repo policy' in src.lower() or 'repositório' in src.lower() or 'policy do repositório' in src.lower(), "documentação de repo policy vs human authority ausente")
-    _expect('AUTO_APPROVED' in src and 'USER_APPROVED' in src, "auto-approve distinction ausente")
+    _expect('AUTO_APPROVED' in src and 'EXPLICIT_EXTERNAL_GRANT' in src, "auto-approve distinction ausente")
     _expect('event.effect="ask"' in src, "permission ask enforcement ausente")
     for tool in ("ade_tracker_project_sync","ade_tracker_write","ade_vcs_stage","ade_vcs_commit","ade_vcs_push","ade_pr_create","ade_project_check","ade_diagnostic_check"):
         _expect(tool in src and 'HUMAN_AUTHORIZATION_REQUIRED' in src, f"human auth set ausente para {tool}")
+    for marker in ("EXPLICIT_EXTERNAL_GRANT","assertAuthorizationUnchanged","resourceTouchesGrantStore","body_sha256","staged_diff_sha256","tree_sha","head_sha","definition_sha256","ADE_GRANT_STORE_CORRUPT"):
+        _expect(marker in src, f"authorization effect binding ausente {marker}")
 
     pkg = load_json(root / "plugin/package.json")
     _expect(pkg.get("version") == VERSION, "plugin package version mismatch")

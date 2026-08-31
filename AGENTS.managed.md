@@ -13,7 +13,7 @@ Invariantes globais:
 - `Permission denied` vale somente para o `action + resource` observado. Não generalize uma negação específica.
 - Subagents têm contexto novo: delegue apenas o contexto mínimo necessário. Não reconfirme owners cujo estado/revision relevante não mudou.
 - Routing é **state-driven**: invoque somente o owner cuja autoridade é necessária agora. Não percorra Product → Delivery → Engineering por ritual.
-- Leaf agents só pedem `ask` para mutações de alto impacto que exigem autorização humana (`tracker write`, `vcs stage/commit/push/pr_create`, `project/diagnostic check` com host process); caso contrário, capability ausente vira `PARENT_EXECUTION_REQUIRED` com blocker exato. `repo policy != human authority`; `ask` em `--auto` vira `AUTO_APPROVED`, não `USER_APPROVED`.
+- Leaf agents só pedem `ask` para mutações de alto impacto que exigem autorização humana (`tracker write`, `vcs stage/commit/push/pr_create`, `project/diagnostic check` com host process); caso contrário, capability ausente vira `PARENT_EXECUTION_REQUIRED` com blocker exato. `repo policy != mutation authority`; `ask`/`--auto` nunca substituem o `EXPLICIT_EXTERNAL_GRANT` single-use exigido pelo runtime para mutações sensíveis.
 - A resposta ao usuário é concisa por padrão. Detalhes completos ficam em `/ade-audit`, `/ade-trace` e evidências sob demanda.
 - Só declare `DONE` quando todos os planos aplicáveis estiverem aceitos no estado canônico.
 <!-- AI-DRIVEN-ENGINEERING:END v5 -->

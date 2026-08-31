@@ -5,14 +5,14 @@
   "source_tree_hash_excludes": [
     "RELEASE.json"
   ],
-  "source_tree_sha256": "80ba32ab004fd8d71143523bc7f7d6c8bf300d711b22e0bf4bb95700697bff6e",
+  "source_tree_sha256": "e5695245e6b685c991ec9a1431d3783ccb58d3a2a8b249dfc6c36edcffe8b6f9",
   "target": {
     "opencode": "V2 Promise plugin API",
     "observed_windows_build": "0.0.0-beta-18684"
   },
   "validation": {
-    "python_regression_groups": 40,
-    "plugin_tests": 63,
+    "python_regression_groups": 41,
+    "plugin_tests": 79,
     "typescript_typecheck": "passed",
     "v2_lifecycle_mock": "passed",
     "manifest_schema": 7,
@@ -21,16 +21,20 @@
     "deterministic_github_project_adapter": "passed_mock_read_write_readback",
     "runtime_generated_transition_handoff": "passed_mock",
     "provider_failure_circuit_breaker": "passed_mock",
-    "human_authorization_boundary": "passed_functional_two_channel_grant",
-    "security_negative_tests": "passed_functional_25_plus_grant_A-L",
+    "human_authorization_boundary": "passed_functional_two_channel_explicit_external_grant",
+    "security_negative_tests": "passed_functional_security_plus_grants_A-AB",
     "docs_integrity": "passed_no_duplicate_concat",
     "runtime_opencode_windows": "pending_revalidation_for_5.2.6",
     "behavioral_provider_eval": "pending_by_design",
-    "live_integration_harness": "retained_from_5.2.5"
+    "live_integration_harness": "retained_from_5.2.5",
+    "authorization_effect_binding": "passed_functional_exact_effect_toctou_M-AB"
   },
   "notes": [
-    "v5.2.6 Hardened separates repo policy (max scope) from human authority via OpenCode ask permissions; high-impact mutations require USER_APPROVED, not just POLICY_ALLOWED.",
-    "In opencode --auto, ask becomes AUTO_APPROVED and is not treated as human authorized; documented as fail-closed limitation.",
-    "Behavioral/live model tests remain separate from install/migrate; Windows/provider revalidation is explicit after restart."
-  ]
+    "v5.2.6 Hardened separates repository policy (maximum scope) from explicit external authorization grants issued through /ade-authorize; OpenCode ask remains an additional permission channel, not proof of human presence.",
+    "High-impact grants are project-scoped, single-use, short-lived and bound to the exact resolved effect: remote target/config, full payload digest and relevant VCS/check state. Stale effects are blocked before the side effect.",
+    "The grant store is outside .ai, inaccessible to agents through ADE permission boundaries, and corruption/oversize fail closed. Provenance is EXPLICIT_EXTERNAL_GRANT, not a cryptographic claim of physical user presence.",
+    "Behavioral/live model tests remain separate from install/migrate; Windows/provider revalidation is explicit after restart.",
+    "Final hardening also rejects grant stores located inside/overlapping the project or resolving through symlink/junction parents, preventing environment-based collapse of the external authorization channel."
+  ],
+  "hardening_revision": 3
 }

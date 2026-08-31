@@ -24,21 +24,23 @@ function canonicalStringify(value) {
   }
   return JSON.stringify(value)
 }
-function hashResource(obj) { return crypto.createHash("sha256").update(canonicalStringify(obj)).digest("hex").slice(0, 32) }
-async function projectHashForRoot(root) { const real = await fs.realpath(root); return crypto.createHash("sha256").update(real).digest("hex").slice(0, 16) }
-function resourceFingerprintFor(tool, input, extra={}) {
-  let obj={}
-  if(tool==="ade_tracker_project_sync"){ const updates=Array.isArray(input.updates)?input.updates:[]; const norm=updates.map(u=>({external_id:String(u.external_id||""),item_id:String(u.item_id||""),fields:Array.isArray(u.fields)?[...u.fields].map(f=>({name:String(f.name||""),value:String(f.value||"")})).sort((a,b)=>a.name.localeCompare(b.name)):[]})).sort((a,b)=>(a.external_id+a.item_id).localeCompare(b.external_id+b.item_id)); obj={updates:norm} }
-  else if(tool==="ade_tracker_write"){ obj={action:String(input.action||""),external_id:String(input.external_id||""),internal_id:String(input.internal_id||""),title:String(input.title||""),body:String(input.body||"").slice(0,200),status:String(input.status||""),url:String(input.url||""),query:String(input.query||"")}; obj=Object.fromEntries(Object.entries(obj).filter(([_,v])=>v!=="")) }
-  else if(tool==="ade_vcs_stage"){ const paths=Array.isArray(input.paths)?[...input.paths].map(String).sort():[]; obj={paths} }
-  else if(tool==="ade_vcs_commit"){ obj={message:String(input.message||""),branch:String(extra.branch||"")} }
-  else if(tool==="ade_vcs_push"){ obj={branch:String(extra.branch||""),remote:String(extra.remote||""),remote_url:String(extra.remote_url||"")} }
-  else if(tool==="ade_pr_create"){ obj={title:String(input.title||""),base:String(input.base||""),head:String(extra.head||""),body:String(input.body||"").slice(0,200)}; if(!obj.body) delete obj.body }
-  else if(tool==="ade_project_check"||tool==="ade_diagnostic_check"){ obj={name:String(input.name||"")} }
-  else obj={input:canonicalStringify(input)}
+function hashResource(obj) { return crypto.createHash("sha256").update(canonicalStringify(obj)).digest("hex") }
+async function projectHashForRoot(root) { const real = await fs.realpath(root); return crypto.createHash("sha256").update(real).digest("hex") }
+function resourceFingerprintFor(tool,input,extra={}){
+  let obj={tool}
+  if(tool==="ade_tracker_project_sync"){
+    const updates=Array.isArray(input.updates)?input.updates:[]
+    const norm=updates.map(u=>({external_id:String(u.external_id||""),item_id:String(u.item_id||""),fields:Array.isArray(u.fields)?[...u.fields].map(f=>({name:String(f.name||""),value:String(f.value??"")})).sort((a,b)=>a.name.localeCompare(b.name)):[]})).sort((a,b)=>(a.external_id+"|"+a.item_id).localeCompare(b.external_id+"|"+b.item_id))
+    obj={tool,target:extra.target||null,updates:norm}
+  }else if(tool==="ade_vcs_push"){obj={tool,branch:String(extra.branch||""),remote:String(extra.remote||""),remote_url:String(extra.remote_url||""),head_sha:String(extra.head_sha||"")}
+  }else if(tool==="ade_vcs_stage"){obj={tool,paths:Array.isArray(input.paths)?[...input.paths].map(String).sort():[],worktree_content_sha256:String(extra.worktree_content_sha256||"")}
+  }else if(tool==="ade_project_check"||tool==="ade_diagnostic_check"){obj={tool,name:String(input.name||""),definition_sha256:String(extra.definition_sha256||"")}
+  }else{obj={tool,input_sha256:crypto.createHash("sha256").update(canonicalStringify(input)).digest("hex")}}
   return hashResource(obj)
 }
+
 async function createTestGrant(root, tool, input, extra={}) {
+  if(tool==="ade_tracker_project_sync"&&!extra.target){ const cfg=JSON.parse(await fs.readFile(path.join(root,".ai","integrations.json"),"utf8")); const g=cfg.work_management?.github||{}; extra={...extra,target:{provider:"github",connection_id:String(g.connection_id||"github"),host:"api.github.com",owner:String(g.owner||""),repository:String(g.repository||""),project_owner:String(g.project_owner||g.owner||""),project_number:Number(g.project_number||0),project_id:""}} }
   const projectHash=await projectHashForRoot(root)
   const fp=resourceFingerprintFor(tool, input, extra)
   const file=path.join(grantsRootDir(), `${projectHash}.jsonl`)
@@ -511,7 +513,7 @@ test("state transition returns post_state and canonical_handoff", async () => {
 test("auto-approve is not mislabeled as human approval", async () => {
   const src = await fs.readFile(fileURLToPath(new URL("../src/index.ts", import.meta.url)), "utf8")
   assert.ok(src.includes("AUTO_APPROVED"), "missing AUTO_APPROVED marker")
-  assert.ok(src.includes("USER_APPROVED") || src.includes("human"), "missing human approval distinction")
+  assert.ok(src.includes("EXPLICIT_EXTERNAL_GRANT"), "missing explicit external grant distinction")
   // Ensure no code claims auto-approved is user approved
-  assert.ok(!src.match(/AUTO_APPROVED.*USER_APPROVED.*true/i) || src.includes("não deve ser registrado como human"), "should not claim auto is human")
+  assert.ok(src.includes("EXPLICIT_EXTERNAL_GRANT"), "auto-approve must not replace external grant")
 })
