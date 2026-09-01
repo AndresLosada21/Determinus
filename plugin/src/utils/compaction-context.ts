@@ -60,7 +60,7 @@ export interface BuildCompactionContextInput {
 /** Default max byte budget for the combined compaction block. Sized to
  *  fit comfortably under common provider context-window limits while
  *  preserving the snapshot and a specs summary. */
-export const DEFAULT_COMPACTION_MAX_BYTES = 16_000;
+export const DEFAULT_COMPACTION_MAX_BYTES = 8000;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

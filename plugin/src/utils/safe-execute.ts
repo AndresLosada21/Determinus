@@ -242,7 +242,7 @@ export function formatErrorResponse(
 // Constants
 // =============================================================================
 
-const DEFAULT_TRUNCATION_LIMIT = 30000;
+const DEFAULT_TRUNCATION_LIMIT = 5000;
 
 /**
  * Optional safety-net timeout override. Accepted by `safeExecute` and
