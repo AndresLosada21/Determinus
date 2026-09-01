@@ -1,0 +1,17 @@
+{
+  "archived_at": "2026-08-08T17:11:42.748Z",
+  "capabilities": [
+    "advance-workflow"
+  ],
+  "change_hash": "0a82b5557da048f2e686929ad03edebd777762a12106d23754d4eb29a85b8021",
+  "change_id": "fixAbsentProjectionArchive",
+  "completed_tasks": 4,
+  "created_at": "2026-08-08T07:01:44.685Z",
+  "current_gate": "release",
+  "last_activity_at": "2026-08-08T16:45:42.218Z",
+  "status": "archived",
+  "summary_hash": "a79e4cdd5bde4223063ca4c6daea0194388a867046372a01eaa88a7d129eb339",
+  "task_count": 4,
+  "title": "Fix absent projection archive refusal",
+  "version": "1"
+}

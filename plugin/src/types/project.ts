@@ -1,0 +1,353 @@
+/**
+ * Project Domain Types
+ *
+ * RelatedRepo, SlopScanConfig (private), FeatureFlags, ProjectConfig,
+ * ProjectMetadataEntry.
+ */
+
+import { z } from "zod";
+
+// =============================================================================
+// Related Repositories (Cross-Repo Routing)
+// =============================================================================
+
+/**
+ * A related repository that tasks in this project may target.
+ * Generic model — any repo/path pair, not hardcoded to specific projects.
+ */
+export const RelatedRepoSchema = z
+  .object({
+    /** Short identifier used in task metadata (e.g., "backend", "api", "db") */
+    id: z.string(),
+    /** Absolute path to the repository root */
+    path: z.string(),
+    /** Human-readable role description (e.g., "Backend API server", "Database migrations") */
+    role: z.string().optional(),
+    /** Whether this repo is trusted for automated cross-project operations (e.g., mesh issue creation) */
+    trusted: z.boolean().default(false),
+    /** GitHub repo in owner/name format for GH CLI operations (e.g., "org/backend-api") */
+    gh_repo: z
+      .string()
+      .regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/)
+      .optional(),
+    /** Stable ADV repo project ID, when known, for product-linked resolution. */
+    repo_project_id: z
+      .string()
+      .regex(/^[0-9a-f]{40}$/)
+      .optional(),
+    /** Role this related repo plays in a product-linked topology. */
+    product_role: z.enum(["primary", "secondary"]).optional(),
+  })
+  .passthrough();
+
+export type RelatedRepo = z.infer<typeof RelatedRepoSchema>;
+
+// =============================================================================
+// Slop Scan Config
+// =============================================================================
+
+/**
+ * Per-project threshold overrides for /adv-slop-scan.
+ *
+ * Defaults are calibrated to avoid false positives on normal single-guard
+ * or single-catch patterns. Override in project.json under features.slop_scan.
+ *
+ * Example:
+ * {
+ *   "features": {
+ *     "slop_scan": {
+ *       "nesting_depth_threshold": 6,
+ *       "complexity_threshold": 15
+ *     }
+ *   }
+ * }
+ */
+const SlopScanConfigSchema = z
+  .object({
+    /**
+     * Maximum nesting depth before flagging as MAINT-004.
+     * Default: 4 — functions with 4+ levels of nesting are flagged.
+     * Increase for domains (parsers, compilers) that legitimately need deeper nesting.
+     */
+    nesting_depth_threshold: z.number().int().min(1).default(4),
+    /**
+     * Minimum number of redundant guard patterns on the same value before
+     * flagging as QUAL-011 (defensive_overkill).
+     * Default: 3 — a single null check is legitimate; 3+ on the same value is slop.
+     */
+    defensive_guard_threshold: z.number().int().min(1).default(3),
+    /**
+     * Cyclomatic complexity ceiling before flagging as MAINT-004.
+     * Default: 10 — aligns with ESLint complexity rule default.
+     */
+    complexity_threshold: z.number().int().min(1).default(10),
+    /**
+     * Per-file timeout in milliseconds for AST tool invocations.
+     * If exceeded, the file falls back to degraded (brace/indent counter) detection.
+     * Default: 10000ms (10 seconds).
+     */
+    ast_timeout_ms: z.number().int().min(1).default(10000),
+  })
+  .passthrough(); // Forward compatibility: unknown keys pass through
+
+type _SlopScanConfig = z.infer<typeof SlopScanConfigSchema>;
+
+// =============================================================================
+// Feature Flags
+// =============================================================================
+
+/**
+ * Per-project feature flag overrides.
+ * All flags default to current ADV behavior — no behavior change without explicit opt-in.
+ *
+ * Add to project.json under the "features" key:
+ * {
+ *   "features": {
+ *     "tdd_enforcement": "advisory",
+ *     "worktree_auto_create": false,
+ *     "slop_scan": {
+ *       "nesting_depth_threshold": 6
+ *     }
+ *   }
+ * }
+ */
+export const FeatureFlagsSchema = z
+  .object({
+    /**
+     * TDD enforcement mode.
+     * - "strict" (default): Red/green phases required; doom-loop escalation at 3 attempts
+     * - "advisory": TDD encouraged but not enforced; warnings emitted instead of blocks
+     * - "off": TDD skipped entirely; tasks complete without test evidence
+     */
+    tdd_enforcement: z.enum(["strict", "advisory", "off"]).default("strict"),
+    /**
+     * Whether /adv-apply automatically creates a git worktree for high-risk changes.
+     * Default: true (current behavior)
+     */
+    worktree_auto_create: z.boolean().default(true),
+    /**
+     * Gate enforcement mode.
+     * - "strict" (default): Gates must be completed in sequence; archive blocked until all pass
+     * - "advisory": Gate status shown but not enforced; archive allowed with warnings
+     */
+    gate_enforcement: z.enum(["strict", "advisory"]).default("strict"),
+    /**
+     * Whether wisdom entries are accumulated and promoted across changes.
+     * Default: true (current behavior)
+     */
+    wisdom_accumulation: z.boolean().default(true),
+    /**
+     * Whether machine worktree isolation is enforced.
+     * Default: true (post-rollout, rq-autoManageAdvWorktrees AC2).
+     * When omitted or true, ADV main-checkout task/gate execution mutations
+     * and the trunk write firewall are enforced. Explicit `false` preserves
+     * legacy permissive behavior for projects that want to keep editing in
+     * the main checkout.
+     */
+    worktree_guard_enforce: z.boolean().default(true),
+    /**
+     * Whether project-scoped worker singleton enforcement is active.
+     * Default: false (per-session routing is the default; each session spawns
+     * its own worker). Explicit `true` opts into the legacy project-scoped
+     * singleton lock and client-only peer behavior per rq-workerSingleton01.
+     */
+    worker_singleton_enforce: z.boolean().default(false),
+    /**
+     * Clarify enforcement mode.
+     * - "off" (default): Clarify checks skipped entirely; no findings emitted
+     * - "advisory": Ambiguity findings surfaced as warnings in tool output; no blocking
+     * - "strict": Ambiguity findings block the prep gate until resolved via /adv-clarify
+     */
+    clarify_enforcement: z
+      .enum(["off", "advisory", "strict"])
+      .default("advisory"),
+    /**
+     * Threshold overrides for /adv-slop-scan detection.
+     * All thresholds have smart defaults; override only what differs from project norms.
+     */
+    slop_scan: SlopScanConfigSchema.default(() =>
+      SlopScanConfigSchema.parse({}),
+    ),
+  })
+  .passthrough(); // Allow future flags without breaking existing configs
+
+export type FeatureFlags = z.infer<typeof FeatureFlagsSchema>;
+
+/** How a feature flag value was chosen. */
+export type FeaturePolicySource = "explicit" | "default" | "invalid_fallback";
+
+/** A single resolved feature flag with provenance. */
+export interface ResolvedFeatureFlag<T> {
+  value: T;
+  source: FeaturePolicySource;
+}
+
+/** Single source of truth for per-project feature policy values. */
+export interface ResolvedProjectFeaturePolicy {
+  worker_singleton_enforce: ResolvedFeatureFlag<boolean>;
+  worktree_guard_enforce: ResolvedFeatureFlag<boolean>;
+  /** Derived queue mode consumed by worker and workflow-start routing. */
+  workflowQueueMode: "session" | "project";
+}
+
+/**
+ * Resolve feature flags into typed effective values with provenance.
+ * Omitted keys get ADV stability defaults; non-boolean values fall back to
+ * the default with `invalid_fallback` source so callers and diagnostics can
+ * surface the discrepancy.
+ */
+export function resolveProjectFeaturePolicy(
+  rawFeatures: unknown,
+): ResolvedProjectFeaturePolicy {
+  const resolveBoolean = (
+    key: "worker_singleton_enforce" | "worktree_guard_enforce",
+    defaultValue: boolean,
+  ): ResolvedFeatureFlag<boolean> => {
+    const raw =
+      rawFeatures && typeof rawFeatures === "object"
+        ? (rawFeatures as Record<string, unknown>)[key]
+        : undefined;
+    if (typeof raw === "boolean") {
+      return { value: raw, source: "explicit" };
+    }
+    if (raw === undefined) {
+      return { value: defaultValue, source: "default" };
+    }
+    return { value: defaultValue, source: "invalid_fallback" };
+  };
+
+  const workerSingleton = resolveBoolean("worker_singleton_enforce", false);
+  const worktreeGuard = resolveBoolean("worktree_guard_enforce", true);
+
+  return {
+    worker_singleton_enforce: workerSingleton,
+    worktree_guard_enforce: worktreeGuard,
+    workflowQueueMode: workerSingleton.value ? "project" : "session",
+  };
+}
+
+/**
+ * Backward-compatible record view of the stability policy.
+ * New code should prefer {@link resolveProjectFeaturePolicy}.
+ */
+export function withStabilityFeatureDefaults(
+  features: Record<string, unknown> | undefined,
+): Record<string, unknown> {
+  const policy = resolveProjectFeaturePolicy(features);
+  return {
+    ...(features ?? {}),
+    worker_singleton_enforce: policy.worker_singleton_enforce.value,
+    worktree_guard_enforce: policy.worktree_guard_enforce.value,
+  };
+}
+
+// =============================================================================
+// Product Linking
+// =============================================================================
+
+export const ProductLinkSchema = z.object({
+  /** Logical product identifier, e.g. "example-product". */
+  id: z.string().min(1),
+  /** Role this repo plays inside the product. */
+  role: z.enum(["primary", "secondary"]),
+  /** Repo identifier for the current checkout within the product. */
+  repo_id: z.string().min(1),
+  /** Repo identifier for the product's canonical primary repo. */
+  primary_repo_id: z.string().min(1),
+  /** Behavior when a secondary cannot resolve the primary repo/project. */
+  missing_primary_policy: z
+    .enum(["block", "read_only", "isolated"])
+    .default("block"),
+});
+
+export type ProductLink = z.infer<typeof ProductLinkSchema>;
+
+// =============================================================================
+// Archive Configuration
+// =============================================================================
+
+export const PrTitlePolicySchema = z
+  .object({
+    /** PR title format policy for archive finalization. */
+    format: z.enum(["conventional", "plain"]).default("plain"),
+    /** Commit types that trigger a release when using conventional format. */
+    release_types: z.array(z.string()).min(1).optional(),
+    /** Full allowed conventional-commit type set. */
+    allowed_types: z.array(z.string()).min(1).optional(),
+  })
+  .passthrough(); // Forward compatibility: unknown keys pass through
+
+export type PrTitlePolicy = z.infer<typeof PrTitlePolicySchema>;
+
+const ArchiveConfigSchema = z
+  .object({
+    /** Policy governing generated archive PR titles. */
+    pr_title_policy: PrTitlePolicySchema.default(() =>
+      PrTitlePolicySchema.parse({}),
+    ),
+  })
+  .passthrough(); // Forward compatibility: unknown keys pass through
+
+// =============================================================================
+// Project Configuration
+// =============================================================================
+
+export const ProjectConfigSchema = z
+  .object({
+    $schema: z.string().optional(),
+    name: z.string(),
+    version: z.string().optional(),
+    specs_dir: z.string().default(".adv/specs"),
+    changes_dir: z.string().default(".adv/changes"),
+    archive_dir: z.string().default(".adv/archive"),
+    docs_dir: z.string().default("docs/specs"),
+    db_dir: z.string().default(".adv/db"),
+    project_file: z.string().default("project.md"),
+    /** Related repositories for cross-repo task routing */
+    related_repos: z.array(RelatedRepoSchema).optional(),
+    /** Optional product-link topology metadata. Reuses related_repos as repo registry. */
+    product: ProductLinkSchema.optional(),
+    /**
+     * Archive finalization mode.
+     * - "direct" (default): /adv-archive finalizes by merging the change branch
+     *   into the default branch and optionally pushing it.
+     * - "pr": local default-branch merge is skipped; archive finalization must
+     *   push the change branch and guide the operator through PR workflow.
+     */
+    archive_mode: z.enum(["direct", "pr"]).default("direct"),
+    /** Whether archive finalization attempts `git push origin {default}`. */
+    auto_push: z.boolean().default(true),
+    /** Archive finalization sub-configuration (e.g., PR title policy). */
+    archive: ArchiveConfigSchema.default(() => ArchiveConfigSchema.parse({})),
+    /** Per-project feature flag overrides. All flags default to current ADV behavior. */
+    features: FeatureFlagsSchema.default(() => FeatureFlagsSchema.parse({})),
+  })
+  .passthrough(); // Allow extra fields for forward/backward compatibility
+
+export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
+
+// =============================================================================
+// Project Metadata Entry
+// =============================================================================
+
+/**
+ * A single project metadata entry — lightweight, timestamped fact about
+ * something that happened to this project (scan run, external event, etc.).
+ * Stored in a flat JSON file for easy inspection and cross-worktree sharing.
+ */
+export const ProjectMetadataEntrySchema = z
+  .object({
+    /** Unique key identifying the metadata category (e.g., "slop-scan", "arch-scan") */
+    key: z.string().min(1).max(64),
+    /** ISO8601 timestamp when this entry was written */
+    timestamp: z.string(),
+    /** Integer count (e.g., number of findings, number of files scanned) */
+    count: z.number().int().min(0),
+    /** Human-readable one-line summary (max 200 chars) */
+    summary: z.string().min(1).max(200),
+    /** Who wrote this entry — defaults to "agent" */
+    written_by: z.enum(["agent", "user", "system"]).default("agent"),
+  })
+  .passthrough(); // Allow extra fields for forward/backward compatibility
+
+export type ProjectMetadataEntry = z.infer<typeof ProjectMetadataEntrySchema>;

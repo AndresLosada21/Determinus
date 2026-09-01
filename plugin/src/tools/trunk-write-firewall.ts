@@ -1,0 +1,474 @@
+import { existsSync } from "fs";
+import { dirname, isAbsolute, relative, resolve, sep } from "path";
+import { pathToFileURL } from "url";
+import { isSameOrChildPath } from "../utils/path.js";
+import {
+  parseWorktreeTopology,
+  type WorktreeTopologyEntry,
+} from "../utils/worktree-paths.js";
+import type { RepoState } from "./checkpoint.js";
+import { detectRepoState } from "./checkpoint.js";
+
+export type TrunkWriteDecision = "ALLOW" | "BLOCK";
+
+/**
+ * rq-trunkArtifactAllowlist01: Generated artifacts that ADV commands write
+ * to the trunk checkout at project root on the default branch. These files
+ * exist BECAUSE they must live on trunk (e.g. /adv-triage regenerates
+ * `.adv/github-project.json` as a deterministic mirror of the canonical
+ * Project board).
+ *
+ * Allowlist semantics:
+ * - Match by relative path from project root, POSIX-normalized.
+ * - Exact path match — nested paths matching only the basename are NOT exempt.
+ * - Allowlist applies to file-tool writes AND destructive bash commands.
+ *
+ * rq-issueChangeLinkage03 / wireIssueChangeLinkage: extended to allow the
+ * `.adv/` namespace entries that are deterministic mirrors of canonical
+ * external state (`.adv/github-project.json`).
+ */
+const TRUNK_GENERATED_ARTIFACTS = new Set<string>([
+  "CHANGELOG.md",
+  ".adv/github-project.json",
+]);
+
+function isAllowlistedTrunkArtifact(
+  targetPath: string,
+  projectRoot: string,
+): boolean {
+  // POSIX-normalize the relative path so allowlist entries (which use `/`)
+  // match cross-platform. On Linux `sep === '/'` so this is a no-op; on
+  // Windows it converts `\` to `/`.
+  const rel = relative(projectRoot, targetPath).split(sep).join("/");
+  if (rel === "" || rel.startsWith("..")) return false;
+  return TRUNK_GENERATED_ARTIFACTS.has(rel);
+}
+
+export interface TrunkWriteResult {
+  decision: TrunkWriteDecision;
+  reason?: string;
+  targetPath?: string;
+}
+
+export interface TrunkWriteFirewallDeps {
+  getDefaultBranch: (cwd: string) => Promise<string>;
+  execGit: (args: string[], cwd: string) => Promise<string>;
+  getWorktreePaths: () => Promise<string[]>;
+  getProjectRoot: () => string;
+  getRepoState?: (cwd: string) => Promise<RepoState>;
+  onWarning?: (message: string) => void;
+}
+
+interface TrunkContext {
+  targetPath: string;
+  gitRoot: string | null;
+  /** Main (non-linked) checkout root of the target's own repository. */
+  mainCheckoutRoot: string | null;
+  branch: string;
+  defaultBranchKnown: boolean;
+  isDefaultBranch: boolean;
+  /** Target sits inside a linked, non-prunable worktree of its repository. */
+  isEligibleWorktree: boolean;
+  repoState: RepoState;
+}
+
+function isSamePath(left: string, right: string): boolean {
+  return left.replace(/\/+$/, "") === right.replace(/\/+$/, "");
+}
+
+const IN_PROGRESS_STATES = new Set<RepoState>([
+  "merging",
+  "rebasing",
+  "cherry-picking",
+  "reverting",
+]);
+
+function normalizeTargetPath(targetPath: string, basePath: string): string {
+  return isAbsolute(targetPath) ? targetPath : resolve(basePath, targetPath);
+}
+
+/**
+ * Upper bound for the nearest-existing-ancestor walk. Deep enough for any
+ * real path; the cap only guards against pathological inputs.
+ */
+const MAX_ANCESTOR_HOPS = 64;
+
+/**
+ * Walk up from `startPath` to the nearest ancestor that exists on disk so
+ * git discovery can run from a valid cwd even when the write target (and
+ * some of its parents) does not exist yet. Existence checks only — path
+ * comparisons elsewhere stay lexical (no realpath canonicalization).
+ */
+function nearestExistingAncestor(startPath: string): string {
+  let current = startPath;
+  for (let hop = 0; hop < MAX_ANCESTOR_HOPS; hop += 1) {
+    if (existsSync(current)) return current;
+    const parent = dirname(current);
+    if (parent === current) return current;
+    current = parent;
+  }
+  return startPath;
+}
+
+/**
+ * Hook-lifetime memo of `git worktree list --porcelain` topology keyed by
+ * resolved git root. Only immutable-for-the-hook topology is cached here;
+ * mutable state (HEAD branch, default branch, recovery state) is probed
+ * fresh for every target so decisions never go stale mid-hook.
+ */
+type TopologyMemo = Map<string, Promise<WorktreeTopologyEntry[]>>;
+
+function getWorktreeTopology(
+  gitRoot: string,
+  deps: TrunkWriteFirewallDeps,
+  memo: TopologyMemo,
+): Promise<WorktreeTopologyEntry[]> {
+  let cached = memo.get(gitRoot);
+  if (!cached) {
+    cached = (async (): Promise<WorktreeTopologyEntry[]> => {
+      try {
+        const porcelain = await deps.execGit(
+          ["worktree", "list", "--porcelain"],
+          gitRoot,
+        );
+        const entries = parseWorktreeTopology(porcelain);
+        if (entries.length > 0) return entries;
+      } catch (error) {
+        deps.onWarning?.(
+          `trunk-write-firewall: worktree topology lookup failed for ${gitRoot}; treating the resolved git root as its own main checkout (${error instanceof Error ? error.message : String(error)})`,
+        );
+      }
+      // Conservative fallback: without topology we cannot prove the resolved
+      // root is a linked worktree, so it is evaluated as its own main
+      // checkout (default-branch HEAD blocks).
+      return [{ path: gitRoot, isMain: true, prunable: false }];
+    })();
+    memo.set(gitRoot, cached);
+  }
+  return cached;
+}
+
+// rq-crossProjectTrunkFirewall01: Target-Relative Cross-Project Trunk Write
+// Firewall. The firewall is evaluated relative to each write target's OWN git
+// root/branch topology (not just the current session's project), so a FOREIGN
+// repo's main checkout on its default branch is protected exactly like the
+// session project's trunk, while an eligible foreign linked worktree is allowed
+// (rq-crossProjectTrunkFirewall01.1 / .2). Target-root artifact and uncertainty
+// boundaries stay narrow (.3) and missing-parent/prunable topology is safe (.4).
+async function resolveTrunkContext(
+  targetPath: string,
+  deps: TrunkWriteFirewallDeps,
+  memo: TopologyMemo,
+): Promise<TrunkContext> {
+  const projectRoot = deps.getProjectRoot();
+  const normalizedTarget = normalizeTargetPath(targetPath, projectRoot);
+  // Session-known worktree paths anchor the git probe for same-project
+  // targets; foreign targets probe from the nearest existing ancestor.
+  const sessionWorktreePaths = await deps.getWorktreePaths();
+
+  let gitRoot: string | null = null;
+  const containingWorktree = sessionWorktreePaths.find((worktreePath) =>
+    isSameOrChildPath(normalizedTarget, worktreePath),
+  );
+  const probeCwd = containingWorktree
+    ? containingWorktree
+    : isSameOrChildPath(normalizedTarget, projectRoot)
+      ? projectRoot
+      : nearestExistingAncestor(dirname(normalizedTarget));
+  try {
+    gitRoot = (
+      await deps.execGit(["rev-parse", "--show-toplevel"], probeCwd)
+    ).trim();
+  } catch (error) {
+    if (isSameOrChildPath(normalizedTarget, projectRoot)) {
+      deps.onWarning?.(
+        `trunk-write-firewall: git root detection failed inside protected checkout for ${normalizedTarget}; blocking (${error instanceof Error ? error.message : String(error)})`,
+      );
+      return {
+        targetPath: normalizedTarget,
+        gitRoot: projectRoot,
+        mainCheckoutRoot: projectRoot,
+        branch: "HEAD",
+        defaultBranchKnown: false,
+        isDefaultBranch: false,
+        isEligibleWorktree: false,
+        repoState: "ok",
+      };
+    }
+    deps.onWarning?.(
+      `trunk-write-firewall: git root detection failed for ${normalizedTarget}; allowing (${error instanceof Error ? error.message : String(error)})`,
+    );
+    return {
+      targetPath: normalizedTarget,
+      gitRoot: null,
+      mainCheckoutRoot: null,
+      branch: "HEAD",
+      defaultBranchKnown: false,
+      isDefaultBranch: false,
+      isEligibleWorktree: false,
+      repoState: "not_git",
+    };
+  }
+
+  // Target-relative topology: trunk-ness is decided by the repository that
+  // owns the target, so a foreign repo's main checkout is protected exactly
+  // like the session project's trunk.
+  const topology = await getWorktreeTopology(gitRoot, deps, memo);
+  const mainEntry =
+    topology.find((entry) => entry.isMain) ??
+    ({ path: gitRoot, isMain: true, prunable: false } as WorktreeTopologyEntry);
+  const containingEntry =
+    topology.find((entry) => isSameOrChildPath(normalizedTarget, entry.path)) ??
+    topology.find(
+      (entry) =>
+        isSamePath(gitRoot, entry.path) ||
+        isSameOrChildPath(gitRoot, entry.path),
+    );
+
+  const isEligibleWorktree = Boolean(
+    containingEntry && !containingEntry.isMain && !containingEntry.prunable,
+  );
+  // A prunable entry is stale administrative data: the checkout it names is
+  // not a trusted worktree, so it is evaluated on its own merits (its own
+  // git root as the trunk candidate) instead of inheriting the repo's main
+  // checkout root or worktree eligibility.
+  const mainCheckoutRoot = containingEntry?.prunable ? gitRoot : mainEntry.path;
+
+  let branch = "HEAD";
+  try {
+    branch = (
+      await deps.execGit(["rev-parse", "--abbrev-ref", "HEAD"], gitRoot)
+    ).trim();
+  } catch (error) {
+    deps.onWarning?.(
+      `trunk-write-firewall: branch detection failed for ${gitRoot}; using HEAD (${error instanceof Error ? error.message : String(error)})`,
+    );
+  }
+
+  let defaultBranch = "";
+  try {
+    defaultBranch = await deps.getDefaultBranch(gitRoot);
+  } catch (error) {
+    deps.onWarning?.(
+      `trunk-write-firewall: default branch detection failed for ${gitRoot}; treating the default branch as unverified (${error instanceof Error ? error.message : String(error)})`,
+    );
+  }
+
+  const repoState = await (deps.getRepoState ?? detectRepoState)(gitRoot);
+
+  return {
+    targetPath: normalizedTarget,
+    gitRoot,
+    mainCheckoutRoot,
+    branch,
+    defaultBranchKnown: Boolean(defaultBranch),
+    isDefaultBranch: Boolean(defaultBranch) && branch === defaultBranch,
+    isEligibleWorktree,
+    repoState,
+  };
+}
+
+function evaluateTarget(
+  context: TrunkContext,
+  deps: TrunkWriteFirewallDeps,
+): TrunkWriteResult {
+  const projectRoot = deps.getProjectRoot();
+  const isSessionCheckout = isSameOrChildPath(context.targetPath, projectRoot);
+  if (context.gitRoot === null || context.repoState === "not_git") {
+    if (isSessionCheckout) {
+      return {
+        decision: "BLOCK",
+        targetPath: context.targetPath,
+        reason: `Trunk write firewall: direct file write to trunk checkout is blocked because git state could not be verified (${context.targetPath}). Create or use an ADV worktree instead.`,
+      };
+    }
+    return { decision: "ALLOW", targetPath: context.targetPath };
+  }
+  const mainRoot = context.mainCheckoutRoot ?? projectRoot;
+  const isTrunkCheckout = isSameOrChildPath(context.targetPath, mainRoot);
+  if (!context.defaultBranchKnown && isTrunkCheckout) {
+    return {
+      decision: "BLOCK",
+      targetPath: context.targetPath,
+      reason: `Trunk write firewall: direct file write to trunk checkout is blocked because the default branch could not be verified (${context.targetPath}). Create or use an ADV worktree instead.`,
+    };
+  }
+  if (context.isEligibleWorktree)
+    return { decision: "ALLOW", targetPath: context.targetPath };
+  if (!context.isDefaultBranch) {
+    return { decision: "ALLOW", targetPath: context.targetPath };
+  }
+  if (IN_PROGRESS_STATES.has(context.repoState)) {
+    return { decision: "ALLOW", targetPath: context.targetPath };
+  }
+
+  if (!isTrunkCheckout)
+    return { decision: "ALLOW", targetPath: context.targetPath };
+
+  // rq-trunkArtifactAllowlist01: ADV-generated trunk artifacts (e.g.
+  // `.adv/github-project.json` regenerated by /adv-triage) bypass the
+  // firewall when at the target repository's main checkout root on the
+  // default branch. The allowlist is intentionally narrow — exact
+  // root-relative paths only, no nested paths.
+  if (isAllowlistedTrunkArtifact(context.targetPath, mainRoot)) {
+    return { decision: "ALLOW", targetPath: context.targetPath };
+  }
+
+  return {
+    decision: "BLOCK",
+    targetPath: context.targetPath,
+    reason: `Trunk write firewall: direct file write to trunk checkout on default branch is blocked (${context.targetPath}). Create or use an ADV worktree instead.`,
+  };
+}
+
+export async function checkTrunkWrite(
+  targetPath: string,
+  deps: TrunkWriteFirewallDeps,
+): Promise<TrunkWriteResult> {
+  return evaluateTarget(
+    await resolveTrunkContext(targetPath, deps, new Map()),
+    deps,
+  );
+}
+
+export function stripHeredocs(command: string): string {
+  return command.replace(
+    /<<-?['"]?([A-Za-z_][A-Za-z0-9_]*)['"]?\n[\s\S]*?\n\1/g,
+    "",
+  );
+}
+
+function splitShellSegments(command: string): string[] {
+  return stripHeredocs(command)
+    .split(/&&|\|\||;|\|/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+}
+
+function unquote(value: string): string {
+  return value.replace(/^['"]|['"]$/g, "");
+}
+
+function tokenize(segment: string): string[] {
+  return Array.from(
+    segment.matchAll(/(?:>>|>)?"[^"]*"|(?:>>|>)?'[^']*'|\S+/g),
+  ).map((match) => unquote(match[0]));
+}
+
+function extractRedirectTargets(tokens: string[]): string[] {
+  const targets: string[] = [];
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token === ">" || token === ">>") {
+      const target = tokens[index + 1];
+      if (target) targets.push(target);
+      index += 1;
+      continue;
+    }
+    if (token.startsWith(">>") && token.length > 2) {
+      targets.push(token.slice(2));
+      continue;
+    }
+    if (token.startsWith(">") && token.length > 1) {
+      targets.push(token.slice(1));
+    }
+  }
+  return targets;
+}
+
+function resolveCommandPath(pathValue: string, workdir: string): string {
+  return normalizeTargetPath(unquote(pathValue), workdir);
+}
+
+/**
+ * Extract the file targets of known destructive bash commands so the trunk
+ * write firewall can block writes into a trunk checkout on the default branch.
+ *
+ * Detection is intentionally bounded to *direct* destructive invocations whose
+ * command name is the first token of a segment: `rm`, `cp`, `mv`, `sed -i`,
+ * `tee`, and redirect operators (`>`/`>>`). It does NOT attempt to resolve
+ * shell indirection — `find … -exec`, `xargs`, `eval`, `bash -c`, interpreter
+ * `-c`, command substitution, or script-internal writes. That gap is a
+ * deliberate, documented accepted residual risk, not a defect: the firewall's
+ * threat model is accidental footguns (P32), not adversarial evasion. See the
+ * `advance-meta` spec (`rq-twf01.7`) and `ADV_INSTRUCTIONS.md` ("Residual
+ * risk: shell-variable indirection, shell aliases/functions, and
+ * script-internal writes may evade string parsing"). Do not re-flag the
+ * uncovered indirection forms as a security bug without first revising that
+ * spec decision.
+ */
+export function classifyDestructiveBash(
+  command: string,
+  workdir = process.cwd(),
+): string[] {
+  const targets: string[] = [];
+  for (const segment of splitShellSegments(command)) {
+    const tokens = tokenize(segment);
+    for (const target of extractRedirectTargets(tokens)) {
+      targets.push(resolveCommandPath(target, workdir));
+    }
+
+    const commandName = tokens[0];
+    if (!commandName) continue;
+
+    if (commandName === "tee") {
+      for (const token of tokens
+        .slice(1)
+        .filter((token) => !token.startsWith("-"))) {
+        targets.push(resolveCommandPath(token, workdir));
+      }
+    }
+
+    if (
+      commandName === "sed" &&
+      tokens.some((token) => token === "-i" || token.startsWith("-i"))
+    ) {
+      const positional = tokens
+        .slice(1)
+        .filter((token) => !token.startsWith("-"));
+      const target = positional.at(-1);
+      if (target) targets.push(resolveCommandPath(target, workdir));
+    }
+
+    if (commandName === "cp" || commandName === "mv") {
+      const positional = tokens
+        .slice(1)
+        .filter((token) => !token.startsWith("-"));
+      const target = positional.at(-1);
+      if (target) targets.push(resolveCommandPath(target, workdir));
+    }
+
+    if (commandName === "rm") {
+      for (const token of tokens
+        .slice(1)
+        .filter((token) => !token.startsWith("-"))) {
+        targets.push(resolveCommandPath(token, workdir));
+      }
+    }
+  }
+  return targets;
+}
+
+export async function checkTrunkWriteBash(
+  command: string,
+  argsWorkdir: string | undefined,
+  deps: TrunkWriteFirewallDeps,
+): Promise<TrunkWriteResult> {
+  const workdir = argsWorkdir ?? deps.getProjectRoot();
+  const targets = classifyDestructiveBash(command, workdir);
+  // One memo per hook invocation: topology for a given repo root is looked
+  // up at most once even when a command writes several files in that repo.
+  const memo: TopologyMemo = new Map();
+  for (const target of targets) {
+    const result = evaluateTarget(
+      await resolveTrunkContext(target, deps, memo),
+      deps,
+    );
+    if (result.decision === "BLOCK") return result;
+  }
+  return { decision: "ALLOW" };
+}
+
+export function pathToFileUrlString(pathValue: string): string {
+  return pathToFileURL(pathValue).toString();
+}

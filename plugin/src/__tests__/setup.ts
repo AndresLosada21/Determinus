@@ -1,0 +1,352 @@
+/**
+ * Test Setup & Configuration
+ *
+ * Global test utilities and setup for vitest
+ */
+
+import { mkdtemp, rm, mkdir, writeFile, readFile } from "fs/promises";
+import { execFileSync } from "node:child_process";
+import { join } from "path";
+import { tmpdir } from "os";
+
+/**
+ * Create a temporary directory for test isolation
+ */
+export async function createTempDir(prefix = "adv-test-"): Promise<string> {
+  return mkdtemp(join(tmpdir(), prefix));
+}
+
+/**
+ * Clean up a temporary directory
+ */
+export async function cleanupTempDir(dir: string): Promise<void> {
+  await rm(dir, { recursive: true, force: true });
+}
+
+/**
+ * Create a real Git repository and linked worktree for mutation tests.
+ *
+ * Tests that invoke state-transition tools must run from a worktree rather
+ * than the checkout root; otherwise the production trunk-write firewall is
+ * expected to reject the mutation. The returned cleanup removes the linked
+ * worktree before deleting the repository fixture.
+ */
+export async function createTempGitWorktree(prefix = "adv-test-git-"): Promise<{
+  repoRoot: string;
+  worktreePath: string;
+  cleanup: () => Promise<void>;
+}> {
+  const repoRoot = await createTempDir(`${prefix}repo-`);
+  const worktreePath = join(repoRoot, "worktree");
+
+  try {
+    execFileSync("git", ["init", "-b", "trunk"], {
+      cwd: repoRoot,
+      stdio: "ignore",
+    });
+    execFileSync("git", ["config", "user.email", "adv-test@example.invalid"], {
+      cwd: repoRoot,
+      stdio: "ignore",
+    });
+    execFileSync("git", ["config", "user.name", "ADV Test"], {
+      cwd: repoRoot,
+      stdio: "ignore",
+    });
+    await writeFile(join(repoRoot, ".adv-git-root"), "fixture\n");
+    execFileSync("git", ["add", ".adv-git-root"], {
+      cwd: repoRoot,
+      stdio: "ignore",
+    });
+    execFileSync("git", ["commit", "-m", "init"], {
+      cwd: repoRoot,
+      stdio: "ignore",
+    });
+    execFileSync(
+      "git",
+      ["worktree", "add", "-b", "change/test", worktreePath],
+      {
+        cwd: repoRoot,
+        stdio: "ignore",
+      },
+    );
+  } catch (error) {
+    await cleanupTempDir(repoRoot);
+    throw error;
+  }
+
+  return {
+    repoRoot,
+    worktreePath,
+    cleanup: async () => {
+      execFileSync("git", ["worktree", "remove", "--force", worktreePath], {
+        cwd: repoRoot,
+        stdio: "ignore",
+      });
+      await cleanupTempDir(repoRoot);
+    },
+  };
+}
+
+/**
+ * Create a test project structure with sample data
+ */
+export async function createTestProject(
+  dir: string,
+  options: {
+    withSpecs?: boolean;
+    withChanges?: boolean;
+    withConfig?: boolean;
+  } = {},
+): Promise<void> {
+  const { withSpecs = true, withChanges = true, withConfig = true } = options;
+
+  // Create directories
+  await mkdir(dir, { recursive: true });
+
+  // P2.5: real projects are git repos — `validateCrossRepoTarget`
+  // (used by adv_change_create's cross-project flow) requires a `.git`
+  // entry. Always create one so test fixtures match production reality.
+  await mkdir(join(dir, ".git"), { recursive: true });
+
+  if (withConfig) {
+    await writeFile(
+      join(dir, "project.json"),
+      JSON.stringify(
+        {
+          name: "test-project",
+          version: "0.1.0",
+          specs_dir: ".adv/specs",
+          changes_dir: ".adv/changes",
+          archive_dir: ".adv/archive",
+          docs_dir: "docs/specs",
+          db_dir: ".adv/db",
+        },
+        null,
+        2,
+      ),
+    );
+  }
+
+  if (withSpecs) {
+    await mkdir(join(dir, ".adv/specs/test-capability"), { recursive: true });
+    await writeFile(
+      join(dir, ".adv/specs/test-capability/spec.json"),
+      JSON.stringify(SAMPLE_SPEC, null, 2),
+    );
+  }
+
+  if (withChanges) {
+    await mkdir(join(dir, ".adv/changes/addFeature"), {
+      recursive: true,
+    });
+    await writeFile(
+      join(dir, ".adv/changes/addFeature/change.json"),
+      JSON.stringify(SAMPLE_CHANGE, null, 2),
+    );
+    await writeFile(
+      join(dir, ".adv/changes/addFeature/proposal.md"),
+      SAMPLE_PROPOSAL,
+    );
+  }
+}
+
+// =============================================================================
+// Sample Data Fixtures
+// =============================================================================
+
+export const SAMPLE_SPEC = {
+  $schema: "https://advance.dev/schemas/spec.v1.json",
+  name: "test-capability",
+  title: "Test Capability",
+  purpose: "A capability for testing purposes",
+  version: "1.0.0",
+  updated_at: "2026-01-21T00:00:00Z",
+  requirements: [
+    {
+      id: "rq-test0001",
+      title: "Sample Requirement",
+      body: "This is a sample requirement for testing.\n\nIt has multiple paragraphs.",
+      priority: "must",
+      tags: ["testing", "sample"],
+      scenarios: [
+        {
+          id: "rq-test0001.1",
+          title: "Basic scenario",
+          given: ["the system is initialized", "a user exists"],
+          when: "the user performs an action",
+          then: ["the action succeeds", "the result is recorded"], // NOSONAR(typescript:S7739): BDD scenario field, not a thenable
+        },
+        {
+          id: "rq-test0001.2",
+          title: "Error scenario",
+          given: ["the system is initialized", "no user exists"],
+          when: "an anonymous action is attempted",
+          then: ["the action fails", "an error is returned"], // NOSONAR(typescript:S7739): BDD scenario field, not a thenable
+        },
+      ],
+    },
+    {
+      id: "rq-test0002",
+      title: "Secondary Requirement",
+      body: "Another requirement for search testing with authentication keywords.",
+      priority: "should",
+      tags: ["security", "authentication"],
+      scenarios: [],
+    },
+  ],
+};
+
+export const SAMPLE_CHANGE = {
+  $schema: "https://advance.dev/schemas/change.v1.json",
+  id: "addFeature",
+  title: "Add New Feature",
+  status: "active",
+  created_at: "2026-01-21T00:00:00Z",
+  created_by: "test-user",
+  tasks: [
+    {
+      id: "tk-task0001",
+      title: "Implement core logic",
+      section: "Core",
+      status: "pending",
+      priority: 0,
+      deps: [],
+      created_at: "2026-01-21T00:00:00Z",
+    },
+    {
+      id: "tk-task0002",
+      title: "Write tests",
+      section: "Testing",
+      status: "pending",
+      priority: 1,
+      deps: [{ type: "blocked_by", target: "tk-task0001" }],
+      created_at: "2026-01-21T00:00:00Z",
+    },
+    {
+      id: "tk-task0003",
+      title: "Update documentation",
+      section: "Docs",
+      status: "pending",
+      priority: 2,
+      deps: [{ type: "blocked_by", target: "tk-task0002" }],
+      created_at: "2026-01-21T00:00:00Z",
+    },
+  ],
+  deltas: {
+    "test-capability": [
+      {
+        id: "dl-delta001",
+        operation: "add",
+        requirement: {
+          id: "rq-new00001",
+          title: "New Requirement from Change",
+          body: "This requirement will be added when the change is archived.",
+          priority: "must",
+          scenarios: [],
+        },
+      },
+    ],
+  },
+  validation: {
+    checked_against_specs: ["test-capability"],
+    conflicts: [],
+    warnings: [],
+    validated_at: "2026-01-21T00:00:00Z",
+  },
+};
+
+const SAMPLE_PROPOSAL = `# Add New Feature
+
+## Summary
+
+This change adds a new feature to the system.
+
+## Motivation
+
+Users need this feature to accomplish their goals.
+
+## Acceptance Criteria
+
+- [ ] Core logic implemented
+- [ ] Tests written and passing
+- [ ] Documentation updated
+`;
+
+// =============================================================================
+// Assertion Helpers
+// =============================================================================
+
+import { access } from "fs/promises";
+
+/**
+ * Assert that a file exists
+ */
+async function _assertFileExists(path: string): Promise<void> {
+  try {
+    await access(path);
+  } catch {
+    throw new Error(`Expected file to exist: ${path}`);
+  }
+}
+
+/**
+ * Assert that a file contains specific content
+ */
+async function _assertFileContains(
+  path: string,
+  content: string,
+): Promise<void> {
+  const text = await readFile(path, "utf-8");
+  if (!text.includes(content)) {
+    throw new Error(`Expected file ${path} to contain: ${content}`);
+  }
+}
+
+/**
+ * Assert that JSON file matches expected structure
+ */
+async function _assertJsonFile<T>(
+  path: string,
+  validator: (data: T) => boolean,
+  message?: string,
+): Promise<T> {
+  const text = await readFile(path, "utf-8");
+  const data = JSON.parse(text);
+  if (!validator(data)) {
+    throw new Error(message ?? `JSON validation failed for: ${path}`);
+  }
+  return data as T;
+}
+
+// =============================================================================
+// Tool Output Helpers
+// =============================================================================
+
+/**
+ * Extract JSON from banner-wrapped tool output.
+ *
+ * Banner format:
+ * ```
+ * ╔═══════════════════╗
+ * ║ 📊 adv_status     ║
+ * ╚═══════════════════╝
+ *
+ * { json data }
+ * ```
+ *
+ * Also handles pure JSON output (no banner).
+ */
+export function parseToolOutput<T = unknown>(output: string): T {
+  // If it starts with { or [, it's pure JSON
+  const trimmed = output.trim();
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    return JSON.parse(trimmed) as T;
+  }
+
+  // Find first { or [ which starts the JSON
+  const jsonStart = output.search(/[{[]/);
+  if (jsonStart === -1) {
+    throw new Error("No JSON found in output");
+  }
+  return JSON.parse(output.slice(jsonStart)) as T;
+}

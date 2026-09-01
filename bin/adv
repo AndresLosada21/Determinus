@@ -1,0 +1,821 @@
+#!/usr/bin/env bun
+/**
+ * adv — ADV (Advance) terminal CLI
+ *
+ * Status, slop-scan, epic list, and dashboard reads are read-only.
+ * dashboard install mutates local user service configuration.
+ *
+ * Runtime: Bun 1.3+
+ * Dependencies: Bun built-ins and the disk projection boundary.
+ */
+
+import { join } from "path";
+import { parseArgs } from "node:util";
+import { mkdir, readFile, writeFile } from "fs/promises";
+import { pathToFileURL } from "node:url";
+
+import { listChanges } from "./lib/changes";
+import {
+  resolveProjectId,
+  resolveExternalRoot,
+  resolveRepoRoot,
+} from "./lib/project";
+import {
+  shouldUseColor,
+  formatTable,
+  BOLD,
+  RESET,
+  emitJson,
+} from "./lib/render";
+import { runSlopScan } from "./lib/slop-scan/scan";
+import { renderSlopScanReport } from "./lib/slop-scan/render";
+import {
+  createDashboardProfileConfig,
+  parseDashboardConfig,
+  type DashboardProfile,
+} from "./lib/dashboard/config";
+import {
+  buildDashboardDoctorReport,
+  buildDashboardServiceUnit,
+  dashboardServicePaths,
+  DASHBOARD_PORT_IN_USE_EXIT_CODE,
+  type CommandResult,
+} from "./lib/dashboard/service";
+import {
+  createDashboardHandler,
+  normalizeDashboardServerOptions,
+} from "./lib/dashboard/server";
+import {
+  buildLiveStatusFailure,
+  buildLiveStatusPayloadFromSummaries,
+  filterTerminalSummaries,
+  loadLiveSummariesWithResidue,
+} from "./lib/live-status";
+import {
+  buildLiveEpicListFailure,
+  buildLiveEpicListPayload,
+  loadLiveEpics,
+} from "./lib/epic-list";
+import { loadLiveResumeProjection } from "./lib/resume-projection-live";
+import { settleWithinBudget } from "./lib/optional-enrichment";
+import { buildResumeProjectionState } from "./lib/resume-projection-state";
+import { analyzeCensus } from "./lib/census";
+import { loadLiveCensusInventory } from "./lib/census-live";
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+const VERSION = "0.1.0";
+const EPIC_READ_ONLY_SUBCOMMANDS = new Set(["list"]);
+
+/**
+ * Wall-clock budget for the advisory resume projection.
+ *
+ * Deliberately independent of ADV_STATUS_TIMEOUT_MS: that governs primary
+ * reads, which must fail closed (rq-statusCliWorkerFree01.2). This governs
+ * enrichment, which must degrade instead. Coupling the two is what allowed a
+ * projection with no polling worker to gate the status table.
+ */
+const RESUME_ENRICHMENT_BUDGET_MS = 2_000;
+
+/** Load the generated standalone reconciliation bundle, never plugin source. */
+async function runReconcile(argv: string[]): Promise<number> {
+  const bundlePath =
+    process.env.ADV_RECONCILE_CLI_BUNDLE ??
+    join(import.meta.dir, "../plugin/dist/reconcile-cli.js");
+  try {
+    const bundle = (await import(pathToFileURL(bundlePath).href)) as {
+      runReconcileCli?: (args: string[]) => Promise<number>;
+    };
+    if (typeof bundle.runReconcileCli !== "function") {
+      throw new Error("bundle does not export runReconcileCli");
+    }
+    return await bundle.runReconcileCli(argv);
+  } catch (error) {
+    process.stderr.write(
+      `reconcile: standalone bundle unavailable at ${bundlePath}: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    return 2;
+  }
+}
+
+/** Load the generated standalone doctor bundle, never plugin source. */
+async function runDoctor(argv: string[]): Promise<number> {
+  const bundlePath =
+    process.env.ADV_DOCTOR_CLI_BUNDLE ??
+    join(import.meta.dir, "../plugin/dist/doctor-cli.js");
+  try {
+    const bundle = (await import(pathToFileURL(bundlePath).href)) as {
+      runDoctorCli?: (args: string[]) => Promise<number>;
+    };
+    if (typeof bundle.runDoctorCli !== "function") {
+      throw new Error("bundle does not export runDoctorCli");
+    }
+    return await bundle.runDoctorCli(argv);
+  } catch (error) {
+    process.stderr.write(
+      `doctor: standalone bundle unavailable at ${bundlePath}: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    return 2;
+  }
+}
+
+// =============================================================================
+// Subcommands
+// =============================================================================
+
+async function countTerminalChanges(root: string): Promise<{
+  archivedCount: number;
+  closedCount: number;
+  terminalChangeIds: Set<string>;
+}> {
+  let archivedCount = 0;
+  let closedCount = 0;
+  const terminalChangeIds = new Set<string>();
+  const archiveDir = join(root, "archive");
+  for await (const change of listChanges(archiveDir, { quiet: true })) {
+    if (change.status === "archived") {
+      archivedCount++;
+      terminalChangeIds.add(change.id);
+    } else if (change.status === "closed") {
+      closedCount++;
+      terminalChangeIds.add(change.id);
+    }
+  }
+  return { archivedCount, closedCount, terminalChangeIds };
+}
+
+async function runStatus(noColor: boolean, json: boolean): Promise<number> {
+  const cwd = process.cwd();
+  const projectId = await resolveProjectId(cwd);
+  if (!projectId) {
+    const error = "not in a git repo (or git unavailable)";
+    if (json) {
+      process.stdout.write(
+        emitJson({
+          source: "disk",
+          live: false,
+          stale: false,
+          generated_at: new Date().toISOString(),
+          project_id: null,
+          counts: { active: 0, archived: 0, closed: 0 },
+          changes: [],
+          error,
+          remediation: "Run adv status from inside a git repository.",
+        }) + "\n",
+      );
+    } else {
+      process.stderr.write(`error: ${error}\n`);
+    }
+    return 1;
+  }
+
+  const root = resolveExternalRoot(projectId);
+  const useColor = shouldUseColor(noColor);
+  const now = new Date();
+  try {
+    // The resume projection is advisory and is bounded independently. It must
+    // never gate the status table — `.catch()` alone was insufficient because
+    // it handles rejection but not a slow resolve.
+    const [summaryLoad, terminalCounts, resumeOutcome] = await Promise.all([
+      loadLiveSummariesWithResidue(projectId, now),
+      countTerminalChanges(root),
+      settleWithinBudget(
+        loadLiveResumeProjection(projectId),
+        RESUME_ENRICHMENT_BUDGET_MS,
+      ),
+    ]);
+    const visibleSummaries = filterTerminalSummaries(
+      summaryLoad.summaries,
+      terminalCounts.terminalChangeIds,
+    );
+    const payload = buildLiveStatusPayloadFromSummaries(visibleSummaries, {
+      projectId,
+      now,
+      ...terminalCounts,
+      summaryResidue: summaryLoad.summaryResidue,
+    });
+    // Always emit the state, even on success. An absent projection must be
+    // explicable, never silently missing (DONT5).
+    payload.resume_projection_state = buildResumeProjectionState(
+      resumeOutcome,
+      now,
+    );
+    if (
+      resumeOutcome.settled &&
+      resumeOutcome.value.live &&
+      resumeOutcome.value.resume_projection
+    ) {
+      const resumeResult = resumeOutcome.value;
+      payload.resume_projection = resumeResult.resume_projection;
+    }
+
+    if (json) {
+      process.stdout.write(emitJson(payload) + "\n");
+      return 0;
+    }
+
+    const shortId = projectId.slice(0, 8);
+    const headerLine = useColor
+      ? `${BOLD}ADV — ${shortId}…${RESET}`
+      : `ADV — ${shortId}…`;
+
+    const output: string[] = [];
+    output.push(headerLine);
+    output.push("");
+    output.push(formatTable(payload.changes, useColor, now));
+    output.push("");
+    output.push(
+      `${payload.counts.active} active · ${payload.counts.archived} archived · ${payload.counts.closed} closed`,
+    );
+
+    process.stdout.write(output.join("\n") + "\n");
+    return 0;
+  } catch (err) {
+    const failure = buildLiveStatusFailure(projectId, err, now);
+    if (json) {
+      process.stdout.write(emitJson(failure) + "\n");
+    } else {
+      process.stderr.write(`error: ${failure.error}\n`);
+      process.stderr.write(`hint: ${failure.remediation}\n`);
+    }
+    return 2;
+  }
+}
+
+async function runSlopScanCommand(
+  noColor: boolean,
+  json: boolean,
+  requestedPath: string,
+): Promise<number> {
+  const repoRoot = await resolveRepoRoot(process.cwd());
+  const report = await runSlopScan({ repoRoot, requestedPath });
+  if (json) process.stdout.write(emitJson(report) + "\n");
+  else
+    process.stdout.write(renderSlopScanReport(report, shouldUseColor(noColor)));
+  return report.failure?.code === "SLOP_SCAN_DEGRADED" ? 1 : 0;
+}
+
+async function runEpicListCommand(json: boolean): Promise<number> {
+  const now = new Date();
+  if (!json) {
+    process.stderr.write("epic list: --json is required. Use `adv epic list --json`.\n");
+    return 2;
+  }
+
+  const projectId = await resolveProjectId(process.cwd());
+  if (!projectId) {
+    process.stdout.write(
+      emitJson(
+        buildLiveEpicListFailure(
+          null,
+          new Error("not in a git repo (or git unavailable)"),
+          now,
+        ),
+      ) + "\n",
+    );
+    return 1;
+  }
+
+  try {
+    // Advisory enrichment, bounded independently of the epic list read.
+    const [epics, resumeOutcome] = await Promise.all([
+      loadLiveEpics(projectId),
+      settleWithinBudget(
+        loadLiveResumeProjection(projectId),
+        RESUME_ENRICHMENT_BUDGET_MS,
+      ),
+    ]);
+    const payload = buildLiveEpicListPayload(epics, { projectId, now });
+    payload.resume_projection_state = buildResumeProjectionState(
+      resumeOutcome,
+      now,
+    );
+    if (
+      resumeOutcome.settled &&
+      resumeOutcome.value.live &&
+      resumeOutcome.value.resume_projection
+    ) {
+      const resumeResult = resumeOutcome.value;
+      payload.resume_projection = resumeResult.resume_projection;
+    }
+    process.stdout.write(emitJson(payload) + "\n");
+    return 0;
+  } catch (err) {
+    process.stdout.write(
+      emitJson(buildLiveEpicListFailure(projectId, err, now)) + "\n",
+    );
+    return 2;
+  }
+}
+
+async function runCensus(noColor: boolean, json: boolean): Promise<number> {
+  const inventory = await loadLiveCensusInventory({});
+  const report = analyzeCensus(inventory);
+
+  if (json) {
+    process.stdout.write(emitJson(report) + "\n");
+    return report.exit_code;
+  }
+
+  const useColor = shouldUseColor(noColor);
+  const title = useColor ? `${BOLD}ADV census${RESET}` : "ADV census";
+  const output = [title, ""];
+  for (const [name, dimension] of Object.entries(report.dimensions)) {
+    const marker = dimension.count === 0 ? "ok" : "fail";
+    output.push(`${marker}: ${name} (${dimension.count})`);
+    for (const item of dimension.items) {
+      const subject = item.workflow_id ?? item.path ?? "unknown";
+      output.push(`  - ${subject}: ${item.why}`);
+    }
+    if (dimension.omitted > 0) {
+      output.push(`  - ... ${dimension.omitted} more omitted`);
+    }
+  }
+  process.stdout.write(output.join("\n") + "\n");
+  return report.exit_code;
+}
+
+async function runEpic(argv: string[]): Promise<number> {
+  const nested = argv[0];
+  if (nested === undefined || !EPIC_READ_ONLY_SUBCOMMANDS.has(nested)) {
+    process.stderr.write(`epic: unknown command: ${nested ?? ""}. Use epic list.\n`);
+    return 2;
+  }
+
+  let values: Record<string, unknown>;
+  try {
+    const parsed = parseArgs({
+      args: argv.slice(1),
+      options: {
+        json: { type: "boolean" },
+      },
+      allowPositionals: false,
+      strict: true,
+    });
+    values = parsed.values as Record<string, unknown>;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`epic list: ${msg}\n`);
+    return 2;
+  }
+
+  return runEpicListCommand((values.json as boolean) ?? false);
+}
+
+async function runDashboard(argv: string[]): Promise<number> {
+  if (argv[0] === "install") return runDashboardInstall(argv.slice(1));
+  if (argv[0] === "doctor") return runDashboardDoctor(argv.slice(1));
+
+  let values: Record<string, unknown>;
+  try {
+    const parsed = parseArgs({
+      args: argv,
+      options: {
+        config: { type: "string" },
+        port: { type: "string" },
+        host: { type: "string" },
+        "allow-network-host": { type: "boolean" },
+        "no-color": { type: "boolean" },
+      },
+      allowPositionals: false,
+      strict: true,
+    });
+    values = parsed.values as Record<string, unknown>;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`dashboard: ${msg}\n`);
+    return 2;
+  }
+
+  const configPath = typeof values.config === "string" ? values.config : "";
+  if (!configPath) {
+    process.stderr.write("dashboard: --config is required\n");
+    return 2;
+  }
+
+  let port = 8765;
+  if (values.port !== undefined) {
+    const parsedPort = Number(values.port);
+    if (!Number.isInteger(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
+      process.stderr.write(`dashboard: invalid --port "${values.port}"\n`);
+      return 2;
+    }
+    port = parsedPort;
+  }
+
+  let configRaw: unknown;
+  try {
+    configRaw = JSON.parse(await readFile(configPath, "utf-8"));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`dashboard: failed to read config: ${msg}\n`);
+    return 2;
+  }
+
+  const parsedConfig = parseDashboardConfig(configRaw);
+  if (!parsedConfig.ok) {
+    process.stderr.write(
+      `dashboard: invalid config\n${parsedConfig.errors.map((error) => `- ${error.path}: ${error.message}`).join("\n")}\n`,
+    );
+    return 2;
+  }
+
+  let serverOptions: ReturnType<typeof normalizeDashboardServerOptions>;
+  try {
+    serverOptions = normalizeDashboardServerOptions({
+      host: typeof values.host === "string" ? values.host : undefined,
+      port,
+      allowNetworkHost: Boolean(values["allow-network-host"]),
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`dashboard: ${msg}\n`);
+    return 2;
+  }
+
+  const bun = (globalThis as any).Bun;
+  if (!bun || typeof bun.serve !== "function") {
+    process.stderr.write("dashboard: Bun.serve unavailable\n");
+    return 2;
+  }
+
+  const handler = createDashboardHandler({ config: parsedConfig.config });
+  let server: { hostname: string; port: number };
+  try {
+    server = bun.serve({
+      hostname: serverOptions.host,
+      port: serverOptions.port,
+      fetch: handler,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (isAddressInUseError(message)) {
+      process.stderr.write(
+        `dashboard: port ${serverOptions.port} is already in use on ${serverOptions.host}; stop the existing process or choose an explicit --port for a manual preview\n`,
+      );
+      return DASHBOARD_PORT_IN_USE_EXIT_CODE;
+    }
+    process.stderr.write(`dashboard: failed to start server: ${message}\n`);
+    return 2;
+  }
+  process.stdout.write(`adv dashboard listening at http://${server.hostname}:${server.port}\n`);
+  return await new Promise<number>(() => undefined);
+}
+
+async function runDashboardInstall(argv: string[]): Promise<number> {
+  const parsed = parseDashboardProfileArgs("dashboard install", argv);
+  if (!parsed.ok) return parsed.exitCode;
+  const { profile, homeDir, dryRun } = parsed;
+  const paths = dashboardServicePaths(profile, homeDir);
+  const unit = buildDashboardServiceUnit({
+    profile,
+    advPath: process.argv[1] ?? "adv",
+    homeDir,
+    pathEnv: process.env.PATH ?? "/usr/bin:/bin",
+  });
+
+  if (dryRun) {
+    process.stdout.write(renderDashboardInstallPlan(paths, unit));
+    return 0;
+  }
+
+  await mkdir(join(homeDir, ".config", "advance", "dashboard"), { recursive: true });
+  await mkdir(paths.serviceDir, { recursive: true });
+  await writeFile(
+    paths.configPath,
+    JSON.stringify(createDashboardProfileConfig(profile), null, 2) + "\n",
+  );
+  await writeFile(paths.servicePath, unit);
+  const reload = await runCommand(["systemctl", "--user", "daemon-reload"]);
+  if (reload.exitCode !== 0) return commandFailure("dashboard install", reload);
+  const enable = await runCommand(["systemctl", "--user", "enable", "--now", paths.serviceName]);
+  if (enable.exitCode !== 0) return commandFailure("dashboard install", enable);
+  process.stdout.write(`installed ${paths.serviceName}\nopen http://127.0.0.1:8765/\n`);
+  return 0;
+}
+
+async function runDashboardDoctor(argv: string[]): Promise<number> {
+  const parsed = parseDashboardProfileArgs("dashboard doctor", argv);
+  if (!parsed.ok) return parsed.exitCode;
+  const { profile, homeDir, dryRun } = parsed;
+  const paths = dashboardServicePaths(profile, homeDir);
+
+  if (dryRun) {
+    process.stdout.write(
+      [
+        `doctor profile=${profile}`,
+        `service=${paths.serviceName}`,
+        `config=${paths.configPath}`,
+        `check: loginctl show-user $USER --property=Linger`,
+        `check: systemctl --user status ${paths.serviceName}`,
+        `logs: journalctl --user -u ${paths.serviceName}`,
+        "",
+      ].join("\n"),
+    );
+    return 0;
+  }
+
+  const report = await buildDashboardDoctorReport({ profile, homeDir });
+  for (const check of report.checks) {
+    process.stdout.write(`${check.ok ? "ok" : "fail"}: ${check.code} — ${check.message}\n`);
+  }
+  if (report.remediation.length > 0) {
+    process.stdout.write("remediation:\n");
+    for (const item of report.remediation) process.stdout.write(`- ${item}\n`);
+  }
+  return report.ok ? 0 : 1;
+}
+
+function parseDashboardProfileArgs(
+  label: string,
+  argv: string[],
+):
+  | { ok: true; profile: DashboardProfile; homeDir: string; dryRun: boolean }
+  | { ok: false; exitCode: number } {
+  let values: Record<string, unknown>;
+  try {
+    const parsed = parseArgs({
+      args: argv,
+      options: {
+        profile: { type: "string" },
+        "dry-run": { type: "boolean" },
+        home: { type: "string" },
+      },
+      allowPositionals: false,
+      strict: true,
+    });
+    values = parsed.values as Record<string, unknown>;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`${label}: ${msg}\n`);
+    return { ok: false, exitCode: 2 };
+  }
+  if (values.profile !== "pokeedge") {
+    process.stderr.write(`${label}: --profile pokeedge is required\n`);
+    return { ok: false, exitCode: 2 };
+  }
+  return {
+    ok: true,
+    profile: "pokeedge",
+    homeDir: typeof values.home === "string" ? values.home : process.env.HOME ?? "",
+    dryRun: Boolean(values["dry-run"]),
+  };
+}
+
+function renderDashboardInstallPlan(
+  paths: ReturnType<typeof dashboardServicePaths>,
+  unit: string,
+): string {
+  return [
+    "MUTATION PLAN: dashboard install",
+    "No changes were made (--dry-run).",
+    `install ${paths.serviceName}`,
+    `write config: ${paths.configPath}`,
+    `write unit: ${paths.servicePath}`,
+    "unit:",
+    unit.trimEnd(),
+    `run: systemctl --user daemon-reload`,
+    `run: systemctl --user enable --now ${paths.serviceName}`,
+    "open: http://127.0.0.1:8765/",
+    "",
+  ].join("\n");
+}
+
+async function runCommand(cmd: string[]): Promise<CommandResult> {
+  const bun = (globalThis as any).Bun;
+  if (!bun || typeof bun.spawn !== "function") {
+    return { exitCode: 127, stdout: "", stderr: "Bun.spawn unavailable" };
+  }
+  const proc = bun.spawn(cmd, { stdout: "pipe", stderr: "pipe" });
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  return { exitCode, stdout, stderr };
+}
+
+function commandFailure(label: string, result: CommandResult): number {
+  process.stderr.write(`${label}: command failed (${result.exitCode})\n`);
+  if (result.stderr.trim()) process.stderr.write(`${result.stderr.trim()}\n`);
+  return 2;
+}
+
+function isAddressInUseError(message: string): boolean {
+  return /EADDRINUSE|address already in use|Failed to start server/i.test(message);
+}
+
+function runHelp(): number {
+  process.stdout.write(
+    `adv — ADV (Advance) status CLI
+
+USAGE:
+  adv [SUBCOMMAND] [FLAGS]
+
+COMMAND BOUNDARY:
+  Most commands are read-only diagnostics/scanners.
+  dashboard install mutates local user configuration/service state.
+  Use dashboard install --dry-run to preview writes/checks before mutation.
+
+SUBCOMMANDS:
+  status      (default)  Show active changes table
+  dashboard            Run local read-only ADV/GitHub dashboard
+  dashboard install     Mutating install of dashboard user service profile
+  dashboard doctor      Check dashboard user service health
+  slop-scan            Run deterministic slop scanner
+  epic list            Show active Epic IDs from disk projections (JSON-only)
+  census               Audit machine-wide ADV stores (read-only)
+  reconcile            Reconcile store residue (plan/dry-run/apply)
+  doctor               Diagnose and repair local ADV store state
+
+FLAGS (global):
+  -h, --help              Show this help
+  -v, --version           Print version
+      --no-color          Disable ANSI colors (also: NO_COLOR=1)
+      --json              Output JSON for status, slop-scan; required for epic list; census
+
+FLAGS (dashboard only):
+      --config <path>      Dashboard config JSON (schema_version 1)
+      --port <N>           Local port (default: 8765)
+      --host <host>        Bind host (default: 127.0.0.1)
+      --allow-network-host Explicitly allow non-loopback host
+
+FLAGS (dashboard install/doctor):
+      --profile pokeedge   Use the PokeEdge dashboard profile
+      --dry-run            Preview planned writes/checks before mutation
+
+FLAGS (reconcile):
+      --mode <plan|dry_run|apply>  Select reconciliation mode (default: plan)
+      --plan | --dry-run | --apply  Mode aliases
+      --target-path <path>          Optional target ADV project
+      --target-confirmed            Approve an untrusted target mutation
+      --confirmation-evidence <text> Evidence for target approval
+      --confirm-plan-hash <hash>     Required approval hash for apply
+      --resume-from <run-id>        Resume an interrupted run
+      --max-records <N>             Bound the residue scan
+       --budget-ms <N>               Bound the residue scan time
+
+FLAGS (doctor):
+       --quarantine <changeId>       Quarantine a corrupt change projection
+       --snapshot                    Scan snapshot health
+       --repair --confirm            Repair snapshot health findings
+       --cleanup-legacy              Preview legacy agenda cleanup
+       --cleanup-legacy --execute --confirm
+                                    Apply legacy agenda cleanup
+       --purge-archive <changeId> --confirm
+                                    Purge an archived change bundle
+
+EXIT CODES:
+  0  Success
+  1  Not in a git repo, git failure, or unknown command
+     Census findings (census)
+   2  Disk status unavailable (status)
+      Epic list unavailable or JSON flag missing (epic list)
+      Dashboard config/server error (dashboard)
+
+
+DOCS:
+  https://github.com/Sharper-Flow/Advance
+`,
+  );
+  return 0;
+}
+
+function runVersion(): number {
+  process.stdout.write(`adv v${VERSION}\n`);
+  return 0;
+}
+
+// =============================================================================
+// Entrypoint
+// =============================================================================
+
+async function main(argv: string[]): Promise<number> {
+  // Global parse to catch --help, --version, --no-color before subcommand dispatch
+  const { values, positionals } = parseArgs({
+    args: argv,
+    options: {
+      help: { type: "boolean", short: "h" },
+      version: { type: "boolean", short: "v" },
+      "no-color": { type: "boolean" },
+    },
+    allowPositionals: true,
+    strict: false,
+  });
+
+  if (values.help) return runHelp();
+  if (values.version) return runVersion();
+
+  const subcommand = positionals[0] ?? "status";
+
+  if (subcommand === "status") {
+    const statusArgv = positionals[0] === "status" ? argv.slice(1) : argv;
+    let sValues: Record<string, unknown>;
+    try {
+      const parsed = parseArgs({
+        args: statusArgv,
+        options: {
+          "no-color": { type: "boolean" },
+          json: { type: "boolean" },
+        },
+        allowPositionals: false,
+        strict: true,
+      });
+      sValues = parsed.values as Record<string, unknown>;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      process.stderr.write(`status: ${msg}\n`);
+      return 2;
+    }
+    return runStatus(
+      (sValues["no-color"] as boolean) ?? false,
+      (sValues.json as boolean) ?? false,
+    );
+  }
+
+  if (subcommand === "slop-scan") {
+    const slopArgv = argv.slice(1);
+    let slopValues: Record<string, unknown>;
+    let slopPositionals: string[];
+    try {
+      const parsed = parseArgs({
+        args: slopArgv,
+        options: {
+          "no-color": { type: "boolean" },
+          json: { type: "boolean" },
+        },
+        allowPositionals: true,
+        strict: true,
+      });
+      slopValues = parsed.values as Record<string, unknown>;
+      slopPositionals = parsed.positionals;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      process.stderr.write(`slop-scan: ${msg}\n`);
+      return 2;
+    }
+
+    return runSlopScanCommand(
+      (slopValues["no-color"] as boolean) ?? false,
+      (slopValues.json as boolean) ?? false,
+      slopPositionals[0] ?? ".",
+    );
+  }
+
+  if (subcommand === "census") {
+    const censusArgv = argv.slice(1);
+    let censusValues: Record<string, unknown>;
+    try {
+      const parsed = parseArgs({
+        args: censusArgv,
+        options: {
+          "no-color": { type: "boolean" },
+          json: { type: "boolean" },
+        },
+        allowPositionals: false,
+        strict: true,
+      });
+      censusValues = parsed.values as Record<string, unknown>;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      process.stderr.write(`census: ${msg}\n`);
+      return 2;
+    }
+    return runCensus(
+      (censusValues["no-color"] as boolean) ?? false,
+      (censusValues.json as boolean) ?? false,
+    );
+  }
+
+  if (subcommand === "reconcile") {
+    return runReconcile(argv.slice(1));
+  }
+
+  if (subcommand === "doctor") {
+    return runDoctor(argv.slice(1));
+  }
+
+  if (subcommand === "epic") {
+    return runEpic(argv.slice(1));
+  }
+
+  if (subcommand === "dashboard") {
+    return runDashboard(argv.slice(1));
+  }
+
+  process.stderr.write(`unknown command: ${subcommand}. See adv --help\n`);
+  return 1;
+}
+
+main(process.argv.slice(2)).then((code) => {
+  // Flush stdout before force-exiting. process.exit() immediately terminates
+  // the event loop, which truncates piped output (e.g. `adv status --json |
+  // wc`) when data is still in the async pipe write queue. stdout.end()
+  // flushes pending writes then calls back, at which point we can safely exit.
+  // Force exit (not exitCode) because error paths leave dangling gRPC handles
+  // that prevent natural event-loop termination.
+  // See: https://github.com/nodejs/node/issues/6456
+  process.stdout.end(() => process.exit(code));
+});

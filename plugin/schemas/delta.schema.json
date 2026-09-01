@@ -1,0 +1,305 @@
+{
+  "$id": "https://raw.githubusercontent.com/Sharper-Flow/Advance/trunk/plugin/schemas/delta.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "oneOf": [
+    {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "operation": {
+          "const": "add",
+          "type": "string"
+        },
+        "requirement": {
+          "additionalProperties": {},
+          "properties": {
+            "body": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "meta": {
+              "properties": {
+                "merged_from": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "merged_from"
+              ],
+              "type": "object"
+            },
+            "priority": {
+              "enum": [
+                "must",
+                "should",
+                "may"
+              ],
+              "type": "string"
+            },
+            "scenarios": {
+              "items": {
+                "additionalProperties": {},
+                "properties": {
+                  "given": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "then": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "when": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "given",
+                  "when",
+                  "then"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "tags": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "body",
+            "priority"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "operation",
+        "requirement"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "changes": {
+          "additionalProperties": false,
+          "properties": {
+            "body": {
+              "type": "string"
+            },
+            "priority": {
+              "enum": [
+                "must",
+                "should",
+                "may"
+              ],
+              "type": "string"
+            },
+            "scenarios": {
+              "items": {
+                "additionalProperties": {},
+                "properties": {
+                  "given": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "then": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "when": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "given",
+                  "when",
+                  "then"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "tags": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "id": {
+          "type": "string"
+        },
+        "operation": {
+          "const": "modify",
+          "type": "string"
+        },
+        "precondition": {
+          "additionalProperties": false,
+          "properties": {
+            "new_id_absent": {
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": 1,
+              "type": "number"
+            },
+            "target_requirement_sha256": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema_version",
+            "target_requirement_sha256"
+          ],
+          "type": "object"
+        },
+        "target_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "operation",
+        "target_id",
+        "changes"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "operation": {
+          "const": "remove",
+          "type": "string"
+        },
+        "precondition": {
+          "additionalProperties": false,
+          "properties": {
+            "new_id_absent": {
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": 1,
+              "type": "number"
+            },
+            "target_requirement_sha256": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema_version",
+            "target_requirement_sha256"
+          ],
+          "type": "object"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "target_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "operation",
+        "target_id",
+        "reason"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "new_id": {
+          "type": "string"
+        },
+        "new_title": {
+          "type": "string"
+        },
+        "operation": {
+          "const": "rename",
+          "type": "string"
+        },
+        "precondition": {
+          "additionalProperties": false,
+          "properties": {
+            "new_id_absent": {
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": 1,
+              "type": "number"
+            },
+            "target_requirement_sha256": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema_version",
+            "target_requirement_sha256"
+          ],
+          "type": "object"
+        },
+        "target_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "operation",
+        "target_id",
+        "new_title"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ADV Delta"
+}

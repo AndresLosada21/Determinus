@@ -1,0 +1,809 @@
+/**
+ * Prep-Readiness Validator
+ *
+ * Machine-enforced checks that answer: "Do we have everything we need
+ * ready to make the full change?" Runs as part of `adv_gate_complete prep`.
+ *
+ * Architecture:
+ * - Pure functions — no I/O, no filesystem access beyond the Change object
+ * - Reuses existing ValidationIssue type (severity: "error" = must-failure, "warning" = advisory)
+ * - All check IDs defined in PrepReadinessCodes for human/tool contract alignment
+ */
+
+import type { Change, ContractEvidencePolicy } from "../types";
+import { ContractEvidencePolicySchema } from "../types";
+import type { ValidationIssue } from "./types";
+import {
+  isTestTask as classifierIsTestTask,
+  isImplTask as classifierIsImplTask,
+  resolveTaskEvidence,
+  validateTaskEvidenceForStage,
+} from "./task-classifier";
+
+// =============================================================================
+// Check Codes
+// =============================================================================
+
+const PrepReadinessCodes = {
+  // Smell checks (advisory warnings only)
+  SMELL_SUBJECTIVE: "SMELL_SUBJECTIVE",
+  SMELL_AMBIGUOUS: "SMELL_AMBIGUOUS",
+  SMELL_SUPERLATIVE: "SMELL_SUPERLATIVE",
+  SMELL_NEGATIVE: "SMELL_NEGATIVE",
+  SMELL_TOTALITY: "SMELL_TOTALITY",
+
+  // Scenario adequacy
+  SCENARIO_MISSING: "SCENARIO_MISSING", // must (error)
+  SCENARIO_INADEQUATE: "SCENARIO_INADEQUATE", // warning
+
+  // Task graph integrity
+  TASK_TDD_INVERSION: "TASK_TDD_INVERSION", // advisory (warning) on heuristic path — see rq-PR003tdd.1
+  TASK_ORPHAN: "TASK_ORPHAN", // warning
+
+  // TDD intent assignment (rq-PR006tdi)
+  TASK_TDD_INTENT_MISSING: "TASK_TDD_INTENT_MISSING", // must (error), advisory-downgradable
+
+  // Non-code deliverable evidence policy (rq-PR008nonCodeEvidence)
+  NON_CODE_EVIDENCE_POLICY_MISSING: "NON_CODE_EVIDENCE_POLICY_MISSING", // must (error)
+
+  // Normalized evidence plan validity for behavior-critical tasks
+  EVIDENCE_PLAN_INVALID: "EVIDENCE_PLAN_INVALID", // must (error)
+
+  // Frontend applicability metadata (rq-PR009frontendApplicability)
+  FRONTEND_APPLICABILITY_MISSING: "FRONTEND_APPLICABILITY_MISSING", // must (error)
+  FRONTEND_RATIONALE_MISSING: "FRONTEND_RATIONALE_MISSING", // must (error)
+  FRONTEND_APPLICABILITY_HINT: "FRONTEND_APPLICABILITY_HINT", // warning
+
+  // Cross-repo routing
+  CROSS_REPO_MISSING_METADATA: "CROSS_REPO_MISSING_METADATA", // must (error)
+  CROSS_REPO_HINT_UNROUTED: "CROSS_REPO_HINT_UNROUTED", // warning
+
+  // Critical-ops coverage (rq-PR007cro)
+  CRITICAL_OPS_UNCOVERED: "CRITICAL_OPS_UNCOVERED", // must (error)
+  CRITICAL_OPS_DEFERRED: "CRITICAL_OPS_DEFERRED", // must (error)
+
+  // TDD ordering advisory (rq-PR008tor / rq-TDD009seq)
+  TASK_ORDERING_PROVISIONAL: "TASK_ORDERING_PROVISIONAL", // warning (advisory)
+} as const;
+
+type _PrepReadinessCode =
+  (typeof PrepReadinessCodes)[keyof typeof PrepReadinessCodes];
+
+// =============================================================================
+// Result Type
+// =============================================================================
+
+interface PrepReadinessResult {
+  passed: boolean;
+  mustFailures: ValidationIssue[];
+  warnings: ValidationIssue[];
+  checksPerformed: string[];
+  checkedAt: string;
+}
+
+// =============================================================================
+// Smell Patterns
+// =============================================================================
+
+const SMELL_PATTERNS = {
+  SMELL_SUBJECTIVE:
+    /\b(easy|simple|nice|intuitive|user[- ]friendly|natural|obvious|trivial)\b/i,
+  SMELL_AMBIGUOUS:
+    /\b(etc\.?|and\/or|various|several|some|appropriate|relevant|suitable)\b/i,
+  SMELL_SUPERLATIVE:
+    /\b(best|fastest|slowest|most|least|optimal|perfect|always|never|maximum|minimum)\b/i,
+  SMELL_NEGATIVE:
+    /\b(not|never|without|no\s+\w+|avoid|prevent|disallow|block)\b/i,
+  SMELL_TOTALITY:
+    /\b(all|every|any|none|everything|everyone|nobody|everywhere)\b/i,
+} as const;
+
+// =============================================================================
+// Check: Requirement Smells
+// =============================================================================
+
+// rq-PR001sml: Requirement Smell Detection
+/**
+ * Scan requirement titles in spec deltas for language smell patterns.
+ * All smell issues are advisory warnings — never errors.
+ */
+export function checkRequirementSmells(change: Change): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const [capability, deltas] of Object.entries(change.deltas)) {
+    for (const delta of deltas) {
+      if (delta.operation !== "add") continue;
+
+      const req = delta.requirement;
+      const title = req.title ?? "";
+
+      for (const [code, pattern] of Object.entries(SMELL_PATTERNS)) {
+        if (pattern.test(title)) {
+          issues.push({
+            code,
+            severity: "warning",
+            message: `Requirement "${req.id}" title may have a smell (${code}): "${title}"`,
+            path: `deltas.${capability}.${delta.id}.requirement.title`,
+            details: {
+              requirementId: req.id,
+              pattern: pattern.source,
+              remediation: `Rewrite to be specific and measurable. Replace vague language with concrete criteria.`,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Scenario Adequacy
+// =============================================================================
+
+// rq-PR002scn: Scenario Adequacy Enforcement
+/**
+ * Ensure every added requirement has at least one scenario.
+ * Requirements with no scenarios cannot be tested or validated → must-failure.
+ */
+export function checkScenarioAdequacy(change: Change): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const [capability, deltas] of Object.entries(change.deltas)) {
+    for (const delta of deltas) {
+      if (delta.operation !== "add") continue;
+
+      const req = delta.requirement;
+      if (!req.scenarios || req.scenarios.length === 0) {
+        issues.push({
+          code: PrepReadinessCodes.SCENARIO_MISSING,
+          severity: "error",
+          message: `Requirement "${req.id}" has no scenarios defined`,
+          path: `deltas.${capability}.${delta.id}.requirement.scenarios`,
+          details: {
+            requirementId: req.id,
+            remediation:
+              "Add at least one scenario with given/when/then clauses to make the requirement testable.",
+          },
+        });
+      }
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Task Graph Integrity
+// =============================================================================
+
+// rq-PR003tdd: TDD Inversion Detection
+/**
+ * Check task graph for TDD inversions and orphan tasks.
+ *
+ * TDD inversion detection uses the shared task classifier (rq-TDD004cls):
+ *   1. metadata.tdd_intent takes precedence (authoritative)
+ *   2. Title heuristics as fallback for legacy tasks without metadata
+ *
+ * Per rq-TDD005inv:
+ *   - separate_verification tasks are exempt from inversion detection
+ *   - inline/not_applicable metadata prevents false positives on test-like titles
+ *
+ * Per rq-TDD006rem:
+ *   - Remediation suggests merge (not dependency reversal)
+ *
+ * Orphan: a task with no deps that is not a dep of any other task → warning.
+ */
+export function checkTaskGraphIntegrity(change: Change): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const allTasks = change.tasks ?? [];
+
+  if (allTasks.length === 0) return issues;
+
+  // Exclude cancelled tasks — they are no longer active and should not
+  // trigger TDD inversion or orphan warnings.
+  const tasks = allTasks.filter((t) => t.status !== "cancelled");
+
+  if (tasks.length === 0) return issues;
+
+  // Build a set of task IDs that are dependencies of other tasks
+  const isDependedOn = new Set<string>();
+  for (const task of tasks) {
+    for (const dep of task.deps ?? []) {
+      if (dep.type === "blocked_by") {
+        isDependedOn.add(dep.target);
+      }
+    }
+  }
+
+  // Index tasks by ID for lookup
+  const taskById = new Map(tasks.map((t) => [t.id, t]));
+
+  for (const task of tasks) {
+    const blockedByDeps = (task.deps ?? []).filter(
+      (d) => d.type === "blocked_by",
+    );
+
+    // TDD inversion check — uses classifier for metadata-first detection
+    // When metadata.tdd_intent is explicitly set, it is authoritative.
+    // Only use title heuristics when no valid metadata is present.
+    const hasExplicitMetadata =
+      task.metadata?.tdd_intent !== undefined &&
+      ["inline", "separate_verification", "not_applicable"].includes(
+        task.metadata.tdd_intent,
+      );
+
+    // Skip inversion check for tasks with explicit metadata; metadata is
+    // authoritative and prevents false positives.
+    const skipInversion = hasExplicitMetadata;
+
+    if (!skipInversion && classifierIsTestTask(task.title)) {
+      for (const dep of blockedByDeps) {
+        const depTask = taskById.get(dep.target);
+        if (depTask && classifierIsImplTask(depTask.title)) {
+          // Advisory only (rq-PR003tdd.1): this inversion is detected purely
+          // by title heuristics (the explicit-metadata path is skipped via
+          // skipInversion above). A title regex must not solely own a hard
+          // gate-block (P33), so this is a warning. The authoritative
+          // gate-block for missing/invalid TDD intent is
+          // TASK_TDD_INTENT_MISSING (error in strict mode).
+          issues.push({
+            code: PrepReadinessCodes.TASK_TDD_INVERSION,
+            severity: "warning",
+            message: `Possible TDD inversion: test task "${task.id}" is blocked_by impl task "${depTask.id}" (detected by title heuristic). Tests should come before implementation (red-before-green).`,
+            path: `tasks.${task.id}`,
+            details: {
+              testTaskId: task.id,
+              testTaskTitle: task.title,
+              implTaskId: depTask.id,
+              implTaskTitle: depTask.title,
+              remediation:
+                "Merge the test task into the implementation task as inline TDD (red/green phases within the same task). If this is a legitimate cross-cutting test, set metadata.tdd_intent='separate_verification'. Set an explicit metadata.tdd_intent to resolve this advisory.",
+            },
+          });
+        }
+      }
+    }
+
+    // Orphan check: no deps AND not a dep of anything
+    const hasDeps = blockedByDeps.length > 0;
+    const isDepOfSomething = isDependedOn.has(task.id);
+    if (!hasDeps && !isDepOfSomething && tasks.length > 1) {
+      issues.push({
+        code: PrepReadinessCodes.TASK_ORPHAN,
+        severity: "warning",
+        message: `Task "${task.id}" ("${task.title}") has no dependencies and is not a dependency of any other task`,
+        path: `tasks.${task.id}`,
+        details: {
+          taskId: task.id,
+          remediation:
+            "Consider whether this task should depend on or be depended on by other tasks to clarify execution order.",
+        },
+      });
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Cross-Repo Routing
+// =============================================================================
+
+/** Patterns suggesting a task targets a different repo (title hint) */
+const CROSS_REPO_TITLE_HINTS =
+  /(\[[\w-]+\]|~\/dev\/|~\/repos\/|\/home\/\w+\/dev\/)/i;
+
+// rq-PR004xrp: Cross-Repo Routing Completeness
+/**
+ * Validate cross-repo routing metadata consistency.
+ *
+ * - target_repo XOR target_path (one set, other missing) → must-failure
+ * - Title has repo hint but no metadata → advisory warning
+ */
+export function checkCrossRepoRouting(change: Change): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const task of change.tasks ?? []) {
+    const hasRepo = task.target_repo != null && task.target_repo !== "";
+    const hasPath = task.target_path != null && task.target_path !== "";
+
+    if (hasRepo && !hasPath) {
+      issues.push({
+        code: PrepReadinessCodes.CROSS_REPO_MISSING_METADATA,
+        severity: "error",
+        message: `Task "${task.id}" has target_repo "${task.target_repo}" but is missing target_path`,
+        path: `tasks.${task.id}.target_path`,
+        details: {
+          taskId: task.id,
+          target_repo: task.target_repo,
+          remediation:
+            "Add target_path with the absolute path to the target repository directory.",
+        },
+      });
+    } else if (!hasRepo && hasPath) {
+      issues.push({
+        code: PrepReadinessCodes.CROSS_REPO_MISSING_METADATA,
+        severity: "error",
+        message: `Task "${task.id}" has target_path "${task.target_path}" but is missing target_repo`,
+        path: `tasks.${task.id}.target_repo`,
+        details: {
+          taskId: task.id,
+          target_path: task.target_path,
+          remediation:
+            "Add target_repo with the repository ID (matching related_repos[].id in project config).",
+        },
+      });
+    } else if (!hasRepo && !hasPath) {
+      // Check for title hint suggesting this might be a cross-repo task
+      if (CROSS_REPO_TITLE_HINTS.test(task.title) && !hasRepo && !hasPath) {
+        issues.push({
+          code: PrepReadinessCodes.CROSS_REPO_HINT_UNROUTED,
+          severity: "warning",
+          message: `Task "${task.id}" title suggests a cross-repo target but has no routing metadata: "${task.title}"`,
+          path: `tasks.${task.id}`,
+          details: {
+            taskId: task.id,
+            remediation:
+              "If this task targets a different repository, add both target_repo and target_path. Otherwise, remove the repo hint from the title.",
+          },
+        });
+      }
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Frontend Applicability Metadata (rq-PR009frontendApplicability)
+// =============================================================================
+
+const FRONTEND_HINT_PATTERN =
+  /\b(frontend|ui|component|view|page|tsx|jsx|css|html|layout|responsive|accessibility|a11y|visual|button|form|dashboard)\b/i;
+
+function isStructuredFrontendScope(metadata: Record<string, string> = {}) {
+  return (
+    metadata.frontend_required === "true" ||
+    metadata.frontend_scope === "true" ||
+    metadata.visual_surface === "true"
+  );
+}
+
+// rq-PR009frontendApplicability: Frontend Applicability Metadata Readiness
+/**
+ * Validate frontend applicability through structured task metadata.
+ *
+ * Hard failures require a structural source (`frontend_required`,
+ * `frontend_scope`, or `visual_surface`). Filename/title heuristics only emit
+ * advisory hints and never own gate-blocking correctness.
+ */
+export function checkFrontendApplicability(change: Change): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const task of change.tasks ?? []) {
+    if (task.status === "cancelled") continue;
+
+    const metadata = task.metadata ?? {};
+    const frontendValue = metadata.frontend;
+    const hasStructuredScope = isStructuredFrontendScope(metadata);
+
+    if (hasStructuredScope) {
+      if (frontendValue !== "true" && frontendValue !== "false") {
+        issues.push({
+          code: PrepReadinessCodes.FRONTEND_APPLICABILITY_MISSING,
+          severity: "error",
+          message: `Task "${task.id}" is in structured frontend/design scope but is missing metadata.frontend ("true" or "false")`,
+          path: `tasks.${task.id}.metadata.frontend`,
+          details: {
+            taskId: task.id,
+            remediation:
+              "Set metadata.frontend='true' for frontend/UI implementation work, or metadata.frontend='false' with metadata.frontend_rationale for non-frontend work.",
+          },
+        });
+      } else if (
+        frontendValue === "false" &&
+        !metadata.frontend_rationale?.trim()
+      ) {
+        issues.push({
+          code: PrepReadinessCodes.FRONTEND_RATIONALE_MISSING,
+          severity: "error",
+          message: `Task "${task.id}" records metadata.frontend="false" in structured frontend/design scope but lacks metadata.frontend_rationale`,
+          path: `tasks.${task.id}.metadata.frontend_rationale`,
+          details: {
+            taskId: task.id,
+            remediation:
+              "Add a bounded metadata.frontend_rationale explaining why the task is not frontend/UI implementation scope.",
+          },
+        });
+      }
+      continue;
+    }
+
+    const heuristicSurface = `${task.title} ${task.section ?? ""}`;
+    if (
+      frontendValue === undefined &&
+      FRONTEND_HINT_PATTERN.test(heuristicSurface)
+    ) {
+      issues.push({
+        code: PrepReadinessCodes.FRONTEND_APPLICABILITY_HINT,
+        severity: "warning",
+        message: `Task "${task.id}" appears frontend/UI-related by heuristic but has no structured frontend applicability metadata`,
+        path: `tasks.${task.id}.metadata.frontend`,
+        details: {
+          taskId: task.id,
+          remediation:
+            "If this task owns frontend/UI work, set metadata.frontend='true'. If not, add structured scope metadata before treating this as blocking.",
+        },
+      });
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: TDD Intent Assignment (rq-PR006tdi)
+// =============================================================================
+
+/** Valid tdd_intent values that satisfy the check */
+const VALID_TDD_INTENTS = [
+  "inline",
+  "separate_verification",
+  "not_applicable",
+] as const;
+
+/**
+ * Verify that all non-cancelled tasks have an explicit metadata.tdd_intent
+ * value set to one of: inline, separate_verification, not_applicable.
+ *
+ * This check enforces rq-PR006tdi: TDD classification must happen during
+ * prep finalization, not be deferred to implementation.
+ *
+ * The severity can be configured via the tdd_enforcement feature flag:
+ * - "strict" (default): severity "error" → blocks prep gate
+ * - "advisory": severity "warning" → advisory only
+ * - "off": check is skipped entirely (caller handles this)
+ *
+ * @param change  The change to check
+ * @param severity  Override severity (default: "error"). Set to "warning" for advisory mode.
+ */
+export function checkTddIntentAssigned(
+  change: Change,
+  severity: "error" | "warning" = "error",
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const allTasks = change.tasks ?? [];
+
+  // Only check non-cancelled tasks
+  const tasks = allTasks.filter((t) => t.status !== "cancelled");
+
+  for (const task of tasks) {
+    const intent = task.metadata?.tdd_intent;
+
+    if (intent === undefined || intent === null) {
+      // No tdd_intent set at all
+      issues.push({
+        code: PrepReadinessCodes.TASK_TDD_INTENT_MISSING,
+        severity,
+        message: `Task "${task.id}" is missing metadata.tdd_intent. Every non-cancelled task must have an explicit TDD intent (inline, separate_verification, or not_applicable) assigned during prep finalization.`,
+        path: `tasks.${task.id}.metadata.tdd_intent`,
+        details: {
+          taskId: task.id,
+          taskTitle: task.title,
+          remediation:
+            "Set metadata.tdd_intent to 'inline' (default for logic tasks), 'separate_verification' (cross-cutting tests), or 'not_applicable' (docs, config).",
+        },
+      });
+    } else if (
+      !VALID_TDD_INTENTS.includes(intent as (typeof VALID_TDD_INTENTS)[number])
+    ) {
+      // Invalid tdd_intent value
+      issues.push({
+        code: PrepReadinessCodes.TASK_TDD_INTENT_MISSING,
+        severity,
+        message: `Task "${task.id}" has invalid metadata.tdd_intent value "${intent}". Must be one of: inline, separate_verification, not_applicable.`,
+        path: `tasks.${task.id}.metadata.tdd_intent`,
+        details: {
+          taskId: task.id,
+          taskTitle: task.title,
+          invalidValue: intent,
+          remediation:
+            "Set metadata.tdd_intent to a valid value: 'inline', 'separate_verification', or 'not_applicable'.",
+        },
+      });
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Non-Code Evidence Policy Readiness (rq-PR008nonCodeEvidence)
+// Enforces rq-TDD011nonCodeEvidence: non-code deliverables must not be forced
+// through fake red/green TDD; they need a machine-readable evidence policy.
+// =============================================================================
+
+/** Non-code deliverable task types that require an explicit evidence policy */
+const NON_CODE_DELIVERABLE_TYPES = new Set([
+  "docs",
+  "research",
+  "approval",
+  "ops",
+  "verification",
+]);
+
+const VALID_EVIDENCE_POLICIES = new Set(ContractEvidencePolicySchema.options);
+
+/**
+ * Ensure every non-cancelled non-code deliverable task carries a valid
+ * machine-readable evidence policy. Tasks with TDD intent not_applicable must
+ * still provide an evidence-policy rationale; not_applicable without a bounded
+ * reason is not sufficient proof.
+ *
+ * Implements rq-nonCodeWorkflow01 by gating prep readiness for tracked
+ * non-code deliverables on explicit evidence policy coverage.
+ */
+export function checkNonCodeEvidencePolicy(change: Change): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const task of change.tasks ?? []) {
+    if (task.status === "cancelled") continue;
+    if (task.type === "code") continue;
+    if (!NON_CODE_DELIVERABLE_TYPES.has(task.type)) continue;
+
+    const policy = task.evidence_policy;
+
+    if (
+      policy === undefined ||
+      policy === null ||
+      !VALID_EVIDENCE_POLICIES.has(policy as ContractEvidencePolicy)
+    ) {
+      issues.push({
+        code: PrepReadinessCodes.NON_CODE_EVIDENCE_POLICY_MISSING,
+        severity: "error",
+        message: `Non-code task "${task.id}" (${task.type}) is missing a valid machine-readable evidence_policy. Non-code deliverables must declare how they will be verified (e.g., source_citation, artifact_reference, stakeholder_acceptance).`,
+        path: `tasks.${task.id}.evidence_policy`,
+        details: {
+          taskId: task.id,
+          taskType: task.type,
+          remediation:
+            "Set task.evidence_policy to a valid ContractEvidencePolicy value. If the task truly cannot be evidenced, use evidence_policy 'not_applicable' with contract_refs.not_applicable_reason.",
+        },
+      });
+      continue;
+    }
+
+    if (
+      policy === "not_applicable" &&
+      !task.contract_refs?.not_applicable_reason
+    ) {
+      issues.push({
+        code: PrepReadinessCodes.NON_CODE_EVIDENCE_POLICY_MISSING,
+        severity: "error",
+        message: `Non-code task "${task.id}" uses evidence_policy "not_applicable" without a bounded rationale. Provide contract_refs.not_applicable_reason or choose a concrete evidence policy.`,
+        path: `tasks.${task.id}.evidence_policy`,
+        details: {
+          taskId: task.id,
+          taskType: task.type,
+          remediation:
+            "Add contract_refs.not_applicable_reason explaining why no evidence policy applies, or select a concrete evidence policy such as source_citation or artifact_reference.",
+        },
+      });
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Normalized Evidence Plan Validity (rq-evidencePlan01)
+// Uses the stage-aware validator. Prep requires policy/proof/rationale but does
+// not require reviewer-owned evidence before review exists.
+// =============================================================================
+
+function isBehaviorCriticalTask(type: string): boolean {
+  return type === "code" || type === "verification";
+}
+
+export function checkTaskEvidencePlan(change: Change): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const task of change.tasks ?? []) {
+    if (task.status === "cancelled") continue;
+
+    const typedTask = task as import("../types").Task;
+    const resolution = resolveTaskEvidence(typedTask);
+    const stageValidation = validateTaskEvidenceForStage(typedTask, "prep");
+    if (!stageValidation.valid) {
+      for (const error of stageValidation.errors) {
+        issues.push({
+          code: PrepReadinessCodes.EVIDENCE_PLAN_INVALID,
+          severity: "error",
+          message: `Task "${task.id}" (${task.type ?? "code"}) has an invalid evidence plan: ${error}`,
+          path: `tasks.${task.id}.evidence_plan`,
+          details: {
+            taskId: task.id,
+            taskType: task.type ?? "code",
+            errors: stageValidation.errors,
+            remediation:
+              "Fix the evidence policy or plan. Behavior-critical tasks must use a proof-bearing route. Stage-v2 non-test routes require a bounded rationale and proof target at prep; reviewer-owned evidence is required at completion.",
+          },
+        });
+      }
+      continue;
+    }
+
+    // Structural safety: behavior-critical tasks must never use not_applicable,
+    // even if the resolver somehow accepted it (defense in depth).
+    if (
+      isBehaviorCriticalTask(task.type ?? "code") &&
+      resolution.policy === "not_applicable"
+    ) {
+      issues.push({
+        code: PrepReadinessCodes.EVIDENCE_PLAN_INVALID,
+        severity: "error",
+        message: `Task "${task.id}" (${task.type}) is behavior-critical but uses evidence_policy 'not_applicable'. Use a proof-bearing route.`,
+        path: `tasks.${task.id}.evidence_plan`,
+        details: {
+          taskId: task.id,
+          taskType: task.type,
+          remediation:
+            "Choose a proof-bearing evidence policy such as test, review, static_check, or artifact_reference.",
+        },
+      });
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Critical-Ops Coverage (rq-PR007coc)
+// =============================================================================
+
+/**
+ * Ensure every contract item marked `requiredCritical: true` has active task
+ * coverage (implements or verifies) by a non-cancelled task, or an explicit
+ * policy-approved alternate route via `notRequiredReason`.
+ *
+ * Items with `verificationRequired: false` are NOT exempt — requiredCritical
+ * is a correctness/release-safety obligation that must not be silently deferred.
+ */
+export function checkCriticalOpsCoverage(change: Change): ValidationIssue[] {
+  const contract = change.contract;
+  if (!contract) return [];
+
+  const issues: ValidationIssue[] = [];
+
+  // Collect IDs covered by non-cancelled tasks
+  const coveredIds = new Set<string>();
+  for (const task of change.tasks ?? []) {
+    if (task.status === "cancelled") continue;
+    const refs = task.contract_refs;
+    if (!refs) continue;
+    for (const id of refs.implements ?? []) coveredIds.add(id);
+    for (const id of refs.verifies ?? []) coveredIds.add(id);
+  }
+
+  for (const item of contract.items) {
+    if (item.requiredCritical !== true) continue;
+    if (item.notRequiredReason) continue; // policy-approved alternate route
+    if (!coveredIds.has(item.id)) {
+      issues.push({
+        code: PrepReadinessCodes.CRITICAL_OPS_UNCOVERED,
+        severity: "error",
+        message: `Required-critical contract item "${item.id}" has no active task coverage (implements or verifies)`,
+        path: `contract.items.${item.id}`,
+        details: {
+          contractId: item.id,
+          remediation:
+            "Add a non-cancelled task that implements or verifies this contract item, or set notRequiredReason to document an approved alternate route.",
+        },
+      });
+    }
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// Check: Task Ordering Provisional Advisory (rq-PR008tor / rq-TDD009seq)
+// =============================================================================
+
+/**
+ * Emit advisory warnings for inline TDD tasks subject to rq-TDD009seq
+ * ordering enforcement. Non-blocking — informational only.
+ */
+export function checkTaskOrderingProvisional(
+  change: Change,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const tasks = (change.tasks ?? []).filter((t) => t.status !== "cancelled");
+
+  for (const task of tasks) {
+    const intent = task.metadata?.tdd_intent;
+    // Default (undefined) is treated as inline per rq-TDD001inl.3
+    const isInline = intent === "inline" || intent === undefined;
+    if (!isInline) continue;
+
+    issues.push({
+      code: PrepReadinessCodes.TASK_ORDERING_PROVISIONAL,
+      severity: "warning",
+      message: `Task "${task.id}" will be subject to rq-TDD009seq red→green ordering enforcement at completion time. Record a failing test via adv_run_test with phase:'red' before completing this task.`,
+      path: `tasks.${task.id}`,
+      details: {
+        taskId: task.id,
+        remediation:
+          "Use adv_run_test phase:'red' (expect failure) then phase:'green' (expect pass) before task completion. Include lastRedRunId and lastGreenRunId in the task completion payload.",
+      },
+    });
+  }
+
+  return issues;
+}
+
+// =============================================================================
+// runPrepReadinessChecks
+// =============================================================================
+
+// rq-PR005gat: Prep Gate Readiness Enforcement
+/**
+ * Run all prep-readiness checks against a change.
+ *
+ * @param change  The change to validate
+ * @param tddEnforcement  Feature flag for TDD enforcement level:
+ *   - "strict" (default): TDD intent check produces errors (blocks gate)
+ *   - "advisory": TDD intent check produces warnings (advisory only)
+ *   - "off": TDD intent check is skipped entirely
+ *
+ * Returns a PrepReadinessResult with:
+ * - mustFailures: issues with severity "error" that block the prep gate
+ * - warnings: advisory issues that do not block
+ * - passed: true only when mustFailures is empty
+ */
+export function runPrepReadinessChecks(
+  change: Change,
+  tddEnforcement: "strict" | "advisory" | "off" = "strict",
+): PrepReadinessResult {
+  const allIssues: ValidationIssue[] = [
+    ...checkRequirementSmells(change),
+    ...checkScenarioAdequacy(change),
+    ...checkTaskGraphIntegrity(change),
+    ...checkCrossRepoRouting(change),
+    ...checkFrontendApplicability(change),
+    ...checkCriticalOpsCoverage(change),
+    ...checkNonCodeEvidencePolicy(change),
+    ...checkTaskEvidencePlan(change),
+    ...checkTaskOrderingProvisional(change),
+    ...(tddEnforcement !== "off"
+      ? checkTddIntentAssigned(
+          change,
+          tddEnforcement === "advisory" ? "warning" : "error",
+        )
+      : []),
+  ];
+
+  const mustFailures = allIssues.filter((i) => i.severity === "error");
+  const warnings = allIssues.filter((i) => i.severity === "warning");
+
+  return {
+    passed: mustFailures.length === 0,
+    mustFailures,
+    warnings,
+    checksPerformed: [
+      "checkRequirementSmells",
+      "checkScenarioAdequacy",
+      "checkTaskGraphIntegrity",
+      "checkCrossRepoRouting",
+      "checkFrontendApplicability",
+      "checkCriticalOpsCoverage",
+      "checkNonCodeEvidencePolicy",
+      "checkTaskEvidencePlan",
+      "checkTaskOrderingProvisional",
+      "checkTddIntentAssigned",
+    ],
+    checkedAt: new Date().toISOString(),
+  };
+}

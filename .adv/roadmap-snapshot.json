@@ -1,0 +1,384 @@
+{
+  "version": 1,
+  "generated_at": "2026-07-07T15:17:33Z",
+  "project": {
+    "owner": "Sharper-Flow",
+    "number": 2,
+    "title": "ADV: Advance"
+  },
+  "counts": {
+    "total": 30,
+    "bugs": 3,
+    "features": 27,
+    "deferred": 0
+  },
+  "bugs": [
+    {
+      "number": 202,
+      "title": "Phase-9 archive finalizer cannot detect squash-merged PRs (PR_NOT_MERGED: repo+prNumber not derived)",
+      "priority": "critical",
+      "labels": [
+        "bug",
+        "priority:critical"
+      ]
+    },
+    {
+      "number": 192,
+      "title": "Fix cross-project target_path artifact readback and close routing",
+      "priority": "high",
+      "labels": [
+        "bug",
+        "priority:high"
+      ]
+    },
+    {
+      "number": 198,
+      "title": "Disk-projection recovery defeated by live wedged workflow; add workflow reset tool + diskAuthoritative recovery + fix missing_workflow classification",
+      "priority": "high",
+      "labels": [
+        "bug",
+        "priority:high"
+      ]
+    }
+  ],
+  "features": [
+    {
+      "number": 45,
+      "title": "Add runtime Zod parse validation at SDK boundary in tests",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "priority:low"
+      ]
+    },
+    {
+      "number": 50,
+      "title": "Project capability index: searchable, indexed reference of truth",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature",
+        "priority:medium"
+      ]
+    },
+    {
+      "number": 61,
+      "title": "Telemetry & Temporal follow-ups from fixTemporalContextMismatch",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "priority:high"
+      ]
+    },
+    {
+      "number": 64,
+      "title": "Add adv_delta_add MCP tool — agent-facing path to encode spec deltas",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature",
+        "priority:medium"
+      ]
+    },
+    {
+      "number": 65,
+      "title": "Replace prose-based MCP arg validation with declarative Zod refinements at schema boundary",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "priority:medium"
+      ]
+    },
+    {
+      "number": 66,
+      "title": "ADV clarify/design must surface 'imported assumptions from research' as scope decisions",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "priority:medium"
+      ]
+    },
+    {
+      "number": 79,
+      "title": "Add must-not section to future ADV proposals",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 80,
+      "title": "Make worktree.deps.store required",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 81,
+      "title": "Document tdd_intent reclassification workaround for cached-dist self-update sessions",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 82,
+      "title": "Reduce ESLint complexity violations across plugin/src",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 83,
+      "title": "Decompose long factory closures",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 84,
+      "title": "Sweep unused type exports flagged by knip",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 87,
+      "title": "Wire scanFileOverlaps into prep validator when async checks exist",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 93,
+      "title": "adv_status: surface reflection friction signal in hygiene view",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "priority:medium"
+      ]
+    },
+    {
+      "number": 94,
+      "title": "Add adv_friction_query MCP tool — agent-queryable reflection friction",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature",
+        "priority:medium"
+      ]
+    },
+    {
+      "number": 96,
+      "title": "adv_session_list: cross-project view (v2 promotion)",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "priority:medium"
+      ]
+    },
+    {
+      "number": 103,
+      "title": "Permission-first config for ADV agents",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 106,
+      "title": "Archived/terminal change listing can time out and shadow state",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 107,
+      "title": "Add TTL caching for ADV status health probes",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 109,
+      "title": "Verify archive gate protects against dangling task commits",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 129,
+      "title": "Refactor adv-worktree skill — remove openchad, evaluate tmux",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 132,
+      "title": "Assess checkpoint target_path support",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 135,
+      "title": "Clean terminal title API",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 143,
+      "title": "Add archive cleanup scanner",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 144,
+      "title": "Add Claude distribution",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "number": 197,
+      "title": "Add ops_followup_link reclassify/remove tool + signals",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "feature",
+        "priority:high"
+      ]
+    },
+    {
+      "number": 199,
+      "title": "Add dependency-direction guard when promoting 'blocks' ops follow-ups",
+      "value": null,
+      "time_criticality": null,
+      "rroe": null,
+      "effort": null,
+      "wsjf": null,
+      "labels": [
+        "enhancement",
+        "feature",
+        "priority:medium"
+      ]
+    }
+  ],
+  "deferred": []
+}

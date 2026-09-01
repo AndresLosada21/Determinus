@@ -1,31 +1,74 @@
-# Per-project AI runtime
-.ai/
-.opencode/
-opencode.json
-opencode.jsonc
-!opencode-fragment.jsonc
+# Dependencies
+node_modules/
+plugin/node_modules/
+plugin/node_modules
+# pnpm is authoritative for plugin dependencies; CI rejects Bun lockfiles.
+plugin/bun.lock
+plugin/bun.lockb
+.pnpm-store/
 
-# Backups / installer state
-.ai-driven-backups/
-*.ai-driven-backup-*
-*.bak-*
+# Build output
+dist/
+*.tsbuildinfo
 
-# Eval output
-.ai/eval-results/
-eval-results/
+# Per-user OpenCode plugin dev artifacts (not tracked so users get their own)
+.opencode/package.json
+.opencode/package-lock.json
+.opencode/bun.lock
+.opencode/node_modules/
 
-# OS / IDE
-.DS_Store
-Thumbs.db
-desktop.ini
-.vscode/
+# SQLite database (derived, not committed)
+.adv/db/
+*.db
+*.db-wal
+*.db-shm
+
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
 
-# Logs / temp
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
 *.log
 npm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
 tmp/
 temp/
+*.tmp
+
+# Provider eval output (regenerated per run)
+scripts/provider-eval-results/
+
+# ADV working state (local project data - in .adv directory)
+.adv/changes/
+# Same ADV runtime projections when the store root is plugin/ (untracked by design)
+plugin/.adv/
+# Leaked-in-repo runtime files: ADV state lives outside the repo per AGENTS.md.
+# Add explicit ignores so accidental fallback writes don't get committed.
+.adv/agenda.jsonl
+.adv/wisdom.jsonl
+.adv/reflections.jsonl
+.adv/project-metadata.json
+# Allow in-repo archive bundles (date-prefixed directories) but ignore other archive files
+.adv/archive/*
+!.adv/archive/20*-*
+
+# Validation-only generated Temporal history fixture (committed only once populated intentionally)
+plugin/src/temporal/__tests__/replay/histories/smoke-captured.json

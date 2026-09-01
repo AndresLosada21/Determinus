@@ -1,0 +1,39 @@
+allowBuilds:
+  '@ast-grep/cli': false
+  '@swc/core': true
+  esbuild: true
+  msgpackr-extract: true
+  protobufjs: true
+onlyBuiltDependencies:
+  - '@swc/core'
+  - esbuild
+  - msgpackr-extract
+  - protobufjs
+overrides:
+  minimatch: ^10.2.3
+  rollup: ^4.59.0
+  flatted: '>=3.4.2'
+  vite: '>=8.0.5'
+  picomatch: '>=4.0.4'
+  brace-expansion: '>=5.0.9'
+  # Keep protobufjs on the maintained 7.x line. The prior '>=8.6.6' floor
+  # force-resolved protobufjs 8.x and caused incompatible transitive runtime
+  # behavior.
+  protobufjs: ^7.6.5
+  uuid: '>=14.0.0'
+  fast-uri: '>=4.1.2'
+  ip-address: '>=10.3.1'
+  hono: '>=4.12.34'
+  esbuild: '>=0.28.1'
+  zod: 4.4.3
+  # Security floor: relocated from a direct devDependency pin. postcss is only
+  # pulled transitively (tsup/vite/postcss-load-config); this override keeps the
+  # patched floor without a phantom direct dependency.
+  postcss: '>=8.5.23'
+  # Security floor: @hono/node-server is pulled transitively by
+  # @modelcontextprotocol/sdk (HTTP server transport, which this plugin does
+  # not use — only StdioServerTransport). Floor to the patched release for
+  # GHSA-frvp-7c67-39w9 (CVSS 5.9). v2 peer (hono ^4) + engine (node >=20) hold.
+  '@hono/node-server': '>=2.0.5'
+  # Security floor: keep nanoid 3.x at the patched release for GHSA-2v37-7h3g-55p8.
+  'nanoid@<4': ^3.3.18

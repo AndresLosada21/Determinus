@@ -1,0 +1,334 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Sharper-Flow/Advance/trunk/plugin/schemas/spec.schema.json",
+  "name": "store-reconciliation",
+  "title": "Store Reconciliation",
+  "purpose": "Capability: Store Reconciliation",
+  "version": "1.1.0",
+  "updated_at": "2026-08-20",
+  "requirements": [
+    {
+      "id": "rq-storeReconcileDryRunPlanHash01",
+      "title": "Dry-run-first plan with plan_hash approval gate",
+      "body": "The store reconcile pass MUST be dry-run-first: the default mode performs classification and planning only, emits a complete typed plan plus a plan_hash (SHA-256 of the canonicalized plan JSON), and writes no store records. An apply-mode invocation MUST require a confirm_plan_hash equal to a prior dry-run's plan_hash and MUST re-verify that hash against a fresh scan before mutating; a mismatch is a typed refusal, never a partial mutation. The dry-run/approval contract MUST be identical on every operator surface (MCP tool and bin/adv CLI).",
+      "priority": "must",
+      "tags": [
+        "store",
+        "reconciliation",
+        "safety",
+        "dry-run"
+      ],
+      "scenarios": [
+        {
+          "id": "rq-storeReconcileDryRunPlanHash01.1",
+          "title": "Dry-run emits plan and hash without writes",
+          "given": [
+            "a target store with residue records"
+          ],
+          "when": "the operator invokes the pass in dry-run mode (default)",
+          "then": [
+            "the pass emits a complete plan and plan_hash",
+            "zero store records are written",
+            "the plan_hash is stable for identical store state"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileDryRunPlanHash01.2",
+          "title": "Apply with stale plan_hash refuses",
+          "given": [
+            "a prior dry-run emitted plan_hash H",
+            "store state changed after the dry-run"
+          ],
+          "when": "apply is invoked with confirm_plan_hash H",
+          "then": [
+            "the pass refuses with a typed stale-plan error",
+            "zero mutations occur"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rq-storeReconcileLegacyDirection01",
+      "title": "Legacy-envelope reconciliation direction is legacy-to-canonical only",
+      "body": "Legacy-envelope reconciliation MUST run in the legacy\u2192canonical direction only. When a retired flat envelope lags the canonical change.json revision, the pass rewrites the envelope in legacy shape with counters set to exactly the canonical revision, preserving full before-state bytes and before/after hashes. When an envelope is newer than canonical, the pass MUST report it only and MUST NOT modify the canonical projection. The canonical projection MUST be byte-identical before and after any envelope advancement.",
+      "priority": "must",
+      "tags": [
+        "store",
+        "reconciliation",
+        "legacy-envelope",
+        "safety"
+      ],
+      "scenarios": [
+        {
+          "id": "rq-storeReconcileLegacyDirection01.1",
+          "title": "Envelope behind canonical advances exactly",
+          "given": [
+            "a legacy envelope behind the canonical revision"
+          ],
+          "when": "the pass reconciles the record",
+          "then": [
+            "the envelope is rewritten with counters equal to the canonical revision",
+            "before-state bytes are preserved",
+            "the canonical projection is byte-identical before and after"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileLegacyDirection01.2",
+          "title": "Envelope newer than canonical is report-only",
+          "given": [
+            "a legacy envelope newer than the canonical revision"
+          ],
+          "when": "the pass reconciles the record",
+          "then": [
+            "the record is reported only",
+            "neither file is written",
+            "the canonical projection is never modified"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rq-storeReconcileBoundedResume01",
+      "title": "Bounded batches with receipt-sourced resumable progress",
+      "body": "The reconcile pass MUST enumerate records in bounded batches and persist resumable progress: an atomic per-record receipt is written as each record completes and a progress checkpoint is persisted after each batch. Receipts are the source of truth for resume; the progress checkpoint is derivable from receipts and MUST be rebuilt from them when corrupt. A re-invocation with resume_from MUST skip records with completed receipts without re-applying their actions. A pass that terminates without a final run report MUST be derivable as interrupted, never synthesized as success.",
+      "priority": "must",
+      "tags": [
+        "store",
+        "reconciliation",
+        "resumability",
+        "crash-safety"
+      ],
+      "scenarios": [
+        {
+          "id": "rq-storeReconcileBoundedResume01.1",
+          "title": "Resume skips completed records",
+          "given": [
+            "a store exceeding the per-batch budget",
+            "a prior pass completed receipts for a prefix of planned records before interruption"
+          ],
+          "when": "the pass is re-invoked with resume_from referencing the interrupted run",
+          "then": [
+            "records with completed receipts are skipped",
+            "no completed action is re-applied",
+            "remaining records are processed"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileBoundedResume01.2",
+          "title": "Corrupt checkpoint rebuilds from receipts",
+          "given": [
+            "an interrupted run with intact receipts and a corrupt progress checkpoint"
+          ],
+          "when": "the pass is re-invoked with resume_from",
+          "then": [
+            "the checkpoint is rebuilt from receipts",
+            "resume proceeds correctly"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rq-epicReconstructionProvenance01",
+      "title": "Epic reconstruction provenance with convergence gate and no fabrication",
+      "body": "Epic owner-record reconstruction MUST derive entry rows from surviving child epic_membership fragment fields only (entry_id, order, title, linked_at), MUST stamp the record with a schema-validated reconstruction provenance block (reconstructed: true, source, timestamp, run_id) plus explicit gap_flags for underivable fields, and MUST pass membership convergence verification against all referencing children before counting as successful. When surviving fragments are insufficient, the pass MUST emit a bounded formally-lost report and clear dangling child memberships as explicit dry-run-visible plan entries; it MUST NEVER fabricate Epic narratives, entries, or metadata without fragment evidence.",
+      "priority": "must",
+      "tags": [
+        "store",
+        "reconciliation",
+        "epics",
+        "provenance"
+      ],
+      "scenarios": [
+        {
+          "id": "rq-epicReconstructionProvenance01.1",
+          "title": "Reconstructed Epic carries typed provenance and converges",
+          "given": [
+            "an Epic referenced by active changes but missing from disk",
+            "surviving child fragments sufficient for reconstruction"
+          ],
+          "when": "the pass reconstructs the Epic owner record",
+          "then": [
+            "the reconstructed record validates against EpicSchema",
+            "it carries a validated reconstruction block with gap flags",
+            "membership convergence passes against all referencing children"
+          ]
+        },
+        {
+          "id": "rq-epicReconstructionProvenance01.2",
+          "title": "Insufficient fragments yield formal loss, never fabrication",
+          "given": [
+            "an Epic with insufficient surviving fragments"
+          ],
+          "when": "the pass processes the Epic",
+          "then": [
+            "a formally-lost report is emitted",
+            "dangling child memberships are cleared as plan-visible entries",
+            "no Epic record is written"
+          ]
+        },
+        {
+          "id": "rq-epicReconstructionProvenance01.3",
+          "title": "Foreign-owned membership is exempt from local reconstruction",
+          "given": [
+            "A child epic_membership carries a non-empty epic_project_id naming a project other than the local project",
+            "No local Epic with that id exists"
+          ],
+          "when": "residue is classified and reconstruction candidates are collected",
+          "then": [
+            "The record classifies as epic_owner_foreign and is reported only",
+            "The fragment is exempt from local reconstruction candidacy",
+            "No local Epic duplicating the remote owner is materialized"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rq-storeReconcileWorkerLockRefusal01",
+      "title": "Read-only worker.lock probe with apply-mode refusal",
+      "body": "The reconcile pass MUST probe the target store's worker.lock with a read-only check before any apply-mode mutation and MUST refuse with a typed error when the lock is live; dry-run mode remains permitted and writes no store records. The probe MUST NOT reclaim, unlink, or otherwise mutate the lock. Dead-lock reclamation is owned by existing store-cleanup machinery and is out of scope for the reconcile pass.",
+      "priority": "must",
+      "tags": [
+        "store",
+        "reconciliation",
+        "safety",
+        "locks"
+      ],
+      "scenarios": [
+        {
+          "id": "rq-storeReconcileWorkerLockRefusal01.1",
+          "title": "Apply refuses on live worker.lock",
+          "given": [
+            "a target store with a live worker.lock"
+          ],
+          "when": "the pass is invoked with execute intent",
+          "then": [
+            "the pass refuses with a typed error",
+            "zero mutations occur",
+            "the lock file is unmodified"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileWorkerLockRefusal01.2",
+          "title": "Dry-run remains permitted on live worker.lock",
+          "given": [
+            "a target store with a live worker.lock"
+          ],
+          "when": "the pass is invoked in dry-run mode",
+          "then": [
+            "the full plan and plan_hash are emitted",
+            "no store records are written"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rq-storeReconcileUnboundedProof01",
+      "title": "Unbounded full-scan completion proof, fail-closed on proof error",
+      "body": "The pass's completion proof MUST be an unbounded full-scan projection-divergence check: the divergence scan is invoked with no budget cap and no record-count cap. The proof returns zero divergences or a documented, whitelisted benign residual set; a budget-capped scan is never acceptable as completion proof. A proof-scan error (I/O failure, distinct from found divergences) MUST fail closed: the run is recorded as not complete and no success is synthesized. Each migration-completion marker MUST have exactly one owner, and that owner is this reconcile pass. No other subsystem \u2014 in particular store initialization, which runs inside a bounded per-call tool budget \u2014 may scan projections to decide convergence or write a completion marker. Residue that a different repair action owns MUST NOT permanently block this pass's completion: when a projection is well-formed in the subtree a repair action rewrites, and fails whole-document validation only because of that foreign-owned residue class, it is recorded as a documented benign residual under the whitelist allowance above rather than treated as an unresolved divergence. The residual MUST remain visible in the marker so completion-with-residue is distinguishable from clean completion. Every other read failure, malformed target subtree, and validation failure with no owning action still fails closed.",
+      "priority": "must",
+      "tags": [
+        "store",
+        "reconciliation",
+        "proof",
+        "safety"
+      ],
+      "scenarios": [
+        {
+          "id": "rq-storeReconcileUnboundedProof01.1",
+          "title": "Completion proof uses unbounded scan",
+          "given": [
+            "an apply pass that completed its planned mutations"
+          ],
+          "when": "the pass computes its completion proof",
+          "then": [
+            "the divergence scan is invoked with budget and record caps unset",
+            "the run report carries before/after divergence counts"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileUnboundedProof01.2",
+          "title": "Proof-scan error fails closed",
+          "given": [
+            "an apply pass whose proof scan encounters an I/O error"
+          ],
+          "when": "the pass computes its completion proof",
+          "then": [
+            "the run is recorded as not complete with the scan error",
+            "no success result is synthesized"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileUnboundedProof01.3",
+          "title": "The reconcile pass is the sole owner of a completion marker",
+          "given": [
+            "a store whose artifact metadata has not converged"
+          ],
+          "when": "store initialization runs",
+          "then": [
+            "initialization performs no scan of change projections",
+            "initialization writes no completion marker",
+            "convergence and the marker remain owned by the operator-driven reconcile pass"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileUnboundedProof01.4",
+          "title": "Foreign-owned residue is a whitelisted benign residual, not a blocker",
+          "given": [
+            "a projection that is well-formed in the subtree the running action rewrites",
+            "the same projection fails whole-document validation only because of a residue class another action owns"
+          ],
+          "when": "the completion check runs",
+          "then": [
+            "the projection is recorded as a documented benign residual and does not block the completion marker",
+            "the residual is retained in the marker so completion-with-residue stays distinguishable from clean completion",
+            "a read failure, a malformed target subtree, or a validation failure with no owning action still fails closed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rq-storeReconcileOrphanEntryBackfill01",
+      "title": "Orphaned Child Memberships Are Classified and Backfilled Through the Locked Entry Write",
+      "body": "Residue detection MUST classify a child epic_membership whose owner Epic exists locally and is active but carries no matching entry, and distinguish it from membership whose owner lives in a foreign project. Backfill MUST route through the locked Epic entry-write path, dedupe against existing entries by entry_id and change_id, and refuse retired or merged owners. Ambiguous fragments are refused, never merged.",
+      "priority": "must",
+      "tags": [
+        "reconciliation",
+        "epics",
+        "residue",
+        "backfill"
+      ],
+      "scenarios": [
+        {
+          "id": "rq-storeReconcileOrphanEntryBackfill01.1",
+          "title": "Entry-less owner classifies as epic_entry_missing and backfills with plan parity",
+          "given": [
+            "An active local Epic has zero entries",
+            "Three child changes carry epic_membership naming that Epic"
+          ],
+          "when": "reconcile scans and plans",
+          "then": [
+            "Each child classifies as epic_entry_missing",
+            "Dry-run output matches apply under the plan_hash gate",
+            "Each backfilled entry preserves the fragment's original linked_at and terminal summary"
+          ]
+        },
+        {
+          "id": "rq-storeReconcileOrphanEntryBackfill01.2",
+          "title": "Duplicates, drift, retired owners, and ambiguity are refused",
+          "given": [
+            "A fragment whose entry_id already exists in the Epic",
+            "A fragment whose change_id exists under a different entry",
+            "A retired or merged owner Epic",
+            "Conflicting surviving fragments"
+          ],
+          "when": "backfill executes",
+          "then": [
+            "The existing-entry fragment is skipped as idempotent, not duplicated",
+            "The change_id conflict is refused with a typed error",
+            "Retired or merged owners are refused without resurrection",
+            "Conflicting fragments are refused with the specific reason and nothing is written"
+          ]
+        }
+      ]
+    }
+  ]
+}

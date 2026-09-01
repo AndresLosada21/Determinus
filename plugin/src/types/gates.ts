@@ -1,0 +1,501 @@
+/**
+ * Gates Domain Types
+ *
+ * GateDef, GateId, GateCompletion, Gates, helper functions.
+ * Single source of truth for the 7-gate model.
+ */
+
+import { z } from "zod";
+
+// =============================================================================
+// Quality Gates
+// =============================================================================
+
+/**
+ * Gate definition — single source of truth for all gate metadata.
+ * Add/remove/reorder gates here; all derived artifacts follow automatically.
+ */
+interface GateDef {
+  /** Unique gate identifier (used as JSON key, schema enum value, etc.) */
+  id: string;
+  /** Human-readable description */
+  description: string;
+}
+
+/**
+ * GATE_DEFS — the canonical, ordered list of gates.
+ * Everything else (GateIdSchema, GATE_ORDER, GatesSchema, createDefaultGates)
+ * is derived from this array.
+ *
+ * To change the gate model: edit this array only.
+ */
+export const GATE_DEFS: readonly GateDef[] = [
+  {
+    id: "proposal",
+    description: "Proposal: Problem statement confirmed via /adv-proposal",
+  },
+  {
+    id: "discovery",
+    description:
+      "Discovery: Context gathered, objectives agreed via /adv-discover",
+  },
+  {
+    id: "design",
+    description: "Design: Architecture decisions validated via /adv-design",
+  },
+  {
+    id: "planning",
+    description: "Planning: Task graph synthesized via /adv-prep",
+  },
+  {
+    id: "execution",
+    description: "Execution: Deliverables produced via /adv-apply",
+  },
+  {
+    id: "acceptance",
+    description: "Acceptance: User accepts deliverables via /adv-review",
+  },
+  {
+    id: "release",
+    description:
+      "Release: Final quality pass and archive via /adv-harden + /adv-archive",
+  },
+] as const;
+
+/** Gate IDs derived from GATE_DEFS */
+const GATE_IDS = GATE_DEFS.map((g) => g.id) as [string, ...string[]];
+
+/**
+ * Gate ID schema — Zod enum derived from GATE_DEFS.
+ */
+export const GateIdSchema = z.enum(GATE_IDS);
+
+export type GateId = z.infer<typeof GateIdSchema>;
+
+// Gate-backing artifact kinds — a subset of the canonical `ArtifactKind`
+// defined in `types/artifacts.ts`. Only these four are gate-backed
+// (proposal/agreement/design/acceptance); `problemStatement` and
+// `executiveSummary` are not gate-backing artifacts.
+//
+// The Zod schema is kept narrow (4 values) for gate-evidence validation,
+// but the TS type is derived from the canonical union via `Extract` so
+// drift between gate-subset and canonical kinds is impossible.
+import type { ArtifactKind } from "./artifacts";
+
+export const GateArtifactKindSchema = z.enum([
+  "proposal",
+  "agreement",
+  "design",
+  "acceptance",
+]);
+
+export type GateArtifactKind = Extract<
+  ArtifactKind,
+  "proposal" | "agreement" | "design" | "acceptance"
+>;
+
+// Compile-time sanity: schema runtime values must match the derived type
+// exhaustively. If a new gate-backed kind is added to either side without
+// the other, `_gateArtifactKindCheck` fails to compile.
+type _GateArtifactKindCheck =
+  GateArtifactKind extends z.infer<typeof GateArtifactKindSchema>
+    ? z.infer<typeof GateArtifactKindSchema> extends GateArtifactKind
+      ? true
+      : never
+    : never;
+const _gateArtifactKindCheck: _GateArtifactKindCheck = true;
+void _gateArtifactKindCheck;
+
+export const GateArtifactEvidenceSchema = z.object({
+  kind: GateArtifactKindSchema,
+  path: z.string().optional(),
+  content_hash: z.string().optional(),
+  non_whitespace_chars: z.number().int().nonnegative().optional(),
+  checked_at: z.string(),
+  compatibility_reason: z.string().optional(),
+});
+
+export type GateArtifactEvidence = z.infer<typeof GateArtifactEvidenceSchema>;
+
+export const GateRecoveryAuditSchema = z.object({
+  reason: z.string(),
+  evidence: z.string(),
+  recovered_at: z.string(),
+});
+
+export type GateRecoveryAudit = z.infer<typeof GateRecoveryAuditSchema>;
+
+/**
+ * Gate criterion — structured checklist item evaluated at gate completion.
+ * Criteria are advisory (not blocking) and provide audit trail for what
+ * was verified when a gate completed.
+ */
+export const GateCriterionSchema = z.object({
+  /** Unique criterion identifier (e.g., "PROPOSAL_ARTIFACT_PRESENT") */
+  id: z.string(),
+  /** Human-readable label */
+  label: z.string(),
+  /** Evaluation result: pass, fail, or na (not applicable/evaluation failed) */
+  status: z.enum(["pass", "fail", "na"]),
+  /** ISO8601 timestamp when criterion was evaluated */
+  evaluatedAt: z.string(),
+  /** Optional evidence or detail about the evaluation */
+  evidence: z.string().optional(),
+});
+
+export type GateCriterion = z.infer<typeof GateCriterionSchema>;
+
+/**
+ * Acceptance criteria freshness — indicates whether a snapshot of acceptance
+ * criteria is still keyed to the current acceptance-readiness revision.
+ */
+export const AcceptanceCriteriaFreshnessSchema = z.enum([
+  "fresh",
+  "stale",
+  "pending",
+]);
+
+export type AcceptanceCriteriaFreshness = z.infer<
+  typeof AcceptanceCriteriaFreshnessSchema
+>;
+
+/**
+ * Persisted snapshot of acceptance criteria captured at gate-completion time.
+ * The basisRevision records the acceptanceReadinessRevision at capture so
+ * later reads can detect stale audit evidence without overwriting it.
+ */
+export const AcceptanceCriteriaSnapshotSchema = z.object({
+  criteria: z.array(GateCriterionSchema),
+  basisRevision: z.number().int().nonnegative(),
+});
+
+export type AcceptanceCriteriaSnapshot = z.infer<
+  typeof AcceptanceCriteriaSnapshotSchema
+>;
+
+/**
+ * Pure current/snapshot acceptance criteria projection surfaced by
+ * adv_gate_status. Freshness is derived from the recorded basisRevision, so a
+ * stale passing snapshot can never appear as current truth.
+ */
+export const AcceptanceCriteriaProjectionSchema = z.object({
+  current: z.array(GateCriterionSchema),
+  snapshot: z.array(GateCriterionSchema).optional(),
+  freshness: AcceptanceCriteriaFreshnessSchema,
+  basisRevision: z.number().int().nonnegative(),
+  staleReason: z.string().optional(),
+});
+
+export type AcceptanceCriteriaProjection = z.infer<
+  typeof AcceptanceCriteriaProjectionSchema
+>;
+
+/**
+ * Criterion definition — static metadata for a gate criterion.
+ * Evaluators are separate functions that inspect ChangeState.
+ */
+export interface CriterionDef {
+  /** Unique criterion identifier */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Description of what this criterion checks */
+  description: string;
+}
+
+/**
+ * Gate criteria definitions — declarative checklist per gate.
+ * Evaluators are implemented separately in gate-readiness.ts.
+ */
+export const GATE_CRITERIA_DEFINITIONS: Record<GateId, CriterionDef[]> = {
+  proposal: [
+    {
+      id: "PROPOSAL_ARTIFACT_PRESENT",
+      label: "Proposal artifact present",
+      description: "Proposal markdown content exists in workflow state",
+    },
+    {
+      id: "PROPOSAL_MIN_SIZE",
+      label: "Proposal minimum size",
+      description: "Proposal has sufficient non-whitespace content",
+    },
+  ],
+  discovery: [
+    {
+      id: "AGREEMENT_ARTIFACT_PRESENT",
+      label: "Agreement artifact present",
+      description: "Agreement markdown content exists in workflow state",
+    },
+    {
+      id: "CONTRACT_MINTED",
+      label: "Contract minted",
+      description: "Typed ChangeContract exists for this change",
+    },
+  ],
+  design: [
+    {
+      id: "DESIGN_ARTIFACT_PRESENT",
+      label: "Design artifact present",
+      description: "Design markdown content exists in workflow state",
+    },
+    {
+      id: "DESIGN_MIN_SIZE",
+      label: "Design minimum size",
+      description: "Design has sufficient non-whitespace content",
+    },
+  ],
+  planning: [
+    {
+      id: "USER_APPROVED",
+      label: "User approved",
+      description: "Planning gate was explicitly approved by user",
+    },
+    {
+      id: "PREP_READINESS_PASS",
+      label: "Prep readiness pass",
+      description: "Prep readiness checks passed",
+    },
+    {
+      id: "TASKS_EXIST",
+      label: "Tasks exist",
+      description: "At least one task has been created",
+    },
+    {
+      id: "NO_ORPHAN_TASKS",
+      label: "No orphan tasks",
+      description: "All tasks have valid dependencies or are unblocked",
+    },
+    {
+      id: "TDD_INTENTS_ASSIGNED",
+      label: "TDD intents assigned",
+      description: "All tasks have tdd_intent metadata",
+    },
+  ],
+  execution: [
+    {
+      id: "ALL_TASKS_DONE",
+      label: "All tasks done",
+      description: "All tasks are in done or cancelled status",
+    },
+  ],
+  acceptance: [
+    {
+      id: "CONTRACT_EXISTS",
+      label: "Contract exists",
+      description: "Typed ChangeContract exists for this change",
+    },
+    {
+      id: "REVIEW_MATRIX_COMPLETE",
+      label: "Review matrix complete",
+      description: "Contract review matrix has rows for all items",
+    },
+    {
+      id: "ALL_ROWS_PASSING",
+      label: "All rows passing",
+      description: "All contract review matrix rows have passing status",
+    },
+    {
+      id: "EXECUTIVE_SUMMARY_PRESENT",
+      label: "Executive summary present",
+      description: "Executive summary artifact exists with sufficient content",
+    },
+    {
+      id: "ALL_TASKS_DONE",
+      label: "All tasks done",
+      description: "All tasks are in done or cancelled status",
+    },
+  ],
+  release: [
+    {
+      id: "TRUNK_MERGED",
+      label: "Trunk merged",
+      description: "Change branch has been merged to trunk",
+    },
+    {
+      id: "PR_HANDOFF_COMPLETE",
+      label: "PR handoff complete",
+      description: "Pull request has been created and merged",
+    },
+    {
+      id: "ALL_TASKS_DONE",
+      label: "All tasks done",
+      description: "All tasks are in done or cancelled status",
+    },
+  ],
+};
+
+export const GateReadinessBlockerSchema = z.object({
+  code: z.string(),
+  gateId: GateIdSchema,
+  message: z.string(),
+  remediation: z.string(),
+  blockingGateId: GateIdSchema.optional(),
+  artifactKind: GateArtifactKindSchema.optional(),
+  contractId: z.string().optional(),
+  linkId: z.string().optional(),
+  changeId: z.string().optional(),
+  relationship: z.string().optional(),
+});
+
+export type GateReadinessBlocker = z.infer<typeof GateReadinessBlockerSchema>;
+
+/**
+ * Ordered list of gate IDs for sequence enforcement.
+ * Derived from GATE_DEFS order.
+ */
+export const GATE_ORDER: GateId[] = GATE_DEFS.map((g) => g.id) as GateId[];
+
+export type GateWorktreeImpact = "metadata" | "worktree_mutation";
+
+/**
+ * Worktree-impact classification for gate completion.
+ *
+ * Metadata gates only record workflow state/artifact decisions and do not
+ * require code or git mutations in the current checkout. Worktree-mutation
+ * gates can run prep/apply/review/harden/archive behavior that mutates files,
+ * git state, or task execution state, so they remain guarded by worktree
+ * isolation.
+ */
+export const GATE_WORKTREE_IMPACT: Record<GateId, GateWorktreeImpact> = {
+  proposal: "metadata",
+  discovery: "metadata",
+  design: "metadata",
+  planning: "worktree_mutation",
+  execution: "worktree_mutation",
+  acceptance: "worktree_mutation",
+  release: "worktree_mutation",
+};
+
+export const isMetadataOnlyGate = (gateId: GateId): boolean =>
+  GATE_WORKTREE_IMPACT[gateId] === "metadata";
+
+export const isWorktreeMutationGate = (gateId: GateId): boolean =>
+  GATE_WORKTREE_IMPACT[gateId] === "worktree_mutation";
+
+/**
+ * Gate status values.
+ * - pending: Not yet started
+ * - in_progress: Agent is actively working this gate
+ * - awaiting_approval: Gate output is ready and waiting for user approval
+ * - stuck: Gate cannot progress without recovery
+ * - done: Completed with timestamp + actor evidence
+ */
+const GateStatusSchema = z.enum([
+  "pending",
+  "in_progress",
+  "awaiting_approval",
+  "stuck",
+  "done",
+]);
+
+type _GateStatus = z.infer<typeof GateStatusSchema>;
+
+/**
+ * Single gate completion record.
+ * Tracks who completed the gate and when.
+ */
+export const GateCompletionSchema = z.object({
+  /** Current status of this gate */
+  status: GateStatusSchema.default("pending" as const),
+  /** ISO8601 timestamp when gate was completed */
+  completed_at: z.string().optional(),
+  /** Who completed the gate (user, agent, migration) */
+  completed_by: z.string().optional(),
+  /** Key decisions or context captured at gate completion */
+  notes: z.string().optional(),
+  /** Evidence shown while waiting for user approval */
+  approval_evidence: z.string().optional(),
+  /** Human-readable reason when gate is stuck */
+  stuck_reason: z.string().optional(),
+  /** Machine-readable blockers recorded when workflow readiness rejects completion */
+  readiness_blockers: z.array(GateReadinessBlockerSchema).optional(),
+  /** ISO8601 timestamp when current non-pending state began */
+  started_at: z.string().optional(),
+  /** Who triggered or owns the current gate state */
+  triggered_by: z.string().optional(),
+  /** Original gate ID before migration (audit trail for gate renames) */
+  migrated_from: z.string().optional(),
+  /** Additional old gate completions absorbed into this gate during migration */
+  absorbed_completions: z
+    .array(
+      z.object({
+        gate_id: z.string(),
+        status: GateStatusSchema,
+        completed_at: z.string().optional(),
+        completed_by: z.string().optional(),
+      }),
+    )
+    .optional(),
+  /** Artifact evidence validated by the workflow before gate completion */
+  artifact_evidence: GateArtifactEvidenceSchema.optional(),
+  /** Disk-projection recovery audit evidence, present only for recovery writes */
+  recovery_audit: GateRecoveryAuditSchema.optional(),
+});
+
+export type GateCompletion = z.infer<typeof GateCompletionSchema>;
+
+/**
+ * Full gates object — one field per GATE_DEFS entry.
+ * Derived from GATE_DEFS so adding/removing a gate propagates automatically.
+ */
+export const GatesSchema = z.object(
+  Object.fromEntries(
+    GATE_DEFS.map((g) => [
+      g.id,
+      GateCompletionSchema.default({ status: "pending" as const }),
+    ]),
+  ) as Record<string, ReturnType<typeof GateCompletionSchema.default>>,
+);
+
+export type Gates = z.infer<typeof GatesSchema>;
+
+/**
+ * Check if a gate is "satisfied" (done or legacy).
+ * Legacy gates count as satisfied for sequence enforcement.
+ */
+export const isGateSatisfied = (gate: GateCompletion): boolean => {
+  return gate.status === "done";
+};
+
+/**
+ * Check if a gate can be completed (previous gate must be satisfied).
+ * @param gates - Current gates state
+ * @param gateId - Gate to check
+ * @returns true if the gate can be completed
+ */
+export const canCompleteGate = (gates: Gates, gateId: GateId): boolean => {
+  const idx = GATE_ORDER.indexOf(gateId);
+  if (idx === 0) return true; // First gate can always be completed
+
+  // Check all previous gates are satisfied
+  for (let i = 0; i < idx; i++) {
+    const prevGateId = GATE_ORDER[i];
+    if (!isGateSatisfied(gates[prevGateId])) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
+ * Get list of incomplete gates (not done or legacy).
+ */
+export const getIncompleteGates = (gates: Gates): GateId[] => {
+  return GATE_ORDER.filter((gateId) => !isGateSatisfied(gates[gateId]));
+};
+
+/**
+ * Check if all gates are satisfied (can archive/complete).
+ */
+export const allGatesSatisfied = (gates: Gates): boolean => {
+  return GATE_ORDER.every((gateId) => isGateSatisfied(gates[gateId]));
+};
+
+/**
+ * Create default gates object with all gates pending.
+ * Derived from GATE_DEFS — adding a gate here is automatic.
+ */
+export const createDefaultGates = (): Gates =>
+  Object.fromEntries(
+    GATE_DEFS.map((g) => [g.id, { status: "pending" as const }]),
+  ) as Gates;

@@ -1,0 +1,143 @@
+{
+  "$id": "https://raw.githubusercontent.com/Sharper-Flow/Advance/trunk/plugin/schemas/backlog-item.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "archived_at": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "context_packet": {
+      "properties": {
+        "avoidances": {
+          "items": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "background": {
+          "maxLength": 4096,
+          "type": "string"
+        },
+        "constraints": {
+          "items": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "cross_project_target": {
+          "properties": {
+            "project_hint": {
+              "maxLength": 200,
+              "type": "string"
+            },
+            "repo_url": {
+              "maxLength": 2048,
+              "type": "string"
+            },
+            "target_path": {
+              "maxLength": 1024,
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "design_seed": {
+          "maxLength": 6144,
+          "type": "string"
+        },
+        "references": {
+          "items": {
+            "properties": {
+              "label": {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              "locator": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "maxItems": 12,
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "created_at": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "promoted_to": {
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "change",
+            "epic_shell"
+          ],
+          "type": "string"
+        },
+        "promoted_at": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "promoted_at"
+      ],
+      "type": "object"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "type": "string"
+    },
+    "success_hint": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "title": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "updated_at": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "success_hint",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "ADV Repo Backlog Item",
+  "type": "object"
+}

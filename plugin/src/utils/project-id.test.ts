@@ -1,0 +1,500 @@
+/**
+ * getProjectId() Tests
+ *
+ * Verifies stable project identifier derivation from git root commit hash,
+ * AND the test-mode synthetic override that prevents test fixtures from
+ * leaking into a real ADV project's external state directory.
+ */
+
+import {
+  describe,
+  test,
+  expect,
+  afterAll,
+  afterEach,
+  beforeEach,
+} from "vitest";
+import {
+  getProjectId,
+  getProjectIdFromGit,
+  InvalidProjectIdentityError,
+  resolveProjectIdentity,
+  getDataHome,
+  getExternalRoot,
+  getExternalRootForProject,
+  getWorktreeHomeOverride,
+  getWorktreeBase,
+  isPathInsideDirectory,
+  assertPathInsideDirectory,
+  SYNTHETIC_TEST_PROJECT_ID,
+  SYNTHETIC_TEST_PROJECT_ID_PREFIX,
+  synthesizeTestProjectId,
+} from "./project-id";
+import { existsSync } from "fs";
+import { chmod, mkdtemp, rm, writeFile } from "fs/promises";
+import { join, resolve } from "path";
+import { homedir, tmpdir } from "os";
+
+const INVALID_IDENTITY_REPO_ENV = "ADV_INVALID_IDENTITY_TEST_REPO";
+const INVALID_IDENTITY_CANDIDATE_ENV = "ADV_INVALID_IDENTITY_TEST_CANDIDATE";
+let invalidIdentityFixtureRoot: string | undefined;
+
+afterAll(async () => {
+  if (invalidIdentityFixtureRoot) {
+    await rm(invalidIdentityFixtureRoot, { recursive: true, force: true });
+  }
+});
+
+test("resolveProjectIdentity refuses a non-SHA40 candidate without minting a store", async () => {
+  const candidate = "3f9f88dbc6c65a2463945f1dd2692f7f2dfd56984e2627";
+  const fixtureRoot = await mkdtemp(join(tmpdir(), "adv-invalid-identity-"));
+  invalidIdentityFixtureRoot = fixtureRoot;
+  const gitWrapper = join(fixtureRoot, "git");
+  const originalGitPath = process.env.ADV_GIT_PATH;
+  const originalRepo = process.env[INVALID_IDENTITY_REPO_ENV];
+  const originalCandidate = process.env[INVALID_IDENTITY_CANDIDATE_ENV];
+  const originalXdg = process.env.XDG_DATA_HOME;
+
+  await writeFile(
+    gitWrapper,
+    `#!/bin/sh
+if [ "\${${INVALID_IDENTITY_REPO_ENV}}" = "$(pwd)" ] && [ "$1" = "rev-list" ]; then
+  printf '%s\\n' "\${${INVALID_IDENTITY_CANDIDATE_ENV}}"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+  );
+  await chmod(gitWrapper, 0o755);
+
+  try {
+    process.env.ADV_GIT_PATH = gitWrapper;
+    process.env[INVALID_IDENTITY_REPO_ENV] = process.cwd();
+    process.env[INVALID_IDENTITY_CANDIDATE_ENV] = candidate;
+    process.env.XDG_DATA_HOME = fixtureRoot;
+
+    await expect(resolveProjectIdentity(process.cwd())).rejects.toMatchObject({
+      name: "InvalidProjectIdentityError",
+      repoPath: process.cwd(),
+      projectId: candidate,
+      message: expect.stringContaining("40 lowercase hexadecimal characters"),
+    });
+    await expect(getProjectIdFromGit(process.cwd())).rejects.toBeInstanceOf(
+      InvalidProjectIdentityError,
+    );
+    expect(existsSync(getExternalRoot(candidate))).toBe(false);
+  } finally {
+    if (originalGitPath === undefined) delete process.env.ADV_GIT_PATH;
+    else process.env.ADV_GIT_PATH = originalGitPath;
+    if (originalRepo === undefined)
+      delete process.env[INVALID_IDENTITY_REPO_ENV];
+    else process.env[INVALID_IDENTITY_REPO_ENV] = originalRepo;
+    if (originalCandidate === undefined)
+      delete process.env[INVALID_IDENTITY_CANDIDATE_ENV];
+    else process.env[INVALID_IDENTITY_CANDIDATE_ENV] = originalCandidate;
+    if (originalXdg === undefined) delete process.env.XDG_DATA_HOME;
+    else process.env.XDG_DATA_HOME = originalXdg;
+  }
+});
+
+describe("SYNTHETIC_TEST_PROJECT_ID_PREFIX + SYNTHETIC_TEST_PROJECT_ID", () => {
+  test("prefix is 16 zeros (unambiguously synthetic, no real SHA collides)", () => {
+    expect(SYNTHETIC_TEST_PROJECT_ID_PREFIX).toBe("0000000000000000");
+    expect(SYNTHETIC_TEST_PROJECT_ID_PREFIX).toHaveLength(16);
+  });
+
+  test("default sentinel is 40-char zero string starting with the prefix", () => {
+    expect(SYNTHETIC_TEST_PROJECT_ID).toBe(
+      "0000000000000000000000000000000000000000",
+    );
+    expect(SYNTHETIC_TEST_PROJECT_ID).toHaveLength(40);
+    expect(
+      SYNTHETIC_TEST_PROJECT_ID.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX),
+    ).toBe(true);
+  });
+});
+
+describe("synthesizeTestProjectId", () => {
+  test("returns 40-char hex with the synthetic prefix", () => {
+    const id = synthesizeTestProjectId("/some/path");
+    expect(id).toHaveLength(40);
+    expect(id).toMatch(/^[0-9a-f]{40}$/);
+    expect(id.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).toBe(true);
+  });
+
+  test("is deterministic for the same directory", () => {
+    expect(synthesizeTestProjectId("/dir/a")).toBe(
+      synthesizeTestProjectId("/dir/a"),
+    );
+  });
+
+  test("returns distinct IDs for distinct directories (cross-project isolation)", () => {
+    expect(synthesizeTestProjectId("/dir/a")).not.toBe(
+      synthesizeTestProjectId("/dir/b"),
+    );
+  });
+
+  test("collapses to default sentinel for empty directory", () => {
+    expect(synthesizeTestProjectId("")).toBe(SYNTHETIC_TEST_PROJECT_ID);
+  });
+});
+
+describe("getProjectId — test-mode synthetic override", () => {
+  // Save and restore env vars so other test files aren't affected.
+  const originalVitest = process.env.VITEST;
+  const originalAdvTestMode = process.env.ADV_TEST_MODE;
+
+  afterEach(() => {
+    if (originalVitest !== undefined) process.env.VITEST = originalVitest;
+    else delete process.env.VITEST;
+    if (originalAdvTestMode !== undefined)
+      process.env.ADV_TEST_MODE = originalAdvTestMode;
+    else delete process.env.ADV_TEST_MODE;
+  });
+
+  test("hard-fail guardrail: vitest sets VITEST=true and getProjectId returns synthetic ID", async () => {
+    // This test guarantees that no future test can accidentally resolve a real
+    // git SHA from getProjectId. If this test fails, the synthetic override
+    // is broken and tests may leak fixture state into a real ADV project.
+    expect(process.env.VITEST).toBe("true");
+    const id = await getProjectId(process.cwd());
+    expect(id).toMatch(/^[0-9a-f]{40}$/);
+    expect(id?.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).toBe(true);
+  });
+
+  test("returns synthetic ID when VITEST=true and directory is a real git repo", async () => {
+    process.env.VITEST = "true";
+    delete process.env.ADV_TEST_MODE;
+    // process.cwd() during tests is the plugin checkout — a real git repo.
+    const id = await getProjectId(process.cwd());
+    expect(id).toBe(synthesizeTestProjectId(process.cwd()));
+  });
+
+  test("returns synthetic ID when ADV_TEST_MODE=1 and directory is a real git repo", async () => {
+    delete process.env.VITEST;
+    process.env.ADV_TEST_MODE = "1";
+    const id = await getProjectId(process.cwd());
+    expect(id).toBe(synthesizeTestProjectId(process.cwd()));
+  });
+
+  test("returns null in test mode for non-git directory (preserves legacy fallback)", async () => {
+    process.env.VITEST = "true";
+    // /tmp is not a git repo; callers depend on null to fall back to
+    // legacy in-repo paths. Without this, createTestProject fixtures
+    // (stub .git, no commits) would resolve to a synthetic external
+    // root and break tests that expect dir-rooted state.
+    const id = await getProjectId("/tmp");
+    expect(id).toBeNull();
+  });
+
+  test("returns null in test mode for nonexistent directory", async () => {
+    process.env.VITEST = "true";
+    const id = await getProjectId("/nonexistent/path/xyz");
+    expect(id).toBeNull();
+  });
+
+  test("synthetic IDs isolate distinct real-git fixture directories from each other", () => {
+    // Pure-function check on synthesizeTestProjectId — proves cross-project
+    // isolation without needing two real-git fixtures in this unit test.
+    const idA = synthesizeTestProjectId("/fixture/source");
+    const idB = synthesizeTestProjectId("/fixture/target");
+    expect(idA).not.toBe(idB);
+    expect(idA.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).toBe(true);
+    expect(idB.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).toBe(true);
+  });
+
+  test("does NOT short-circuit when VITEST is falsy and ADV_TEST_MODE missing", async () => {
+    process.env.VITEST = "false";
+    delete process.env.ADV_TEST_MODE;
+    // Without test-mode flags, falls through to real git resolution.
+    // /tmp (non-git) returns null deterministically.
+    const id = await getProjectId("/tmp");
+    expect(id).toBeNull();
+  });
+});
+
+describe("getProjectIdFromGit (raw, bypasses test-mode override)", () => {
+  test("returns root commit hash for a git repo", async () => {
+    const id = await getProjectIdFromGit(process.cwd());
+    expect(id).toMatch(/^[0-9a-f]{40}$/);
+  });
+
+  test("returns consistent ID for same repo", async () => {
+    const id1 = await getProjectIdFromGit(process.cwd());
+    const id2 = await getProjectIdFromGit(process.cwd());
+    expect(id1).toBe(id2);
+  });
+
+  test("returns null for non-git directory", async () => {
+    const id = await getProjectIdFromGit("/tmp");
+    expect(id).toBeNull();
+  });
+
+  test("returns null for nonexistent directory", async () => {
+    const id = await getProjectIdFromGit("/nonexistent/path/xyz");
+    expect(id).toBeNull();
+  });
+});
+
+describe("getExternalRoot", () => {
+  const originalEnv = process.env.XDG_DATA_HOME;
+  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+
+  beforeEach(() => {
+    // These assertions intentionally exercise the configured XDG path rather
+    // than the test-mode isolation root.
+    process.env.ADV_TEST_DATA_HOME = "0";
+  });
+
+  afterEach(() => {
+    if (originalEnv !== undefined) {
+      process.env.XDG_DATA_HOME = originalEnv;
+    } else {
+      delete process.env.XDG_DATA_HOME;
+    }
+    if (originalTestDataHome !== undefined) {
+      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
+    } else {
+      delete process.env.ADV_TEST_DATA_HOME;
+    }
+  });
+
+  test("uses XDG_DATA_HOME when set", () => {
+    process.env.XDG_DATA_HOME = "/custom/data";
+    const root = getExternalRoot("abc123");
+    expect(root).toBe("/custom/data/opencode/plugins/advance/abc123");
+  });
+
+  test("falls back to ~/.local/share when XDG_DATA_HOME unset", () => {
+    delete process.env.XDG_DATA_HOME;
+    const root = getExternalRoot("abc123");
+    expect(root).toBe(
+      join(homedir(), ".local/share/opencode/plugins/advance/abc123"),
+    );
+  });
+
+  test("falls back to ~/.local/share when XDG_DATA_HOME is empty", () => {
+    process.env.XDG_DATA_HOME = "";
+    expect(getDataHome()).toBe(join(homedir(), ".local/share"));
+    expect(getExternalRoot("abc123")).toBe(
+      join(homedir(), ".local/share/opencode/plugins/advance/abc123"),
+    );
+  });
+
+  test("rejects relative XDG_DATA_HOME paths", () => {
+    process.env.XDG_DATA_HOME = "relative/data";
+    expect(() => getDataHome()).toThrow(/XDG_DATA_HOME must be absolute/);
+    expect(() => getExternalRoot("abc123")).toThrow(
+      /XDG_DATA_HOME must be absolute/,
+    );
+  });
+
+  test("handles empty string projectId gracefully", () => {
+    delete process.env.XDG_DATA_HOME;
+    const root = getExternalRoot("");
+    // Should still return a path (caller is responsible for null-checking projectId)
+    expect(root).toBe(join(homedir(), ".local/share/opencode/plugins/advance"));
+  });
+});
+
+describe("getDataHome — test-mode isolation", () => {
+  const originalVitest = process.env.VITEST;
+  const originalAdvTestMode = process.env.ADV_TEST_MODE;
+  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+  const originalXdg = process.env.XDG_DATA_HOME;
+
+  afterEach(() => {
+    if (originalVitest !== undefined) process.env.VITEST = originalVitest;
+    else delete process.env.VITEST;
+    if (originalAdvTestMode !== undefined)
+      process.env.ADV_TEST_MODE = originalAdvTestMode;
+    else delete process.env.ADV_TEST_MODE;
+    if (originalTestDataHome !== undefined)
+      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
+    else delete process.env.ADV_TEST_DATA_HOME;
+    if (originalXdg !== undefined) process.env.XDG_DATA_HOME = originalXdg;
+    else delete process.env.XDG_DATA_HOME;
+  });
+
+  test("roots VITEST stores under os.tmpdir instead of the production data home", () => {
+    process.env.VITEST = "true";
+    delete process.env.ADV_TEST_MODE;
+    delete process.env.ADV_TEST_DATA_HOME;
+    delete process.env.XDG_DATA_HOME;
+
+    const dataHome = getDataHome();
+
+    expect(dataHome.startsWith(resolve(tmpdir()))).toBe(true);
+    expect(dataHome).not.toBe(join(homedir(), ".local/share"));
+  });
+
+  test("roots ADV_TEST_MODE stores under os.tmpdir", () => {
+    delete process.env.VITEST;
+    process.env.ADV_TEST_MODE = "1";
+    delete process.env.ADV_TEST_DATA_HOME;
+    delete process.env.XDG_DATA_HOME;
+
+    expect(getDataHome().startsWith(resolve(tmpdir()))).toBe(true);
+  });
+
+  test("allows XDG assertions to opt out of test-mode redirection", () => {
+    process.env.VITEST = "true";
+    process.env.ADV_TEST_DATA_HOME = "0";
+    process.env.XDG_DATA_HOME = "/custom/data";
+
+    expect(getDataHome()).toBe("/custom/data");
+  });
+
+  test("preserves the configured XDG path outside test mode", () => {
+    process.env.VITEST = "false";
+    delete process.env.ADV_TEST_MODE;
+    delete process.env.ADV_TEST_DATA_HOME;
+    process.env.XDG_DATA_HOME = "/custom/data";
+
+    expect(getDataHome()).toBe("/custom/data");
+  });
+});
+
+describe("getExternalRootForProject", () => {
+  const originalEnv = process.env.XDG_DATA_HOME;
+  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+  const sourceProjectId = "1".repeat(40);
+  const targetProjectId = "2".repeat(40);
+
+  beforeEach(() => {
+    process.env.ADV_TEST_DATA_HOME = "0";
+  });
+
+  afterEach(() => {
+    if (originalEnv !== undefined) {
+      process.env.XDG_DATA_HOME = originalEnv;
+    } else {
+      delete process.env.XDG_DATA_HOME;
+    }
+    if (originalTestDataHome !== undefined) {
+      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
+    } else {
+      delete process.env.ADV_TEST_DATA_HOME;
+    }
+  });
+
+  test("uses sibling target project shard when XDG_DATA_HOME is a canonical opencode-projects shard", () => {
+    process.env.XDG_DATA_HOME = `/tmp/opencode-projects/${sourceProjectId}`;
+
+    expect(getExternalRootForProject(targetProjectId)).toBe(
+      `/tmp/opencode-projects/${targetProjectId}/opencode/plugins/advance/${targetProjectId}`,
+    );
+  });
+
+  test("falls back to legacy external root when XDG_DATA_HOME is not sharded", () => {
+    process.env.XDG_DATA_HOME = "/custom/data";
+
+    expect(getExternalRootForProject(targetProjectId)).toBe(
+      `/custom/data/opencode/plugins/advance/${targetProjectId}`,
+    );
+  });
+
+  test("falls back for non-canonical opencode-projects shard names", () => {
+    process.env.XDG_DATA_HOME = "/tmp/opencode-projects/path-abcdef123456";
+
+    expect(getExternalRootForProject(targetProjectId)).toBe(
+      `/tmp/opencode-projects/path-abcdef123456/opencode/plugins/advance/${targetProjectId}`,
+    );
+  });
+
+  test("rejects relative XDG_DATA_HOME paths", () => {
+    process.env.XDG_DATA_HOME = "relative/data";
+
+    expect(() => getExternalRootForProject(targetProjectId)).toThrow(
+      /XDG_DATA_HOME must be absolute/,
+    );
+  });
+});
+
+describe("getWorktreeBase", () => {
+  const originalEnv = process.env.XDG_DATA_HOME;
+  const originalWorktreeHome = process.env.ADV_WORKTREE_HOME;
+  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+
+  beforeEach(() => {
+    process.env.ADV_TEST_DATA_HOME = "0";
+  });
+
+  afterEach(() => {
+    if (originalEnv !== undefined) process.env.XDG_DATA_HOME = originalEnv;
+    else delete process.env.XDG_DATA_HOME;
+    if (originalWorktreeHome !== undefined)
+      process.env.ADV_WORKTREE_HOME = originalWorktreeHome;
+    else delete process.env.ADV_WORKTREE_HOME;
+    if (originalTestDataHome !== undefined)
+      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
+    else delete process.env.ADV_TEST_DATA_HOME;
+  });
+
+  test("uses the XDG opencode worktree namespace", () => {
+    process.env.XDG_DATA_HOME = "/custom/data";
+    expect(getWorktreeBase("abc123")).toBe(
+      "/custom/data/opencode/worktree/abc123",
+    );
+  });
+
+  test("shares default data-home handling with external root", () => {
+    delete process.env.XDG_DATA_HOME;
+    delete process.env.ADV_WORKTREE_HOME;
+    expect(getWorktreeBase("abc123")).toBe(
+      join(homedir(), ".local/share/opencode/worktree/abc123"),
+    );
+  });
+
+  test("uses ADV_WORKTREE_HOME when set", () => {
+    process.env.XDG_DATA_HOME = "/custom/data";
+    process.env.ADV_WORKTREE_HOME = "/home/dev/worktrees";
+    expect(getWorktreeHomeOverride()).toBe("/home/dev/worktrees");
+    expect(getWorktreeBase("abc123")).toBe("/home/dev/worktrees/abc123");
+  });
+
+  test("treats empty ADV_WORKTREE_HOME as unset", () => {
+    process.env.XDG_DATA_HOME = "/custom/data";
+    process.env.ADV_WORKTREE_HOME = "";
+    expect(getWorktreeHomeOverride()).toBeNull();
+    expect(getWorktreeBase("abc123")).toBe(
+      "/custom/data/opencode/worktree/abc123",
+    );
+  });
+
+  test("rejects relative ADV_WORKTREE_HOME paths", () => {
+    process.env.ADV_WORKTREE_HOME = "dev/worktrees";
+    expect(() => getWorktreeHomeOverride()).toThrow(
+      /ADV_WORKTREE_HOME must be absolute/,
+    );
+    expect(() => getWorktreeBase("abc123")).toThrow(
+      /ADV_WORKTREE_HOME must be absolute/,
+    );
+  });
+});
+
+describe("path namespace guards", () => {
+  test("accept paths inside a namespace, including the namespace itself", () => {
+    const root = resolve("/tmp/adv-state");
+    expect(isPathInsideDirectory(root, root)).toBe(true);
+    expect(isPathInsideDirectory(join(root, "child"), root)).toBe(true);
+    expect(() =>
+      assertPathInsideDirectory(join(root, "child"), root),
+    ).not.toThrow();
+  });
+
+  test("reject sibling paths with the same string prefix", () => {
+    const root = resolve("/tmp/adv-state");
+    expect(isPathInsideDirectory("/tmp/adv-state-other", root)).toBe(false);
+    expect(() =>
+      assertPathInsideDirectory("/tmp/adv-state-other", root),
+    ).toThrow(/outside allowed namespace/);
+  });
+
+  test("reject traversal escaping the namespace", () => {
+    const root = resolve("/tmp/adv-state");
+    expect(isPathInsideDirectory(join(root, "..", "outside"), root)).toBe(
+      false,
+    );
+  });
+});

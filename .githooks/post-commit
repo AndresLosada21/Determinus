@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# post-commit: auto-deploy supported ADV assets to the local install when the
+# commit touches anything that the local install mirrors.
+#
+# Prevents the drift class this hook was created to fix: a commit lands in
+# the repo but `~/.config/opencode/` still has the old command/agent/skill
+# files, so agents invoking `/adv-*` from other repos see stale contracts.
+#
+# Behavior:
+# - Silent no-op if the commit touched none of the deployed paths.
+# - Runs scripts/deploy-local.sh --fix otherwise (idempotent, ~1s).
+# - Never blocks the commit (post-commit fires after the commit is already
+#   recorded, so a non-zero exit would only emit a warning).
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+DEPLOY_SCRIPT="$REPO_ROOT/scripts/deploy-local.sh"
+
+# Paths that deploy-local mirrors to ~/.config/opencode.
+# Keep in sync with scripts/deploy-local.sh.
+DEPLOYED_PATHS=(
+  ".opencode/command/"
+  ".opencode/agents/"
+  ".opencode/overlays/"
+  "ADV_INSTRUCTIONS.md"
+  "skills/"
+)
+
+# Look at the diff introduced by HEAD (the commit that just landed).
+CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || true)"
+
+if [[ -z "$CHANGED" ]]; then
+  exit 0
+fi
+
+NEEDS_DEPLOY=0
+for path in "${DEPLOYED_PATHS[@]}"; do
+  if grep -qE "^${path}" <<< "$CHANGED"; then
+    NEEDS_DEPLOY=1
+    break
+  fi
+done
+
+if [[ "$NEEDS_DEPLOY" -eq 0 ]]; then
+  exit 0
+fi
+
+if [[ ! -x "$DEPLOY_SCRIPT" ]]; then
+  echo "[adv-post-commit] scripts/deploy-local.sh not found or not executable; skipping deploy." >&2
+  exit 0
+fi
+
+if ! deploy_output="$($DEPLOY_SCRIPT --fix 2>&1)"; then
+  if [[ -n "$deploy_output" ]]; then
+    printf '%s\n' "$deploy_output" >&2
+  fi
+  echo "[adv-post-commit] deploy-local.sh failed; run manually:" >&2
+  echo "  $DEPLOY_SCRIPT --fix" >&2
+  exit 0
+fi
+
+echo "[adv-post-commit] Deployed ADV assets to the local install (touched: $(echo "$CHANGED" | head -3 | tr '\n' ' '))"

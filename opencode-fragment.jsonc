@@ -1,6 +1,0 @@
-{
-  "default_agent": "orchestrator",
-  "experimental": {
-    "subagent_depth": 1
-  }
-}
