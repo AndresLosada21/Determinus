@@ -6,7 +6,7 @@
  * for forbidden routing patterns referencing:
  *
  * Phantom names (retired agents):
- *   - `librarian`  (replaced by `adv-researcher`)
+ *   - `librarian`  (replaced by `determinus-researcher`)
  *   - `mechanic`   (replaced by inline diagnosis)
  *   - `prioritizer` (replaced by `skill("prioritizer")` inline)
  *
@@ -56,7 +56,7 @@ interface PatternSpec {
  */
 function buildPatterns(name: string): PatternSpec[] {
   // Negative lookahead to prevent matching compound names.
-  // e.g., "adv" should not match "adv-researcher", "adv-reviewer", etc.
+  // e.g., "adv" should not match "determinus-researcher", "determinus-reviewer", etc.
   const notCompound = `(?![\\-\\w])`;
   return [
     // Sub-agent table row: | `name` |
@@ -94,7 +94,7 @@ function buildPatterns(name: string): PatternSpec[] {
     {
       kind: "plus-routing",
       pattern: new RegExp(
-        "(?:\\b(?:explore|general|adv-engineer|adv-reviewer|adv-designer|adv-researcher|adv-tron)\\b\\s*\\+\\s*`?" +
+        "(?:\\b(?:explore|general|determinus-engineer|determinus-reviewer|determinus-designer|determinus-researcher|determinus-tron)\\b\\s*\\+\\s*`?" +
           name +
           "`?" +
           notCompound +
@@ -102,7 +102,7 @@ function buildPatterns(name: string): PatternSpec[] {
           name +
           "`?" +
           notCompound +
-          "\\s*\\+\\s*\\b(?:explore|general|adv-engineer|adv-reviewer|adv-designer|adv-researcher|adv-tron)\\b)",
+          "\\s*\\+\\s*\\b(?:explore|general|determinus-engineer|determinus-reviewer|determinus-designer|determinus-researcher|determinus-tron)\\b)",
         "gi",
       ),
     },
@@ -123,7 +123,7 @@ function markdownFilesUnder(relativeDir: string): string[] {
 }
 
 const ACTIVE_SURFACES = [
-  "ADV_INSTRUCTIONS.md",
+  "determinus_INSTRUCTIONS.md",
   "SETUP.md",
   ...markdownFilesUnder(".opencode/agents"),
   ...markdownFilesUnder(".opencode/command"),
@@ -249,7 +249,7 @@ describe("phantom sub-agent roster", () => {
         const message =
           `${surface} contains ${findings.length} forbidden phantom sub-agent routing reference(s).\n` +
           `Phantoms must be replaced per design Decision 2:\n` +
-          `  librarian  → adv-researcher\n` +
+          `  librarian  → determinus-researcher\n` +
           `  mechanic   → inline by main ADV agent\n` +
           `  prioritizer → skill("prioritizer") inline\n\n` +
           `Findings:\n${formatFindings(findings)}`;

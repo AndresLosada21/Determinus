@@ -1,7 +1,7 @@
 /**
  * Disk-state diagnostics and the safe session-pointer repair.
  *
- * `adv_doctor` reports only conditions this process can inspect locally:
+ * `determinus_doctor` reports only conditions this process can inspect locally:
  * readable projections, valid snapshots, reachable worktree state, and
  * session-pointer sanity. It does not claim anything about a server,
  * transport, worker, queue, or remote index.
@@ -423,7 +423,7 @@ async function executeDoctor(
         class: "phantom_pointer",
         outcome: "approval_required",
         operator_action:
-          "Confirm the session pointer target or clear it explicitly, then rerun adv_doctor.",
+          "Confirm the session pointer target or clear it explicitly, then rerun determinus_doctor.",
         proposal: `Session pointer '${activePointer ?? "unknown"}' could not be proven sane. Doctor refuses to clear an indeterminate pointer.`,
         evidence: phantomProbe?.evidence ?? "no probe result",
       });
@@ -492,11 +492,11 @@ async function executeDoctor(
       : {}),
     recommendedNextAction:
       refusedCount > 0
-        ? `${refusedCount} approval-required proposal(s) returned; resolve them and rerun adv_doctor.`
+        ? `${refusedCount} approval-required proposal(s) returned; resolve them and rerun determinus_doctor.`
         : failedCount > 0
-          ? `${failedCount} disk repair(s) failed; rerun adv_doctor after resolving the reported error.`
+          ? `${failedCount} disk repair(s) failed; rerun determinus_doctor after resolving the reported error.`
           : verification.healthy
             ? "System healthy; no action needed."
-            : "Disk state is unhealthy; inspect the reported predicates and rerun adv_doctor.",
+            : "Disk state is unhealthy; inspect the reported predicates and rerun determinus_doctor.",
   });
 }

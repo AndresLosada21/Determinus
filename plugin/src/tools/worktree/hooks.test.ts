@@ -21,7 +21,7 @@ describe.skipIf(!isLinux)("hooks.ts (T12) — Linux only", () => {
   let cwd: string;
 
   beforeEach(() => {
-    cwd = mkdtempSync(join(tmpdir(), "adv-hooks-test-"));
+    cwd = mkdtempSync(join(tmpdir(), "determinus-hooks-test-"));
   });
 
   afterEach(() => {

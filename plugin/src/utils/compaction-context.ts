@@ -108,7 +108,7 @@ function formatStaleLedgerRemediation(
     "=== ADV STALE LEDGER REMEDIATION ===",
     "⚠ No active task remains while execution is incomplete.",
     "Remediation:",
-    "- call adv_change_show with include.snapshot=true and include.readyTasks=true",
+    "- call determinus_change_show with include.snapshot=true and include.readyTasks=true",
     "- if _readyTasks is non-empty, continue from the first ready task",
     "- if all tasks are done/cancelled, complete acceptance after review",
     "====================================",

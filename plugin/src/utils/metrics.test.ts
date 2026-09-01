@@ -28,52 +28,52 @@ beforeEach(() => {
 describe("getMetrics — initial state", () => {
   it("returns all-zeros after resetMetrics", () => {
     const m = getMetrics();
-    expect(m.adv_tool_calls).toBe(0);
-    expect(m.adv_tool_call_count_by_name).toEqual({});
+    expect(m.determinus_tool_calls).toBe(0);
+    expect(m.determinus_tool_call_count_by_name).toEqual({});
     expect(m.system_block_bytes).toBe(0);
     expect(m.subagent_spawns).toBe(0);
     expect(m.wall_time_ms).toBe(0);
-    expect(m.adv_tool_durations).toEqual({});
+    expect(m.determinus_tool_durations).toEqual({});
     expect(m.recent_phase_durations).toEqual([]);
   });
 
   it("returns a copy that callers cannot use to mutate state", () => {
     const m = getMetrics();
-    m.adv_tool_calls = 999;
-    m.adv_tool_call_count_by_name["adv_change_show"] = 999;
-    expect(getMetrics().adv_tool_calls).toBe(0);
-    expect(getMetrics().adv_tool_call_count_by_name).toEqual({});
+    m.determinus_tool_calls = 999;
+    m.determinus_tool_call_count_by_name["determinus_change_show"] = 999;
+    expect(getMetrics().determinus_tool_calls).toBe(0);
+    expect(getMetrics().determinus_tool_call_count_by_name).toEqual({});
   });
 });
 
 describe("recordAdvToolCall", () => {
-  it("increments adv_tool_calls and per-name count for adv_* tools", () => {
-    recordAdvToolCall("adv_change_show");
-    recordAdvToolCall("adv_change_show");
-    recordAdvToolCall("adv_task_list");
+  it("increments determinus_tool_calls and per-name count for determinus_* tools", () => {
+    recordAdvToolCall("determinus_change_show");
+    recordAdvToolCall("determinus_change_show");
+    recordAdvToolCall("determinus_task_list");
     const m = getMetrics();
-    expect(m.adv_tool_calls).toBe(3);
-    expect(m.adv_tool_call_count_by_name.adv_change_show).toBe(2);
-    expect(m.adv_tool_call_count_by_name.adv_task_list).toBe(1);
+    expect(m.determinus_tool_calls).toBe(3);
+    expect(m.determinus_tool_call_count_by_name.determinus_change_show).toBe(2);
+    expect(m.determinus_tool_call_count_by_name.determinus_task_list).toBe(1);
   });
 
-  it("ignores non-adv_* tool names (bash, edit, read)", () => {
+  it("ignores non-determinus_* tool names (bash, edit, read)", () => {
     recordAdvToolCall("bash");
     recordAdvToolCall("edit");
     recordAdvToolCall("read");
     const m = getMetrics();
-    expect(m.adv_tool_calls).toBe(0);
-    expect(m.adv_tool_call_count_by_name).toEqual({});
+    expect(m.determinus_tool_calls).toBe(0);
+    expect(m.determinus_tool_call_count_by_name).toEqual({});
   });
 
   it("records a facaded target only in the per-name breakdown", () => {
-    recordAdvToolCall("adv_tool_invoke");
-    recordFacadedAdvToolTarget("adv_change_show");
+    recordAdvToolCall("determinus_tool_invoke");
+    recordFacadedAdvToolTarget("determinus_change_show");
     const m = getMetrics();
-    expect(m.adv_tool_calls).toBe(1);
-    expect(m.adv_tool_call_count_by_name).toEqual({
-      adv_tool_invoke: 1,
-      adv_change_show: 1,
+    expect(m.determinus_tool_calls).toBe(1);
+    expect(m.determinus_tool_call_count_by_name).toEqual({
+      determinus_tool_invoke: 1,
+      determinus_change_show: 1,
     });
   });
 });
@@ -117,53 +117,53 @@ describe("recordWallTimeMs", () => {
 
 describe("resetMetrics", () => {
   it("zeroes all counters, including per-name map and durations", () => {
-    recordAdvToolCall("adv_change_show");
+    recordAdvToolCall("determinus_change_show");
     recordSystemBlockBytes(1234);
     recordSubagentSpawn();
     recordWallTimeMs(5000);
-    recordToolDuration("adv_status", 120, "success");
+    recordToolDuration("determinus_status", 120, "success");
     recordPhaseDuration({
-      tool: "adv_status",
+      tool: "determinus_status",
       phase: "temporalHealth",
       durationMs: 12,
     });
 
     resetMetrics();
     const m = getMetrics();
-    expect(m.adv_tool_calls).toBe(0);
-    expect(m.adv_tool_call_count_by_name).toEqual({});
+    expect(m.determinus_tool_calls).toBe(0);
+    expect(m.determinus_tool_call_count_by_name).toEqual({});
     expect(m.system_block_bytes).toBe(0);
     expect(m.subagent_spawns).toBe(0);
     expect(m.wall_time_ms).toBe(0);
-    expect(m.adv_tool_durations).toEqual({});
+    expect(m.determinus_tool_durations).toEqual({});
     expect(m.recent_phase_durations).toEqual([]);
   });
 });
 
 describe("recordToolDuration", () => {
   it("aggregates per-tool count/total/last/max and adds to wall_time_ms", () => {
-    recordToolDuration("adv_status", 100, "success");
-    recordToolDuration("adv_status", 50, "success");
-    recordToolDuration("adv_status", 200, "success");
-    recordToolDuration("adv_change_show", 75, "success");
+    recordToolDuration("determinus_status", 100, "success");
+    recordToolDuration("determinus_status", 50, "success");
+    recordToolDuration("determinus_status", 200, "success");
+    recordToolDuration("determinus_change_show", 75, "success");
 
     const m = getMetrics();
-    expect(m.adv_tool_durations.adv_status).toEqual({
+    expect(m.determinus_tool_durations.determinus_status).toEqual({
       count: 3,
       total_ms: 350,
       last_ms: 200,
       max_ms: 200,
       error_count: 0,
     });
-    expect(m.adv_tool_durations.adv_change_show.count).toBe(1);
+    expect(m.determinus_tool_durations.determinus_change_show.count).toBe(1);
     expect(m.wall_time_ms).toBe(425);
   });
 
   it("records error outcomes without losing duration", () => {
-    recordToolDuration("adv_run_test", 80, "success");
-    recordToolDuration("adv_run_test", 30, "error");
+    recordToolDuration("determinus_run_test", 80, "success");
+    recordToolDuration("determinus_run_test", 30, "error");
     const m = getMetrics();
-    expect(m.adv_tool_durations.adv_run_test).toMatchObject({
+    expect(m.determinus_tool_durations.determinus_run_test).toMatchObject({
       count: 2,
       total_ms: 110,
       last_ms: 30,
@@ -172,10 +172,16 @@ describe("recordToolDuration", () => {
   });
 
   it("ignores negative or non-finite durations", () => {
-    recordToolDuration("adv_status", -5, "success");
-    recordToolDuration("adv_status", Number.NaN, "success");
-    recordToolDuration("adv_status", Number.POSITIVE_INFINITY, "success");
-    expect(getMetrics().adv_tool_durations.adv_status).toBeUndefined();
+    recordToolDuration("determinus_status", -5, "success");
+    recordToolDuration("determinus_status", Number.NaN, "success");
+    recordToolDuration(
+      "determinus_status",
+      Number.POSITIVE_INFINITY,
+      "success",
+    );
+    expect(
+      getMetrics().determinus_tool_durations.determinus_status,
+    ).toBeUndefined();
     expect(getMetrics().wall_time_ms).toBe(0);
   });
 });
@@ -183,12 +189,12 @@ describe("recordToolDuration", () => {
 describe("recordPhaseDuration", () => {
   it("appends named phase samples with default success outcome", () => {
     recordPhaseDuration({
-      tool: "adv_status",
+      tool: "determinus_status",
       phase: "temporalHealth",
       durationMs: 7,
     });
     recordPhaseDuration({
-      tool: "adv_run_test",
+      tool: "determinus_run_test",
       phase: "subprocess",
       durationMs: 42,
       outcome: "error",
@@ -197,13 +203,13 @@ describe("recordPhaseDuration", () => {
     const samples = getMetrics().recent_phase_durations;
     expect(samples).toHaveLength(2);
     expect(samples[0]).toMatchObject({
-      tool: "adv_status",
+      tool: "determinus_status",
       phase: "temporalHealth",
       duration_ms: 7,
       outcome: "success",
     });
     expect(samples[1]).toMatchObject({
-      tool: "adv_run_test",
+      tool: "determinus_run_test",
       phase: "subprocess",
       duration_ms: 42,
       outcome: "error",
@@ -214,7 +220,7 @@ describe("recordPhaseDuration", () => {
     const overflow = RECENT_PHASE_BUFFER_LIMIT + 25;
     for (let i = 0; i < overflow; i++) {
       recordPhaseDuration({
-        tool: "adv_status",
+        tool: "determinus_status",
         phase: `phase_${i}`,
         durationMs: i,
       });
@@ -230,15 +236,19 @@ describe("recordPhaseDuration", () => {
 
 describe("withRecordedPhase", () => {
   it("records success duration and returns the value", async () => {
-    const result = await withRecordedPhase("adv_status", "ok", async () => {
-      await new Promise((r) => setTimeout(r, 5));
-      return 99;
-    });
+    const result = await withRecordedPhase(
+      "determinus_status",
+      "ok",
+      async () => {
+        await new Promise((r) => setTimeout(r, 5));
+        return 99;
+      },
+    );
     expect(result).toBe(99);
     const samples = getMetrics().recent_phase_durations;
     expect(samples).toHaveLength(1);
     expect(samples[0]).toMatchObject({
-      tool: "adv_status",
+      tool: "determinus_status",
       phase: "ok",
       outcome: "success",
     });
@@ -247,14 +257,14 @@ describe("withRecordedPhase", () => {
 
   it("records error duration and rethrows", async () => {
     await expect(
-      withRecordedPhase("adv_run_test", "boom", async () => {
+      withRecordedPhase("determinus_run_test", "boom", async () => {
         throw new Error("kaboom");
       }),
     ).rejects.toThrow("kaboom");
     const samples = getMetrics().recent_phase_durations;
     expect(samples).toHaveLength(1);
     expect(samples[0]).toMatchObject({
-      tool: "adv_run_test",
+      tool: "determinus_run_test",
       phase: "boom",
       outcome: "error",
     });

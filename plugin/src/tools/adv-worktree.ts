@@ -1,8 +1,8 @@
 /**
  * ADV Worktree Tools (T24 — KD-8 phase 1)
  *
- * Tool definitions for `adv_worktree_create`, `adv_worktree_delete`,
- * `adv_worktree_cleanup`, and `adv_worktree_triage`.
+ * Tool definitions for `determinus_worktree_create`, `determinus_worktree_delete`,
+ * `determinus_worktree_cleanup`, and `determinus_worktree_triage`.
  *
  * These wrap the underlying worktree implementations from
  * `tools/worktree/` and format output via `formatToolOutput()`.
@@ -51,7 +51,7 @@ import {
  * Safe timeout budget for worktree tool wrappers (cleanup and delete).
  *
  * Must be strictly below the 50s execute override these tools carry in
- * `tool-registry.ts` (the same mechanism as `adv_worktree_triage`) so the
+ * `tool-registry.ts` (the same mechanism as `determinus_worktree_triage`) so the
  * shared operation deadline can cancel and settle every destructive stage
  * before the `safeExecute` wrapper rejects. The 8s predecessor sat under the
  * 10s default execute ceiling, which could not fit the plan → git census →
@@ -299,7 +299,7 @@ async function executeWorktreeDelete(
         formatToolOutput({
           ok: false,
           timedOut: true,
-          error: `DEADLINE_EXCEEDED: adv_worktree_delete timed out during target routing`,
+          error: `DEADLINE_EXCEEDED: determinus_worktree_delete timed out during target routing`,
           status: "deadline_exceeded",
           stage: "target_resolution",
           effectiveTimeoutMs,
@@ -360,7 +360,7 @@ function targetDeleteRoutingTimeout(effectiveTimeoutMs: number): string {
   return formatToolOutput({
     ok: false,
     timedOut: true,
-    error: `DEADLINE_EXCEEDED: adv_worktree_delete target resolution timed out after ${effectiveTimeoutMs}ms`,
+    error: `DEADLINE_EXCEEDED: determinus_worktree_delete target resolution timed out after ${effectiveTimeoutMs}ms`,
     status: "deadline_exceeded",
     stage: "target_resolution",
     effectiveTimeoutMs,
@@ -492,14 +492,14 @@ async function executeWorktreeCleanup(
           timedOut: true,
           mode: "archived_branches",
           effectiveTimeoutMs,
-          error: `adv_worktree_cleanup archived_branches exceeded the ${effectiveTimeoutMs}ms safe budget${clampedNote}. This is an emergency guard; the helper normally self-returns partial results, so this indicates stuck git or store I/O.`,
+          error: `determinus_worktree_cleanup archived_branches exceeded the ${effectiveTimeoutMs}ms safe budget${clampedNote}. This is an emergency guard; the helper normally self-returns partial results, so this indicates stuck git or store I/O.`,
           // rq-worktreeBoundedCleanup02: once the request has been clamped,
           // advising a larger timeoutMs is unreachable — the safe budget is a
           // structural ceiling. `skipDiscovery` is deliberately NOT offered
           // here: this mode routes to cleanupArchivedMergedBranches and never
           // forwards `discover`, so naming it would advise a no-op.
           remediation: wasClamped
-            ? `The ${WORKTREE_TOOL_SAFE_TIMEOUT_MS}ms safe budget is a structural ceiling (rq-worktreeBoundedCleanup02) and cannot be raised. Re-run with a narrower changeId filter, or run adv_worktree_triage to inspect merged archived branches individually.`
+            ? `The ${WORKTREE_TOOL_SAFE_TIMEOUT_MS}ms safe budget is a structural ceiling (rq-worktreeBoundedCleanup02) and cannot be raised. Re-run with a narrower changeId filter, or run determinus_worktree_triage to inspect merged archived branches individually.`
             : "Retry with a larger timeoutMs (clamped to the safe budget), or investigate a stuck git process / unreachable store.",
         }),
         context,
@@ -601,12 +601,12 @@ async function executeWorktreeCleanup(
         // stage captured synchronously, empty vs unreadable pending-delete
         // queue kept distinguishable, remediation names only actions that can
         // succeed under the clamp).
-        error: `adv_worktree_cleanup timed out after ${effectiveTimeoutMs}ms${clampedNote} during ${stageAtTimeout}. The inner promise was not cancelled; queued deletes may still resolve on a later drain pass.`,
+        error: `determinus_worktree_cleanup timed out after ${effectiveTimeoutMs}ms${clampedNote} during ${stageAtTimeout}. The inner promise was not cancelled; queued deletes may still resolve on a later drain pass.`,
         // rq-worktreeBoundedCleanup02: the safe budget is a structural ceiling,
         // so a clamped caller must be given an action that can actually succeed.
         remediation: wasClamped
-          ? `The ${WORKTREE_TOOL_SAFE_TIMEOUT_MS}ms safe budget is a structural ceiling (rq-worktreeBoundedCleanup02) and cannot be raised. Retry with skipDiscovery:true to drain already-queued deletes, or run adv_worktree_triage to inspect retained candidates.`
-          : "Retry with a larger timeoutMs (clamped to the safe budget), or run adv_worktree_triage to inspect retained candidates.",
+          ? `The ${WORKTREE_TOOL_SAFE_TIMEOUT_MS}ms safe budget is a structural ceiling (rq-worktreeBoundedCleanup02) and cannot be raised. Retry with skipDiscovery:true to drain already-queued deletes, or run determinus_worktree_triage to inspect retained candidates.`
+          : "Retry with a larger timeoutMs (clamped to the safe budget), or run determinus_worktree_triage to inspect retained candidates.",
       }),
       context,
     );
@@ -678,10 +678,10 @@ async function executeWorktreeDetach(
         // No unevidenced cause claim: this branch resolves a setTimeout
         // sentinel, not a rejection (rq-worktreePoisonVisibility01,
         // rq-worktreeTimeoutTruthfulness01).
-        error: `adv_worktree_detach timed out after ${effectiveTimeoutMs}ms. The inner promise was not cancelled; the detach batch may still resolve.`,
+        error: `determinus_worktree_detach timed out after ${effectiveTimeoutMs}ms. The inner promise was not cancelled; the detach batch may still resolve.`,
         effectiveTimeoutMs,
         remediation:
-          "Re-run the detach in mode:dry_run first to see current eligibility, then re-apply. Run adv_worktree_triage to inspect worktree state.",
+          "Re-run the detach in mode:dry_run first to see current eligibility, then re-apply. Run determinus_worktree_triage to inspect worktree state.",
       }),
       context,
     );
@@ -843,7 +843,7 @@ async function initWorktreeDb(
 }
 
 const advWorktreeToolDefinitions = {
-  adv_worktree_create: {
+  determinus_worktree_create: {
     description:
       "Create a new git worktree for isolated development. Returns the worktree path, branch, and base reference.",
     args: {
@@ -977,7 +977,7 @@ const advWorktreeToolDefinitions = {
     },
   },
 
-  adv_worktree_delete: {
+  determinus_worktree_delete: {
     description:
       "Delete a git worktree by branch name. Safe: checks for uncommitted work and integration requirements before removing.",
     args: {
@@ -1022,7 +1022,7 @@ const advWorktreeToolDefinitions = {
     },
   },
 
-  adv_worktree_cleanup: {
+  determinus_worktree_cleanup: {
     description:
       "Discover terminal cleanup candidates and retry queued worktree deletions. Safe: skips worktrees still used as a process CWD, preserves dirty/unmerged unsafe worktrees, and keeps retained items queued. Opt-in mode=archived_branches instead scans local change/* branches tied to archived ADV changes, detects fully-merged ones (squash-merge-safe), and deletes the safe ones — post-merge branch hygiene moved here from the retired archive-repair surface so worktree cleanup has a single recovery purpose.",
     args: {
@@ -1095,7 +1095,7 @@ const advWorktreeToolDefinitions = {
   },
 
   /* Internal-only handler retained for future maintenance callers. */
-  adv_worktree_detach: {
+  determinus_worktree_detach: {
     description:
       "Operator-only directory-only worktree detach. Removes only the worktree directory for a set of exact branches, preserves the local branch and ADV change record, and writes a durable dematerialize receipt on the owning change workflow. Requires approvalEvidence in apply mode. Never invoked by reapers, triage, startup cleanup, or migration automation.",
     args: {
@@ -1144,7 +1144,7 @@ const advWorktreeToolDefinitions = {
     },
   },
 
-  adv_worktree_triage: {
+  determinus_worktree_triage: {
     description:
       "Read-only worktree inventory + advisory recommendations. Detects stale heads, missing registry entries, archived-not-cleaned worktrees, and drift group classifications.",
     args: {
@@ -1190,7 +1190,7 @@ const advWorktreeToolDefinitions = {
 };
 
 const {
-  adv_worktree_detach: _worktreeDetachDefinition,
+  determinus_worktree_detach: _worktreeDetachDefinition,
   ...advWorktreePublicTools
 } = advWorktreeToolDefinitions;
 

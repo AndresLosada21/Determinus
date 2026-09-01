@@ -62,7 +62,7 @@ function scan(opts: { procRoot: string; selfPid?: number; nowMs?: number }) {
 
 describe("collectProcessInventory", () => {
   test("classifies deployed workers, foreign workers, and sessions", async () => {
-    const proc = await tempDir("adv-procinv-classify-");
+    const proc = await tempDir("determinus-procinv-classify-");
     addProc(
       proc,
       100,
@@ -96,7 +96,7 @@ describe("collectProcessInventory", () => {
   });
 
   test("source-mode workers (temporal/worker.ts via tsx) are foreign workers", async () => {
-    const proc = await tempDir("adv-procinv-srcworker-");
+    const proc = await tempDir("determinus-procinv-srcworker-");
     addProc(
       proc,
       150,
@@ -110,21 +110,21 @@ describe("collectProcessInventory", () => {
   });
 
   test("excludes the scanning process itself from sessions", async () => {
-    const proc = await tempDir("adv-procinv-self-");
+    const proc = await tempDir("determinus-procinv-self-");
     addProc(proc, 999, "opencode", ["opencode"], "500");
     const inv = scan({ procRoot: proc, selfPid: 999 });
     expect(inv.sessions).toHaveLength(0);
   });
 
   test("unreadable proc root is an incomplete scan, not an empty one", async () => {
-    const root = await tempDir("adv-procinv-unreadable-");
+    const root = await tempDir("determinus-procinv-unreadable-");
     const inv = scan({ procRoot: join(root, "missing") });
     expect(inv.scanComplete).toBe(false);
     expect(inv.problems.length).toBeGreaterThan(0);
   });
 
   test("processes without readable start ticks carry null startTimeMs", async () => {
-    const proc = await tempDir("adv-procinv-noticks-");
+    const proc = await tempDir("determinus-procinv-noticks-");
     const dir = join(proc, "555");
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "cmdline"), "opencode\0");

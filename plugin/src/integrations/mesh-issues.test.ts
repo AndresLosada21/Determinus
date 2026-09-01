@@ -32,15 +32,17 @@ describe("buildMeshPayload", () => {
       body: "## Summary\nThis change adds mesh support.",
     });
 
-    expect(payload).toContain("adv_change_id: ch-abc123");
-    expect(payload).toContain("adv_capability: advance-workflow");
-    expect(payload).toContain("adv_relationship: contributes_to");
-    expect(payload).toContain("adv_source_project: /home/user/project-a");
+    expect(payload).toContain("determinus_change_id: ch-abc123");
+    expect(payload).toContain("determinus_capability: advance-workflow");
+    expect(payload).toContain("determinus_relationship: contributes_to");
+    expect(payload).toContain(
+      "determinus_source_project: /home/user/project-a",
+    );
     expect(payload).toContain("## Summary");
     expect(payload).toContain("This change adds mesh support.");
   });
 
-  test("includes adv_created_at timestamp", () => {
+  test("includes determinus_created_at timestamp", () => {
     const payload = buildMeshPayload({
       changeId: "ch-test",
       capability: "advance-delivery",
@@ -49,7 +51,7 @@ describe("buildMeshPayload", () => {
       body: "test",
     });
 
-    expect(payload).toMatch(/adv_created_at: \d{4}-\d{2}-\d{2}T/);
+    expect(payload).toMatch(/determinus_created_at: \d{4}-\d{2}-\d{2}T/);
   });
 
   test("wraps frontmatter in --- delimiters", () => {
@@ -87,7 +89,7 @@ describe("createMeshIssue", () => {
     mockExecGh.mockReset();
   });
 
-  test("creates issue with adv-mesh and adv-{relationship} labels", async () => {
+  test("creates issue with determinus-mesh and determinus-{relationship} labels", async () => {
     mockExecGh.mockResolvedValue({
       stdout: JSON.stringify({
         number: 42,
@@ -114,10 +116,10 @@ describe("createMeshIssue", () => {
     expect(callArgs).toContain("issue");
     expect(callArgs).toContain("create");
     expect(callArgs).toContain("--label");
-    // Should have adv-mesh label
+    // Should have determinus-mesh label
     const labelIdx = callArgs.indexOf("--label");
     if (labelIdx !== -1) {
-      expect(callArgs[labelIdx + 1]).toContain("adv-mesh");
+      expect(callArgs[labelIdx + 1]).toContain("determinus-mesh");
     }
   });
 
@@ -188,20 +190,23 @@ describe("listMeshIssues", () => {
     mockExecGh.mockReset();
   });
 
-  test("lists issues with adv-mesh label", async () => {
+  test("lists issues with determinus-mesh label", async () => {
     mockExecGh.mockResolvedValue({
       stdout: JSON.stringify([
         {
           number: 1,
           title: "Mesh issue 1",
-          labels: [{ name: "adv-mesh" }],
-          body: "---\nadv_change_id: ch-1\n---\nContent",
+          labels: [{ name: "determinus-mesh" }],
+          body: "---\ndeterminus_change_id: ch-1\n---\nContent",
         },
         {
           number: 2,
           title: "Mesh issue 2",
-          labels: [{ name: "adv-mesh" }, { name: "adv-contributes_to" }],
-          body: "---\nadv_change_id: ch-2\n---\nContent 2",
+          labels: [
+            { name: "determinus-mesh" },
+            { name: "determinus-contributes_to" },
+          ],
+          body: "---\ndeterminus_change_id: ch-2\n---\nContent 2",
         },
       ]),
       stderr: "",
@@ -244,7 +249,7 @@ describe("listMeshIssues", () => {
       exitCode: 0,
     });
 
-    await listMeshIssues("org/repo", ["adv-contributes_to"]);
+    await listMeshIssues("org/repo", ["determinus-contributes_to"]);
 
     const callArgs = mockExecGh.mock.calls[0][0] as string[];
     expect(callArgs).toContain("--label");
@@ -261,8 +266,8 @@ describe("getGhIssue", () => {
       stdout: JSON.stringify({
         number: 42,
         title: "Test issue",
-        body: "---\nadv_change_id: ch-test\n---\nBody",
-        labels: [{ name: "adv-mesh" }],
+        body: "---\ndeterminus_change_id: ch-test\n---\nBody",
+        labels: [{ name: "determinus-mesh" }],
       }),
       stderr: "",
       exitCode: 0,
@@ -290,20 +295,20 @@ describe("getGhIssue", () => {
 describe("parseMeshFrontmatter", () => {
   test("parses YAML frontmatter from issue body", () => {
     const body = `---
-adv_change_id: ch-abc123
-adv_capability: advance-workflow
-adv_relationship: contributes_to
-adv_source_project: /home/user/project
-adv_created_at: 2026-01-15T10:30:00Z
+determinus_change_id: ch-abc123
+determinus_capability: advance-workflow
+determinus_relationship: contributes_to
+determinus_source_project: /home/user/project
+determinus_created_at: 2026-01-15T10:30:00Z
 ---
 ## Summary
 This is the body.`;
 
     const parsed = parseMeshFrontmatter(body);
-    expect(parsed.adv_change_id).toBe("ch-abc123");
-    expect(parsed.adv_capability).toBe("advance-workflow");
-    expect(parsed.adv_relationship).toBe("contributes_to");
-    expect(parsed.adv_source_project).toBe("/home/user/project");
+    expect(parsed.determinus_change_id).toBe("ch-abc123");
+    expect(parsed.determinus_capability).toBe("advance-workflow");
+    expect(parsed.determinus_relationship).toBe("contributes_to");
+    expect(parsed.determinus_source_project).toBe("/home/user/project");
   });
 
   test("returns empty object when no frontmatter", () => {

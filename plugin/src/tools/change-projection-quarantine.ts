@@ -97,7 +97,7 @@ type QuarantineResult =
 // =============================================================================
 
 const changeProjectionQuarantineToolDefinitions = {
-  adv_change_projection_quarantine: {
+  determinus_change_projection_quarantine: {
     description:
       "Operator-only quarantine for corrupt or oversized active change projections. " +
       "Diagnoses via the bounded projection reader, refuses healthy/missing records, " +
@@ -168,7 +168,7 @@ const changeProjectionQuarantineToolDefinitions = {
 };
 
 const {
-  adv_change_projection_quarantine: changeProjectionQuarantineDefinition,
+  determinus_change_projection_quarantine: changeProjectionQuarantineDefinition,
 } = changeProjectionQuarantineToolDefinitions;
 
 /** Internal repair handler retained for future CLI doctor use. */

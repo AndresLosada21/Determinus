@@ -2,10 +2,10 @@
  * Plugin logger.
  *
  * Provides severity-leveled logging through a single local logger:
- *   - `debug` → file sink only when ADV_DEBUG=1
- *   - `info`  → file sink only when ADV_DEBUG=1
- *   - `warn`  → console.warn in normal runs + file sink when ADV_DEBUG=1
- *   - `error` → console.error in normal runs + file sink when ADV_DEBUG=1
+ *   - `debug` → file sink only when determinus_DEBUG=1
+ *   - `info`  → file sink only when determinus_DEBUG=1
+ *   - `warn`  → console.warn in normal runs + file sink when determinus_DEBUG=1
+ *   - `error` → console.error in normal runs + file sink when determinus_DEBUG=1
  *
  * The legacy `appendDebugLog(scope, msg)` helper is preserved as a
  * compatibility shim that delegates to the `debug` level so existing
@@ -29,24 +29,27 @@ export interface Logger {
 /**
  * Whether the file-sink debug log is enabled for the current process.
  *
- * Resolved once at module load time. Tests that toggle `ADV_DEBUG` must
+ * Resolved once at module load time. Tests that toggle `determinus_DEBUG` must
  * also reset Vitest module state (e.g. `vi.resetModules()`) to re-read
  * the environment, which the co-located test file does.
  */
-export const ADV_DEBUG_ENABLED = process.env.ADV_DEBUG === "1";
-export const ADV_PROFILE_ENABLED = process.env.ADV_PROFILE === "1";
+export const determinus_DEBUG_ENABLED = process.env.determinus_DEBUG === "1";
+export const determinus_PROFILE_ENABLED =
+  process.env.determinus_PROFILE === "1";
 
-const isDebugEnabled = (): boolean => process.env.ADV_DEBUG === "1";
-const isProfileEnabled = (): boolean => process.env.ADV_PROFILE === "1";
+const isDebugEnabled = (): boolean => process.env.determinus_DEBUG === "1";
+const isProfileEnabled = (): boolean => process.env.determinus_PROFILE === "1";
 
 const getDebugLogPath = (): string => {
-  const debugDir = process.env.ADV_CACHE_DIR ?? process.env.TMPDIR ?? tmpdir();
-  return join(debugDir, "adv-debug.log");
+  const debugDir =
+    process.env.determinus_CACHE_DIR ?? process.env.TMPDIR ?? tmpdir();
+  return join(debugDir, "determinus-debug.log");
 };
 
 const getProfileLogPath = (): string => {
-  const debugDir = process.env.ADV_CACHE_DIR ?? process.env.TMPDIR ?? tmpdir();
-  return join(debugDir, "adv-profile.log");
+  const debugDir =
+    process.env.determinus_CACHE_DIR ?? process.env.TMPDIR ?? tmpdir();
+  return join(debugDir, "determinus-profile.log");
 };
 
 const formatMeta = (meta?: LogMeta): string => {
@@ -78,9 +81,9 @@ const writeFileSink = (scope: string, level: LogLevel, line: string): void => {
  * Create a scoped logger. `scope` is a short module/service name that
  * appears in both the console prefix and the file sink.
  *
- * Console output (warn/error) is gated on `ADV_DEBUG=1` to prevent
+ * Console output (warn/error) is gated on `determinus_DEBUG=1` to prevent
  * Retry/init spam from drowning interactive sessions. All
- * levels always write to the file sink when `ADV_DEBUG=1`.
+ * levels always write to the file sink when `determinus_DEBUG=1`.
  */
 export const createLogger = (scope: string): Logger => {
   const consolePrefix = `[adv:${scope}]`;
@@ -92,7 +95,7 @@ export const createLogger = (scope: string): Logger => {
 
     writeFileSink(scope, level, fileLine);
 
-    // Console output only when ADV_DEBUG=1. Normal sessions are quiet;
+    // Console output only when determinus_DEBUG=1. Normal sessions are quiet;
     // diagnostics live in the file sink for offline inspection.
     if (isDebugEnabled()) {
       if (level === "warn") {
@@ -115,7 +118,7 @@ export const createLogger = (scope: string): Logger => {
 /**
  * Legacy compatibility shim. Delegates to the `debug` level of a
  * scope-local logger so existing call sites keep writing to the
- * file-sink when `ADV_DEBUG=1` and stay silent otherwise.
+ * file-sink when `determinus_DEBUG=1` and stay silent otherwise.
  */
 export const appendDebugLog = (scope: string, msg: string): void => {
   if (!isDebugEnabled()) return;
@@ -133,7 +136,7 @@ export const appendDebugLog = (scope: string, msg: string): void => {
 
 /**
  * Append a structured profiling event to the dedicated file sink.
- * Silent unless `ADV_PROFILE=1`.
+ * Silent unless `determinus_PROFILE=1`.
  */
 export const appendProfileLog = (scope: string, meta: LogMeta): void => {
   if (!isProfileEnabled()) return;

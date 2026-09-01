@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { z } from "zod";
 import {
-  ADV_TOOL_METADATA,
-  ADV_TOOL_NAMES,
+  determinus_TOOL_METADATA,
+  determinus_TOOL_NAMES,
   collectPublicToolEntries,
   createDegradedToolMap,
   createFullToolMap,
@@ -23,8 +23,8 @@ import {
  * addAdvanceMetadata (SC4/AC1/AC2/AC5/AC6/C1/C2/C5).
  *
  * The registry owns one typed inventory of retained public `*Tools` groups.
- * Canonical names (ADV_TOOL_NAMES), the warrant-visible argument surface
- * (getToolSurface), and canonical descriptive metadata (ADV_TOOL_METADATA)
+ * Canonical names (determinus_TOOL_NAMES), the warrant-visible argument surface
+ * (getToolSurface), and canonical descriptive metadata (determinus_TOOL_METADATA)
  * are all derived from that inventory; createToolMap stays explicit. These
  * tests pin the structural equalities:
  *
@@ -54,15 +54,15 @@ const BACKLOG_SHELL_AND_STORE_TOOLS = [] as const;
 /**
  * Public tools whose addition is contracted to LATER changes after the
  * consolidation baseline landed (fixWedgedWorkflowRecovery added
- * adv_change_workflow_terminate). Exact accounting keeps the
+ * determinus_change_workflow_terminate). Exact accounting keeps the
  * canonical count pinned at every intermediate state: the count may grow
  * only via this recorded addition set, by exactly the number landed.
  */
 const CONTRACTED_PUBLIC_ADDITIONS = [
-  "adv_change_workflow_terminate",
-  "adv_tool_catalog",
-  "adv_tool_describe",
-  "adv_tool_invoke",
+  "determinus_change_workflow_terminate",
+  "determinus_tool_catalog",
+  "determinus_tool_describe",
+  "determinus_tool_invoke",
   // resume-projection Phase E added the resume-projection MCP tool + bin
   // adapter (feat 9f39317e); a legitimate registered public tool that was
   // never recorded in this reintroduction-guard accounting.
@@ -144,7 +144,7 @@ describe("public tool inventory — DDC1 name-set parity", () => {
     await store.init();
     try {
       const map = createFullToolMap(store, tempDir, store.paths.agenda);
-      expect(sorted(Object.keys(map))).toEqual(sorted(ADV_TOOL_NAMES));
+      expect(sorted(Object.keys(map))).toEqual(sorted(determinus_TOOL_NAMES));
     } finally {
       store.close();
     }
@@ -156,11 +156,15 @@ describe("public tool inventory — DDC1 name-set parity", () => {
   });
 
   test("warrant-surface names exactly equal derived inventory names", () => {
-    expect(sorted(getToolSurface().keys())).toEqual(sorted(ADV_TOOL_NAMES));
+    expect(sorted(getToolSurface().keys())).toEqual(
+      sorted(determinus_TOOL_NAMES),
+    );
   });
 
   test("derived canonical names contain no duplicates", () => {
-    expect(new Set(ADV_TOOL_NAMES).size).toBe(ADV_TOOL_NAMES.length);
+    expect(new Set(determinus_TOOL_NAMES).size).toBe(
+      determinus_TOOL_NAMES.length,
+    );
   });
 });
 
@@ -168,28 +172,34 @@ describe("public tool inventory — DDC2 duplicate rejection", () => {
   test("collectPublicToolEntries rejects a duplicate name across groups before Set/Map collapse", () => {
     expect(() =>
       collectPublicToolEntries([
-        { adv_alpha: { description: "Alpha", args: {} } },
-        { adv_beta: { description: "Beta", args: { changeId: {} } } },
-        { adv_alpha: { description: "Alpha dup", args: {} } },
+        { determinus_alpha: { description: "Alpha", args: {} } },
+        { determinus_beta: { description: "Beta", args: { changeId: {} } } },
+        { determinus_alpha: { description: "Alpha dup", args: {} } },
       ]),
-    ).toThrow(/[Dd]uplicate public tool name.*adv_alpha/);
+    ).toThrow(/[Dd]uplicate public tool name.*determinus_alpha/);
   });
 
   test("collectPublicToolEntries rejects a duplicate within one group", () => {
-    const colliding = { adv_alpha: { description: "Alpha", args: {} } };
+    const colliding = { determinus_alpha: { description: "Alpha", args: {} } };
     expect(() => collectPublicToolEntries([colliding, colliding])).toThrow(
-      /[Dd]uplicate public tool name.*adv_alpha/,
+      /[Dd]uplicate public tool name.*determinus_alpha/,
     );
   });
 
   test("collectPublicToolEntries accepts disjoint groups and preserves declared args", () => {
     const entries = collectPublicToolEntries([
       {
-        adv_alpha: { description: "Alpha", args: { changeId: {}, dryRun: {} } },
+        determinus_alpha: {
+          description: "Alpha",
+          args: { changeId: {}, dryRun: {} },
+        },
       },
-      { adv_beta: { description: "Beta", args: {} } },
+      { determinus_beta: { description: "Beta", args: {} } },
     ]);
-    expect(entries.map((e) => e.name)).toEqual(["adv_alpha", "adv_beta"]);
+    expect(entries.map((e) => e.name)).toEqual([
+      "determinus_alpha",
+      "determinus_beta",
+    ]);
     expect(entries[0]?.args).toEqual({ changeId: {}, dryRun: {} });
     expect(entries[1]?.args).toEqual({});
   });
@@ -217,7 +227,7 @@ describe("public tool inventory — DDC3 argument parity", () => {
         store.paths.agenda,
       ) as Record<string, { args: Record<string, unknown> }>;
       const surface = getToolSurface();
-      for (const name of ADV_TOOL_NAMES) {
+      for (const name of determinus_TOOL_NAMES) {
         const bound = sorted(Object.keys(map[name]?.args ?? {}));
         const warranted = sorted(surface.get(name) ?? new Set<string>());
         expect(warranted, `warrant-surface args for ${name}`).toEqual(bound);
@@ -236,7 +246,7 @@ describe("public tool inventory — backlog-shell/store coverage", () => {
 
 describe("public tool inventory — title parity (AC5)", () => {
   test("every derived inventory name has an explicit display title", () => {
-    for (const name of ADV_TOOL_NAMES) {
+    for (const name of determinus_TOOL_NAMES) {
       expect(hasExplicitAdvToolTitle(name), `explicit title for ${name}`).toBe(
         true,
       );
@@ -250,7 +260,7 @@ describe("public tool inventory — SC1 baseline/final counts", () => {
       string,
       unknown
     >;
-    const baseline = mod.ADV_PUBLIC_TOOL_BASELINE_COUNT;
+    const baseline = mod.determinus_PUBLIC_TOOL_BASELINE_COUNT;
     // Source baseline recorded at implementation start (2026-07-15): the 80
     // registered public ADV tools prior to this change's contracted removals.
     expect(baseline, "recorded SC1 source baseline").toBe(80);
@@ -258,8 +268,8 @@ describe("public tool inventory — SC1 baseline/final counts", () => {
     // The current source surface contains 53 tools after the contracted
     // removals and dead-wrapper removals in this branch. Pin the observable
     // registry count directly.
-    expect(ADV_TOOL_NAMES.length).toBe(35);
-    expect(ADV_TOOL_NAMES.length).toBeLessThanOrEqual(
+    expect(determinus_TOOL_NAMES.length).toBe(35);
+    expect(determinus_TOOL_NAMES.length).toBeLessThanOrEqual(
       (baseline as number) + CONTRACTED_PUBLIC_ADDITIONS.length,
     );
   });
@@ -269,7 +279,7 @@ describe("public tool inventory — definition record completeness", () => {
   test("collectPublicToolEntries rejects a tool missing description", () => {
     expect(() =>
       collectPublicToolEntries([
-        { adv_alpha: { args: { changeId: z.string() } } as any },
+        { determinus_alpha: { args: { changeId: z.string() } } as any },
       ]),
     ).toThrow(/description/);
   });
@@ -277,7 +287,7 @@ describe("public tool inventory — definition record completeness", () => {
   test("collectPublicToolEntries rejects a tool missing args", () => {
     expect(() =>
       collectPublicToolEntries([
-        { adv_alpha: { description: "Alpha tool" } as any },
+        { determinus_alpha: { description: "Alpha tool" } as any },
       ]),
     ).toThrow(/args/);
   });
@@ -285,7 +295,9 @@ describe("public tool inventory — definition record completeness", () => {
   test("collectPublicToolEntries rejects empty description", () => {
     expect(() =>
       collectPublicToolEntries([
-        { adv_alpha: { description: "", args: { changeId: z.string() } } },
+        {
+          determinus_alpha: { description: "", args: { changeId: z.string() } },
+        },
       ]),
     ).toThrow(/description/);
   });
@@ -293,26 +305,26 @@ describe("public tool inventory — definition record completeness", () => {
   test("collectPublicToolEntries preserves description and original Zod args", () => {
     const args = { changeId: z.string() };
     const entries = collectPublicToolEntries([
-      { adv_alpha: { description: "Alpha tool", args } },
-      { adv_beta: { description: "Beta tool", args: {} } },
+      { determinus_alpha: { description: "Alpha tool", args } },
+      { determinus_beta: { description: "Beta tool", args: {} } },
     ]);
     expect(entries).toEqual([
-      { name: "adv_alpha", description: "Alpha tool", args },
-      { name: "adv_beta", description: "Beta tool", args: {} },
+      { name: "determinus_alpha", description: "Alpha tool", args },
+      { name: "determinus_beta", description: "Beta tool", args: {} },
     ]);
   });
 });
 
-describe("public tool inventory — ADV_TOOL_METADATA parity", () => {
+describe("public tool inventory — determinus_TOOL_METADATA parity", () => {
   test("metadata keys exactly equal derived inventory names", () => {
-    expect(sorted(Object.keys(ADV_TOOL_METADATA))).toEqual(
-      sorted(ADV_TOOL_NAMES),
+    expect(sorted(Object.keys(determinus_TOOL_METADATA))).toEqual(
+      sorted(determinus_TOOL_NAMES),
     );
   });
 
   test("every metadata entry carries required descriptive facts", () => {
-    for (const name of ADV_TOOL_NAMES) {
-      const meta = ADV_TOOL_METADATA[name];
+    for (const name of determinus_TOOL_NAMES) {
+      const meta = determinus_TOOL_METADATA[name];
       expect(meta, `metadata exists for ${name}`).toBeDefined();
       expect(VALID_REALMS, `realm for ${name}`).toContain(meta.realm);
       expect(VALID_GROUPS, `group for ${name}`).toContain(meta.group);
@@ -330,8 +342,8 @@ describe("public tool inventory — ADV_TOOL_METADATA parity", () => {
   });
 
   test("metadata does not copy authority facts from TOOL_ROLE_POLICY", () => {
-    for (const name of ADV_TOOL_NAMES) {
-      const meta = ADV_TOOL_METADATA[name];
+    for (const name of determinus_TOOL_NAMES) {
+      const meta = determinus_TOOL_METADATA[name];
       expect(meta, `metadata for ${name}`).toBeDefined();
       expect(meta).not.toHaveProperty("class");
       expect(meta).not.toHaveProperty("agentActions");
@@ -341,8 +353,8 @@ describe("public tool inventory — ADV_TOOL_METADATA parity", () => {
   });
 
   test("metadata does not copy manifest grants from AGENT_TOOL_POLICY", () => {
-    for (const name of ADV_TOOL_NAMES) {
-      const meta = ADV_TOOL_METADATA[name];
+    for (const name of determinus_TOOL_NAMES) {
+      const meta = determinus_TOOL_METADATA[name];
       expect(meta, `metadata for ${name}`).toBeDefined();
       expect(meta).not.toHaveProperty("allowed");
       expect(meta).not.toHaveProperty("explicitBlocked");
@@ -351,14 +363,17 @@ describe("public tool inventory — ADV_TOOL_METADATA parity", () => {
   });
 
   test("operator-risk metadata is limited to recovery-only repair tools", () => {
-    const operatorRisk = ADV_TOOL_NAMES.filter(
-      (name) => ADV_TOOL_METADATA[name].risk === "operator",
+    const operatorRisk = determinus_TOOL_NAMES.filter(
+      (name) => determinus_TOOL_METADATA[name].risk === "operator",
     );
     for (const name of operatorRisk) {
-      expect(ADV_TOOL_METADATA[name].recoveryOnly, `${name} recoveryOnly`).toBe(
-        true,
+      expect(
+        determinus_TOOL_METADATA[name].recoveryOnly,
+        `${name} recoveryOnly`,
+      ).toBe(true);
+      expect(determinus_TOOL_METADATA[name].group, `${name} group`).toBe(
+        "repair",
       );
-      expect(ADV_TOOL_METADATA[name].group, `${name} group`).toBe("repair");
     }
   });
 });

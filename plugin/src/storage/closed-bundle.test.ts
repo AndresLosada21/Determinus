@@ -42,7 +42,7 @@ function makeClosedChange(id: string, overrides: Partial<Change> = {}): Change {
 async function makeFixture(
   change: Change,
 ): Promise<{ changesDir: string; closedPath: string }> {
-  const root = await mkdtemp(join(tmpdir(), "adv-closed-bundle-"));
+  const root = await mkdtemp(join(tmpdir(), "determinus-closed-bundle-"));
   const changesDir = join(root, "changes");
   const closedPath = join(root, "closed");
   await mkdir(join(changesDir, change.id), { recursive: true });

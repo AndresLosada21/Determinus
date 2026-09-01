@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { advWorktreeTools } from "../adv-worktree";
+import { advWorktreeTools } from "../determinus-worktree";
 import { advWorktreeDelete } from "./index";
 import {
   encodeWorktreeDeletionToken,
@@ -58,7 +58,7 @@ function deps(overrides: Record<string, unknown> = {}) {
 
 describe("shared public worktree deletion contract", () => {
   it("keeps handler schema and preflight parity for plan/apply fields", () => {
-    const schema = z.object(advWorktreeTools.adv_worktree_delete.args);
+    const schema = z.object(advWorktreeTools.determinus_worktree_delete.args);
     expect(
       schema.safeParse({
         branch: facts.branch,

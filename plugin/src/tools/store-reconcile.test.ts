@@ -66,11 +66,11 @@ function parseOutput(output: string): Record<string, unknown> {
   return JSON.parse(output) as Record<string, unknown>;
 }
 
-describe("adv_store_reconcile", () => {
+describe("determinus_store_reconcile", () => {
   residueScanMock.runStoreResidueScan.mockResolvedValue(scan);
 
   test("plan mode scans and returns the complete dry-run plan with plan_hash", async () => {
-    const result = await storeReconcileTools.adv_store_reconcile.execute(
+    const result = await storeReconcileTools.determinus_store_reconcile.execute(
       { mode: "plan" },
       store,
     );
@@ -101,7 +101,7 @@ describe("adv_store_reconcile", () => {
 
     reconcileApplyMock.runReconcileApply.mockResolvedValueOnce(report);
 
-    const result = await storeReconcileTools.adv_store_reconcile.execute(
+    const result = await storeReconcileTools.determinus_store_reconcile.execute(
       {
         mode: "apply",
         confirm_plan_hash: plan.plan_hash,
@@ -135,7 +135,7 @@ describe("adv_store_reconcile", () => {
       }),
     );
 
-    const result = await storeReconcileTools.adv_store_reconcile.execute(
+    const result = await storeReconcileTools.determinus_store_reconcile.execute(
       {
         mode: "apply",
         confirm_plan_hash: plan.plan_hash,

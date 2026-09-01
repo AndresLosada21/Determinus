@@ -51,7 +51,7 @@ describe("classifySummaryCandidates", () => {
           change_id: "invalid-change",
           scope: { kind: "change", scope_key: "researcher:test" },
           attempt: 1,
-          agent: "adv-researcher",
+          agent: "determinus-researcher",
           topic: "schema boundary",
           sources: [
             {

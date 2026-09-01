@@ -1,11 +1,11 @@
 # Scope Discovery Protocol
 
 Canonical inline-approval protocol for non-campsite scope discovered during ADV
-execution phases (`/adv-apply`, `/adv-review`, `/adv-harden`).
+execution phases (`/determinus-apply`, `/determinus-review`, `/determinus-harden`).
 
 See also:
 - `docs/command-voice-standard.md` § Inline Approval Voice
-- `ADV_INSTRUCTIONS.md` § Large-Scope Validity
+- `determinus_INSTRUCTIONS.md` § Large-Scope Validity
 
 ---
 
@@ -39,7 +39,7 @@ If the work **IS** P23-campsite-eligible, apply it freely without prompting.
 ║    reenter {gate}  — Reopen from proposal/discovery/design/...   ║
 ║    split           — Create fast-follow change for this scope    ║
 ║    keep            — Absorb into current change (may need        ║
-║                      adv_change_reenter if AC/objectives change) ║
+║                      determinus_change_reenter if AC/objectives change) ║
 ║    cancel          — Discard discovered scope                    ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
@@ -49,9 +49,9 @@ If the work **IS** P23-campsite-eligible, apply it freely without prompting.
 
 | Reply pattern | Action |
 |---|---|
-| `reenter` or `reenter {gate}` | Call `adv_change_reenter` from the specified gate |
-| `split` | Call `adv_change_create parent_change_id: <current>` |
-| `keep` | Absorb scope; if AC/objectives change → `adv_change_reenter` |
+| `reenter` or `reenter {gate}` | Call `determinus_change_reenter` from the specified gate |
+| `split` | Call `determinus_change_create parent_change_id: <current>` |
+| `keep` | Absorb scope; if AC/objectives change → `determinus_change_reenter` |
 | `cancel` | Discard; document in task notes |
 | Whitelist match (Tier A) | Proceed per match |
 | Anything else | LLM fallback to nearest option; if ambiguous, re-prompt |
@@ -61,7 +61,7 @@ If the work **IS** P23-campsite-eligible, apply it freely without prompting.
 ## Important: `keep` Does Not Bypass Re-entry
 
 If the user chooses `keep` AND the absorbed scope adds new objectives or
-acceptance criteria, the agent **MUST** invoke `adv_change_reenter` per
+acceptance criteria, the agent **MUST** invoke `determinus_change_reenter` per
 `rq-scopeReentry01`. The `keep` option is a user intent signal, not a
 mechanical bypass of the re-entry protocol.
 
@@ -69,7 +69,7 @@ mechanical bypass of the re-entry protocol.
 
 ## Worked Example
 
-**Scenario:** During `/adv-apply`, the agent discovers that AC #4 ("Add
+**Scenario:** During `/determinus-apply`, the agent discovers that AC #4 ("Add
 webhook handler") actually requires changes to `src/queue.ts` which was not
 in the original task graph. The fix is not P23-campsite-eligible because it
 touches a new subsystem and adds a new dependency.
@@ -85,9 +85,9 @@ touches a new subsystem and adds a new dependency.
 **User replies:** `reenter design`
 
 **Agent action:**
-1. Call `adv_change_reenter gateId: design`.
-2. Continue from `/adv-discover` → `/adv-design` with expanded scope.
-3. After prep re-approves, resume `/adv-apply`.
+1. Call `determinus_change_reenter gateId: design`.
+2. Continue from `/determinus-discover` → `/determinus-design` with expanded scope.
+3. After prep re-approves, resume `/determinus-apply`.
 
 ---
 

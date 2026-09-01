@@ -12,13 +12,13 @@
  *      (product-linked changes, AC4 D2).
  *
  * The current-repo entry is always emitted as a tentative target. The
- * archive flow's deletion step (`adv_worktree_delete`) honors the existing
+ * archive flow's deletion step (`determinus_worktree_delete`) honors the existing
  * 3-condition gate (archived AND merged AND clean); paths that don't
  * satisfy the gate stay pending and are reported in the archive report.
  *
  * Idempotency: re-running cleanup on an already-cleaned change emits the
  * same list (with empty target/scope) — entries already deleted are no-op
- * skipped by `adv_worktree_delete`'s record check.
+ * skipped by `determinus_worktree_delete`'s record check.
  *
  * Partial-failure tolerance: a per-target deletion that fails MUST NOT
  * abort iteration of subsequent targets. Callers iterate the full list,
@@ -31,7 +31,7 @@ export type WorktreeCleanupTargetRole = "current" | "target" | "scope";
 
 export interface WorktreeCleanupTarget {
   role: WorktreeCleanupTargetRole;
-  /** Branch name to pass to adv_worktree_delete. */
+  /** Branch name to pass to determinus_worktree_delete. */
   branch: string;
   /** Absolute worktree path the agent's archive iteration walks. */
   path: string;

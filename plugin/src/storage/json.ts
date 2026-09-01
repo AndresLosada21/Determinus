@@ -83,7 +83,7 @@ export interface ProjectPaths {
   /** Reconcile-owned artifacts; scanners must never report these as noise. */
   reconcileDir: string;
   /**
-   * Append-only audit log for adv_snapshot_health repairs. Purpose-specific
+   * Append-only audit log for determinus_snapshot_health repairs. Purpose-specific
    * (not Agenda) per retireAgendaWorkflow AC4: every successful snapshot
    * repair retains a durable audit record without creating Agenda work, and
    * the log stays outside planning, gates, backlog, and Epic state.
@@ -248,7 +248,7 @@ export async function loadProjectConfig(
       // rest of the plugin (tools, events, status markers) remains available.
       // Use loadProjectConfigWithDiagnostics for structured error reporting.
       logger.warn(
-        `project.json failed schema validation at ${configPath}; continuing with defaults. Run adv-status for details.`,
+        `project.json failed schema validation at ${configPath}; continuing with defaults. Run determinus-status for details.`,
       );
       return null;
     case "read_error":
@@ -266,7 +266,7 @@ export async function loadProjectConfig(
  * - Invalid JSON syntax (read_error)
  * - Schema validation failures with field-level detail (schema_error)
  *
- * Use this in adv-status and other commands that need to surface config
+ * Use this in determinus-status and other commands that need to surface config
  * problems to the agent/user rather than silently ignoring them.
  */
 export async function loadProjectConfigWithDiagnostics(
@@ -336,7 +336,7 @@ export async function saveChange(
   // rq-synthstate01 disk-layer guard: reject synthetic-validation-draft
   // change IDs at the lowest write path so leaked test fixtures can't
   // accumulate via legacy / direct-disk-write code paths that bypass
-  // adv_change_create's tool-layer guard. See utils/synthetic-fixture-detector
+  // determinus_change_create's tool-layer guard. See utils/synthetic-fixture-detector
   // and the audit at 2026-05-07 (~600 leaked records reaped manually
   // across 16 ADV project directories before this guard landed).
   if (isSyntheticValidationDraftPattern(change.id)) {

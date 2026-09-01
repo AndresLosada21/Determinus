@@ -111,12 +111,12 @@ export interface WritePluginBundleManifestOptions {
 // capture at module evaluation: it is the identity of the code that was
 // loaded, not a later read of the deploy directory. In dev/test source
 // execution it is undefined, so the loaded generation is null.
-declare const __ADV_PLUGIN_BUNDLE_GENERATION__: string | undefined;
+declare const __determinus_PLUGIN_BUNDLE_GENERATION__: string | undefined;
 
 function captureLoadedPluginBundleGeneration(): string | null {
-  if (typeof __ADV_PLUGIN_BUNDLE_GENERATION__ !== "string") return null;
-  return /^[0-9a-f]{64}$/.test(__ADV_PLUGIN_BUNDLE_GENERATION__)
-    ? __ADV_PLUGIN_BUNDLE_GENERATION__
+  if (typeof __determinus_PLUGIN_BUNDLE_GENERATION__ !== "string") return null;
+  return /^[0-9a-f]{64}$/.test(__determinus_PLUGIN_BUNDLE_GENERATION__)
+    ? __determinus_PLUGIN_BUNDLE_GENERATION__
     : null;
 }
 

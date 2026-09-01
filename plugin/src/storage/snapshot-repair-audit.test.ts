@@ -1,7 +1,7 @@
 /**
  * Snapshot Repair Audit Store — Tests
  *
- * Purpose-specific, append-only audit log for adv_snapshot_health repairs.
+ * Purpose-specific, append-only audit log for determinus_snapshot_health repairs.
  * Replaces the legacy Agenda-based audit trail per retireAgendaWorkflow AC4:
  * every successful snapshot repair retains a durable audit record without
  * creating Agenda work, and the audit log stays outside planning, gates,
@@ -23,7 +23,7 @@ describe("snapshot-repair-audit storage", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-snapshot-repair-audit-");
+    tempDir = await createTempDir("determinus-snapshot-repair-audit-");
   });
 
   afterEach(async () => {

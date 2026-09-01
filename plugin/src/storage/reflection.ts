@@ -162,7 +162,7 @@ const ReflectionEntrySchema = z.object({
 // Constants
 // =============================================================================
 
-const ADV_DIR = ".adv";
+const determinus_DIR = ".adv";
 const REFLECTIONS_FILE = "reflections.jsonl";
 
 // =============================================================================
@@ -180,11 +180,11 @@ export const getReflectionsPath = (
   projectDir: string,
   overridePath?: string,
 ): string => {
-  return overridePath ?? join(projectDir, ADV_DIR, REFLECTIONS_FILE);
+  return overridePath ?? join(projectDir, determinus_DIR, REFLECTIONS_FILE);
 };
 
 function getLegacyReflectionsPath(projectDir: string): string {
-  return join(projectDir, ADV_DIR, REFLECTIONS_FILE);
+  return join(projectDir, determinus_DIR, REFLECTIONS_FILE);
 }
 
 function resolveReadableReflectionsPath(

@@ -104,7 +104,7 @@ export interface ChangeListResponse {
     status: ChangeStatus;
     /**
      * First non-done gate in gate order, or "done" when all gates are
-     * complete. Additive gate-progress hint used by adv_change_list to
+     * complete. Additive gate-progress hint used by determinus_change_list to
      * derive the per-row `phase` (legacy status stays "draft" for every
      * open change, so it cannot convey progress).
      */
@@ -117,7 +117,7 @@ export interface ChangeListResponse {
     completedTasks: number;
     /** Same-project fast-follow lineage (optional) */
     fast_follow_of?: FastFollowOf;
-    /** Convenience top-level annotation when fast_follow_of is set (added by adv_change_list) */
+    /** Convenience top-level annotation when fast_follow_of is set (added by determinus_change_list) */
     parent_change_id?: string;
     /** Inbound ops follow-up profile when this change is a linked follow-up. */
     ops_followup?: OpsFollowupProfile;
@@ -194,7 +194,7 @@ export interface ProjectStatus {
   recommendations: string[];
   /**
    * Request-local resolved change documents keyed by canonical id
-   * (fixChangeListTimeouts KD4). Transport-only: lets `adv_status`
+   * (fixChangeListTimeouts KD4). Transport-only: lets `determinus_status`
    * enrichment reuse already-hydrated documents/proposal projections
    * instead of issuing duplicate per-change reads. Callers MUST strip
    * this field before serializing tool output; it is never truth beyond

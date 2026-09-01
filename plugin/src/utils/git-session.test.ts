@@ -8,7 +8,7 @@ import { resolveGitSessionContext } from "./git-session";
 
 describe("resolveGitSessionContext", () => {
   test("distinguishes main checkout, linked worktree, and fallback worktree hint", () => {
-    const root = mkdtempSync(join(tmpdir(), "adv-git-session-"));
+    const root = mkdtempSync(join(tmpdir(), "determinus-git-session-"));
     const main = join(root, "main");
     const linked = join(root, "linked");
 
@@ -22,7 +22,7 @@ describe("resolveGitSessionContext", () => {
           "-c",
           "user.name=ADV Test",
           "-c",
-          "user.email=adv-test@example.invalid",
+          "user.email=determinus-test@example.invalid",
           "commit",
           "-m",
           "init",
@@ -58,7 +58,9 @@ describe("resolveGitSessionContext", () => {
   });
 
   test("falls back safely outside git", () => {
-    const root = mkdtempSync(join(tmpdir(), "adv-git-session-fallback-"));
+    const root = mkdtempSync(
+      join(tmpdir(), "determinus-git-session-fallback-"),
+    );
 
     try {
       expect(resolveGitSessionContext(root, undefined)).toEqual({

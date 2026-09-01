@@ -1,7 +1,7 @@
 /**
  * Change Projection Quarantine Audit Store
  *
- * Purpose-specific append-only audit log for `adv_change_projection_quarantine`.
+ * Purpose-specific append-only audit log for `determinus_change_projection_quarantine`.
  * Every successful quarantine appends one durable audit entry outside the
  * ADV Agenda/planning/gate/backlog/Epic state. The log is read-only for
  * operators; it is never consumed by change lifecycle or task selection logic.

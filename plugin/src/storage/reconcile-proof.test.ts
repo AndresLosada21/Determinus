@@ -13,7 +13,7 @@ import { findProjectionDivergences } from "./projection-health";
 
 describe("computeReconcileCompletionProof", () => {
   test("proves an empty store with two unbounded scans", async () => {
-    const root = await createTempDir("adv-reconcile-proof-empty-");
+    const root = await createTempDir("determinus-reconcile-proof-empty-");
     try {
       const calls: unknown[] = [];
       const proof = await computeReconcileCompletionProof({
@@ -46,7 +46,7 @@ describe("computeReconcileCompletionProof", () => {
   });
 
   test("reports zero after-count for a residue-free store after apply", async () => {
-    const root = await createTempDir("adv-reconcile-proof-clean-");
+    const root = await createTempDir("determinus-reconcile-proof-clean-");
     try {
       const store = await createStore(root);
       await store.changes.create("Proof fixture");
@@ -65,7 +65,9 @@ describe("computeReconcileCompletionProof", () => {
   });
 
   test("does not treat a report-only newer legacy envelope as a completion divergence", async () => {
-    const root = await createTempDir("adv-reconcile-proof-legacy-newer-");
+    const root = await createTempDir(
+      "determinus-reconcile-proof-legacy-newer-",
+    );
     try {
       const store = await createStore(root);
       const paths = getProjectPaths(root);
@@ -87,7 +89,7 @@ describe("computeReconcileCompletionProof", () => {
   });
 
   test("keeps residual divergence visible and does not synthesize completion", async () => {
-    const root = await createTempDir("adv-reconcile-proof-residual-");
+    const root = await createTempDir("determinus-reconcile-proof-residual-");
     try {
       const paths = getProjectPaths(root);
       const divergence = {
@@ -123,7 +125,7 @@ describe("computeReconcileCompletionProof", () => {
   });
 
   test("fails closed when the proof scan errors", async () => {
-    const root = await createTempDir("adv-reconcile-proof-error-");
+    const root = await createTempDir("determinus-reconcile-proof-error-");
     try {
       const proof = await computeReconcileCompletionProof({
         paths: getProjectPaths(root),

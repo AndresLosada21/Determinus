@@ -93,7 +93,7 @@ describe("release gate fail-closed enforcement", () => {
   let restoreCwd: (() => void) | undefined;
 
   beforeEach(async () => {
-    const fixture = await createTempGitWorktree("adv-release-gate-");
+    const fixture = await createTempGitWorktree("determinus-release-gate-");
     cleanupWorktree = fixture.cleanup;
     // Mutation tools derive their session workdir from process.cwd(). Keep
     // that dependency explicit and isolated from the checkout running Vitest.
@@ -116,12 +116,12 @@ describe("release gate fail-closed enforcement", () => {
   });
 
   test("refuses release completion when trunk reachability proof is absent", async () => {
-    const root = await createTempDir("adv-release-gate-");
+    const root = await createTempDir("determinus-release-gate-");
     try {
       const current = change();
       const store = await storeFor(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           { changeId: current.id, gateId: "release" },
           store,
         ),
@@ -145,7 +145,7 @@ describe("release gate fail-closed enforcement", () => {
       proof: "origin_default",
       releasedCommitSha: "released-sha",
     });
-    const root = await createTempDir("adv-release-gate-");
+    const root = await createTempDir("determinus-release-gate-");
     try {
       const current = change({
         phase9_status: {
@@ -158,7 +158,7 @@ describe("release gate fail-closed enforcement", () => {
       });
       const store = await storeFor(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           {
             changeId: current.id,
             gateId: "release",
@@ -193,7 +193,7 @@ describe("release gate fail-closed enforcement", () => {
     git.resolveReleaseReachability.mockReturnValue({
       reachable: true,
     } as never);
-    const root = await createTempDir("adv-release-gate-");
+    const root = await createTempDir("determinus-release-gate-");
     try {
       const current = change({
         phase9_status: {
@@ -206,7 +206,7 @@ describe("release gate fail-closed enforcement", () => {
       });
       const store = await storeFor(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           { changeId: current.id, gateId: "release" },
           store,
         ),

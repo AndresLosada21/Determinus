@@ -50,7 +50,7 @@ Conformance test source for a locked spec MUST NOT be readable by the implementi
 - A locked conformance source exists in either mode
 - An adversarial test fixture is exercised
 
-**When:** The fixture attempts every documented read path (read tool, glob, grep, lgrep_search_*, bash cat/grep/find, bash git clone, bash curl, direct adv_conformance call)
+**When:** The fixture attempts every documented read path (read tool, glob, grep, lgrep_search_*, bash cat/grep/find, bash git clone, bash curl, direct determinus_conformance call)
 
 **Then:**
 - Each path is rejected with a conformance-boundary enforcement error
@@ -62,7 +62,7 @@ Conformance test source for a locked spec MUST NOT be readable by the implementi
 
 **ID:** `rq-confLock01` | **Priority:** **[MUST]**
 
-Conformance source for a spec is unlocked while the spec is being authored. On the first successful `/adv-archive` of a spec with conformance_required: true, the spec's lock state flips atomically to `locked: true` with `locked_at` and `locked_at_archive` recorded. Lock state lives in shared external state (`~/.local/share/opencode/plugins/advance/{project-id}/conformance.json`) and survives worktree switches. Subsequent unlocking requires explicit user-invoked `adv_conformance action: 'unlock'` and is recorded in the override audit log.
+Conformance source for a spec is unlocked while the spec is being authored. On the first successful `/determinus-archive` of a spec with conformance_required: true, the spec's lock state flips atomically to `locked: true` with `locked_at` and `locked_at_archive` recorded. Lock state lives in shared external state (`~/.local/share/opencode/plugins/advance/{project-id}/conformance.json`) and survives worktree switches. Subsequent unlocking requires explicit user-invoked `determinus_conformance action: 'unlock'` and is recorded in the override audit log.
 
 **Tags:** `conformance`, `lifecycle`, `lock`
 
@@ -75,7 +75,7 @@ Conformance source for a spec is unlocked while the spec is being authored. On t
 - All gates of the change are satisfied
 - Conformance verdict is PASS
 
-**When:** /adv-archive completes successfully for the change that authored or modified the spec
+**When:** /determinus-archive completes successfully for the change that authored or modified the spec
 
 **Then:**
 - The spec entry's locked field flips to true
@@ -99,7 +99,7 @@ Conformance source for a spec is unlocked while the spec is being authored. On t
 **Given:**
 - A spec is locked
 
-**When:** adv_conformance action: 'unlock' is invoked by the user
+**When:** determinus_conformance action: 'unlock' is invoked by the user
 
 **Then:**
 - The lock state flips to false
@@ -112,7 +112,7 @@ Conformance source for a spec is unlocked while the spec is being authored. On t
 
 **ID:** `rq-confSignalVisibility01` | **Priority:** **[MUST]**
 
-When adv_conformance writes local conformance state for lock, override, or run and the change-workflow notification fails, the tool response MUST preserve the local-state success result and include a structured signalWarning object: { code: 'ADV_CONFORMANCE_SIGNAL_FAILED', message: string, reason: string, recoverable: true, changeId: string }. The warning MUST NOT be debug-log-only.
+When determinus_conformance writes local conformance state for lock, override, or run and the change-workflow notification fails, the tool response MUST preserve the local-state success result and include a structured signalWarning object: { code: 'determinus_CONFORMANCE_SIGNAL_FAILED', message: string, reason: string, recoverable: true, changeId: string }. The warning MUST NOT be debug-log-only.
 
 **Tags:** `conformance`, `visibility`, `signals`
 
@@ -122,14 +122,14 @@ When adv_conformance writes local conformance state for lock, override, or run a
 
 **Given:**
 - A tracked conformance spec exists
-- adv_conformance action: 'lock' persists locked state
+- determinus_conformance action: 'lock' persists locked state
 - The change-workflow signal rejects
 
 **When:** The tool returns to the caller
 
 **Then:**
 - The response reports success for the local lock state
-- The response includes signalWarning.code = 'ADV_CONFORMANCE_SIGNAL_FAILED'
+- The response includes signalWarning.code = 'determinus_CONFORMANCE_SIGNAL_FAILED'
 - signalWarning.reason contains the notification failure reason
 - signalWarning.recoverable is true and signalWarning.changeId identifies the change workflow
 
@@ -137,7 +137,7 @@ When adv_conformance writes local conformance state for lock, override, or run a
 
 **Given:**
 - A tracked conformance spec has locked_at_archive set
-- adv_conformance action: 'override' persists an override audit entry
+- determinus_conformance action: 'override' persists an override audit entry
 - The change-workflow signal rejects
 
 **When:** The tool returns to the caller
@@ -151,7 +151,7 @@ When adv_conformance writes local conformance state for lock, override, or run a
 
 **Given:**
 - A tracked conformance spec has locked_at_archive set
-- adv_conformance action: 'run' persists last_verdict
+- determinus_conformance action: 'run' persists last_verdict
 - The change-workflow signal rejects
 
 **When:** The tool returns to the caller
@@ -167,18 +167,18 @@ When adv_conformance writes local conformance state for lock, override, or run a
 
 **ID:** `rq-confVerdict01` | **Priority:** **[MUST]**
 
-Conformance runs produce a single structured verdict shape `{verdict: 'PASS' | 'DRIFT', run_id, failed: [{rq_id, summary}]}`. The implementing agent has no tool path to call `adv_conformance` during the execution gate (role guard in tool.execute.before). The orchestrator (in `/adv-archive`) calls the tool and receives the verdict. Full diagnostic detail is echoed to the user terminal at archive time but never returned through a tool channel reachable by an apply-phase agent.
+Conformance runs produce a single structured verdict shape `{verdict: 'PASS' | 'DRIFT', run_id, failed: [{rq_id, summary}]}`. The implementing agent has no tool path to call `determinus_conformance` during the execution gate (role guard in tool.execute.before). The orchestrator (in `/determinus-archive`) calls the tool and receives the verdict. Full diagnostic detail is echoed to the user terminal at archive time but never returned through a tool channel reachable by an apply-phase agent.
 
 **Tags:** `conformance`, `verdict`, `role-guard`
 
 #### Scenarios
 
-**Apply-phase agent cannot call adv_conformance** (`rq-confVerdict01.1`)
+**Apply-phase agent cannot call determinus_conformance** (`rq-confVerdict01.1`)
 
 **Given:**
 - An active task is in the execution gate
 
-**When:** The agent attempts to call adv_conformance with any action
+**When:** The agent attempts to call determinus_conformance with any action
 
 **Then:**
 - The tool.execute.before role guard rejects the call with an enforcement error
@@ -187,10 +187,10 @@ Conformance runs produce a single structured verdict shape `{verdict: 'PASS' | '
 **Orchestrator receives single structured verdict** (`rq-confVerdict01.2`)
 
 **Given:**
-- A change has reached /adv-archive Phase 5.5
+- A change has reached /determinus-archive Phase 5.5
 - The spec has conformance_required: true
 
-**When:** The orchestrator calls adv_conformance action: 'run'
+**When:** The orchestrator calls determinus_conformance action: 'run'
 
 **Then:**
 - The tool returns {verdict: 'PASS' | 'DRIFT', run_id, failed} with no tiered shaping
@@ -202,7 +202,7 @@ Conformance runs produce a single structured verdict shape `{verdict: 'PASS' | '
 
 **ID:** `rq-confArchiveGate01` | **Priority:** **[MUST]**
 
-Archive of a spec with `conformance_required: true` is blocked unless the conformance verdict is PASS or a valid time-bounded override is recorded. The conformance gate runs in `/adv-archive` Phase 5.5, between User Signoff (Phase 5) and Execute Archive (Phase 6). It runs BEFORE `adv_change_archive` is called, so active source removal (`rq-archiveRetirement01`) only triggers on a passing or override-approved release.
+Archive of a spec with `conformance_required: true` is blocked unless the conformance verdict is PASS or a valid time-bounded override is recorded. The conformance gate runs in `/determinus-archive` Phase 5.5, between User Signoff (Phase 5) and Execute Archive (Phase 6). It runs BEFORE `determinus_change_archive` is called, so active source removal (`rq-archiveRetirement01`) only triggers on a passing or override-approved release.
 
 **Tags:** `conformance`, `archive`, `gate`
 
@@ -220,7 +220,7 @@ Archive of a spec with `conformance_required: true` is blocked unless the confor
 **Then:**
 - Archive halts before Phase 6
 - The user is presented with three options: fix code locally and rerun archive, override with audit, or unlock + amend the spec
-- adv_change_archive is not called
+- determinus_change_archive is not called
 
 **PASS verdict allows archive to proceed** (`rq-confArchiveGate01.2`)
 
@@ -249,7 +249,7 @@ When CI is unavailable or the user disputes a DRIFT verdict, archive may proceed
 **Override entry must include all required audit fields** (`rq-confOverride01.1`)
 
 **Given:**
-- A user invokes adv_conformance action: 'override'
+- A user invokes determinus_conformance action: 'override'
 
 **When:** The override is recorded
 
@@ -286,7 +286,7 @@ Specs default to `conformance_required: false`. Such specs archive normally with
 **Given:**
 - A spec has conformance_required: false
 
-**When:** /adv-archive runs against a change that touches this spec
+**When:** /determinus-archive runs against a change that touches this spec
 
 **Then:**
 - Phase 5.5 is skipped silently
@@ -310,7 +310,7 @@ Specs default to `conformance_required: false`. Such specs archive normally with
 
 **ID:** `rq-confTriage01` | **Priority:** **[MUST]**
 
-On DRIFT verdict at archive, the agent halts and reports the failing AC labels (rq_id + summary) plus override/unlock command instructions. The agent does NOT orchestrate the fix. The user picks one of three options manually: fix code locally and rerun archive, invoke `adv_conformance action: 'override'`, or invoke `adv_conformance action: 'unlock'` to amend the spec. No automated path creates a new remediation change or amends the spec without explicit user action.
+On DRIFT verdict at archive, the agent halts and reports the failing AC labels (rq_id + summary) plus override/unlock command instructions. The agent does NOT orchestrate the fix. The user picks one of three options manually: fix code locally and rerun archive, invoke `determinus_conformance action: 'override'`, or invoke `determinus_conformance action: 'unlock'` to amend the spec. No automated path creates a new remediation change or amends the spec without explicit user action.
 
 **Tags:** `conformance`, `triage`, `user-control`
 
@@ -325,7 +325,7 @@ On DRIFT verdict at archive, the agent halts and reports the failing AC labels (
 
 **Then:**
 - The user sees the failing rq_id list and brief summaries
-- The user sees three explicit options: fix locally + rerun archive; adv_conformance action: 'override'; adv_conformance action: 'unlock'
+- The user sees three explicit options: fix locally + rerun archive; determinus_conformance action: 'override'; determinus_conformance action: 'unlock'
 - The agent does NOT auto-create a remediation change
 
 **Agent does not amend the spec without explicit unlock** (`rq-confTriage01.2`)

@@ -91,6 +91,6 @@ export async function loadProposalForSnapshot(
 
   return {
     content: buildProposalScaffold(change.title),
-    warning: `⚠️  No proposal content found in the projection, active directory, or archive for change ${change.id}. Using auto-generated scaffold. Run /adv-proposal to create a proper proposal.`,
+    warning: `⚠️  No proposal content found in the projection, active directory, or archive for change ${change.id}. Using auto-generated scaffold. Run /determinus-proposal to create a proper proposal.`,
   };
 }

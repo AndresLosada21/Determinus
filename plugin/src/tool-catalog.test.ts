@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { z } from "zod";
 import {
-  ADV_TOOL_METADATA,
-  ADV_TOOL_NAMES,
+  determinus_TOOL_METADATA,
+  determinus_TOOL_NAMES,
   createDegradedToolMap,
   createFullToolMap,
   getToolSurface,
@@ -18,9 +18,9 @@ import {
   parseToolOutput,
 } from "./__tests__/setup";
 
-describe("adv_tool_catalog", () => {
+describe("determinus_tool_catalog", () => {
   test("catalog returns a deterministic sorted list of all canonical tools", async () => {
-    const result = await toolCatalogTools.adv_tool_catalog.execute(
+    const result = await toolCatalogTools.determinus_tool_catalog.execute(
       { limit: 100, offset: 0 },
       {} as any,
     );
@@ -28,18 +28,18 @@ describe("adv_tool_catalog", () => {
       items: Array<{ name: string; description: string }>;
       pagination: { total: number; returned: number; hasMore: boolean };
     };
-    expect(parsed.pagination.total).toBe(ADV_TOOL_NAMES.length);
-    expect(parsed.pagination.returned).toBe(ADV_TOOL_NAMES.length);
+    expect(parsed.pagination.total).toBe(determinus_TOOL_NAMES.length);
+    expect(parsed.pagination.returned).toBe(determinus_TOOL_NAMES.length);
     expect(parsed.pagination.hasMore).toBe(false);
     const names = parsed.items.map((i) => i.name);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
     expect(names).toEqual(
-      [...ADV_TOOL_NAMES].sort((a, b) => a.localeCompare(b)),
+      [...determinus_TOOL_NAMES].sort((a, b) => a.localeCompare(b)),
     );
   });
 
   test("catalog respects pagination bounds and limit <= 100", async () => {
-    const result = await toolCatalogTools.adv_tool_catalog.execute(
+    const result = await toolCatalogTools.determinus_tool_catalog.execute(
       { limit: 5, offset: 0 },
       {} as any,
     );
@@ -57,7 +57,7 @@ describe("adv_tool_catalog", () => {
     expect(parsed.pagination.resumeHint).toMatch(/offset: 5/);
     expect(parsed.pagination.resumeHint).toMatch(/limit: 5/);
 
-    const page2 = await toolCatalogTools.adv_tool_catalog.execute(
+    const page2 = await toolCatalogTools.determinus_tool_catalog.execute(
       { limit: 5, offset: 5 },
       {} as any,
     );
@@ -68,12 +68,13 @@ describe("adv_tool_catalog", () => {
   });
 
   test("catalog rejects limit > 100 at schema level", () => {
-    const parse = toolCatalogTools.adv_tool_catalog.args.limit.safeParse(101);
+    const parse =
+      toolCatalogTools.determinus_tool_catalog.args.limit.safeParse(101);
     expect(parse.success).toBe(false);
   });
 
   test("catalog includes visibility metadata for every item and does not execute handlers", async () => {
-    const result = await toolCatalogTools.adv_tool_catalog.execute(
+    const result = await toolCatalogTools.determinus_tool_catalog.execute(
       { limit: 100, offset: 0 },
       {} as any,
     );
@@ -89,18 +90,18 @@ describe("adv_tool_catalog", () => {
       }>;
     };
     for (const item of parsed.items) {
-      const meta = ADV_TOOL_METADATA[item.name];
+      const meta = determinus_TOOL_METADATA[item.name];
       expect(meta).toBeDefined();
       expect(item.visibility.realm).toBe(meta.realm);
       expect(item.visibility.group).toBe(meta.group);
       expect(item.visibility.risk).toBe(meta.risk);
       expect(item.visibility.recoveryOnly).toBe(meta.recoveryOnly);
     }
-    expect(result).not.toContain("ADV_PLUGIN_INIT_FAILED");
+    expect(result).not.toContain("determinus_PLUGIN_INIT_FAILED");
   });
 
   test("catalog visibility metadata does not grant access or copy authority", async () => {
-    const result = await toolCatalogTools.adv_tool_catalog.execute(
+    const result = await toolCatalogTools.determinus_tool_catalog.execute(
       { limit: 100, offset: 0 },
       {} as any,
     );
@@ -121,7 +122,7 @@ describe("adv_tool_catalog", () => {
 
   test("catalog fails closed if metadata parity is missing", async () => {
     // Metadata parity is structurally enforced, but this documents the fail-closed intent.
-    const result = await toolCatalogTools.adv_tool_catalog.execute(
+    const result = await toolCatalogTools.determinus_tool_catalog.execute(
       { limit: 100, offset: 0 },
       {} as any,
     );
@@ -130,10 +131,10 @@ describe("adv_tool_catalog", () => {
   });
 });
 
-describe("adv_tool_describe", () => {
+describe("determinus_tool_describe", () => {
   test("describe returns metadata and input schema for a known tool", async () => {
-    const result = await toolCatalogTools.adv_tool_describe.execute(
-      { name: "adv_change_show" },
+    const result = await toolCatalogTools.determinus_tool_describe.execute(
+      { name: "determinus_change_show" },
       {} as any,
     );
     const parsed = parseToolOutput(result) as {
@@ -147,7 +148,7 @@ describe("adv_tool_describe", () => {
         required: string[];
       };
     };
-    expect(parsed.name).toBe("adv_change_show");
+    expect(parsed.name).toBe("determinus_change_show");
     expect(parsed.description.length).toBeGreaterThan(0);
     expect(parsed.visibility.realm).toBe("change");
     expect(parsed.visibility.group).toBe("read");
@@ -158,8 +159,8 @@ describe("adv_tool_describe", () => {
   });
 
   test("describe returns typed not-found for unknown names", async () => {
-    const result = await toolCatalogTools.adv_tool_describe.execute(
-      { name: "adv_not_a_real_tool" },
+    const result = await toolCatalogTools.determinus_tool_describe.execute(
+      { name: "determinus_not_a_real_tool" },
       {} as any,
     );
     const parsed = parseToolOutput(result) as { error: string; code: string };
@@ -169,7 +170,7 @@ describe("adv_tool_describe", () => {
 
   test("describe detects schema conversion failure", () => {
     const entry = {
-      name: "adv_unrepresentable",
+      name: "determinus_unrepresentable",
       description: "Unrepresentable",
       args: { fn: z.function() },
     };
@@ -181,8 +182,8 @@ describe("adv_tool_describe", () => {
   });
 
   test("describe input schema reflects optionality and descriptions", async () => {
-    const result = await toolCatalogTools.adv_tool_describe.execute(
-      { name: "adv_task_list" },
+    const result = await toolCatalogTools.determinus_tool_describe.execute(
+      { name: "determinus_task_list" },
       {} as any,
     );
     const parsed = parseToolOutput(result) as {
@@ -210,9 +211,9 @@ describe("tool catalog registration parity", () => {
     await cleanupTempDir(tempDir);
   });
 
-  test("new tools are on ADV_TOOL_NAMES", () => {
-    expect(ADV_TOOL_NAMES).toContain("adv_tool_catalog");
-    expect(ADV_TOOL_NAMES).toContain("adv_tool_describe");
+  test("new tools are on determinus_TOOL_NAMES", () => {
+    expect(determinus_TOOL_NAMES).toContain("determinus_tool_catalog");
+    expect(determinus_TOOL_NAMES).toContain("determinus_tool_describe");
   });
 
   test("new tools are in the runtime tool map", async () => {
@@ -220,8 +221,8 @@ describe("tool catalog registration parity", () => {
     await store.init();
     try {
       const map = createFullToolMap(store, tempDir, store.paths.agenda);
-      expect(map).toHaveProperty("adv_tool_catalog");
-      expect(map).toHaveProperty("adv_tool_describe");
+      expect(map).toHaveProperty("determinus_tool_catalog");
+      expect(map).toHaveProperty("determinus_tool_describe");
     } finally {
       store.close();
     }
@@ -229,23 +230,23 @@ describe("tool catalog registration parity", () => {
 
   test("new tools are in the degraded tool map", () => {
     const map = createDegradedToolMap(new Error("test"), "/tmp/x");
-    expect(map).toHaveProperty("adv_tool_catalog");
-    expect(Object.keys(map)).not.toContain("adv_tool_describe");
+    expect(map).toHaveProperty("determinus_tool_catalog");
+    expect(Object.keys(map)).not.toContain("determinus_tool_describe");
   });
 
   test("new tools are on the warrant-visible surface", () => {
     const surface = getToolSurface();
-    expect(surface.has("adv_tool_catalog")).toBe(true);
-    expect(surface.has("adv_tool_describe")).toBe(true);
+    expect(surface.has("determinus_tool_catalog")).toBe(true);
+    expect(surface.has("determinus_tool_describe")).toBe(true);
   });
 
   test("new tools have metadata", () => {
-    expect(ADV_TOOL_METADATA["adv_tool_catalog"]).toBeDefined();
-    expect(ADV_TOOL_METADATA["adv_tool_describe"]).toBeDefined();
+    expect(determinus_TOOL_METADATA["determinus_tool_catalog"]).toBeDefined();
+    expect(determinus_TOOL_METADATA["determinus_tool_describe"]).toBeDefined();
   });
 
   test("new tools have explicit titles", () => {
-    expect(hasExplicitAdvToolTitle("adv_tool_catalog")).toBe(true);
-    expect(hasExplicitAdvToolTitle("adv_tool_describe")).toBe(true);
+    expect(hasExplicitAdvToolTitle("determinus_tool_catalog")).toBe(true);
+    expect(hasExplicitAdvToolTitle("determinus_tool_describe")).toBe(true);
   });
 });

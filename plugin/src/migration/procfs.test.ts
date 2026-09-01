@@ -60,19 +60,19 @@ function statFieldsUpToStart(startTicks: string): string[] {
 
 describe("readProcessStartTicks", () => {
   test("extracts field 22 start ticks from a normal stat line", async () => {
-    const proc = await tempDir("adv-procfs-stat-");
+    const proc = await tempDir("determinus-procfs-stat-");
     writeStat(proc, 4242, "node", statFieldsUpToStart("987654"));
     expect(readProcessStartTicks(4242, proc)).toBe("987654");
   });
 
   test("handles comm containing spaces and parentheses", async () => {
-    const proc = await tempDir("adv-procfs-comm-");
+    const proc = await tempDir("determinus-procfs-comm-");
     writeStat(proc, 77, "weird (proc) name", statFieldsUpToStart("12345"));
     expect(readProcessStartTicks(77, proc)).toBe("12345");
   });
 
   test("returns null for missing or malformed stat", async () => {
-    const proc = await tempDir("adv-procfs-missing-");
+    const proc = await tempDir("determinus-procfs-missing-");
     expect(readProcessStartTicks(999999, proc)).toBeNull();
     const dir = join(proc, "5");
     mkdirSync(dir, { recursive: true });
@@ -83,13 +83,13 @@ describe("readProcessStartTicks", () => {
 
 describe("readProcessCmdline", () => {
   test("decodes NUL-separated argv into a space-joined string", async () => {
-    const proc = await tempDir("adv-procfs-cmdline-");
+    const proc = await tempDir("determinus-procfs-cmdline-");
     writeCmdline(proc, 100, ["opencode", "--agent", "adv"]);
     expect(readProcessCmdline(100, proc)).toBe("opencode --agent adv");
   });
 
   test("returns null for missing cmdline and null for empty cmdline", async () => {
-    const proc = await tempDir("adv-procfs-cmdline-empty-");
+    const proc = await tempDir("determinus-procfs-cmdline-empty-");
     expect(readProcessCmdline(31337, proc)).toBeNull();
     writeCmdline(proc, 31337, []);
     expect(readProcessCmdline(31337, proc)).toBeNull();
@@ -98,7 +98,7 @@ describe("readProcessCmdline", () => {
 
 describe("listProcessEntries", () => {
   test("enumerates numeric pid dirs with cmdline + start ticks", async () => {
-    const proc = await tempDir("adv-procfs-list-");
+    const proc = await tempDir("determinus-procfs-list-");
     writeStat(proc, 10, "opencode", statFieldsUpToStart("500"));
     writeCmdline(proc, 10, ["opencode"]);
     writeStat(proc, 20, "node", statFieldsUpToStart("700"));
@@ -119,14 +119,14 @@ describe("listProcessEntries", () => {
   });
 
   test("returns empty list when proc root is unreadable", async () => {
-    const proc = await tempDir("adv-procfs-list-missing-");
+    const proc = await tempDir("determinus-procfs-list-missing-");
     expect(listProcessEntries(join(proc, "nope"))).toEqual([]);
   });
 });
 
 describe("readBootTimeMs / processStartTimeMs", () => {
   test("parses btime from /proc/stat and converts ticks to ms", async () => {
-    const proc = await tempDir("adv-procfs-btime-");
+    const proc = await tempDir("determinus-procfs-btime-");
     writeFileSync(
       join(proc, "stat"),
       "cpu 1 2 3\nbtime 1700000000\nprocesses 1\n",
@@ -140,7 +140,7 @@ describe("readBootTimeMs / processStartTimeMs", () => {
   });
 
   test("returns null when btime is absent", async () => {
-    const proc = await tempDir("adv-procfs-btime-missing-");
+    const proc = await tempDir("determinus-procfs-btime-missing-");
     writeFileSync(join(proc, "stat"), "cpu 1 2 3\n");
     expect(readBootTimeMs(proc)).toBeNull();
   });
@@ -148,7 +148,7 @@ describe("readBootTimeMs / processStartTimeMs", () => {
 
 describe("isProcessAlive", () => {
   test("live pid with matching start ticks is alive", async () => {
-    const proc = await tempDir("adv-procfs-alive-");
+    const proc = await tempDir("determinus-procfs-alive-");
     writeStat(proc, 55, "opencode", statFieldsUpToStart("900"));
     expect(
       isProcessAlive(55, {
@@ -160,7 +160,7 @@ describe("isProcessAlive", () => {
   });
 
   test("PID reuse: live pid with DIFFERENT start ticks is not alive", async () => {
-    const proc = await tempDir("adv-procfs-reuse-");
+    const proc = await tempDir("determinus-procfs-reuse-");
     writeStat(proc, 55, "opencode", statFieldsUpToStart("901"));
     expect(
       isProcessAlive(55, {
@@ -172,7 +172,7 @@ describe("isProcessAlive", () => {
   });
 
   test("falls back to killProbe when stat is unreadable; EPERM means alive", async () => {
-    const proc = await tempDir("adv-procfs-killprobe-");
+    const proc = await tempDir("determinus-procfs-killprobe-");
     expect(isProcessAlive(66, { procRoot: proc, killProbe: () => true })).toBe(
       true,
     );

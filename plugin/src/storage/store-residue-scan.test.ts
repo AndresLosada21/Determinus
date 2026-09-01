@@ -299,7 +299,7 @@ describe("runStoreResidueScan", () => {
   });
 
   test("reconcile run artifacts are fully excluded from unknown noise", async () => {
-    const root = await createTempDir("adv-reconcile-noise-");
+    const root = await createTempDir("determinus-reconcile-noise-");
     try {
       const paths = getProjectPaths(root);
       await mkdir(join(paths.reconcileDir, "runs", "run-1", "receipts"), {

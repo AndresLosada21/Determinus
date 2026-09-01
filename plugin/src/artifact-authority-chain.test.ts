@@ -58,7 +58,7 @@ function contents(prefix: string): Record<ArtifactKind, string> {
 }
 
 async function projectStore(prefix: string): Promise<Store> {
-  const root = await createTempDir(`adv-artifact-authority-${prefix}-`);
+  const root = await createTempDir(`determinus-artifact-authority-${prefix}-`);
   tempDirs.push(root);
   return createDiskStore(root);
 }
@@ -155,7 +155,7 @@ describe("artifact authority chain", () => {
       executiveSummary: "updated executive summary",
     } as const;
     const updateOutput = parseToolOutput(
-      await changeTools.adv_change_update.execute(
+      await changeTools.determinus_change_update.execute(
         { changeId: created.changeId, ...updates },
         store,
       ),
@@ -301,7 +301,7 @@ describe("artifact authority chain", () => {
     );
 
     const createdOutput = parseToolOutput(
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Cross project artifact chain",
           target_path: targetRoot,
@@ -334,7 +334,7 @@ describe("artifact authority chain", () => {
     });
 
     const updatedOutput = parseToolOutput(
-      await changeTools.adv_change_update.execute(
+      await changeTools.determinus_change_update.execute(
         {
           changeId,
           proposal: "cross project updated proposal",

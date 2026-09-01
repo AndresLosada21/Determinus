@@ -52,12 +52,12 @@ function storeWithEpic(root: string, found: Epic | undefined): Store {
   } as unknown as Store;
 }
 
-describe("adv_change_update — Epic ids are reported as Epics", () => {
+describe("determinus_change_update — Epic ids are reported as Epics", () => {
   test("an artifact update against an Epic id returns a typed Epic error", async () => {
-    const root = await createTempDir("adv-lifecycle-epic-errors-");
+    const root = await createTempDir("determinus-lifecycle-epic-errors-");
     try {
       const parsed = parseToolOutput(
-        await changeTools.adv_change_update.execute(
+        await changeTools.determinus_change_update.execute(
           { changeId: "someEpic", problemStatement: "content" },
           storeWithEpic(root, epic("someEpic")),
         ),
@@ -75,10 +75,10 @@ describe("adv_change_update — Epic ids are reported as Epics", () => {
   });
 
   test("a genuinely unknown id still reports change-not-found", async () => {
-    const root = await createTempDir("adv-lifecycle-epic-errors-");
+    const root = await createTempDir("determinus-lifecycle-epic-errors-");
     try {
       const parsed = parseToolOutput(
-        await changeTools.adv_change_update.execute(
+        await changeTools.determinus_change_update.execute(
           { changeId: "ghostChange", problemStatement: "content" },
           storeWithEpic(root, undefined),
         ),
@@ -86,14 +86,14 @@ describe("adv_change_update — Epic ids are reported as Epics", () => {
 
       expect(parsed.code).not.toBe("EPIC_ARTIFACTS_UNSUPPORTED");
       expect(String(parsed.error)).toContain("not found");
-      expect(String(parsed.hint)).toContain("adv_change_list");
+      expect(String(parsed.hint)).toContain("determinus_change_list");
     } finally {
       await cleanupTempDir(root);
     }
   });
 
   test("an unreadable Epic store still reports change-not-found", async () => {
-    const root = await createTempDir("adv-lifecycle-epic-errors-");
+    const root = await createTempDir("determinus-lifecycle-epic-errors-");
     try {
       const store = storeWithEpic(root, undefined);
       (store as unknown as { epics: { get: unknown } }).epics = {
@@ -103,7 +103,7 @@ describe("adv_change_update — Epic ids are reported as Epics", () => {
       };
 
       const parsed = parseToolOutput(
-        await changeTools.adv_change_update.execute(
+        await changeTools.determinus_change_update.execute(
           { changeId: "ghostChange", problemStatement: "content" },
           store,
         ),

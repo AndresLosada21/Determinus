@@ -71,7 +71,7 @@ function projectZodIssues(
 // by create/update tools. After T2 (softenStrictModeOptionals), per-field
 // FIELD_POLICIES entries with blank: "omit" normalize blank values to
 // omitted before the at-least-one-of cross-field guard runs. The CROSS_FIELD
-// validator for adv_change_update uses this constant to compute the
+// validator for determinus_change_update uses this constant to compute the
 // "provided" set against normalizedArgs.
 const ARTIFACT_FIELDS = [
   "proposal",
@@ -81,7 +81,7 @@ const ARTIFACT_FIELDS = [
   "executiveSummary",
 ];
 
-// Structural Epic operations on adv_change_update. These mutate the Epic's
+// Structural Epic operations on determinus_change_update. These mutate the Epic's
 // entry list rather than writing narrative content, so they carry no artifact
 // field and must be counted as operations in their own right — otherwise the
 // artifact-only guard rejects them before the handler can dispatch.
@@ -91,7 +91,7 @@ const STRUCTURAL_FIELDS = ["link_change", "unlink_change", "reorder_entries"];
 // policy executor. Keep this table limited to structural placeholder decisions;
 // no fs/store lookups here.
 const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
-  adv_change_create: {
+  determinus_change_create: {
     // Optional artifact content — strict-mode providers fill with "" defaults.
     proposal: { blank: "omit" },
     problemStatement: { blank: "omit" },
@@ -122,10 +122,10 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
     // field origin matrix and Zod .positive() never see the placeholder.
     origin_issue_number: { zero: "omit" },
   },
-  adv_change_list: {
+  determinus_change_list: {
     target_path: { blank: "omit" },
   },
-  adv_change_update: {
+  determinus_change_update: {
     // Optional artifact content — strict-mode providers fill with "" defaults.
     // Cross-field at-least-one-of guard still fires when ALL artifacts are
     // normalized out.
@@ -149,39 +149,39 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
     // so an empty reorder is never counted as a requested operation.
     reorder_entries: { emptyArray: "omit" },
   },
-  adv_change_show: {
+  determinus_change_show: {
     target_path: { blank: "omit" },
   },
-  adv_change_archive: {
+  determinus_change_archive: {
     worktreePath: { blank: "omit" },
     target_path: { blank: "omit" },
     prTitleType: { blank: "omit" },
     // Contextually-validated: handler checks only when target_path present.
     confirmationEvidence: { blank: "omit" },
   },
-  adv_run_test: {
+  determinus_run_test: {
     command: { blank: "reject" }, // required-when-present
     phase: { blank: "omit" }, // optional descriptive metadata
     target_path: { blank: "omit" },
     // Contextually-validated: handler checks only when target_path present.
     confirmationEvidence: { blank: "omit" },
   },
-  adv_task_show: {
+  determinus_task_show: {
     target_path: { blank: "omit" },
   },
-  adv_task_list: {
+  determinus_task_list: {
     target_path: { blank: "omit" },
   },
-  adv_task_ready: {
+  determinus_task_ready: {
     target_path: { blank: "omit" },
   },
-  adv_task_update: {
+  determinus_task_update: {
     proof_target: { blank: "omit" },
     target_path: { blank: "omit" },
     // Contextually-validated: handler checks only when target_path present.
     confirmationEvidence: { blank: "omit" },
   },
-  adv_task_add: {
+  determinus_task_add: {
     content: { blank: "reject" }, // required-when-present
     // Optional review proof; omit strict-mode placeholder fills so the
     // evidence-plan validator, rather than preflight, enforces it when the
@@ -191,14 +191,14 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
     // Contextually-validated (rq-toolPlaceholderPolicy01.6).
     confirmationEvidence: { blank: "omit" },
   },
-  adv_wisdom_add: {
+  determinus_wisdom_add: {
     content: { blank: "reject" }, // required-when-present
   },
-  adv_change_close: {
+  determinus_change_close: {
     approvalEvidence: { blank: "reject" }, // audit
     supersededBy: { blank: "omit" }, // optional reference
   },
-  adv_task_cancel: {
+  determinus_task_cancel: {
     approvalEvidence: { blank: "reject" }, // audit
     target_path: { blank: "omit" },
     // Contextually-validated (rq-toolPlaceholderPolicy01.6).
@@ -206,16 +206,16 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
     reasons: { recordValuesBlank: "reject" }, // per-task audit
     supersededBy: { recordValuesBlank: "reject" }, // required-when-present
   },
-  adv_task_checkpoint: {
+  determinus_task_checkpoint: {
     target_path: { blank: "omit" },
     // Contextually-validated when target_path present.
     confirmationEvidence: { blank: "omit" },
     workdir: { blank: "omit" }, // optional explicit override
   },
-  adv_gate_status: {
+  determinus_gate_status: {
     target_path: { blank: "omit" },
   },
-  adv_gate_complete: {
+  determinus_gate_complete: {
     // Strict-mode providers (OpenAI Responses API strict:true) auto-fill
     // every optional field with "". These fields are contextually validated
     // by the handler (gate type, recovery mode, cross-project), so blank →
@@ -230,16 +230,16 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
     target_path: { blank: "omit" },
     confirmationEvidence: { blank: "omit" }, // handler validates when target_path present
   },
-  adv_worktree_create: {
+  determinus_worktree_create: {
     branch: { blank: "reject" }, // required-when-present
     base: { blank: "reject" }, // required-when-present
   },
-  adv_worktree_delete: {
+  determinus_worktree_delete: {
     branch: { blank: "reject" }, // required-when-present
     planToken: { blank: "omit" }, // optional; handler returns PLAN_REQUIRED when absent
     approvalEvidence: { blank: "omit" }, // required only for destructive apply
   },
-  adv_worktree_cleanup: {
+  determinus_worktree_cleanup: {
     reason: { blank: "reject" }, // audit
     approvalEvidence: { blank: "omit" }, // required only when deletion is applied
     // Optional mode selector. Strict-mode providers fill optional enums
@@ -248,27 +248,27 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
     // Optional archived-branch restriction; handler treats blank as unset.
     changeId: { blank: "omit" },
   },
-  adv_tool_catalog: {
+  determinus_tool_catalog: {
     // Optional page limit: strict-mode providers fill optional positive ints
     // with 0; normalize to omitted so the handler default (50) applies.
     limit: { zero: "omit" },
   },
-  adv_status: {
+  determinus_status: {
     target_path: { blank: "omit" },
   },
   // Consistency entries: these tools accept target_path/confirmationEvidence
   // or approvalEvidence but use falsy checks in handlers, so strict-mode
   // blanks are not a deadlock risk. Entries ensure consistent normalization
   // (rq-toolPlaceholderPolicy01.6).
-  adv_subagent_report_submit: {
+  determinus_subagent_report_submit: {
     target_path: { blank: "omit" },
     confirmationEvidence: { blank: "omit" },
   },
-  adv_change_reenter: {
+  determinus_change_reenter: {
     scopeDelta: { blank: "omit" },
     approvalEvidence: { blank: "omit" },
   },
-  adv_followup_promote: {
+  determinus_followup_promote: {
     source_report_key: { blank: "omit" },
     source_contract_id: { blank: "omit" },
     source_task_id: { blank: "omit" },
@@ -279,10 +279,10 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
   },
   // tk-2b89b9cf3042: verified top-level strict-mode placeholder policy groups.
   // Zero omission for the positive-int optionals
-  // (adv_change_create.origin_issue_number above); blank omission for
-  // adv_ops_run_evidence_add optional evidence fields and the twelve
+  // (determinus_change_create.origin_issue_number above); blank omission for
+  // determinus_ops_run_evidence_add optional evidence fields and the twelve
   // registered Epic tools' optional string / target-routing fields.
-  adv_ops_run_evidence_add: {
+  determinus_ops_run_evidence_add: {
     // Optional ops-run-evidence context fields. Strict-mode providers fill
     // optional strings with ""; normalize to omitted so the handler treats
     // them as not provided. Required/audit fields (changeId, runId,
@@ -298,10 +298,10 @@ const FIELD_POLICIES: Record<string, FieldPolicyMap> = {
   // coverage guard. Each is an optional .positive() int; strict-mode providers
   // fill it with 0 instead of omitting. 0 means "no limit provided" for these
   // read tools, so normalize to omitted before Zod .positive() sees it.
-  adv_wisdom_list: {
+  determinus_wisdom_list: {
     maxEntries: { zero: "omit" },
   },
-  adv_reflection_list: {
+  determinus_reflection_list: {
     maxEntries: { zero: "omit" },
   },
 };
@@ -321,7 +321,7 @@ const KNOWN_OMISSION_SENTINELS = new Set([
 ]);
 
 const CANONICAL_MINIMAL_PAYLOADS: Record<string, Record<string, unknown>> = {
-  adv_change_create: { summary: "Add rate limiting" },
+  determinus_change_create: { summary: "Add rate limiting" },
 };
 
 function isBlankProvidedString(value: unknown): boolean {
@@ -410,7 +410,7 @@ function applyFieldPolicies(
 }
 
 const CROSS_FIELD_VALIDATORS: Record<string, CrossFieldValidator> = {
-  adv_change_create: (args) => {
+  determinus_change_create: (args) => {
     const invalid: ToolArgPreflightIssue[] = [];
 
     // rq-toolArgBlankArtifactLinkage01.1/.3/.5 (revised): blank artifact and
@@ -459,7 +459,7 @@ const CROSS_FIELD_VALIDATORS: Record<string, CrossFieldValidator> = {
     }
 
     // rq-backlogCoord08: validate creation-origin linkage structurally before
-    // adv_change_create execution can seed workflow state or claim metadata.
+    // determinus_change_create execution can seed workflow state or claim metadata.
     if (originKind === "roadmap") {
       // reshapeTriagePortfolioBalance: 'roadmap' is readable legacy only.
       // New writes (create path) reject this kind; archived changes still
@@ -507,12 +507,12 @@ const CROSS_FIELD_VALIDATORS: Record<string, CrossFieldValidator> = {
 
     return invalid;
   },
-  adv_change_update: (args) => {
+  determinus_change_update: (args) => {
     // Per-field blank/emptyArray "omit" policies normalize placeholder fills
     // before this validator runs, so presence here means the caller requested
     // the operation.
     //
-    // adv_change_update dispatches two kinds of work: an artifact write and a
+    // determinus_change_update dispatches two kinds of work: an artifact write and a
     // structural Epic operation. Any number of artifacts is one write, while
     // each structural field is its own operation. Counting operations rather
     // than requiring an artifact is what keeps the structural route reachable.
@@ -524,7 +524,7 @@ const CROSS_FIELD_VALIDATORS: Record<string, CrossFieldValidator> = {
       return [
         {
           field: [...ARTIFACT_FIELDS, ...STRUCTURAL_FIELDS].join("|"),
-          message: `adv_change_update requires one operation: an artifact field (${ARTIFACT_FIELDS.join(", ")}) or a structural field (${STRUCTURAL_FIELDS.join(", ")}).`,
+          message: `determinus_change_update requires one operation: an artifact field (${ARTIFACT_FIELDS.join(", ")}) or a structural field (${STRUCTURAL_FIELDS.join(", ")}).`,
         },
       ];
     }
@@ -537,7 +537,7 @@ const CROSS_FIELD_VALIDATORS: Record<string, CrossFieldValidator> = {
       return [
         {
           field: [...artifacts, ...structural].join("|"),
-          message: `adv_change_update accepts one operation at a time; received ${requested.length}: ${requested.join(", ")}.`,
+          message: `determinus_change_update accepts one operation at a time; received ${requested.length}: ${requested.join(", ")}.`,
         },
       ];
     }

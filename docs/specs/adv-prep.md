@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Defines the responsibilities and boundaries of /adv-prep. The prep command is the sole creator and sequencer of tasks. It synthesizes tasks from the approved agreement and validated design decisions, runs gap analysis, validates task ordering, and ensures implementation readiness. It does not firm or rewrite acceptance criteria or success criteria.
+Defines the responsibilities and boundaries of /determinus-prep. The prep command is the sole creator and sequencer of tasks. It synthesizes tasks from the approved agreement and validated design decisions, runs gap analysis, validates task ordering, and ensures implementation readiness. It does not firm or rewrite acceptance criteria or success criteria.
 
 ## Requirements
 
@@ -13,7 +13,7 @@ Defines the responsibilities and boundaries of /adv-prep. The prep command is th
 
 **ID:** `rq-prep-out1` | **Priority:** **[MUST]**
 
-/adv-prep is the only pre-implementation command that creates tasks via adv_task_add. Neither /adv-proposal, /adv-discover, nor /adv-design may create tasks. /adv-task is exempt as a fast-track workflow that intentionally bundles proposal+discover+design+prep.
+/determinus-prep is the only pre-implementation command that creates tasks via determinus_task_add. Neither /determinus-proposal, /determinus-discover, nor /determinus-design may create tasks. /determinus-task is exempt as a fast-track workflow that intentionally bundles proposal+discover+design+prep.
 
 **Tags:** `prep`, `boundary`, `task-creation`
 
@@ -25,12 +25,12 @@ Defines the responsibilities and boundaries of /adv-prep. The prep command is th
 
 - A change with design gate complete and zero tasks
 
-**When:** /adv-prep is invoked
+**When:** /determinus-prep is invoked
 
 **Then:**
 
 - Design decisions from change.documents.design are consumed
-- Tasks are created via adv_task_add based on validated decisions
+- Tasks are created via determinus_task_add based on validated decisions
 - Tasks are sequenced with proper blocked_by dependencies
 - Architecture correction tasks block feature tasks
 
@@ -38,9 +38,9 @@ Defines the responsibilities and boundaries of /adv-prep. The prep command is th
 
 **Given:**
 
-- A change with existing tasks (e.g., from /adv-task fast-track)
+- A change with existing tasks (e.g., from /determinus-task fast-track)
 
-**When:** /adv-prep is invoked
+**When:** /determinus-prep is invoked
 
 **Then:**
 
@@ -55,7 +55,7 @@ Defines the responsibilities and boundaries of /adv-prep. The prep command is th
 
 **ID:** `rq-prep-scope1` | **Priority:** **[MUST]**
 
-/adv-prep must run the 4-Step Gap Analysis framework: define desired state, benchmark current state, analyze gaps, and compile an action plan. It must check approved agreement/design coverage, task completeness, cross-cutting concerns, and cross-spec consistency. It must not firm acceptance criteria or success criteria; criteria gaps require returning to discovery/design as appropriate.
+/determinus-prep must run the 4-Step Gap Analysis framework: define desired state, benchmark current state, analyze gaps, and compile an action plan. It must check approved agreement/design coverage, task completeness, cross-cutting concerns, and cross-spec consistency. It must not firm acceptance criteria or success criteria; criteria gaps require returning to discovery/design as appropriate.
 
 **Tags:** `prep`, `boundary`, `gap-analysis`
 
@@ -67,7 +67,7 @@ Defines the responsibilities and boundaries of /adv-prep. The prep command is th
 
 - A change ready for prep
 
-**When:** /adv-prep runs gap analysis
+**When:** /determinus-prep runs gap analysis
 
 **Then:**
 
@@ -83,11 +83,11 @@ Defines the responsibilities and boundaries of /adv-prep. The prep command is th
 
 - All gaps are fixed and validation passes
 
-**When:** /adv-prep finishes
+**When:** /determinus-prep finishes
 
 **Then:**
 
-- adv_gate_complete is called with gateId 'planning'
+- determinus_gate_complete is called with gateId 'planning'
 - The planning gate is marked done
 
 ---
@@ -96,7 +96,7 @@ Defines the responsibilities and boundaries of /adv-prep. The prep command is th
 
 **ID:** `rq-prep-synth1` | **Priority:** **[MUST]**
 
-When a change has zero tasks and design gate is complete, /adv-prep must synthesize the full task graph from design decisions in change.documents.design. Tasks must be created in priority order: architecture corrections first, then core implementation, then cross-cutting concerns, then verification.
+When a change has zero tasks and design gate is complete, /determinus-prep must synthesize the full task graph from design decisions in change.documents.design. Tasks must be created in priority order: architecture corrections first, then core implementation, then cross-cutting concerns, then verification.
 
 **Tags:** `prep`, `boundary`, `task-synthesis`
 
@@ -109,7 +109,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 - A change with design gate complete
 - Zero existing tasks
 
-**When:** /adv-prep is invoked
+**When:** /determinus-prep is invoked
 
 **Then:**
 
@@ -138,7 +138,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 **ID:** `rq-prep-neg1` | **Priority:** **[MUST]**
 
-/adv-prep MUST NOT complete non-planning gates, make architectural decisions (that is discover/design's job), or modify the problem statement, acceptance criteria, or success criteria. /adv-prep maps approved criteria and design into tasks; it does not firm criteria.
+/determinus-prep MUST NOT complete non-planning gates, make architectural decisions (that is discover/design's job), or modify the problem statement, acceptance criteria, or success criteria. /determinus-prep maps approved criteria and design into tasks; it does not firm criteria.
 
 **Tags:** `prep`, `boundary`, `negative`
 
@@ -148,13 +148,13 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 **Given:**
 
-- A user invokes /adv-prep
+- A user invokes /determinus-prep
 
 **When:** The command completes
 
 **Then:**
 
-- Only adv_gate_complete with gateId 'planning' is called
+- Only determinus_gate_complete with gateId 'planning' is called
 - No other gates are completed
 
 ---
@@ -163,7 +163,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 **ID:** `rq-stagePrepNoCriteriaFirming01` | **Priority:** **[MUST]**
 
-/adv-prep MUST consume approved agreement criteria and validated design decisions to build a task graph. It MUST NOT invent, rewrite, or user-confirm new acceptance criteria or success criteria. If prep discovers that criteria are missing, contradictory, implementation-derived, or invalidated by design, it MUST surface a readiness gap and route to the earliest affected gate rather than silently repairing the criteria inside prep.
+/determinus-prep MUST consume approved agreement criteria and validated design decisions to build a task graph. It MUST NOT invent, rewrite, or user-confirm new acceptance criteria or success criteria. If prep discovers that criteria are missing, contradictory, implementation-derived, or invalidated by design, it MUST surface a readiness gap and route to the earliest affected gate rather than silently repairing the criteria inside prep.
 
 **Tags:** `prep`, `criteria`, `task-graph`, `stage-boundary`
 
@@ -175,26 +175,26 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 - change.documents.agreement contains approved `AC*` and `SC*` items and change.documents.design is complete
 
-**When:** /adv-prep synthesizes the task graph
+**When:** /determinus-prep synthesizes the task graph
 
 **Then:**
 
 - Each implementation task is traced to approved agreement criteria, design decisions, or explicit technical readiness work
-- No new user-facing acceptance criterion is introduced by /adv-prep
+- No new user-facing acceptance criterion is introduced by /determinus-prep
 - The planning checkpoint asks the user to approve tasks, not to approve newly firmed criteria
 
 **Criteria gap routes to re-entry** (`rq-stagePrepNoCriteriaFirming01.2`)
 
 **Given:**
 
-- /adv-prep detects that an approved criterion is missing, contradictory, or invalidated by design
+- /determinus-prep detects that an approved criterion is missing, contradictory, or invalidated by design
 
 **When:** The planning readiness result is prepared
 
 **Then:**
 
 - The gap is reported as requiring discovery or design re-entry
-- /adv-prep does not rewrite change.documents.agreement to fix the criterion
+- /determinus-prep does not rewrite change.documents.agreement to fix the criterion
 - The planning gate remains pending until the upstream criteria gap is resolved
 
 ---
@@ -203,7 +203,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 **ID:** `rq-prepArtifactExcerpt01` | **Priority:** **[MUST]**
 
-/adv-prep MUST surface concise proposal, agreement, and design excerpts relevant to the synthesized task graph before planning approval. The excerpts must show what the user is approving for autonomous execution and must not replace the underlying artifacts as the source of truth.
+/determinus-prep MUST surface concise proposal, agreement, and design excerpts relevant to the synthesized task graph before planning approval. The excerpts must show what the user is approving for autonomous execution and must not replace the underlying artifacts as the source of truth.
 
 **Tags:** `prep`, `approval`, `artifacts`, `planning`
 
@@ -215,7 +215,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 - A change has proposal, agreement, and design artifacts
 
-**When:** /adv-prep presents the planning approval checkpoint
+**When:** /determinus-prep presents the planning approval checkpoint
 
 **Then:**
 
@@ -229,7 +229,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 - A source artifact expected by prep is missing or unavailable
 
-**When:** /adv-prep prepares the approval checkpoint
+**When:** /determinus-prep prepares the approval checkpoint
 
 **Then:**
 
@@ -242,7 +242,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 **ID:** `rq-prepNonCodeEvidence01` | **Priority:** **[MUST]**
 
-/adv-prep MUST map approved agreement and validated design decisions into structurally typed non-code tasks when the deliverable is docs, research, approval, verification, ops, writing, analysis, design improvement, or competitive research. Non-code tasks MUST carry a task type, contract_refs or bounded not_applicable_reason, metadata.tdd_intent appropriate to the task type, and a normalized evidence plan with a machine-readable evidence policy and a non-empty proof target. Prep MUST NOT force fake red/green TDD for non-code deliverables; it must instead assign evidence policies such as source_citation, source_audit, rubric_review, stakeholder_acceptance, artifact_reference, static_check, review, or not_applicable with rationale.
+/determinus-prep MUST map approved agreement and validated design decisions into structurally typed non-code tasks when the deliverable is docs, research, approval, verification, ops, writing, analysis, design improvement, or competitive research. Non-code tasks MUST carry a task type, contract_refs or bounded not_applicable_reason, metadata.tdd_intent appropriate to the task type, and a normalized evidence plan with a machine-readable evidence policy and a non-empty proof target. Prep MUST NOT force fake red/green TDD for non-code deliverables; it must instead assign evidence policies such as source_citation, source_audit, rubric_review, stakeholder_acceptance, artifact_reference, static_check, review, or not_applicable with rationale.
 
 **Tags:** `prep`, `non-code`, `tasks`, `evidence`, `tdd`
 
@@ -254,7 +254,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 - An approved agreement requires a competitive research or market analysis deliverable
 
-**When:** /adv-prep creates the task graph
+**When:** /determinus-prep creates the task graph
 
 **Then:**
 
@@ -269,7 +269,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 - An approved agreement requires a documentation or writing deliverable
 
-**When:** /adv-prep creates the task graph
+**When:** /determinus-prep creates the task graph
 
 **Then:**
 
@@ -283,7 +283,7 @@ When a change has zero tasks and design gate is complete, /adv-prep must synthes
 
 - A task implements logic-bearing code
 
-**When:** /adv-prep creates or validates the task graph
+**When:** /determinus-prep creates or validates the task graph
 
 **Then:**
 

@@ -72,7 +72,7 @@ function makeChange(overrides: Partial<Change> = {}): Change {
     title: "Test change",
     status: "draft",
     created_at: "2026-01-01T00:00:00Z",
-    adv_project_id: "test-project-id",
+    determinus_project_id: "test-project-id",
     tasks: [],
     gates: {} as Change["gates"],
     ...overrides,

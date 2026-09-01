@@ -20,7 +20,7 @@ const full = {
       total_approx_tokens_4char_rule: 250,
       conversion_errors: 0,
       tools: {
-        adv_status: {
+        determinus_status: {
           status: "available" as const,
           schema_bytes: 500,
           approx_tokens_4char_rule: 125,
@@ -38,14 +38,14 @@ const full = {
       ],
     },
     lane_projections: {
-      "adv-ci-waiter": {
+      "determinus-ci-waiter": {
         availability: "available" as const,
         enabled_tools: 2,
         schema_bytes: 600,
         approx_tokens_4char_rule: 150,
         conversion_errors: 0,
       },
-      "adv-engineer": {
+      "determinus-engineer": {
         availability: "unavailable" as const,
         enabled_tools: 0,
         schema_bytes: 0,

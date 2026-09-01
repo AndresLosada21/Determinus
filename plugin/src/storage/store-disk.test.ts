@@ -9,7 +9,7 @@ import { createInRepoArchive } from "../archive/archive";
 import type { Change } from "../types";
 
 async function makeTempProject(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "adv-store-disk-"));
+  const dir = await mkdtemp(join(tmpdir(), "determinus-store-disk-"));
   await writeFile(
     join(dir, "project.json"),
     JSON.stringify({
@@ -60,12 +60,12 @@ describe("store-disk — bounded warnings + monotonic IDs", () => {
   let originalAdvDebug: string | undefined;
 
   beforeEach(() => {
-    originalAdvDebug = process.env.ADV_DEBUG;
-    process.env.ADV_DEBUG = "1";
+    originalAdvDebug = process.env.determinus_DEBUG;
+    process.env.determinus_DEBUG = "1";
   });
 
   afterEach(() => {
-    process.env.ADV_DEBUG = originalAdvDebug;
+    process.env.determinus_DEBUG = originalAdvDebug;
     vi.restoreAllMocks();
   });
 

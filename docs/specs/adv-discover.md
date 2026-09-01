@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Defines the rigor requirements for /adv-discover. The discover command gathers current-state evidence, investigates edge cases, scans for conflicts and related patterns, and produces the user-confirmed agreement. It owns firming design-independent behavioral acceptance criteria and success criteria before design. It must extend prior research rather than rehash it.
+Defines the rigor requirements for /determinus-discover. The discover command gathers current-state evidence, investigates edge cases, scans for conflicts and related patterns, and produces the user-confirmed agreement. It owns firming design-independent behavioral acceptance criteria and success criteria before design. It must extend prior research rather than rehash it.
 
 ## Requirements
 
@@ -13,7 +13,7 @@ Defines the rigor requirements for /adv-discover. The discover command gathers c
 
 **ID:** `rq-disc01` | **Priority:** **[MUST]**
 
-/adv-discover output MUST contain a Discovery Checklist section listing each mandatory protocol step with PASS or SKIP and a reason. This ensures no protocol step is silently omitted.
+/determinus-discover output MUST contain a Discovery Checklist section listing each mandatory protocol step with PASS or SKIP and a reason. This ensures no protocol step is silently omitted.
 
 **Tags:** `discover`, `checklist`, `protocol`
 
@@ -22,9 +22,9 @@ Defines the rigor requirements for /adv-discover. The discover command gathers c
 **Checklist present in discovery output** (`rq-disc01.1`)
 
 **Given:**
-- A /adv-discover invocation completes successfully
+- A /determinus-discover invocation completes successfully
 
-**When:** The discovery output is persisted via adv_change_update
+**When:** The discovery output is persisted via determinus_change_update
 
 **Then:**
 - The output contains a 'Discovery Checklist' section
@@ -37,7 +37,7 @@ Defines the rigor requirements for /adv-discover. The discover command gathers c
 
 **ID:** `rq-disc02` | **Priority:** **[MUST]**
 
-/adv-discover MUST execute the skill discovery protocol from ADV_INSTRUCTIONS.md and emit a Skills Considered section. This prevents the agent from skipping domain-specific skill loading.
+/determinus-discover MUST execute the skill discovery protocol from determinus_INSTRUCTIONS.md and emit a Skills Considered section. This prevents the agent from skipping domain-specific skill loading.
 
 **Tags:** `discover`, `skill-discovery`, `protocol`
 
@@ -48,7 +48,7 @@ Defines the rigor requirements for /adv-discover. The discover command gathers c
 **Given:**
 - Trusted skill directories exist with SKILL.md files
 
-**When:** /adv-discover runs Phase 1.5
+**When:** /determinus-discover runs Phase 1.5
 
 **Then:**
 - The output contains a 'Skills Considered' section
@@ -59,7 +59,7 @@ Defines the rigor requirements for /adv-discover. The discover command gathers c
 **Given:**
 - No SKILL.md files exist in trusted skill directories
 
-**When:** /adv-discover runs Phase 1.5
+**When:** /determinus-discover runs Phase 1.5
 
 **Then:**
 - The output reports 'Skills considered: none available'
@@ -71,7 +71,7 @@ Defines the rigor requirements for /adv-discover. The discover command gathers c
 
 **ID:** `rq-disc03` | **Priority:** **[MUST]**
 
-When prior research artifacts exist (temp/*.md, docs/*-prep.md including /adv-improve research packs, related archived changes), /adv-discover MUST cite them in an Extends section AND add at least one new finding beyond what they contained. This prevents discovery from rehashing prior work. When a cited pack contains Competitors & Alternatives or Emerging Patterns sections relevant to an open design question, /adv-discover MUST cite those sections in the LBP Check.
+When prior research artifacts exist (temp/*.md, docs/*-prep.md including /determinus-improve research packs, related archived changes), /determinus-discover MUST cite them in an Extends section AND add at least one new finding beyond what they contained. This prevents discovery from rehashing prior work. When a cited pack contains Competitors & Alternatives or Emerging Patterns sections relevant to an open design question, /determinus-discover MUST cite those sections in the LBP Check.
 
 **Tags:** `discover`, `prior-research`, `extension`
 
@@ -82,7 +82,7 @@ When prior research artifacts exist (temp/*.md, docs/*-prep.md including /adv-im
 **Given:**
 - A prior research artifact exists in temp/, docs/, or a related archived change
 
-**When:** /adv-discover runs the prior research check
+**When:** /determinus-discover runs the prior research check
 
 **Then:**
 - The output includes an 'Extends' section citing the artifact
@@ -93,20 +93,20 @@ When prior research artifacts exist (temp/*.md, docs/*-prep.md including /adv-im
 **Given:**
 - No prior research artifacts exist in any canonical location
 
-**When:** /adv-discover runs the prior research check
+**When:** /determinus-discover runs the prior research check
 
 **Then:**
 - The output reports 'No prior research found'
 - Discovery does not block or fail
 
-**Relevant /adv-improve research pack sections are cited in LBP Check** (`rq-disc03.3`)
+**Relevant /determinus-improve research pack sections are cited in LBP Check** (`rq-disc03.3`)
 
 **Given:**
 - A docs/*-prep.md research pack is cited in the Extends section
 - The pack contains Competitors & Alternatives or Emerging Patterns sections
 - At least one open design question names external tools or libraries as a realistic alternative
 
-**When:** /adv-discover emits the LBP Check section
+**When:** /determinus-discover emits the LBP Check section
 
 **Then:**
 - The LBP Check cites the specific pack sections relevant to the open question
@@ -118,7 +118,7 @@ When prior research artifacts exist (temp/*.md, docs/*-prep.md including /adv-im
 
 **ID:** `rq-disc10` | **Priority:** **[MUST]**
 
-When the proposal's Discovery Agenda contains ecosystem unknowns, or an open design question lists external tools/libraries/services as a realistic option, /adv-discover MUST perform an External-Solution Check. It MUST first consult any cited docs/*-prep.md research pack; only when no relevant pack covers the question may it run fresh Exa queries for competitors, alternatives, and emerging patterns. Purely internal changes (refactors, bug fixes, local doc/test fixes) may record 'No external alternatives apply' with rationale and skip the fresh search.
+When the proposal's Discovery Agenda contains ecosystem unknowns, or an open design question lists external tools/libraries/services as a realistic option, /determinus-discover MUST perform an External-Solution Check. It MUST first consult any cited docs/*-prep.md research pack; only when no relevant pack covers the question may it run fresh Exa queries for competitors, alternatives, and emerging patterns. Purely internal changes (refactors, bug fixes, local doc/test fixes) may record 'No external alternatives apply' with rationale and skip the fresh search.
 
 **Tags:** `discover`, `external-solution`, `lbp`, `research-pack`
 
@@ -130,7 +130,7 @@ When the proposal's Discovery Agenda contains ecosystem unknowns, or an open des
 - The Discovery Agenda contains an ecosystem unknown
 - A docs/*-prep.md research pack already covers that ecosystem question
 
-**When:** /adv-discover performs the External-Solution Check
+**When:** /determinus-discover performs the External-Solution Check
 
 **Then:**
 - The LBP Check summarises findings from the pack and cites it
@@ -142,19 +142,19 @@ When the proposal's Discovery Agenda contains ecosystem unknowns, or an open des
 - The Discovery Agenda contains an ecosystem unknown
 - No cited docs/*-prep.md research pack covers that ecosystem question
 
-**When:** /adv-discover performs the External-Solution Check
+**When:** /determinus-discover performs the External-Solution Check
 
 **Then:**
 - Exa queries for competitors/alternatives and emerging patterns are run
 - Findings are recorded in the LBP Check with source URLs
-- /adv-improve is recommended as a follow-up to persist the findings
+- /determinus-improve is recommended as a follow-up to persist the findings
 
 **Purely internal change may skip with rationale** (`rq-disc10.3`)
 
 **Given:**
 - The change is a refactor, bug fix, or local doc/test update with no viable external alternative
 
-**When:** /adv-discover performs the External-Solution Check
+**When:** /determinus-discover performs the External-Solution Check
 
 **Then:**
 - The LBP Check records 'No external alternatives apply' with rationale
@@ -166,7 +166,7 @@ When the proposal's Discovery Agenda contains ecosystem unknowns, or an open des
 
 **ID:** `rq-disc04` | **Priority:** **[MUST]**
 
-/adv-discover MUST run adv_change_list (with includeArchived) and adv_change_validate, and report results in a Conflict Scan section. The conflict scan uses a complete paginated typed change inventory with Epic/member context and explicit completeness/degraded/blocked state. Active changes and Epic members are authoritative; archived changes are related context only. A clean no-conflict result is not permitted when the inventory has omissions, warnings, deadline issues, or source failures. This prevents the agent from proposing work that conflicts with existing or archived changes.
+/determinus-discover MUST run determinus_change_list (with includeArchived) and determinus_change_validate, and report results in a Conflict Scan section. The conflict scan uses a complete paginated typed change inventory with Epic/member context and explicit completeness/degraded/blocked state. Active changes and Epic members are authoritative; archived changes are related context only. A clean no-conflict result is not permitted when the inventory has omissions, warnings, deadline issues, or source failures. This prevents the agent from proposing work that conflicts with existing or archived changes.
 
 **Tags:** `discover`, `conflict-scan`, `related-work`, `typed-inventory`
 
@@ -177,11 +177,11 @@ When the proposal's Discovery Agenda contains ecosystem unknowns, or an open des
 **Given:**
 - A change in the discovery phase
 
-**When:** /adv-discover runs the conflict scan
+**When:** /determinus-discover runs the conflict scan
 
 **Then:**
-- adv_change_list with includeArchived is called
-- adv_change_validate is called
+- determinus_change_list with includeArchived is called
+- determinus_change_validate is called
 - A complete paginated typed change inventory is built with Epic/member context
 - The inventory carries explicit completeness state (complete, degraded, or blocked)
 - Results are reported in a 'Conflict Scan' section with explicit findings or 'no conflicts'
@@ -189,7 +189,7 @@ When the proposal's Discovery Agenda contains ecosystem unknowns, or an open des
 **Own-change validation warnings are excluded from conflict findings** (`rq-disc04.2`)
 
 **Given:**
-- adv_change_validate returns passed:false due to NO_TASKS or NO_DELTAS on the change being discovered
+- determinus_change_validate returns passed:false due to NO_TASKS or NO_DELTAS on the change being discovered
 
 **When:** Conflict scan results are reported
 
@@ -214,7 +214,7 @@ When the proposal's Discovery Agenda contains ecosystem unknowns, or an open des
 
 **ID:** `rq-disc05` | **Priority:** **[MUST]**
 
-For each gap identified during discovery, /adv-discover MUST document at least 2 edge cases or failure modes, OR explicitly mark the gap as N/A: structural with rationale. This prevents shallow analysis that misses failure modes.
+For each gap identified during discovery, /determinus-discover MUST document at least 2 edge cases or failure modes, OR explicitly mark the gap as N/A: structural with rationale. This prevents shallow analysis that misses failure modes.
 
 **Tags:** `discover`, `edge-cases`, `investigation`
 
@@ -246,7 +246,7 @@ For each gap identified during discovery, /adv-discover MUST document at least 2
 
 **ID:** `rq-disc06` | **Priority:** **[MUST]**
 
-Each open design question in /adv-discover output MUST include trust model implications, blast radius, and alternatives considered. This prevents shallow one-liner questions that lack analysis depth.
+Each open design question in /determinus-discover output MUST include trust model implications, blast radius, and alternatives considered. This prevents shallow one-liner questions that lack analysis depth.
 
 **Tags:** `discover`, `design-questions`, `depth`
 
@@ -270,7 +270,7 @@ Each open design question in /adv-discover output MUST include trust model impli
 
 **ID:** `rq-disc07` | **Priority:** **[MUST]**
 
-/adv-discover MUST include draft spec deltas with concrete requirement IDs (rq-* format) and at least one Given/When/Then scenario per delta, OR explicitly state 'No spec deltas required' with rationale. This prevents vague 'spec deltas will be needed' placeholders.
+/determinus-discover MUST include draft spec deltas with concrete requirement IDs (rq-* format) and at least one Given/When/Then scenario per delta, OR explicitly state 'No spec deltas required' with rationale. This prevents vague 'spec deltas will be needed' placeholders.
 
 **Tags:** `discover`, `spec-deltas`, `requirements`
 
@@ -304,7 +304,7 @@ Each open design question in /adv-discover output MUST include trust model impli
 
 **ID:** `rq-disc08` | **Priority:** **[MUST]**
 
-/adv-discover MUST execute a related-pattern scan per rule P25 to detect similar bugs or gaps elsewhere in the codebase, and report results in a Related Pattern Scan section. This prevents fixing one instance while identical issues remain elsewhere.
+/determinus-discover MUST execute a related-pattern scan per rule P25 to detect similar bugs or gaps elsewhere in the codebase, and report results in a Related Pattern Scan section. This prevents fixing one instance while identical issues remain elsewhere.
 
 **Tags:** `discover`, `p25`, `related-scan`
 
@@ -315,7 +315,7 @@ Each open design question in /adv-discover output MUST include trust model impli
 **Given:**
 - A change in the discovery phase
 
-**When:** /adv-discover runs the P25 scan
+**When:** /determinus-discover runs the P25 scan
 
 **Then:**
 - The output contains a 'Related Pattern Scan' section
@@ -327,7 +327,7 @@ Each open design question in /adv-discover output MUST include trust model impli
 
 **ID:** `rq-disc11` | **Priority:** **[MUST]**
 
-When /adv-discover absorbs the user-facing agreement flow, the command MUST present objectives and constraints for user sign-off before completing the discovery gate, and MUST persist change.documents.agreement as the sole live authority via the agreement parameter to adv_change_update; agreement.md is materialized only at archive time via writeArchiveBundleFiles. This prevents discovery findings from being marked complete before the user-facing sign-off step occurs.
+When /determinus-discover absorbs the user-facing agreement flow, the command MUST present objectives and constraints for user sign-off before completing the discovery gate, and MUST persist change.documents.agreement as the sole live authority via the agreement parameter to determinus_change_update; agreement.md is materialized only at archive time via writeArchiveBundleFiles. This prevents discovery findings from being marked complete before the user-facing sign-off step occurs.
 
 **Tags:** `discover`, `agreement`, `sign-off`, `gate-ownership`
 
@@ -336,14 +336,14 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 **User sign-off occurs before discovery gate completion** (`rq-disc11.1`)
 
 **Given:**
-- A /adv-discover invocation has produced objectives, constraints, avoidances, and acceptance-criteria candidates
+- A /determinus-discover invocation has produced objectives, constraints, avoidances, and acceptance-criteria candidates
 
-**When:** /adv-discover reaches the end of its agreement presentation flow
+**When:** /determinus-discover reaches the end of its agreement presentation flow
 
 **Then:**
 - The command presents objectives and constraints as inline handoff text for user sign-off per docs/command-voice-standard.md § Inline Approval Voice (Tier A)
-- change.documents.agreement is persisted via the agreement parameter to adv_change_update; no agreement.md is written to the active change directory
-- adv_gate_complete gateId: discovery occurs only after the sign-off flow completes
+- change.documents.agreement is persisted via the agreement parameter to determinus_change_update; no agreement.md is written to the active change directory
+- determinus_gate_complete gateId: discovery occurs only after the sign-off flow completes
 
 ---
 
@@ -351,7 +351,7 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 
 **ID:** `rq-disc12` | **Priority:** **[MUST]**
 
-/adv-discover MUST present draft acceptance criteria and success criteria as a dedicated checkpoint before change.documents.agreement is persisted and before adv_gate_complete gateId: discovery. The checkpoint MUST offer explicit user choices for approval, /adv-clarify handoff, or write-in edits, and MUST NOT complete discovery until acceptance criteria and success criteria are approved.
+/determinus-discover MUST present draft acceptance criteria and success criteria as a dedicated checkpoint before change.documents.agreement is persisted and before determinus_gate_complete gateId: discovery. The checkpoint MUST offer explicit user choices for approval, /determinus-clarify handoff, or write-in edits, and MUST NOT complete discovery until acceptance criteria and success criteria are approved.
 
 **Tags:** `discover`, `acceptance-criteria`, `checkpoint`, `agreement`
 
@@ -360,28 +360,28 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 **Acceptance criteria checkpoint precedes agreement persistence and gate completion** (`rq-disc12.1`)
 
 **Given:**
-- /adv-discover has resolved all user-facing open questions and produced draft acceptance criteria and success criteria
+- /determinus-discover has resolved all user-facing open questions and produced draft acceptance criteria and success criteria
 
 **When:** The command reaches the agreement sign-off flow
 
 **Then:**
 - The command presents Acceptance Criteria and Success Criteria as a focused checkpoint
-- The inline handoff offers approve, start /adv-clarify, and add/clarify outcomes per docs/command-voice-standard.md § Inline Approval Voice
+- The inline handoff offers approve, start /determinus-clarify, and add/clarify outcomes per docs/command-voice-standard.md § Inline Approval Voice
 - change.documents.agreement is persisted only after acceptance criteria and success criteria are approved
-- adv_gate_complete gateId: discovery occurs only after approval
+- determinus_gate_complete gateId: discovery occurs only after approval
 
-**/adv-clarify branch stops discovery cleanly** (`rq-disc12.2`)
+**/determinus-clarify branch stops discovery cleanly** (`rq-disc12.2`)
 
 **Given:**
-- The user replies with /adv-clarify literal slash command at the acceptance criteria checkpoint
+- The user replies with /determinus-clarify literal slash command at the acceptance criteria checkpoint
 
-**When:** /adv-discover detects the literal /adv-clarify reply
+**When:** /determinus-discover detects the literal /determinus-clarify reply
 
 **Then:**
-- /adv-discover stops immediately without persisting change.documents.agreement
-- /adv-discover does not call adv_gate_complete
-- The command instructs the user to run /adv-clarify {change-id} and rerun /adv-discover {change-id} afterward
-- Non-literal clarification intent (e.g. 'I want to clarify X') is treated as revision text per Tier A LLM fallback, not as the /adv-clarify branch
+- /determinus-discover stops immediately without persisting change.documents.agreement
+- /determinus-discover does not call determinus_gate_complete
+- The command instructs the user to run /determinus-clarify {change-id} and rerun /determinus-discover {change-id} afterward
+- Non-literal clarification intent (e.g. 'I want to clarify X') is treated as revision text per Tier A LLM fallback, not as the /determinus-clarify branch
 
 ---
 
@@ -389,7 +389,7 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 
 **ID:** `rq-disc-tax1` | **Priority:** **[MUST]**
 
-/adv-discover MUST run an ambiguity scan during Phase 2 with B/F/S/M required (v1) and D/X/Q/I/E/C/T optional, and emit an ### AMBIGUITY ANALYSIS section containing finding IDs, severity, evidence quotes, and a coverage report.
+/determinus-discover MUST run an ambiguity scan during Phase 2 with B/F/S/M required (v1) and D/X/Q/I/E/C/T optional, and emit an ### AMBIGUITY ANALYSIS section containing finding IDs, severity, evidence quotes, and a coverage report.
 
 **Tags:** `discover`, `ambiguity-scan`, `taxonomy`
 
@@ -401,7 +401,7 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 - A change in the discovery phase
 - clarify_enforcement is 'advisory' or 'strict'
 
-**When:** /adv-discover runs Phase 2 analysis
+**When:** /determinus-discover runs Phase 2 analysis
 
 **Then:**
 - Output contains ### AMBIGUITY ANALYSIS section
@@ -414,7 +414,7 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 **Given:**
 - A change with discovery gate already completed (in-flight)
 
-**When:** /adv-discover is invoked again
+**When:** /determinus-discover is invoked again
 
 **Then:**
 - The existing discovery output is preserved
@@ -425,7 +425,7 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 **Given:**
 - clarify_enforcement is 'off'
 
-**When:** /adv-discover runs Phase 2
+**When:** /determinus-discover runs Phase 2
 
 **Then:**
 - No AMBIGUITY ANALYSIS section is emitted
@@ -433,34 +433,34 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 
 ---
 
-### Mandatory /adv-clarify Trigger
+### Mandatory /determinus-clarify Trigger
 
 **ID:** `rq-disc-tax2` | **Priority:** **[MUST]**
 
-/adv-discover MUST halt and hand off to /adv-clarify when the AMBIGUITY ANALYSIS produces any CRITICAL finding OR 2+ HIGH findings. Single HIGH findings produce a warning but do not block. Trigger applies to all categories (required + optional).
+/determinus-discover MUST halt and hand off to /determinus-clarify when the AMBIGUITY ANALYSIS produces any CRITICAL finding OR 2+ HIGH findings. Single HIGH findings produce a warning but do not block. Trigger applies to all categories (required + optional).
 
 **Tags:** `discover`, `clarify-trigger`, `mandatory-handoff`
 
 #### Scenarios
 
-**CRITICAL finding halts discovery and hands off to /adv-clarify** (`rq-disc-tax2.1`)
+**CRITICAL finding halts discovery and hands off to /determinus-clarify** (`rq-disc-tax2.1`)
 
 **Given:**
 - AMBIGUITY ANALYSIS shows 1 CRITICAL B finding
 
-**When:** /adv-discover evaluates findings in Phase 2.5
+**When:** /determinus-discover evaluates findings in Phase 2.5
 
 **Then:**
 - Discovery halts
-- Output instructs user to run /adv-clarify {change-id}
-- adv_gate_complete gateId: discovery is NOT called
+- Output instructs user to run /determinus-clarify {change-id}
+- determinus_gate_complete gateId: discovery is NOT called
 
 **Single HIGH finding produces warning, proceeds normally** (`rq-disc-tax2.2`)
 
 **Given:**
 - AMBIGUITY ANALYSIS shows 1 HIGH finding only
 
-**When:** /adv-discover evaluates findings
+**When:** /determinus-discover evaluates findings
 
 **Then:**
 - Warning is logged inline
@@ -471,11 +471,11 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 **Given:**
 - AMBIGUITY ANALYSIS shows 2+ HIGH findings (no CRITICAL)
 
-**When:** /adv-discover evaluates findings
+**When:** /determinus-discover evaluates findings
 
 **Then:**
 - Discovery halts
-- Output hands off to /adv-clarify
+- Output hands off to /determinus-clarify
 
 ---
 
@@ -483,7 +483,7 @@ When /adv-discover absorbs the user-facing agreement flow, the command MUST pres
 
 **ID:** `rq-disc-tax3` | **Priority:** **[MUST]**
 
-After /adv-clarify resolves findings via the ## Clarify Resolution Log mechanism, a fresh /adv-discover rerun MUST produce a coverage report with no CRITICAL findings and at most 1 HIGH finding. Reruns are capped at 2 before escalating.
+After /determinus-clarify resolves findings via the ## Clarify Resolution Log mechanism, a fresh /determinus-discover rerun MUST produce a coverage report with no CRITICAL findings and at most 1 HIGH finding. Reruns are capped at 2 before escalating.
 
 **Tags:** `discover`, `post-clarify`, `rerun-cap`
 
@@ -492,10 +492,10 @@ After /adv-clarify resolves findings via the ## Clarify Resolution Log mechanism
 **Post-clarify rerun shows clean coverage** (`rq-disc-tax3.1`)
 
 **Given:**
-- /adv-clarify has persisted resolutions to change.documents.proposal
+- /determinus-clarify has persisted resolutions to change.documents.proposal
 - ## Clarify Resolution Log contains resolved entries
 
-**When:** /adv-discover is rerun
+**When:** /determinus-discover is rerun
 
 **Then:**
 - New AMBIGUITY ANALYSIS shows no CRITICAL findings
@@ -505,10 +505,10 @@ After /adv-clarify resolves findings via the ## Clarify Resolution Log mechanism
 **Third rerun triggers escalation instead of auto-halt** (`rq-disc-tax3.2`)
 
 **Given:**
-- 2 prior /adv-clarify cycles completed
+- 2 prior /determinus-clarify cycles completed
 - A third rerun is attempted
 
-**When:** /adv-discover evaluates findings
+**When:** /determinus-discover evaluates findings
 
 **Then:**
 - Rerun cap is enforced
@@ -521,7 +521,7 @@ After /adv-clarify resolves findings via the ## Clarify Resolution Log mechanism
 
 **ID:** `rq-sc01` | **Priority:** **[MUST]**
 
-When `/adv-discover` or `/adv-research` Phase 1.5 skill discovery finds no matching skill for a domain relevant to the change's core problem, the agent MUST explicitly report the gap and MAY initiate on-demand skill creation.
+When `/determinus-discover` or `/determinus-research` Phase 1.5 skill discovery finds no matching skill for a domain relevant to the change's core problem, the agent MUST explicitly report the gap and MAY initiate on-demand skill creation.
 
 **Tags:** `skill-creation`, `gap-detection`, `phase-1.5`
 
@@ -570,7 +570,7 @@ When `/adv-discover` or `/adv-research` Phase 1.5 skill discovery finds no match
 
 **ID:** `rq-sc02` | **Priority:** **[MUST]**
 
-Auto-created skills MUST use valid SKILL.md frontmatter format, MUST NOT use the `adv-` prefix (sync script collision), and MUST be written atomically to the global skills directory.
+Auto-created skills MUST use valid SKILL.md frontmatter format, MUST NOT use the `determinus-` prefix (sync script collision), and MUST be written atomically to the global skills directory.
 
 **Tags:** `skill-creation`, `assembly`, `persistence`
 
@@ -589,7 +589,7 @@ Auto-created skills MUST use valid SKILL.md frontmatter format, MUST NOT use the
 - The file includes `metadata.review_status: "pending"`
 - The file includes `metadata.created_at` with ISO timestamp
 - The file includes `metadata.trigger_change` with the originating change ID
-- The skill name does NOT start with `adv-`
+- The skill name does NOT start with `determinus-`
 
 **Atomic write with skip-if-exists** (`rq-sc02.2`)
 
@@ -652,7 +652,7 @@ After creating a skill, the agent MUST load it via `skill()`, use it in the curr
 **Given:**
 - A skill exists in the global dir with `metadata.review_status: "pending"`
 
-**When:** A subsequent `/adv-discover` Phase 1.5 runs
+**When:** A subsequent `/determinus-discover` Phase 1.5 runs
 
 **Then:**
 - Phase 1.5 scans for pending-review skills BEFORE keyword matching
@@ -666,21 +666,21 @@ After creating a skill, the agent MUST load it via `skill()`, use it in the curr
 
 **ID:** `rq-discOpportunityScout01` | **Priority:** **[MUST]**
 
-/adv-discover MUST run a trigger-based Discovery Opportunity Scout pass (Phase 3.5) after current-state research (Phase 3) and before agreement formation (Phase 4) when the change has strategic, architecture, product, ecosystem, external-option, or broad objective/AC leverage. The scout uses a split-load contract: orchestrator owns ScoutCandidate schema, routing, fallback/degradation, adoption, and mutations; adv-researcher may load the adv-opportunity-scout skill in discovery mode for worker methodology. It returns ≤5 structured candidates. The scout phase MUST include an INCONCLUSIVE degradation path (Scout: inconclusive) for worker skill-load unavailable, sub-agent failure, or empty output. Narrow low-opportunity changes MAY skip the scout with documented rationale (Scout: skipped). The orchestrator routes adoption per the skill's taxonomy: auto-adopt only when contract-tied, low risk, and no user-value tradeoff; surface all others to user.
+/determinus-discover MUST run a trigger-based Discovery Opportunity Scout pass (Phase 3.5) after current-state research (Phase 3) and before agreement formation (Phase 4) when the change has strategic, architecture, product, ecosystem, external-option, or broad objective/AC leverage. The scout uses a split-load contract: orchestrator owns ScoutCandidate schema, routing, fallback/degradation, adoption, and mutations; determinus-researcher may load the determinus-opportunity-scout skill in discovery mode for worker methodology. It returns ≤5 structured candidates. The scout phase MUST include an INCONCLUSIVE degradation path (Scout: inconclusive) for worker skill-load unavailable, sub-agent failure, or empty output. Narrow low-opportunity changes MAY skip the scout with documented rationale (Scout: skipped). The orchestrator routes adoption per the skill's taxonomy: auto-adopt only when contract-tied, low risk, and no user-value tradeoff; surface all others to user.
 
 #### Scenarios
 
 **Scout phase executes for strategic and high-opportunity changes** (`rq-discOpportunityScout01.1`)
 
 **Given:**
-- A /adv-discover invocation for a strategic, architecture, product, ecosystem, external-option, or broad objective/AC change
+- A /determinus-discover invocation for a strategic, architecture, product, ecosystem, external-option, or broad objective/AC change
 - Discovery Phase 3 has completed
 
 **When:** Phase 3.5 executes
 
 **Then:**
 - The orchestrator prepares schema, routing, fallback/degradation, and adoption rules
-- adv-researcher is spawned with discovery-mode prompt and may load adv-opportunity-scout in worker context
+- determinus-researcher is spawned with discovery-mode prompt and may load determinus-opportunity-scout in worker context
 - ≤5 candidates are returned with 8-field ScoutCandidate schema
 - Candidates are sorted by payoff/risk ratio
 - Adoption is routed per taxonomy (auto-adopt narrow, surface others)
@@ -689,8 +689,8 @@ After creating a skill, the agent MUST load it via `skill()`, use it in the curr
 
 **Given:**
 - Worker skill-load is unavailable
-- Or adv-researcher returns empty/malformed output
-- Or adv-researcher times out
+- Or determinus-researcher returns empty/malformed output
+- Or determinus-researcher times out
 
 **When:** Phase 3.5 encounters a failure
 
@@ -715,7 +715,7 @@ After creating a skill, the agent MUST load it via `skill()`, use it in the curr
 
 **ID:** `rq-stageDiscoveryFirmCriteria01` | **Priority:** **[MUST]**
 
-/adv-discover MUST firm and user-confirm design-independent behavioral acceptance criteria and success criteria in change.documents.agreement before completing the discovery gate. These criteria are the authoritative source for ChangeContract `AC*` and `SC*` items. Proposal-level User Outcomes may inform the criteria, but engineering acceptance criteria and success criteria are discovery-owned and must not be treated as already final at proposal time.
+/determinus-discover MUST firm and user-confirm design-independent behavioral acceptance criteria and success criteria in change.documents.agreement before completing the discovery gate. These criteria are the authoritative source for ChangeContract `AC*` and `SC*` items. Proposal-level User Outcomes may inform the criteria, but engineering acceptance criteria and success criteria are discovery-owned and must not be treated as already final at proposal time.
 
 **Tags:** `discover`, `agreement`, `criteria`, `stage-boundary`
 
@@ -726,12 +726,12 @@ After creating a skill, the agent MUST load it via `skill()`, use it in the curr
 **Given:**
 - A change reaches the discovery agreement flow
 
-**When:** /adv-discover persists change.documents.agreement and completes discovery
+**When:** /determinus-discover persists change.documents.agreement and completes discovery
 
 **Then:**
 - change.documents.agreement contains user-confirmed acceptance criteria and success criteria
 - The criteria describe externally observable behavior or completion signals, not implementation mechanisms
-- adv_gate_complete gateId: discovery occurs only after criteria approval
+- determinus_gate_complete gateId: discovery occurs only after criteria approval
 
 **Discovery criteria mint into ChangeContract** (`rq-stageDiscoveryFirmCriteria01.2`)
 
@@ -751,7 +751,7 @@ After creating a skill, the agent MUST load it via `skill()`, use it in the curr
 
 **ID:** `rq-stageDiscoveryImplFreeGuard01` | **Priority:** **[MUST]**
 
-When /adv-discover scans draft acceptance criteria and detects a mechanism, component, library, data structure, or implementation-specific phrasing, it MUST emit an advisory finding that marks the criterion as preliminary or likely design-derived. The finding MUST cite the exact phrase and recommend design review or discovery revision. The guard MUST NOT hard-block the discovery gate by itself.
+When /determinus-discover scans draft acceptance criteria and detects a mechanism, component, library, data structure, or implementation-specific phrasing, it MUST emit an advisory finding that marks the criterion as preliminary or likely design-derived. The finding MUST cite the exact phrase and recommend design review or discovery revision. The guard MUST NOT hard-block the discovery gate by itself.
 
 **Tags:** `discover`, `criteria`, `implementation-free`, `advisory`
 
@@ -762,7 +762,7 @@ When /adv-discover scans draft acceptance criteria and detects a mechanism, comp
 **Given:**
 - A draft acceptance criterion says `store sessions in Redis`
 
-**When:** /adv-discover runs its criteria scan
+**When:** /determinus-discover runs its criteria scan
 
 **Then:**
 - An advisory finding is emitted
@@ -783,15 +783,15 @@ When /adv-discover scans draft acceptance criteria and detects a mechanism, comp
 
 ---
 
-### Scout Uses Existing adv-researcher
+### Scout Uses Existing determinus-researcher
 
 **ID:** `rq-discOpportunityScout02` | **Priority:** **[MUST]**
 
-The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent for research execution. No new sub-agent identity MAY be introduced for scouting. The scout skill provides read-only worker methodology; commands retain workflow, schema, routing, fallback, adoption, and state ownership.
+The Discovery Opportunity Scout MUST use the existing determinus-researcher sub-agent for research execution. No new sub-agent identity MAY be introduced for scouting. The scout skill provides read-only worker methodology; commands retain workflow, schema, routing, fallback, adoption, and state ownership.
 
 #### Scenarios
 
-**Scout uses adv-researcher not new agent** (`rq-discOpportunityScout02.1`)
+**Scout uses determinus-researcher not new agent** (`rq-discOpportunityScout02.1`)
 
 **Given:**
 - Phase 3.5 executes the Discovery Opportunity Scout
@@ -799,7 +799,7 @@ The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent f
 **When:** The scout spawns a research sub-agent
 
 **Then:**
-- The sub-agent is adv-researcher (existing bundled global agent)
+- The sub-agent is determinus-researcher (existing bundled global agent)
 - No new sub-agent identity is created
 - The scout skill provides prompt templates and output schema
 - ADV state mutations are not performed by the scout
@@ -810,7 +810,7 @@ The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent f
 
 **ID:** `rq-disc13` | **Priority:** **[MUST]**
 
-/adv-discover MUST run an always-on problem-completeness check: it records an explicit answer to whether the full problem was identified, not only an observed symptom or single code path, with rationale and a confidence note. The check is always-on (not gated behind a trigger condition); only the depth of any codebase surface scan scales to what the completeness question demands. This prevents discovery from treating a found symptom as the whole problem.
+/determinus-discover MUST run an always-on problem-completeness check: it records an explicit answer to whether the full problem was identified, not only an observed symptom or single code path, with rationale and a confidence note. The check is always-on (not gated behind a trigger condition); only the depth of any codebase surface scan scales to what the completeness question demands. This prevents discovery from treating a found symptom as the whole problem.
 
 **Tags:** `discover`, `completeness`, `problem-scope`, `always-on`
 
@@ -819,7 +819,7 @@ The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent f
 **Every discovery records a problem-completeness check** (`rq-disc13.1`)
 
 **Given:**
-- A /adv-discover invocation preparing findings for agreement
+- A /determinus-discover invocation preparing findings for agreement
 
 **When:** Discovery reaches the completeness-verification step
 
@@ -846,7 +846,7 @@ The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent f
 
 **ID:** `rq-disc14` | **Priority:** **[MUST]**
 
-/adv-discover MUST run an always-on solution-scope check recording whether the full intended solution is scoped, not only one implementation piece. When discovery relies on a sole-chokepoint / single-entry / single-control-surface claim for a cross-cutting operation that is not verified by a target-operation surface scan, discovery MUST block: it emits a Boundaries (B) CRITICAL ambiguity finding, and the existing `rq-disc-tax2` trigger halts discovery and hands off to `/adv-clarify` until the claim is verified or downgraded. Any secondary surfaces found during completeness verification MUST be explicitly classified as in scope, out of scope with rationale, or an unresolved user-facing scope question before agreement; they MUST NOT be silently deferred as future work. A target-operation surface scan records searched terms/symbols, found surfaces, excluded surfaces with rationale, and the final scope disposition.
+/determinus-discover MUST run an always-on solution-scope check recording whether the full intended solution is scoped, not only one implementation piece. When discovery relies on a sole-chokepoint / single-entry / single-control-surface claim for a cross-cutting operation that is not verified by a target-operation surface scan, discovery MUST block: it emits a Boundaries (B) CRITICAL ambiguity finding, and the existing `rq-disc-tax2` trigger halts discovery and hands off to `/determinus-clarify` until the claim is verified or downgraded. Any secondary surfaces found during completeness verification MUST be explicitly classified as in scope, out of scope with rationale, or an unresolved user-facing scope question before agreement; they MUST NOT be silently deferred as future work. A target-operation surface scan records searched terms/symbols, found surfaces, excluded surfaces with rationale, and the final scope disposition.
 
 **Tags:** `discover`, `completeness`, `solution-scope`, `sole-entry`, `blocking`, `secondary-surfaces`
 
@@ -855,7 +855,7 @@ The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent f
 **Every discovery records a solution-scope check** (`rq-disc14.1`)
 
 **Given:**
-- A /adv-discover invocation forming objectives and acceptance criteria
+- A /determinus-discover invocation forming objectives and acceptance criteria
 
 **When:** Discovery records the completeness-verification step
 
@@ -873,7 +873,7 @@ The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent f
 
 **Then:**
 - Discovery emits a Boundaries (B) CRITICAL ambiguity finding with verbatim evidence
-- The existing `rq-disc-tax2` trigger halts discovery and hands off to `/adv-clarify`
+- The existing `rq-disc-tax2` trigger halts discovery and hands off to `/determinus-clarify`
 - No new halt machinery is introduced
 - Discovery does not complete until the claim is verified or downgraded
 
@@ -895,7 +895,7 @@ The Discovery Opportunity Scout MUST use the existing adv-researcher sub-agent f
 
 **ID:** `rq-disc15` | **Priority:** **[MUST]**
 
-The completeness-verification obligation MUST be made durable across ADV law, command, checklist, and docs: the adv-discover canonical spec contains `rq-disc13` and `rq-disc14`; the `/adv-discover` command contract contains a Phase 1.8 Completeness Verification step and a Completeness Verification output-section row; the discover checklist contains a Phase 1.8 step and a matching output-section row; and an asset test asserts the obligation is present in the command, checklist, canonical spec, and docs mirror so prose cannot drift silently. The asset test cross-asserts co-presence: the Completeness Verification step MUST appear in both the command and the checklist, so the two surfaces cannot drift apart (the command and checklist use different step-count granularities, so numeric count equality is not the invariant — co-presence is).
+The completeness-verification obligation MUST be made durable across ADV law, command, checklist, and docs: the determinus-discover canonical spec contains `rq-disc13` and `rq-disc14`; the `/determinus-discover` command contract contains a Phase 1.8 Completeness Verification step and a Completeness Verification output-section row; the discover checklist contains a Phase 1.8 step and a matching output-section row; and an asset test asserts the obligation is present in the command, checklist, canonical spec, and docs mirror so prose cannot drift silently. The asset test cross-asserts co-presence: the Completeness Verification step MUST appear in both the command and the checklist, so the two surfaces cannot drift apart (the command and checklist use different step-count granularities, so numeric count equality is not the invariant — co-presence is).
 
 **Tags:** `discover`, `completeness`, `durable`, `anchors`, `asset-test`
 
@@ -909,8 +909,8 @@ The completeness-verification obligation MUST be made durable across ADV law, co
 **When:** Implementation updates command, checklist, spec, and docs surfaces
 
 **Then:**
-- The adv-discover canonical spec contains `rq-disc13` and `rq-disc14`
-- The `/adv-discover` command contains a Phase 1.8 Completeness Verification step and a Completeness Verification output-section row
+- The determinus-discover canonical spec contains `rq-disc13` and `rq-disc14`
+- The `/determinus-discover` command contains a Phase 1.8 Completeness Verification step and a Completeness Verification output-section row
 - The discover checklist contains a Phase 1.8 step and a matching output-section row
 - An asset test asserts presence in the command, checklist, canonical spec, and docs mirror
 

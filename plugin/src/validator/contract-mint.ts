@@ -9,7 +9,7 @@ import {
 } from "../types";
 // Pure warrant module — keeps contract-mint cycle-free (DDC2): no tool-registry
 // or tools/* import. The live { toolSurface, specIds } lookup is INJECTED by
-// the tool layer (adv_contract_mint) via runtime dynamic import.
+// the tool layer (determinus_contract_mint) via runtime dynamic import.
 import {
   parseWarrantTag,
   resolveWarrants,
@@ -25,7 +25,7 @@ interface BuildContractFromAgreementInput {
    * is verified and an unresolved ref fails the mint with
    * CONTRACT_UNRESOLVED_WARRANT. When omitted (pure unit tests not exercising
    * warrants), declared refs are still parsed/recorded but not verified — the
-   * production mint path (adv_contract_mint) injects this whenever the approved
+   * production mint path (determinus_contract_mint) injects this whenever the approved
    * agreement declares a warrant tag.
    */
   warrantLookup?: WarrantLookup;

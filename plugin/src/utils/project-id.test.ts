@@ -35,8 +35,9 @@ import { chmod, mkdtemp, rm, writeFile } from "fs/promises";
 import { join, resolve } from "path";
 import { homedir, tmpdir } from "os";
 
-const INVALID_IDENTITY_REPO_ENV = "ADV_INVALID_IDENTITY_TEST_REPO";
-const INVALID_IDENTITY_CANDIDATE_ENV = "ADV_INVALID_IDENTITY_TEST_CANDIDATE";
+const INVALID_IDENTITY_REPO_ENV = "determinus_INVALID_IDENTITY_TEST_REPO";
+const INVALID_IDENTITY_CANDIDATE_ENV =
+  "determinus_INVALID_IDENTITY_TEST_CANDIDATE";
 let invalidIdentityFixtureRoot: string | undefined;
 
 afterAll(async () => {
@@ -47,10 +48,12 @@ afterAll(async () => {
 
 test("resolveProjectIdentity refuses a non-SHA40 candidate without minting a store", async () => {
   const candidate = "3f9f88dbc6c65a2463945f1dd2692f7f2dfd56984e2627";
-  const fixtureRoot = await mkdtemp(join(tmpdir(), "adv-invalid-identity-"));
+  const fixtureRoot = await mkdtemp(
+    join(tmpdir(), "determinus-invalid-identity-"),
+  );
   invalidIdentityFixtureRoot = fixtureRoot;
   const gitWrapper = join(fixtureRoot, "git");
-  const originalGitPath = process.env.ADV_GIT_PATH;
+  const originalGitPath = process.env.determinus_GIT_PATH;
   const originalRepo = process.env[INVALID_IDENTITY_REPO_ENV];
   const originalCandidate = process.env[INVALID_IDENTITY_CANDIDATE_ENV];
   const originalXdg = process.env.XDG_DATA_HOME;
@@ -68,7 +71,7 @@ exec /usr/bin/git "$@"
   await chmod(gitWrapper, 0o755);
 
   try {
-    process.env.ADV_GIT_PATH = gitWrapper;
+    process.env.determinus_GIT_PATH = gitWrapper;
     process.env[INVALID_IDENTITY_REPO_ENV] = process.cwd();
     process.env[INVALID_IDENTITY_CANDIDATE_ENV] = candidate;
     process.env.XDG_DATA_HOME = fixtureRoot;
@@ -84,8 +87,8 @@ exec /usr/bin/git "$@"
     );
     expect(existsSync(getExternalRoot(candidate))).toBe(false);
   } finally {
-    if (originalGitPath === undefined) delete process.env.ADV_GIT_PATH;
-    else process.env.ADV_GIT_PATH = originalGitPath;
+    if (originalGitPath === undefined) delete process.env.determinus_GIT_PATH;
+    else process.env.determinus_GIT_PATH = originalGitPath;
     if (originalRepo === undefined)
       delete process.env[INVALID_IDENTITY_REPO_ENV];
     else process.env[INVALID_IDENTITY_REPO_ENV] = originalRepo;
@@ -142,14 +145,14 @@ describe("synthesizeTestProjectId", () => {
 describe("getProjectId — test-mode synthetic override", () => {
   // Save and restore env vars so other test files aren't affected.
   const originalVitest = process.env.VITEST;
-  const originalAdvTestMode = process.env.ADV_TEST_MODE;
+  const originalAdvTestMode = process.env.determinus_TEST_MODE;
 
   afterEach(() => {
     if (originalVitest !== undefined) process.env.VITEST = originalVitest;
     else delete process.env.VITEST;
     if (originalAdvTestMode !== undefined)
-      process.env.ADV_TEST_MODE = originalAdvTestMode;
-    else delete process.env.ADV_TEST_MODE;
+      process.env.determinus_TEST_MODE = originalAdvTestMode;
+    else delete process.env.determinus_TEST_MODE;
   });
 
   test("hard-fail guardrail: vitest sets VITEST=true and getProjectId returns synthetic ID", async () => {
@@ -164,15 +167,15 @@ describe("getProjectId — test-mode synthetic override", () => {
 
   test("returns synthetic ID when VITEST=true and directory is a real git repo", async () => {
     process.env.VITEST = "true";
-    delete process.env.ADV_TEST_MODE;
+    delete process.env.determinus_TEST_MODE;
     // process.cwd() during tests is the plugin checkout — a real git repo.
     const id = await getProjectId(process.cwd());
     expect(id).toBe(synthesizeTestProjectId(process.cwd()));
   });
 
-  test("returns synthetic ID when ADV_TEST_MODE=1 and directory is a real git repo", async () => {
+  test("returns synthetic ID when determinus_TEST_MODE=1 and directory is a real git repo", async () => {
     delete process.env.VITEST;
-    process.env.ADV_TEST_MODE = "1";
+    process.env.determinus_TEST_MODE = "1";
     const id = await getProjectId(process.cwd());
     expect(id).toBe(synthesizeTestProjectId(process.cwd()));
   });
@@ -203,9 +206,9 @@ describe("getProjectId — test-mode synthetic override", () => {
     expect(idB.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).toBe(true);
   });
 
-  test("does NOT short-circuit when VITEST is falsy and ADV_TEST_MODE missing", async () => {
+  test("does NOT short-circuit when VITEST is falsy and determinus_TEST_MODE missing", async () => {
     process.env.VITEST = "false";
-    delete process.env.ADV_TEST_MODE;
+    delete process.env.determinus_TEST_MODE;
     // Without test-mode flags, falls through to real git resolution.
     // /tmp (non-git) returns null deterministically.
     const id = await getProjectId("/tmp");
@@ -238,12 +241,12 @@ describe("getProjectIdFromGit (raw, bypasses test-mode override)", () => {
 
 describe("getExternalRoot", () => {
   const originalEnv = process.env.XDG_DATA_HOME;
-  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+  const originalTestDataHome = process.env.determinus_TEST_DATA_HOME;
 
   beforeEach(() => {
     // These assertions intentionally exercise the configured XDG path rather
     // than the test-mode isolation root.
-    process.env.ADV_TEST_DATA_HOME = "0";
+    process.env.determinus_TEST_DATA_HOME = "0";
   });
 
   afterEach(() => {
@@ -253,9 +256,9 @@ describe("getExternalRoot", () => {
       delete process.env.XDG_DATA_HOME;
     }
     if (originalTestDataHome !== undefined) {
-      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
+      process.env.determinus_TEST_DATA_HOME = originalTestDataHome;
     } else {
-      delete process.env.ADV_TEST_DATA_HOME;
+      delete process.env.determinus_TEST_DATA_HOME;
     }
   });
 
@@ -299,27 +302,27 @@ describe("getExternalRoot", () => {
 
 describe("getDataHome — test-mode isolation", () => {
   const originalVitest = process.env.VITEST;
-  const originalAdvTestMode = process.env.ADV_TEST_MODE;
-  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+  const originalAdvTestMode = process.env.determinus_TEST_MODE;
+  const originalTestDataHome = process.env.determinus_TEST_DATA_HOME;
   const originalXdg = process.env.XDG_DATA_HOME;
 
   afterEach(() => {
     if (originalVitest !== undefined) process.env.VITEST = originalVitest;
     else delete process.env.VITEST;
     if (originalAdvTestMode !== undefined)
-      process.env.ADV_TEST_MODE = originalAdvTestMode;
-    else delete process.env.ADV_TEST_MODE;
+      process.env.determinus_TEST_MODE = originalAdvTestMode;
+    else delete process.env.determinus_TEST_MODE;
     if (originalTestDataHome !== undefined)
-      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
-    else delete process.env.ADV_TEST_DATA_HOME;
+      process.env.determinus_TEST_DATA_HOME = originalTestDataHome;
+    else delete process.env.determinus_TEST_DATA_HOME;
     if (originalXdg !== undefined) process.env.XDG_DATA_HOME = originalXdg;
     else delete process.env.XDG_DATA_HOME;
   });
 
   test("roots VITEST stores under os.tmpdir instead of the production data home", () => {
     process.env.VITEST = "true";
-    delete process.env.ADV_TEST_MODE;
-    delete process.env.ADV_TEST_DATA_HOME;
+    delete process.env.determinus_TEST_MODE;
+    delete process.env.determinus_TEST_DATA_HOME;
     delete process.env.XDG_DATA_HOME;
 
     const dataHome = getDataHome();
@@ -328,10 +331,10 @@ describe("getDataHome — test-mode isolation", () => {
     expect(dataHome).not.toBe(join(homedir(), ".local/share"));
   });
 
-  test("roots ADV_TEST_MODE stores under os.tmpdir", () => {
+  test("roots determinus_TEST_MODE stores under os.tmpdir", () => {
     delete process.env.VITEST;
-    process.env.ADV_TEST_MODE = "1";
-    delete process.env.ADV_TEST_DATA_HOME;
+    process.env.determinus_TEST_MODE = "1";
+    delete process.env.determinus_TEST_DATA_HOME;
     delete process.env.XDG_DATA_HOME;
 
     expect(getDataHome().startsWith(resolve(tmpdir()))).toBe(true);
@@ -339,7 +342,7 @@ describe("getDataHome — test-mode isolation", () => {
 
   test("allows XDG assertions to opt out of test-mode redirection", () => {
     process.env.VITEST = "true";
-    process.env.ADV_TEST_DATA_HOME = "0";
+    process.env.determinus_TEST_DATA_HOME = "0";
     process.env.XDG_DATA_HOME = "/custom/data";
 
     expect(getDataHome()).toBe("/custom/data");
@@ -347,8 +350,8 @@ describe("getDataHome — test-mode isolation", () => {
 
   test("preserves the configured XDG path outside test mode", () => {
     process.env.VITEST = "false";
-    delete process.env.ADV_TEST_MODE;
-    delete process.env.ADV_TEST_DATA_HOME;
+    delete process.env.determinus_TEST_MODE;
+    delete process.env.determinus_TEST_DATA_HOME;
     process.env.XDG_DATA_HOME = "/custom/data";
 
     expect(getDataHome()).toBe("/custom/data");
@@ -357,12 +360,12 @@ describe("getDataHome — test-mode isolation", () => {
 
 describe("getExternalRootForProject", () => {
   const originalEnv = process.env.XDG_DATA_HOME;
-  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+  const originalTestDataHome = process.env.determinus_TEST_DATA_HOME;
   const sourceProjectId = "1".repeat(40);
   const targetProjectId = "2".repeat(40);
 
   beforeEach(() => {
-    process.env.ADV_TEST_DATA_HOME = "0";
+    process.env.determinus_TEST_DATA_HOME = "0";
   });
 
   afterEach(() => {
@@ -372,9 +375,9 @@ describe("getExternalRootForProject", () => {
       delete process.env.XDG_DATA_HOME;
     }
     if (originalTestDataHome !== undefined) {
-      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
+      process.env.determinus_TEST_DATA_HOME = originalTestDataHome;
     } else {
-      delete process.env.ADV_TEST_DATA_HOME;
+      delete process.env.determinus_TEST_DATA_HOME;
     }
   });
 
@@ -413,22 +416,22 @@ describe("getExternalRootForProject", () => {
 
 describe("getWorktreeBase", () => {
   const originalEnv = process.env.XDG_DATA_HOME;
-  const originalWorktreeHome = process.env.ADV_WORKTREE_HOME;
-  const originalTestDataHome = process.env.ADV_TEST_DATA_HOME;
+  const originalWorktreeHome = process.env.determinus_WORKTREE_HOME;
+  const originalTestDataHome = process.env.determinus_TEST_DATA_HOME;
 
   beforeEach(() => {
-    process.env.ADV_TEST_DATA_HOME = "0";
+    process.env.determinus_TEST_DATA_HOME = "0";
   });
 
   afterEach(() => {
     if (originalEnv !== undefined) process.env.XDG_DATA_HOME = originalEnv;
     else delete process.env.XDG_DATA_HOME;
     if (originalWorktreeHome !== undefined)
-      process.env.ADV_WORKTREE_HOME = originalWorktreeHome;
-    else delete process.env.ADV_WORKTREE_HOME;
+      process.env.determinus_WORKTREE_HOME = originalWorktreeHome;
+    else delete process.env.determinus_WORKTREE_HOME;
     if (originalTestDataHome !== undefined)
-      process.env.ADV_TEST_DATA_HOME = originalTestDataHome;
-    else delete process.env.ADV_TEST_DATA_HOME;
+      process.env.determinus_TEST_DATA_HOME = originalTestDataHome;
+    else delete process.env.determinus_TEST_DATA_HOME;
   });
 
   test("uses the XDG opencode worktree namespace", () => {
@@ -440,42 +443,42 @@ describe("getWorktreeBase", () => {
 
   test("shares default data-home handling with external root", () => {
     delete process.env.XDG_DATA_HOME;
-    delete process.env.ADV_WORKTREE_HOME;
+    delete process.env.determinus_WORKTREE_HOME;
     expect(getWorktreeBase("abc123")).toBe(
       join(homedir(), ".local/share/opencode/worktree/abc123"),
     );
   });
 
-  test("uses ADV_WORKTREE_HOME when set", () => {
+  test("uses determinus_WORKTREE_HOME when set", () => {
     process.env.XDG_DATA_HOME = "/custom/data";
-    process.env.ADV_WORKTREE_HOME = "/home/dev/worktrees";
+    process.env.determinus_WORKTREE_HOME = "/home/dev/worktrees";
     expect(getWorktreeHomeOverride()).toBe("/home/dev/worktrees");
     expect(getWorktreeBase("abc123")).toBe("/home/dev/worktrees/abc123");
   });
 
-  test("treats empty ADV_WORKTREE_HOME as unset", () => {
+  test("treats empty determinus_WORKTREE_HOME as unset", () => {
     process.env.XDG_DATA_HOME = "/custom/data";
-    process.env.ADV_WORKTREE_HOME = "";
+    process.env.determinus_WORKTREE_HOME = "";
     expect(getWorktreeHomeOverride()).toBeNull();
     expect(getWorktreeBase("abc123")).toBe(
       "/custom/data/opencode/worktree/abc123",
     );
   });
 
-  test("rejects relative ADV_WORKTREE_HOME paths", () => {
-    process.env.ADV_WORKTREE_HOME = "dev/worktrees";
+  test("rejects relative determinus_WORKTREE_HOME paths", () => {
+    process.env.determinus_WORKTREE_HOME = "dev/worktrees";
     expect(() => getWorktreeHomeOverride()).toThrow(
-      /ADV_WORKTREE_HOME must be absolute/,
+      /determinus_WORKTREE_HOME must be absolute/,
     );
     expect(() => getWorktreeBase("abc123")).toThrow(
-      /ADV_WORKTREE_HOME must be absolute/,
+      /determinus_WORKTREE_HOME must be absolute/,
     );
   });
 });
 
 describe("path namespace guards", () => {
   test("accept paths inside a namespace, including the namespace itself", () => {
-    const root = resolve("/tmp/adv-state");
+    const root = resolve("/tmp/determinus-state");
     expect(isPathInsideDirectory(root, root)).toBe(true);
     expect(isPathInsideDirectory(join(root, "child"), root)).toBe(true);
     expect(() =>
@@ -484,15 +487,17 @@ describe("path namespace guards", () => {
   });
 
   test("reject sibling paths with the same string prefix", () => {
-    const root = resolve("/tmp/adv-state");
-    expect(isPathInsideDirectory("/tmp/adv-state-other", root)).toBe(false);
+    const root = resolve("/tmp/determinus-state");
+    expect(isPathInsideDirectory("/tmp/determinus-state-other", root)).toBe(
+      false,
+    );
     expect(() =>
-      assertPathInsideDirectory("/tmp/adv-state-other", root),
+      assertPathInsideDirectory("/tmp/determinus-state-other", root),
     ).toThrow(/outside allowed namespace/);
   });
 
   test("reject traversal escaping the namespace", () => {
-    const root = resolve("/tmp/adv-state");
+    const root = resolve("/tmp/determinus-state");
     expect(isPathInsideDirectory(join(root, "..", "outside"), root)).toBe(
       false,
     );

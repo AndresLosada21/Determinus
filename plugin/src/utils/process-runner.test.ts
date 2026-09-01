@@ -7,7 +7,7 @@ import { createWorktreeOperationContext } from "./worktree-operation";
 
 describe("abortable process runner", () => {
   it("terminates the POSIX process group and waits for close", async () => {
-    const marker = `/tmp/adv-process-runner-${process.pid}-${Date.now()}`;
+    const marker = `/tmp/determinus-process-runner-${process.pid}-${Date.now()}`;
     const script = [
       "const fs=require('fs');",
       `const marker=${JSON.stringify(marker)};`,

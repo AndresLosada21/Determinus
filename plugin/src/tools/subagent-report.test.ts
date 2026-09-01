@@ -14,10 +14,10 @@ describe("subagent report contracts", () => {
       subagentReportKey({
         changeId: "change-1",
         taskId: "tk-1",
-        agent: "adv-engineer",
+        agent: "determinus-engineer",
         attempt: 2,
       }),
-    ).toBe("change-1|tk-1|adv-engineer|2");
+    ).toBe("change-1|tk-1|determinus-engineer|2");
   });
 
   test("keys change-scoped reports and binds implementation cycles", () => {
@@ -25,15 +25,15 @@ describe("subagent report contracts", () => {
       subagentReportKey({
         changeId: "change-1",
         scope: { kind: "change", scope_key: "research" },
-        agent: "adv-researcher",
+        agent: "determinus-researcher",
         attempt: 1,
       }),
-    ).toBe("change-1|change:research|adv-researcher|1");
+    ).toBe("change-1|change:research|determinus-researcher|1");
     expect(
       subagentReportKey({
         changeId: "change-1",
         taskId: "tk-1",
-        agent: "adv-engineer",
+        agent: "determinus-engineer",
         attempt: 1,
         implementationCycleId: "ic-1",
       }),
@@ -55,7 +55,7 @@ describe("subagent report contracts", () => {
 
   test("does not fabricate missing test evidence for independent reviewer summaries", () => {
     const report = {
-      agent: "adv-reviewer",
+      agent: "determinus-reviewer",
       verification: {
         tests_run: ["pnpm --dir plugin run check"],
         results: "pass",

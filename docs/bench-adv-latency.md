@@ -2,7 +2,7 @@
 
 <!-- rq-advLatencyBench01 -->
 
-`plugin/scripts/bench-adv-latency.ts` runs ADV read/test tools repeatedly
+`plugin/scripts/bench-determinus-latency.ts` runs ADV read/test tools repeatedly
 and reports min/p50/p95/max/avg latency. It is a manual / nightly
 diagnostic, not a CI gate (CI uses structural regression tests instead;
 see `KD-7` in the change design).
@@ -22,14 +22,14 @@ see `KD-7` in the change design).
 Backed by `createDiskStore` so the harness initializes without a live
 Temporal worker. Exercises:
 
-- `adv_status view:"summary"`
-- `adv_status view:"health"`
-- `adv_change_list`
-- `adv_change_show`
-- `store.tasks.list` (disk fallback because `adv_task_list` requires a
+- `determinus_status view:"summary"`
+- `determinus_status view:"health"`
+- `determinus_change_list`
+- `determinus_change_show`
+- `store.tasks.list` (disk fallback because `determinus_task_list` requires a
   Temporal handle)
-- `adv_run_test echo bench`
-- `adv_run_test true`
+- `determinus_run_test echo bench`
+- `determinus_run_test true`
 
 This mode does NOT measure Temporal RTT. Use it to compare tool-shape
 changes (lazy view planning, summary memo, telemetry overhead) against a
@@ -56,7 +56,7 @@ substitute the disk path when "real Temporal" is requested.
 
 ```bash
 cd plugin
-pnpm exec tsx scripts/bench-adv-latency.ts \
+pnpm exec tsx scripts/bench-determinus-latency.ts \
   --repo-root <repo-root> \
   --change-id <existing-change-id> \
   --iterations 10 \
@@ -72,7 +72,7 @@ Output is Markdown on stdout and written to `--out` when provided.
   root that holds the `.adv/` you want to measure against.
 - `--change-id` is requested first. In isolated disk mode, when the change or
   a task is missing, the harness creates a synthetic fixture in its temporary
-  `XDG_DATA_HOME` so `adv_change_show` and `adv_run_test` samples exercise real
+  `XDG_DATA_HOME` so `determinus_change_show` and `determinus_run_test` samples exercise real
   non-error paths.
 - The harness writes its own `XDG_DATA_HOME` temp dir during the run so
   it cannot pollute real ADV state.
@@ -83,7 +83,7 @@ A Markdown report with two sections:
 
 1. `## Metadata` — repo root, requested/used change ids, mode, substitute,
    fixture source, iterations, warmup, task id used, runtime/platform labels,
-   isolated `XDG_DATA_HOME`, Temporal setup label, and `ADV_PROFILE` flag.
+   isolated `XDG_DATA_HOME`, Temporal setup label, and `determinus_PROFILE` flag.
 2. `## Operations` — `Operation | Samples | min | p50 | p95 | max | avg`
    table for each timed surface.
 

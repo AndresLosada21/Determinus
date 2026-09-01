@@ -77,7 +77,7 @@ describe("Wisdom Lifecycle Integration", () => {
 
     // 2. Start working on a task (sets active change via active-work mutator)
     await hooks["tool.execute.before"]!(
-      { tool: "adv_task_update", sessionID: "test" } as any,
+      { tool: "determinus_task_update", sessionID: "test" } as any,
       { args: { changeId } } as any,
     );
 
@@ -94,7 +94,7 @@ describe("Wisdom Lifecycle Integration", () => {
       task: { id: taskId, title: "Initial Task", status: "done" },
     });
     await hooks["tool.execute.after"]!(
-      { tool: "adv_task_update" } as any,
+      { tool: "determinus_task_update" } as any,
       { args: { taskId, status: "done" }, output: completeOutput } as any,
     );
 
@@ -115,14 +115,14 @@ describe("Wisdom Lifecycle Integration", () => {
     );
 
     // 5. Add wisdom
-    await (hooks.tool as any).adv_tool_invoke.execute(
+    await (hooks.tool as any).determinus_tool_invoke.execute(
       {
-        name: "adv_wisdom_add",
+        name: "determinus_wisdom_add",
         args: { changeId, type: "success", content: "Persistence pays off" },
       },
       {} as any,
     );
-    /* await (hooks.tool as any).adv_wisdom_add.execute(
+    /* await (hooks.tool as any).determinus_wisdom_add.execute(
       { changeId, type: "success", content: "Persistence pays off" },
       {} as any,
     );
@@ -175,16 +175,16 @@ describe("Workspace adapter registration", () => {
 
     expect(register).toHaveBeenCalledTimes(1);
     expect(register).toHaveBeenCalledWith(
-      "adv-worktree",
+      "determinus-worktree",
       expect.objectContaining({
-        name: "adv-worktree",
-        description: expect.stringContaining("ADV-managed git worktree"),
+        name: "determinus-worktree",
+        description: expect.stringContaining("determinus-managed git worktree"),
       }),
     );
   });
 });
 
-describe("Active Change Title Update on adv_change_create", () => {
+describe("Active Change Title Update on determinus_change_create", () => {
   let tempDir: string;
   let hooks: any;
 
@@ -208,7 +208,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     await cleanupTempDir(tempDir);
   });
 
-  test("after adv_change_create, activeChangeId is set to the new change ID", async () => {
+  test("after determinus_change_create, activeChangeId is set to the new change ID", async () => {
     hooks = await AdvancePlugin({
       client: ROOT_CLIENT,
       project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
@@ -217,11 +217,11 @@ describe("Active Change Title Update on adv_change_create", () => {
       serverUrl: new URL("http://localhost"),
     } as any);
 
-    // Simulate the output of adv_change_create (banner-wrapped JSON)
+    // Simulate the output of determinus_change_create (banner-wrapped JSON)
     const newChangeId = "addNewFeature";
     const bannerWrappedOutput = [
       "╔══════════════════════════════════════╗",
-      "║ ✨ adv_change_create                  ║",
+      "║ ✨ determinus_change_create                  ║",
       `║    Target: ${newChangeId}             ║`,
       "╚══════════════════════════════════════╝",
       "",
@@ -231,9 +231,9 @@ describe("Active Change Title Update on adv_change_create", () => {
     // Before the after-hook fires, activeChangeId should be null
     expect(getStatus().activeChangeId).toBeNull();
 
-    // Fire the after hook as if adv_change_create just completed
+    // Fire the after hook as if determinus_change_create just completed
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       {
         args: { summary: "Add new feature" },
         output: bannerWrappedOutput,
@@ -244,7 +244,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     expect(getStatus().activeChangeId).toBe(newChangeId);
   });
 
-  test("after adv_change_create with plain JSON output (no banner), activeChangeId is still set", async () => {
+  test("after determinus_change_create with plain JSON output (no banner), activeChangeId is still set", async () => {
     hooks = await AdvancePlugin({
       client: ROOT_CLIENT,
       project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
@@ -260,14 +260,14 @@ describe("Active Change Title Update on adv_change_create", () => {
     });
 
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       { args: { summary: "Fix auth bug" }, output: plainOutput } as any,
     );
 
     expect(getStatus().activeChangeId).toBe(newChangeId);
   });
 
-  test("after adv_change_create with ToolResult object output, activeChangeId is still set", async () => {
+  test("after determinus_change_create with ToolResult object output, activeChangeId is still set", async () => {
     hooks = await AdvancePlugin({
       client: ROOT_CLIENT,
       project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
@@ -278,7 +278,7 @@ describe("Active Change Title Update on adv_change_create", () => {
 
     const newChangeId = "addToolResultTitles";
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       {
         args: { summary: "Add tool result titles" },
         output: {
@@ -287,7 +287,7 @@ describe("Active Change Title Update on adv_change_create", () => {
             changeId: newChangeId,
             path: "/some/path/proposal.md",
           },
-          metadata: { adv: { toolName: "adv_change_create" } },
+          metadata: { adv: { toolName: "determinus_change_create" } },
         },
       } as any,
     );
@@ -295,7 +295,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     expect(getStatus().activeChangeId).toBe(newChangeId);
   });
 
-  test("after adv_task_update with ToolResult object output, completed task is tracked", async () => {
+  test("after determinus_task_update with ToolResult object output, completed task is tracked", async () => {
     hooks = await AdvancePlugin({
       client: ROOT_CLIENT,
       project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
@@ -305,7 +305,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     } as any);
 
     await hooks["tool.execute.after"]!(
-      { tool: "adv_task_update" } as any,
+      { tool: "determinus_task_update" } as any,
       {
         args: { taskId: "tk-task0002", status: "done" },
         output: {
@@ -318,7 +318,7 @@ describe("Active Change Title Update on adv_change_create", () => {
               status: "done",
             },
           }),
-          metadata: { adv: { toolName: "adv_task_update" } },
+          metadata: { adv: { toolName: "determinus_task_update" } },
         },
       } as any,
     );
@@ -343,7 +343,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     );
   });
 
-  test("after adv_change_create with braces inside path string, activeChangeId is still set", async () => {
+  test("after determinus_change_create with braces inside path string, activeChangeId is still set", async () => {
     hooks = await AdvancePlugin({
       client: ROOT_CLIENT,
       project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
@@ -355,7 +355,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     const newChangeId = "updateTabTitle";
     const bannerWrappedOutput = [
       "╔══════════════════════════════════════╗",
-      "║ ✨ adv_change_create                  ║",
+      "║ ✨ determinus_change_create                  ║",
       `║    Target: ${newChangeId}             ║`,
       "╚══════════════════════════════════════╝",
       "",
@@ -366,7 +366,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     ].join("\n");
 
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       {
         args: { summary: "Update tab title" },
         output: bannerWrappedOutput,
@@ -376,7 +376,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     expect(getStatus().activeChangeId).toBe(newChangeId);
   });
 
-  test("switching from one change to another via adv_change_create updates the title", async () => {
+  test("switching from one change to another via determinus_change_create updates the title", async () => {
     hooks = await AdvancePlugin({
       client: ROOT_CLIENT,
       project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
@@ -388,7 +388,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     // First, set an active change (simulating prior work) via the create
     // after-hook, which is not gated by the reachability check.
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       {
         args: { summary: "old" },
         output: JSON.stringify({ changeId: "oldChange" }),
@@ -404,14 +404,14 @@ describe("Active Change Title Update on adv_change_create", () => {
     });
 
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       { args: { summary: "Add new feature" }, output } as any,
     );
 
     expect(getStatus().activeChangeId).toBe(newChangeId);
   });
 
-  test("malformed adv_change_create output does not clear existing active change", async () => {
+  test("malformed determinus_change_create output does not clear existing active change", async () => {
     hooks = await AdvancePlugin({
       client: ROOT_CLIENT,
       project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
@@ -421,7 +421,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     } as any);
 
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       {
         args: { summary: "existing" },
         output: JSON.stringify({ changeId: "existingChange" }),
@@ -430,7 +430,7 @@ describe("Active Change Title Update on adv_change_create", () => {
     expect(getStatus().activeChangeId).toBe("existingChange");
 
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       { args: { summary: "Bad output" }, output: "not-json" } as any,
     );
 
@@ -995,7 +995,7 @@ describe("Trunk Write Firewall: tool.execute.before interception", () => {
     // Change tracking should still work. Use the create after-hook so the
     // pointer is set without requiring a reachable change record.
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create", sessionID: "test" } as any,
+      { tool: "determinus_change_create", sessionID: "test" } as any,
       {
         args: { summary: "guard" },
         output: JSON.stringify({ changeId: "guardTest" }),
@@ -1052,7 +1052,7 @@ describe("Trunk Write Firewall: tool.execute.before interception", () => {
       // Use the create after-hook (recordCreatedChange), which is not gated
       // by the reachability check introduced for args.changeId re-pointing.
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_create", sessionID: "test" } as any,
+        { tool: "determinus_change_create", sessionID: "test" } as any,
         {
           args: { summary: "test" },
           output: JSON.stringify({ changeId }),
@@ -1100,7 +1100,7 @@ describe("Trunk Write Firewall: tool.execute.before interception", () => {
     // Set an active change that has NO worktree. Use the create after-hook
     // so the pointer is set without requiring a reachable change record.
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create", sessionID: "test" } as any,
+      { tool: "determinus_change_create", sessionID: "test" } as any,
       {
         args: { summary: "test" },
         output: JSON.stringify({ changeId: "noWorktreeChange" }),

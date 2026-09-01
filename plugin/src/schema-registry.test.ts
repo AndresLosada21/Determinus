@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { join, resolve } from "path";
 
 import {
-  ADV_SCHEMA_BASE_URL,
+  determinus_SCHEMA_BASE_URL,
   PUBLIC_JSON_SCHEMAS,
   renderAllJsonSchemas,
   renderJsonSchemaFile,
@@ -36,7 +36,7 @@ describe("generated ADV JSON schema registry", () => {
       const parsed = JSON.parse(rendered);
 
       expect(parsed.$schema).toBe("http://json-schema.org/draft-07/schema#");
-      expect(parsed.$id).toBe(`${ADV_SCHEMA_BASE_URL}${entry.filename}`);
+      expect(parsed.$id).toBe(`${determinus_SCHEMA_BASE_URL}${entry.filename}`);
       expect(JSON.stringify(parsed)).not.toContain("anomalyco/oc-plugins");
       expect(JSON.stringify(parsed).length).toBeGreaterThan(200);
       expect(parsed.definitions).not.toEqual({ [entry.name]: {} });

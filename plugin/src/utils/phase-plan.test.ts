@@ -198,7 +198,7 @@ describe("derivePhasePlan — variants (AC1)", () => {
     expect(plan.kind).toBe("actionable");
     if (plan.kind !== "actionable") return;
     expect(plan.gateId).toBe("release");
-    expect(plan.command).toBe("adv-archive");
+    expect(plan.command).toBe("determinus-archive");
     expect(plan.initial).toBe(false);
     expect(plan.phase).toBe("done");
   });
@@ -408,7 +408,7 @@ describe("parsePhasePlan — strict boundary validation (DDC1)", () => {
 
   const validDirective = {
     kind: "phase_directive" as const,
-    command: "adv-review" as const,
+    command: "determinus-review" as const,
     content: "Review the acceptance evidence.",
     contentHash:
       "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -431,7 +431,7 @@ describe("parsePhasePlan — strict boundary validation (DDC1)", () => {
 
   it.each([
     ["wrong kind", { ...validDirective, kind: "directive" }],
-    ["unknown command", { ...validDirective, command: "adv-apply" }],
+    ["unknown command", { ...validDirective, command: "determinus-apply" }],
     ["empty content", { ...validDirective, content: "" }],
     [
       "uppercase hash",

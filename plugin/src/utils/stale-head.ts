@@ -11,7 +11,7 @@
  * a `[ADV:WARN]` and proceeds. Recovery is the user's responsibility.
  *
  * Acceptance test #6 (partial). Detection layer here; create-time block
- * lives in T10 (`adv_worktree_create`) once it lands.
+ * lives in T10 (`determinus_worktree_create`) once it lands.
  *
  * Citations: rq-worktreeRegistry01 (state authority), rq-multiSessionFraming01.
  */

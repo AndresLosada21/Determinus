@@ -152,7 +152,7 @@ export const ChangeLifecycleStateSchema = z.enum([
 export type ChangeLifecycleState = z.infer<typeof ChangeLifecycleStateSchema>;
 
 /**
- * Filter-only status value for adv_change_list.
+ * Filter-only status value for determinus_change_list.
  * "in-flight" is a union filter for open changes (draft), not a stored status.
  * "active" and "pending" are never stored on changes; they are rejected with
  * a hint to use "in-flight" (or no status filter) for open changes.
@@ -931,20 +931,20 @@ export type ChangeContract = z.infer<typeof ChangeContractSchema>;
 /**
  * Origin provenance — captures the trigger context for a change.
  *
- * `kind` semantics (see ADV_INSTRUCTIONS.md § Change Origin Linkage Strategy):
+ * `kind` semantics (see determinus_INSTRUCTIONS.md § Change Origin Linkage Strategy):
  *   - `roadmap`   — READABLE LEGACY ONLY. Historically promoted from a
  *                   GitHub Project item; new writes rejected by
- *                   `adv_change_create` (retired by
+ *                   `determinus_change_create` (retired by
  *                   `reshapeTriagePortfolioBalance`).
  *                   Archived changes still carry this kind for read compat.
  *   - `discovery` — surfaced mid-session (bug found, drive-by improvement);
  *                   may carry source_artifact, never issue_number
- *   - `triage`    — promoted by `/adv-triage` from a non-GH source artifact
+ *   - `triage`    — promoted by `/determinus-triage` from a non-GH source artifact
  *                   (wisdom, notes); issue_number/source_artifact optional
  *   - `adhoc`     — explicit, no upstream artifact (default for ad-hoc work)
  *
  * The schema is typed-state only at this layer; behavior automation
- * (auto-create issue on `/adv-proposal #N`, auto-close on archive) lands
+ * (auto-create issue on `/determinus-proposal #N`, auto-close on archive) lands
  * in a follow-up change.
  */
 export const ChangeOriginKindSchema = z.enum([
@@ -1186,7 +1186,7 @@ export const ChangeSchema = z
     reentry_history: z.array(ReentryHistoryEntrySchema).optional(),
     /**
      * Cross-project origin provenance — set when this change was created
-     * as a follow-up from another project. Presence signals to /adv-discover
+     * as a follow-up from another project. Presence signals to /determinus-discover
      * that origin validation is required before agreement.
      */
     cross_project_origin: CrossProjectOriginSchema.optional(),
@@ -1217,7 +1217,7 @@ export const ChangeSchema = z
     /**
      * Same-project fast-follow lineage — set when this change was created
      * as a follow-up to another change within the same project. Presence
-     * signals to /adv-discover that lineage validation is required.
+     * signals to /determinus-discover that lineage validation is required.
      */
     fast_follow_of: FastFollowOfSchema.optional(),
 
@@ -1225,7 +1225,7 @@ export const ChangeSchema = z
      * Origin provenance — captures whether this change was triggered by a
      * roadmap item, a mid-session discovery, a triage promotion, or ad-hoc
      * work. Optional for backward compatibility; legacy changes default to
-     * `adhoc` semantics on read. See ADV_INSTRUCTIONS.md § Change Origin
+     * `adhoc` semantics on read. See determinus_INSTRUCTIONS.md § Change Origin
      * Linkage Strategy for resolution rules.
      */
     origin: ChangeOriginSchema.optional(),
@@ -1235,7 +1235,7 @@ export const ChangeSchema = z
      * shared guard can detect cross-project context mismatches.
      * Optional for legacy compatibility — ownerless changes are best-effort.
      */
-    adv_project_id: z.string().optional(),
+    determinus_project_id: z.string().optional(),
 
     /**
      * Per-change worktree-management marker (rq-autoManageAdvWorktrees AC3).
@@ -1285,7 +1285,7 @@ export const ChangeSchema = z
     seenReportIdsTotal: z.number().optional(),
 
     /**
-     * Typed dispositions for adv-designer design concerns. Persisted on the
+     * Typed dispositions for determinus-designer design concerns. Persisted on the
      * change projection so workflow re-seed / continue-as-new preserve the
      * structural acceptance/release gate clearing state.
      */
@@ -1315,7 +1315,7 @@ export const ChangeSchema = z
     /**
      * Phase 9 async finalization status. Set when archive dispatches
      * finalization to the background queue (phase9:"run"). Agents can
-     * observe this field via adv_change_show to confirm completion.
+     * observe this field via determinus_change_show to confirm completion.
      */
     phase9_status: Phase9FinalizationStatusSchema.optional(),
 

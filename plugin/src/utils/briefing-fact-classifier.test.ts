@@ -34,7 +34,7 @@ function engineerReport(
     attempt: 1,
     workdir_used: "/tmp/wt",
     scope: { kind: "task", task_id: "tk-engineer" },
-    agent: "adv-engineer",
+    agent: "determinus-engineer",
     status: "complete",
     files_touched: ["src/a.ts"],
     verification: [
@@ -49,7 +49,7 @@ function engineerReport(
     related_scan: "none",
     context_update_for_adv: {
       what_ads_needs_to_know: "Renderer is ready",
-      suggested_next_action: "Wire renderer into adv_change_show",
+      suggested_next_action: "Wire renderer into determinus_change_show",
     },
     ...overrides,
   });
@@ -65,7 +65,7 @@ function reviewerReport(
     attempt: 1,
     workdir_used: "/tmp/wt",
     scope: { kind: "task", task_id: "tk-reviewer" },
-    agent: "adv-reviewer",
+    agent: "determinus-reviewer",
     phase: "review",
     verdict: "READY",
     blocking_findings: [],
@@ -94,7 +94,7 @@ function scannerBundleReport(
     attempt: 1,
     workdir_used: "/tmp/wt",
     scope: { kind: "change", scope_key: "scanner-bundle:scan" },
-    agent: "adv-scanner-bundle",
+    agent: "determinus-scanner-bundle",
     phase: "review",
     scanner_count: 1,
     dimensions: ["security"],
@@ -114,7 +114,7 @@ function researcherReport(
     attempt: 1,
     workdir_used: "/tmp/wt",
     scope: { kind: "change", scope_key: "researcher:topic" },
-    agent: "adv-researcher",
+    agent: "determinus-researcher",
     topic: "Research topic",
     sources: [
       {
@@ -150,7 +150,7 @@ function verificationTriageBundleReport(
     attempt: 1,
     workdir_used: "/tmp/wt",
     scope: { kind: "change", scope_key: "verifier:local-verify" },
-    agent: "adv-verification-triage-bundle",
+    agent: "determinus-verification-triage-bundle",
     phase: "local_verify",
     targets: [
       {
@@ -178,7 +178,7 @@ function verificationTriageBundleReport(
         ],
       },
     ],
-    recommended_next_action: "route_adv_engineer",
+    recommended_next_action: "route_determinus_engineer",
     scope_risk: false,
     suggested_handoff: {
       summary: "Fix assertion.",
@@ -213,7 +213,7 @@ describe("classifyBriefingFacts", () => {
     expect(fact).toBeDefined();
     expect(fact?.outcome).toBe("transient_prompt_context");
     expect(fact?.content).toMatch(/Renderer is ready/);
-    expect(fact?.content).toMatch(/Wire renderer into adv_change_show/);
+    expect(fact?.content).toMatch(/Wire renderer into determinus_change_show/);
   });
 
   it("classifies plain follow_ups as report_follow_up items", () => {

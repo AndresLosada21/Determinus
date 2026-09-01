@@ -11,7 +11,7 @@
  *   - Platform guard throws on non-Linux at the public entry point
  *   - macOS / Windows / BSD path semantics are out of scope
  *
- * Privacy-defensive (KD-4 + T3): consumers (adv_status, adv_change_show sessions include)
+ * Privacy-defensive (KD-4 + T3): consumers (determinus_status, determinus_change_show sessions include)
  * project the public schema (session_id + started_at + workdir-basename
  * only). PID + full path remain internal to this module + diagnostics.
  *

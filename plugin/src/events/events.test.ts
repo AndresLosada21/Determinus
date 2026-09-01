@@ -369,8 +369,8 @@ describe("buildTabTitle", () => {
   });
 
   it("returns raw change ID when active change is present", () => {
-    expect(buildTabTitle("working-on-adv-change-x")).toBe(
-      "working-on-adv-change-x",
+    expect(buildTabTitle("working-on-determinus-change-x")).toBe(
+      "working-on-determinus-change-x",
     );
   });
 

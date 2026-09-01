@@ -56,7 +56,7 @@ export interface WorktreeIsolationDeps {
 }
 
 export const WORKTREE_ISOLATION_REMEDIATION =
-  "Resume or create the ADV worktree with adv_worktree_resume / adv_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.";
+  "Resume or create the ADV worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.";
 
 export function checkWorktreeIsolation(
   cwd: string,

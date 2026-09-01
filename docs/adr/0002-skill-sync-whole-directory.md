@@ -11,7 +11,7 @@
 ## Context
 
 The change introduces:
-1. Vendored Pocock skills with multi-file structure: `adv-diagnose/` has `scripts/hitl-loop.template.sh`; `adv-prototype/` has `LOGIC.md` + `UI.md`.
+1. Vendored Pocock skills with multi-file structure: `determinus-diagnose/` has `scripts/hitl-loop.template.sh`; `determinus-prototype/` has `LOGIC.md` + `UI.md`.
 2. Progressive-disclosure content-splits of 5 large existing skills: SKILL.md becomes index + core; deep-dive content moves to sibling `*.md` (WSJF.md, BOOTSTRAP.md, CATEGORIES.md, etc.).
 
 Both require the sync to ship the whole skill directory, not just SKILL.md. Without this change, content-split SKILL.md files would reach global skills dir as truncated indexes referencing siblings that don't exist there — agents loading the skill globally would see only the indexes.
@@ -22,7 +22,7 @@ Both require the sync to ship the whole skill directory, not just SKILL.md. With
 |---|---|
 | Hard to reverse | Medium — consumers (agents loading skills via `skill("name")`) will expect siblings to exist at the global path; reverting would break them. |
 | Surprising without context | Yes — the sync historically copied SKILL.md only; the change of file-layout expectation is non-obvious without this record. |
-| Result of real tradeoff | Yes — alternative was to keep all content inline in SKILL.md (rejected: breaks the 638-line adv-triage refactor and damages progressive disclosure). |
+| Result of real tradeoff | Yes — alternative was to keep all content inline in SKILL.md (rejected: breaks the 638-line determinus-triage refactor and damages progressive disclosure). |
 
 All 3 criteria met → ADR warranted.
 
@@ -31,7 +31,7 @@ All 3 criteria met → ADR warranted.
 | Option | Outcome |
 |---|---|
 | **Whole-directory copy (chosen)** | Sibling docs and subdirectories ship to global. Backward-compatible: skills with only SKILL.md (all 15 existing skills) sync identically. |
-| Keep SKILL.md-only sync, inline all content | Damages progressive disclosure. Forces adv-triage 638 lines into one file. Pocock's bundled supporting files (LOGIC.md, UI.md, scripts/) can't ship. Rejected. |
+| Keep SKILL.md-only sync, inline all content | Damages progressive disclosure. Forces determinus-triage 638 lines into one file. Pocock's bundled supporting files (LOGIC.md, UI.md, scripts/) can't ship. Rejected. |
 | Add a manifest file listing additional files per skill | Adds authoring overhead. Brittle: drift between manifest and disk. Rejected as YAGNI. |
 
 ## Consequences

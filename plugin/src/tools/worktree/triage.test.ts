@@ -301,7 +301,7 @@ describe("triageWorktrees (T18)", () => {
         branch: "change/live-terminal",
         path: "/tmp/live-terminal",
         reason: expect.stringContaining("worktree is still in use"),
-        recommendedFix: expect.stringContaining("adv_worktree_cleanup"),
+        recommendedFix: expect.stringContaining("determinus_worktree_cleanup"),
       }),
     );
   });

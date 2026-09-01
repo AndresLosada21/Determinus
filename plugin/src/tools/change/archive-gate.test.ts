@@ -82,7 +82,9 @@ async function writeDiskChange(
 
 describe("archive-gate disk projection", () => {
   it("does not rewrite an already terminal merged replay bundle", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-replay-terminal-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-archive-replay-terminal-"),
+    );
     try {
       const archiveDir = join(root, "archive");
       const bundlePath = join(archiveDir, "2026-08-08-example");
@@ -126,7 +128,7 @@ describe("archive-gate disk projection", () => {
 
   it("refreshes only the canonical external bundle during nonterminal merged replay", async () => {
     const root = await mkdtemp(
-      join(tmpdir(), "adv-archive-replay-nonterminal-"),
+      join(tmpdir(), "determinus-archive-replay-nonterminal-"),
     );
     try {
       const archiveDir = join(root, "archive");
@@ -172,7 +174,7 @@ describe("archive-gate disk projection", () => {
   });
 
   it("proves a merged replay and its committed tracked bundle before writers", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-replay-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-archive-replay-"));
     try {
       const archiveDir = join(root, "archive");
       const bundlePath = join(archiveDir, "2026-08-08-example");
@@ -307,7 +309,7 @@ describe("archive-gate disk projection", () => {
   });
 
   it("accepts audited disk release proof with matching finalization evidence", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-gate-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-archive-gate-"));
     try {
       const change = makeChange();
       await writeDiskChange(root, change);
@@ -352,7 +354,7 @@ describe("archive-gate disk projection", () => {
   });
 
   it("refuses non-shipped disk proof with mismatched evidence", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-gate-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-archive-gate-"));
     try {
       const change = makeChange();
       await writeDiskChange(root, change);
@@ -378,7 +380,9 @@ describe("archive-gate disk projection", () => {
   });
 
   it("keeps a corrupt durable release proof distinct from an absent one", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-gate-projection-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-archive-gate-projection-"),
+    );
     try {
       const change = makeChange();
       await writeDiskChange(root, change);
@@ -408,7 +412,9 @@ describe("archive-gate disk projection", () => {
   });
 
   it("carries corrupt projection failure into the archive preflight refusal", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-gate-projection-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-archive-gate-projection-"),
+    );
     try {
       const change = makeChange();
       await writeDiskChange(root, change);
@@ -436,7 +442,9 @@ describe("archive-gate disk projection", () => {
   });
 
   it("refuses an oversized projection before evaluating stale gates", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-gate-projection-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-archive-gate-projection-"),
+    );
     try {
       const change = makeChange();
       await writeDiskChange(root, change);
@@ -463,7 +471,9 @@ describe("archive-gate disk projection", () => {
   });
 
   it("passes archive preflight with a healthy projection", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-archive-gate-projection-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-archive-gate-projection-"),
+    );
     try {
       const change = makeChange();
       await writeDiskChange(root, change);

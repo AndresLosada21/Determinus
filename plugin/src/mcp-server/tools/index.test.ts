@@ -19,7 +19,7 @@ import {
 describe("executeTier4Tool dispatcher injection", () => {
   it("uses injected createToolMap", async () => {
     const createToolMap = vi.fn(() => ({
-      adv_project_context: {
+      determinus_project_context: {
         execute: vi.fn(async () => "injected project context"),
       },
     }));
@@ -52,7 +52,7 @@ describe("executeTier4Tool dispatcher injection", () => {
         {},
         {
           createToolMap: () => ({
-            adv_project_context: { execute },
+            determinus_project_context: { execute },
           }),
           pluginBundleGuard: {
             distDir,

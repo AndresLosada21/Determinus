@@ -1,6 +1,6 @@
 # Determinus (ADV) — Project Context
 
-> **Note:** This file is read by the `adv_project_context` tool to provide agents with project context. For developer-facing quick-reference with common pitfalls, see `AGENTS.md`.
+> **Note:** This file is read by the `determinus_project_context` tool to provide agents with project context. For developer-facing quick-reference with common pitfalls, see `AGENTS.md`.
 
 ## What This Is
 
@@ -33,8 +33,8 @@ plugin/src/
 
 .adv/specs/           # Capability specs — git-tracked, branch-local (the laws)
 .opencode/
-  command/            # 21 slash-command workflow files (adv-*.md)
-  agents/             # adv-researcher (bundled global), adv-engineer (bundled global), adv-reviewer (bundled global), adv-designer (bundled global, apply-phase frontend specialist), adv-tron (repo-local); overlay-managed: adv, plan (absorbed scout), build (absorbed refine)
+  command/            # 21 slash-command workflow files (determinus-*.md)
+  agents/             # determinus-researcher (bundled global), determinus-engineer (bundled global), determinus-reviewer (bundled global), determinus-designer (bundled global, apply-phase frontend specialist), determinus-tron (repo-local); overlay-managed: adv, plan (absorbed scout), build (absorbed refine)
   overlays/           # Managed overlay blocks for global shared agents
 skills/               # Bundled methodology skills → synced to ~/.config/opencode/skills/
 docs/                 # Gate contracts, workflow diagram, checklists, generated spec docs
@@ -74,7 +74,7 @@ CI order: schemas:check → typecheck → lint → format:check → test → bui
 
 ### ADV state is external
 
-Changes, archive, wisdom, reflections, and handoff live **outside the repo** at (legacy agenda data may also exist until cleaned by `adv_store_cleanup`):
+Changes, archive, wisdom, reflections, and handoff live **outside the repo** at (legacy agenda data may also exist until cleaned by `determinus_store_cleanup`):
 
 ```
 $XDG_DATA_HOME/opencode/plugins/determinus/{project-id}/
@@ -84,11 +84,11 @@ $XDG_DATA_HOME/opencode/plugins/determinus/{project-id}/
 
 ### Never read ADV state files directly
 
-Use host-plugin ADV tools (`adv_change_show`, `adv_task_list`, etc.) as top-level tools. Thirteen read tools are also reachable via the ADV MCP server as `tools.adv.*` under Code Mode (e.g., `tools.adv.status`). Direct reads via `cat`/`read`/`ls` are forbidden — state format may change and direct reads bypass caching/migration logic.
+Use host-plugin ADV tools (`determinus_change_show`, `determinus_task_list`, etc.) as top-level tools. Thirteen read tools are also reachable via the ADV MCP server as `tools.adv.*` under Code Mode (e.g., `tools.adv.status`). Direct reads via `cat`/`read`/`ls` are forbidden — state format may change and direct reads bypass caching/migration logic.
 
 ### Conformance state
 
-External CI-isolated spec conformance state lives at `~/.local/share/opencode/plugins/determinus/{project-id}/conformance.json`. Conformance test source lives in `.adv/specs/_conformance/` (default, in-repo subfolder) or `{project-parent}/advance-conformance-{pid}/` (opt-in sibling repo). Use `adv_conformance` tool for all conformance operations.
+External CI-isolated spec conformance state lives at `~/.local/share/opencode/plugins/determinus/{project-id}/conformance.json`. Conformance test source lives in `.adv/specs/_conformance/` (default, in-repo subfolder) or `{project-parent}/advance-conformance-{pid}/` (opt-in sibling repo). Use `determinus_conformance` tool for all conformance operations.
 
 ### Tool registration pattern
 
@@ -127,9 +127,9 @@ Requires `jq` for config patching and `rsync` for runtime plugin deployment.
 
 | File                      | Purpose                                                                      |
 | ------------------------- | ---------------------------------------------------------------------------- |
-| `ADV_INSTRUCTIONS.md`     | Full agent operating protocol: gates, TDD, doom loop, cancellation, re-entry |
+| `determinus_INSTRUCTIONS.md`     | Full agent operating protocol: gates, TDD, doom loop, cancellation, re-entry |
 | `AGENTS.md`               | Developer quick-reference: commands, layout, gotchas                         |
 | `SETUP.md`                | Installation, project init, troubleshooting                                  |
-| `docs/adv-gates.md`       | Gate contracts and sequencing rules                                          |
+| `docs/determinus-gates.md`       | Gate contracts and sequencing rules                                          |
 | `docs/checklists/`        | Prep, review, and harden checklists                                          |
 | `docs/snapshot-health.md` | Detect/repair OpenCode snapshot-store corruption                             |

@@ -3,7 +3,7 @@
  *
  * Epic entries own desired child membership; child `epic_membership` is
  * derived and rebuildable.
- * `adv_epic_show` and other access points call these primitives to observe
+ * `determinus_epic_show` and other access points call these primitives to observe
  * authoritative + derived state and produce a typed convergence result
  * instead of trusting a stale stored Epic-side `membership_status`.
  *

@@ -94,7 +94,7 @@ export interface PolicyMatchResult {
 
 /**
  * For a manifest containing an ADV tool policy, verify its parsed `tools`
- * map is non-empty and its `adv_*` grants exactly match the agent's
+ * map is non-empty and its `determinus_*` grants exactly match the agent's
  * declared `AGENT_TOOL_POLICY.allowed` set.
  *
  * rq-agentManifestToolPolicyEffective01
@@ -117,14 +117,16 @@ export function assertPolicyMatch(
   }
 
   const toolsMap = tools as Record<string, unknown>;
-  const advKeys = Object.keys(toolsMap).filter((k) => k.startsWith("adv_"));
+  const advKeys = Object.keys(toolsMap).filter((k) =>
+    k.startsWith("determinus_"),
+  );
 
   if (advKeys.length === 0) {
     return { ok: false, drift: ["tools map is empty"] };
   }
 
   const grantedTools = new Set(
-    advKeys.filter((k) => k !== "adv_*" && toolsMap[k] === true),
+    advKeys.filter((k) => k !== "determinus_*" && toolsMap[k] === true),
   );
   const policyAllowed = new Set(policy.allowed);
   const drift: string[] = [];
@@ -157,7 +159,7 @@ export interface ScanResult {
 
 /**
  * Walk a directory, parse every `.md` file's frontmatter, and return
- * aggregate results. Optionally run policy-match on ADV-policy manifests.
+ * aggregate results. Optionally run policy-match on determinus-policy manifests.
  */
 export function scanDir(
   dir: string,

@@ -1,5 +1,5 @@
 /**
- * Conflict classification taxonomy for /adv-archive Phase 9 conflict recovery.
+ * Conflict classification taxonomy for /determinus-archive Phase 9 conflict recovery.
  *
  * J3 SCOPE EXPANSION — classifies a conflicted file into one of three buckets
  * so the archive flow can decide: skip, auto-resolve, or escalate.

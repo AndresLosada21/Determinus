@@ -8,7 +8,7 @@ import { cleanupSyntheticAdvDirs } from "./synthetic-cleanup";
 
 describe("synthetic ADV cleanup guard", () => {
   test("removes stale and newly created synthetic dirs while preserving real project IDs", async () => {
-    const dataHome = await mkdtemp(join(tmpdir(), "adv-synth-clean-"));
+    const dataHome = await mkdtemp(join(tmpdir(), "determinus-synth-clean-"));
     try {
       const stale = join(
         dataHome,
@@ -39,7 +39,7 @@ describe("synthetic ADV cleanup guard", () => {
   });
 
   test("preserves pre-baseline synthetic dirs with marker mismatch", async () => {
-    const dataHome = await mkdtemp(join(tmpdir(), "adv-synth-clean-"));
+    const dataHome = await mkdtemp(join(tmpdir(), "determinus-synth-clean-"));
     try {
       const staleOwned = join(
         dataHome,
@@ -51,7 +51,7 @@ describe("synthetic ADV cleanup guard", () => {
       );
 
       await mkdir(staleOwned, { recursive: true });
-      await writeFile(join(staleOwned, ".adv-test-owner"), "other-run");
+      await writeFile(join(staleOwned, ".determinus-test-owner"), "other-run");
       await mkdir(staleUnowned, { recursive: true });
 
       const removed = await cleanupSyntheticAdvDirs(dataHome, {
@@ -67,14 +67,14 @@ describe("synthetic ADV cleanup guard", () => {
   });
 
   test("skips synthetic dirs with non-empty marker mismatch", async () => {
-    const dataHome = await mkdtemp(join(tmpdir(), "adv-synth-clean-"));
+    const dataHome = await mkdtemp(join(tmpdir(), "determinus-synth-clean-"));
     try {
       const created = join(
         dataHome,
         "opencode/worktree/0000000000000000createdcreatedcreat",
       );
       await mkdir(created, { recursive: true });
-      await writeFile(join(created, ".adv-test-owner"), "other-run");
+      await writeFile(join(created, ".determinus-test-owner"), "other-run");
 
       const removed = await cleanupSyntheticAdvDirs(dataHome, {
         runId: "this-run",
@@ -82,7 +82,7 @@ describe("synthetic ADV cleanup guard", () => {
 
       expect(removed).toEqual([]);
       expect(existsSync(created)).toBe(true);
-      expect(await readdir(created)).toContain(".adv-test-owner");
+      expect(await readdir(created)).toContain(".determinus-test-owner");
     } finally {
       await cleanupTempDir(dataHome);
     }

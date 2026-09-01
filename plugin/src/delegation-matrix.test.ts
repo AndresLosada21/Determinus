@@ -68,13 +68,13 @@ const PRIMARY_AGENTS = ["adv", "plan", "build"];
 const GLOBAL_AGENTS = new Set(["explore", "general"]);
 
 const KNOWN_SPAWNABLE_SUBAGENTS = [
-  "adv-engineer",
-  "adv-reviewer",
-  "adv-designer",
-  "adv-researcher",
-  "adv-tron",
-  "adv-verifier",
-  "adv-visual-review",
+  "determinus-engineer",
+  "determinus-reviewer",
+  "determinus-designer",
+  "determinus-researcher",
+  "determinus-tron",
+  "determinus-verifier",
+  "determinus-visual-review",
   "explore",
   "general",
 ] as const;
@@ -146,7 +146,7 @@ const RESTORE_DEL_DEFAULTS10_ARCHIVE_DELTA: Extract<
   target_id: "rq-delDefaults10",
   changes: {
     title: "Engineer-First Frontend Dispatch with Designer Follow-up",
-    body: "For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to adv-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch adv-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select adv-designer first for classified frontend work. adv-designer remains apply-phase only and MUST NOT own review or harden; adv-reviewer retains review and harden ownership.",
+    body: "For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to determinus-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch determinus-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select determinus-designer first for classified frontend work. determinus-designer remains apply-phase only and MUST NOT own review or harden; determinus-reviewer retains review and harden ownership.",
     tags: ["delegation", "frontend", "engineer-first", "designer-follow-up"],
     scenarios: [
       {
@@ -158,8 +158,8 @@ const RESTORE_DEL_DEFAULTS10_ARCHIVE_DELTA: Extract<
         ],
         when: "ADV selects an initial implementation lane",
         then: [
-          "ADV dispatches adv-engineer before adv-designer",
-          "ADV does not dispatch adv-designer as the initial implementation lane",
+          "ADV dispatches determinus-engineer before determinus-designer",
+          "ADV does not dispatch determinus-designer as the initial implementation lane",
         ],
       },
       {
@@ -167,11 +167,11 @@ const RESTORE_DEL_DEFAULTS10_ARCHIVE_DELTA: Extract<
         title: "Matching implementation receipt drives designer follow-up",
         given: [
           "A code task has metadata.frontend set to true",
-          "A same-task same-cycle adv-engineer report completed with passing verification and no blockers, or a classified inline implementation has bounded provenance",
+          "A same-task same-cycle determinus-engineer report completed with passing verification and no blockers, or a classified inline implementation has bounded provenance",
         ],
         when: "Initial implementation completes",
         then: [
-          "ADV dispatches a matching-cycle adv-designer follow-up",
+          "ADV dispatches a matching-cycle determinus-designer follow-up",
           "Designer provenance references the engineer report or inline receipt",
           "Missing, stale, or mismatched provenance is rejected",
         ],
@@ -182,8 +182,8 @@ const RESTORE_DEL_DEFAULTS10_ARCHIVE_DELTA: Extract<
         given: ["A change includes frontend scope"],
         when: "The change reaches review or harden",
         then: [
-          "adv-designer does not own review or harden",
-          "adv-reviewer retains review and harden ownership",
+          "determinus-designer does not own review or harden",
+          "determinus-reviewer retains review and harden ownership",
         ],
       },
     ],
@@ -203,7 +203,7 @@ const FIX_FRONTEND_BIND_DELTA: Extract<Delta, { operation: "modify" }> = {
   target_id: "rq-delDefaults10",
   changes: {
     title: "Engineer-First Frontend Dispatch with Designer Follow-up",
-    body: "For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to adv-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch adv-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select adv-designer first for classified frontend work. The matching implementation cycle MUST be bound under report.apply_context.implementation_cycle_id with a valid implementation_provenance (kind: engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected by the strict report schema. adv-designer remains apply-phase only and MUST NOT own review or harden; adv-reviewer retains review and harden ownership.",
+    body: "For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to determinus-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch determinus-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select determinus-designer first for classified frontend work. The matching implementation cycle MUST be bound under report.apply_context.implementation_cycle_id with a valid implementation_provenance (kind: engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected by the strict report schema. determinus-designer remains apply-phase only and MUST NOT own review or harden; determinus-reviewer retains review and harden ownership.",
     tags: [
       "delegation",
       "frontend",
@@ -221,8 +221,8 @@ const FIX_FRONTEND_BIND_DELTA: Extract<Delta, { operation: "modify" }> = {
         ],
         when: "ADV selects an initial implementation lane",
         then: [
-          "ADV dispatches adv-engineer before adv-designer",
-          "ADV does not dispatch adv-designer as the initial implementation lane",
+          "ADV dispatches determinus-engineer before determinus-designer",
+          "ADV does not dispatch determinus-designer as the initial implementation lane",
         ],
       },
       {
@@ -230,11 +230,11 @@ const FIX_FRONTEND_BIND_DELTA: Extract<Delta, { operation: "modify" }> = {
         title: "Matching implementation receipt drives designer follow-up",
         given: [
           "A code task has metadata.frontend set to true",
-          "A same-task same-cycle adv-engineer report completed with passing verification and no blockers, or a classified inline implementation has bounded provenance",
+          "A same-task same-cycle determinus-engineer report completed with passing verification and no blockers, or a classified inline implementation has bounded provenance",
         ],
         when: "Initial implementation completes",
         then: [
-          "ADV dispatches a matching-cycle adv-designer follow-up",
+          "ADV dispatches a matching-cycle determinus-designer follow-up",
           "Designer provenance references the engineer report or inline receipt",
           "The implementation cycle is carried under report.apply_context.implementation_cycle_id with a valid implementation_provenance (engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected",
           "Missing, stale, or mismatched provenance is rejected",
@@ -246,8 +246,8 @@ const FIX_FRONTEND_BIND_DELTA: Extract<Delta, { operation: "modify" }> = {
         given: ["A change includes frontend scope"],
         when: "The change reaches review or harden",
         then: [
-          "adv-designer does not own review or harden",
-          "adv-reviewer retains review and harden ownership",
+          "determinus-designer does not own review or harden",
+          "determinus-reviewer retains review and harden ownership",
         ],
       },
     ],
@@ -320,15 +320,15 @@ function isSubagentMode(agentName: string): boolean {
  */
 function readCommandFile(step: string): string | null {
   const commandMap: Record<string, string> = {
-    proposal: "adv-proposal.md",
-    discovery: "adv-discover.md",
-    design: "adv-design.md",
-    prep: "adv-prep.md",
-    apply: "adv-apply.md",
-    review: "adv-review.md",
-    harden: "adv-harden.md",
-    archive: "adv-archive.md",
-    reflect: "adv-reflect.md",
+    proposal: "determinus-proposal.md",
+    discovery: "determinus-discover.md",
+    design: "determinus-design.md",
+    prep: "determinus-prep.md",
+    apply: "determinus-apply.md",
+    review: "determinus-review.md",
+    harden: "determinus-harden.md",
+    archive: "determinus-archive.md",
+    reflect: "determinus-reflect.md",
   };
   const filename = commandMap[step];
   if (!filename) return null;
@@ -565,13 +565,13 @@ describe("delegation matrix coverage", () => {
       rows.discovery,
       "Prior Research Extension",
       "subagent_primary",
-      ["adv-researcher"],
+      ["determinus-researcher"],
     );
     expectSubstep(
       rows.discovery,
       "P25 Related-Pattern Scan",
       "subagent_primary",
-      ["explore", "adv-researcher"],
+      ["explore", "determinus-researcher"],
     );
     expect(rows.prep.mode).toBe("inline_required");
     expect(rows.prep.allowedAgents).toEqual([]);
@@ -585,17 +585,17 @@ describe("delegation matrix coverage", () => {
     );
 
     expectSubstep(rows.review, "Review Remediation Fixes", "delegate_allowed", [
-      "adv-reviewer",
-      "adv-engineer",
+      "determinus-reviewer",
+      "determinus-engineer",
     ]);
     expectSubstep(rows.review, "Non-Trivial Fix Research", "delegate_allowed", [
-      "adv-researcher",
+      "determinus-researcher",
     ]);
     expectSubstep(
       rows.harden,
       "Hardening Remediation Fixes",
       "delegate_allowed",
-      ["adv-reviewer", "adv-engineer"],
+      ["determinus-reviewer", "determinus-engineer"],
     );
   });
 
@@ -608,7 +608,7 @@ describe("delegation matrix coverage", () => {
     expectPacketContract(
       rows.apply,
       "Context-Shed Implementation",
-      "adv-engineer",
+      "determinus-engineer",
       "typed_persisted_worker",
       ["WORKING DIRECTORY", "CHANGE", "TASK", "ATTEMPT"],
       [...SUBAGENT_WARN_FIRST_PACKET_ANCHORS],
@@ -616,7 +616,7 @@ describe("delegation matrix coverage", () => {
     expectPacketContract(
       rows.apply,
       "Frontend Implementation",
-      "adv-designer",
+      "determinus-designer",
       "typed_persisted_worker",
       ["WORKING DIRECTORY", "CHANGE", "TASK", "ATTEMPT"],
       [...SUBAGENT_WARN_FIRST_PACKET_ANCHORS],
@@ -624,7 +624,7 @@ describe("delegation matrix coverage", () => {
     expectPacketContract(
       rows.apply,
       "Verify-Only Burst",
-      "adv-verifier",
+      "determinus-verifier",
       "orchestrator_submitted_verification_bundle",
       ["WORKING DIRECTORY", "CHANGE", "SCOPE KEY", "PHASE", "ATTEMPT"],
       [...SUBAGENT_WARN_FIRST_PACKET_ANCHORS],
@@ -639,7 +639,7 @@ describe("delegation matrix coverage", () => {
     expectPacketContract(
       rows.review,
       "Review Remediation Fixes",
-      "adv-reviewer",
+      "determinus-reviewer",
       "typed_persisted_worker",
       ["WORKING DIRECTORY", "CHANGE", "TASK", "PHASE", "ATTEMPT"],
       [...SUBAGENT_WARN_FIRST_PACKET_ANCHORS],
@@ -647,7 +647,7 @@ describe("delegation matrix coverage", () => {
     expectPacketContract(
       rows.review,
       "Review Remediation Fixes",
-      "adv-engineer",
+      "determinus-engineer",
       "typed_persisted_worker",
       ["WORKING DIRECTORY", "CHANGE", "TASK", "ATTEMPT"],
       [...SUBAGENT_WARN_FIRST_PACKET_ANCHORS],
@@ -662,7 +662,7 @@ describe("delegation matrix coverage", () => {
     expectPacketContract(
       rows.harden,
       "Hardening Remediation Fixes",
-      "adv-reviewer",
+      "determinus-reviewer",
       "typed_persisted_worker",
       ["WORKING DIRECTORY", "CHANGE", "TASK", "PHASE", "ATTEMPT"],
       [...SUBAGENT_WARN_FIRST_PACKET_ANCHORS],
@@ -670,7 +670,7 @@ describe("delegation matrix coverage", () => {
     expectPacketContract(
       rows.harden,
       "Hardening Remediation Fixes",
-      "adv-engineer",
+      "determinus-engineer",
       "typed_persisted_worker",
       ["WORKING DIRECTORY", "CHANGE", "TASK", "ATTEMPT"],
       [...SUBAGENT_WARN_FIRST_PACKET_ANCHORS],
@@ -732,16 +732,28 @@ describe("delegation matrix coverage", () => {
     const agentMap = Object.fromEntries(
       EXPECTED_MATRIX.map((r) => [r.step, new Set(r.allowedAgents)]),
     );
-    expect(agentMap.discovery).toEqual(new Set(["adv-researcher", "explore"]));
-    expect(agentMap.design).toEqual(new Set(["adv-researcher"]));
+    expect(agentMap.discovery).toEqual(
+      new Set(["determinus-researcher", "explore"]),
+    );
+    expect(agentMap.design).toEqual(new Set(["determinus-researcher"]));
     expect(agentMap.apply).toEqual(
-      new Set(["adv-engineer", "adv-designer", "adv-verifier", "general"]),
+      new Set([
+        "determinus-engineer",
+        "determinus-designer",
+        "determinus-verifier",
+        "general",
+      ]),
     );
     expect(agentMap.review).toEqual(
-      new Set(["adv-reviewer", "adv-engineer", "adv-researcher", "explore"]),
+      new Set([
+        "determinus-reviewer",
+        "determinus-engineer",
+        "determinus-researcher",
+        "explore",
+      ]),
     );
     expect(agentMap.harden).toEqual(
-      new Set(["adv-reviewer", "adv-engineer", "explore"]),
+      new Set(["determinus-reviewer", "determinus-engineer", "explore"]),
     );
   });
 
@@ -761,11 +773,11 @@ describe("delegation matrix coverage", () => {
     ].join("\n");
 
     for (const agent of [
-      "adv-engineer",
-      "adv-reviewer",
-      "adv-designer",
-      "adv-researcher",
-      "adv-tron",
+      "determinus-engineer",
+      "determinus-reviewer",
+      "determinus-designer",
+      "determinus-researcher",
+      "determinus-tron",
     ]) {
       expect(text).toContain(agent);
     }
@@ -796,8 +808,8 @@ describe("delegation matrix coverage", () => {
     ].join("\n");
 
     for (const expected of [
-      "adv-designer",
-      "adv-reviewer",
+      "determinus-designer",
+      "determinus-reviewer",
       "playwright_*",
       "skill: true",
       'skill("playwright-mcp")',
@@ -831,7 +843,7 @@ describe("delegation matrix coverage", () => {
     ].join("\n");
 
     for (const expected of [
-      "adv_task_ready",
+      "determinus_task_ready",
       "delegation_hint",
       "frontend",
       "formatted",
@@ -869,11 +881,13 @@ describe("delegation matrix coverage", () => {
     ).toBeDefined();
 
     expect(requirement?.body).toContain(
-      "MUST route initial implementation to adv-engineer",
+      "MUST route initial implementation to determinus-engineer",
     );
-    expect(requirement?.body).toContain("MUST NOT select adv-designer first");
+    expect(requirement?.body).toContain(
+      "MUST NOT select determinus-designer first",
+    );
     expect(requirement?.body).not.toContain(
-      "MUST route initial implementation to adv-designer",
+      "MUST route initial implementation to determinus-designer",
     );
 
     const initialLane = requirement?.scenarios?.find(
@@ -882,19 +896,19 @@ describe("delegation matrix coverage", () => {
     expect(initialLane).toMatchObject({
       when: "ADV selects an initial implementation lane",
       then: [
-        "ADV dispatches adv-engineer before adv-designer",
-        "ADV does not dispatch adv-designer as the initial implementation lane",
+        "ADV dispatches determinus-engineer before determinus-designer",
+        "ADV does not dispatch determinus-designer as the initial implementation lane",
       ],
     });
     expect(initialLane?.then).not.toContain(
-      "ADV dispatches adv-designer as the initial implementation lane",
+      "ADV dispatches determinus-designer as the initial implementation lane",
     );
 
     const followUp = requirement?.scenarios?.find(
       (scenario) => scenario.id === "rq-delDefaults10.2",
     );
     expect(followUp?.then).toContain(
-      "ADV dispatches a matching-cycle adv-designer follow-up",
+      "ADV dispatches a matching-cycle determinus-designer follow-up",
     );
   });
 
@@ -930,9 +944,11 @@ describe("delegation matrix coverage", () => {
 
     // DDC3: additive — existing engineer-first semantics preserved.
     expect(requirement?.body).toContain(
-      "MUST route initial implementation to adv-engineer",
+      "MUST route initial implementation to determinus-engineer",
     );
-    expect(requirement?.body).toContain("MUST NOT select adv-designer first");
+    expect(requirement?.body).toContain(
+      "MUST NOT select determinus-designer first",
+    );
 
     // Scenario .2 carries the nesting requirement (additive clause).
     const followUp = requirement?.scenarios?.find(
@@ -944,7 +960,7 @@ describe("delegation matrix coverage", () => {
       ),
     ).toBe(true);
     expect(followUp?.then).toContain(
-      "ADV dispatches a matching-cycle adv-designer follow-up",
+      "ADV dispatches a matching-cycle determinus-designer follow-up",
     );
 
     // Scenarios .1 and .3 unchanged (additivity).
@@ -952,13 +968,13 @@ describe("delegation matrix coverage", () => {
       (scenario) => scenario.id === "rq-delDefaults10.1",
     );
     expect(initialLane?.then).toContain(
-      "ADV dispatches adv-engineer before adv-designer",
+      "ADV dispatches determinus-engineer before determinus-designer",
     );
     const reviewer = requirement?.scenarios?.find(
       (scenario) => scenario.id === "rq-delDefaults10.3",
     );
     expect(reviewer?.then).toContain(
-      "adv-reviewer retains review and harden ownership",
+      "determinus-reviewer retains review and harden ownership",
     );
   });
 
@@ -982,22 +998,27 @@ describe("delegation matrix coverage", () => {
     // Expected patterns must reference matrix-allowed sub-agents and the
     // delegation decision surface.
     for (const agent of [
-      "adv-researcher",
-      "adv-engineer",
+      "determinus-researcher",
+      "determinus-engineer",
       "explore",
       "general",
     ]) {
       expect(block).toContain(agent);
     }
-    expect(block).toContain("adv_change_show");
-    expect(block).toContain("adv_task_ready");
+    expect(block).toContain("determinus_change_show");
+    expect(block).toContain("determinus_task_ready");
 
     // Forbidden patterns guard against inline fallback.
     expect(block).toMatch(/no\s+sub[- ]?agents/i);
     expect(block).toMatch(/runs\s+inline/i);
 
     // Provider-specific ADV runtime agents must be forbidden, not expected.
-    for (const forbidden of ["adv-gpt", "adv-claude", "adv-glm", "adv-kimi"]) {
+    for (const forbidden of [
+      "determinus-gpt",
+      "determinus-claude",
+      "determinus-glm",
+      "determinus-kimi",
+    ]) {
       expect(block).toMatch(
         new RegExp(
           `forbidden_patterns:[\\s\\S]*${forbidden.replace(/-/g, "\\-")}`,

@@ -92,7 +92,7 @@ describe("gate tools — disk projection lifecycle", () => {
   let restoreCwd: (() => void) | undefined;
 
   beforeEach(async () => {
-    const fixture = await createTempGitWorktree("adv-gate-");
+    const fixture = await createTempGitWorktree("determinus-gate-");
     cleanupWorktree = fixture.cleanup;
     // Gate mutations must execute from an isolated linked worktree, never the
     // checkout root used to run the test process.
@@ -109,13 +109,13 @@ describe("gate tools — disk projection lifecycle", () => {
     cleanupWorktree = undefined;
   });
 
-  test("adv_gate_status returns persisted gates and explicit unavailable workflow fields", async () => {
-    const root = await createTempDir("adv-gate-");
+  test("determinus_gate_status returns persisted gates and explicit unavailable workflow fields", async () => {
+    const root = await createTempDir("determinus-gate-");
     try {
       const current = change();
       await seed(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_status.execute(
+        await gateTools.determinus_gate_status.execute(
           { changeId: current.id },
           storeFor(root, current),
         ),
@@ -141,14 +141,14 @@ describe("gate tools — disk projection lifecycle", () => {
   });
 
   test("gate completion refuses a skipped gate", async () => {
-    const root = await createTempDir("adv-gate-");
+    const root = await createTempDir("determinus-gate-");
     try {
       const current = change({
         gates: gates({ planning: { ...pending }, execution: { ...pending } }),
       });
       await seed(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           { changeId: current.id, gateId: "execution" },
           storeFor(root, current),
         ),
@@ -161,7 +161,7 @@ describe("gate tools — disk projection lifecycle", () => {
   });
 
   test("planning completion remains human-approved", async () => {
-    const root = await createTempDir("adv-gate-");
+    const root = await createTempDir("determinus-gate-");
     try {
       const current = change({
         gates: gates({
@@ -172,7 +172,7 @@ describe("gate tools — disk projection lifecycle", () => {
       });
       await seed(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           { changeId: current.id, gateId: "planning" },
           storeFor(root, current),
         ),
@@ -186,12 +186,12 @@ describe("gate tools — disk projection lifecycle", () => {
   });
 
   test("gate completion commits done status and audit evidence to disk", async () => {
-    const root = await createTempDir("adv-gate-");
+    const root = await createTempDir("determinus-gate-");
     try {
       const current = change();
       await seed(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           {
             changeId: current.id,
             gateId: "acceptance",
@@ -215,7 +215,7 @@ describe("gate tools — disk projection lifecycle", () => {
   });
 
   test("execution completion refuses incomplete tasks", async () => {
-    const root = await createTempDir("adv-gate-");
+    const root = await createTempDir("determinus-gate-");
     try {
       const task = {
         id: "tk-open",
@@ -230,7 +230,7 @@ describe("gate tools — disk projection lifecycle", () => {
       });
       await seed(root, current);
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           { changeId: current.id, gateId: "execution" },
           storeFor(root, current),
         ),
@@ -245,7 +245,7 @@ describe("gate tools — disk projection lifecycle", () => {
   });
 
   test("execution completion uses loaded durable tasks when projection envelope is absent", async () => {
-    const root = await createTempDir("adv-gate-");
+    const root = await createTempDir("determinus-gate-");
     try {
       const task = {
         id: "tk-open",
@@ -263,7 +263,7 @@ describe("gate tools — disk projection lifecycle", () => {
       await writeFile(join(dir, "change.json"), JSON.stringify(current));
 
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           { changeId: current.id, gateId: "execution" },
           storeFor(root, current),
         ),
@@ -283,14 +283,14 @@ describe("gate tools — disk projection lifecycle", () => {
   ])(
     "gate completion refuses %s instead of using stale in-memory gates",
     async (_label, projection) => {
-      const root = await createTempDir("adv-gate-projection-failure-");
+      const root = await createTempDir("determinus-gate-projection-failure-");
       try {
         const current = change();
         await seed(root, current);
         await writeFile(join(root, current.id, "change.json"), projection);
 
         const parsed = JSON.parse(
-          await gateTools.adv_gate_complete.execute(
+          await gateTools.determinus_gate_complete.execute(
             { changeId: current.id, gateId: "acceptance" },
             storeFor(root, current),
           ),
@@ -308,7 +308,7 @@ describe("gate tools — disk projection lifecycle", () => {
   );
 
   test("gate completion refuses an oversized projection instead of using stale gates", async () => {
-    const root = await createTempDir("adv-gate-projection-failure-");
+    const root = await createTempDir("determinus-gate-projection-failure-");
     try {
       const current = change();
       await seed(root, current);
@@ -318,7 +318,7 @@ describe("gate tools — disk projection lifecycle", () => {
       );
 
       const parsed = JSON.parse(
-        await gateTools.adv_gate_complete.execute(
+        await gateTools.determinus_gate_complete.execute(
           { changeId: current.id, gateId: "acceptance" },
           storeFor(root, current),
         ),
@@ -333,7 +333,7 @@ describe("gate tools — disk projection lifecycle", () => {
   });
 
   test("not_found remains a successful absent load, distinct from corrupt", async () => {
-    const root = await createTempDir("adv-gate-projection-failure-");
+    const root = await createTempDir("determinus-gate-projection-failure-");
     try {
       const result = await loadChange(root, "missing-change");
       expect(result).toEqual({ success: true, data: null });

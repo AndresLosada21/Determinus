@@ -44,7 +44,7 @@ export interface ExternalDependencyStatusOptions {
 }
 
 const DEFAULT_CONCURRENCY = 4;
-// Aligned with the 1500ms adv_change_show per-member outer cap: inner budgets
+// Aligned with the 1500ms determinus_change_show per-member outer cap: inner budgets
 // larger than that are never reachable, and the same-shape warning output is
 // preserved when the total budget expires.
 const DEFAULT_PER_ITEM_TIMEOUT_MS = 1_500;

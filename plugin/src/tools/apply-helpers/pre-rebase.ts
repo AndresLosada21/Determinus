@@ -1,7 +1,7 @@
 /**
- * Pre-execution rebase helper for /adv-apply.
+ * Pre-execution rebase helper for /determinus-apply.
  *
- * Runs per-worktree at the start of /adv-apply, before the task loop.
+ * Runs per-worktree at the start of /determinus-apply, before the task loop.
  * Per-worktree git isolation makes this safe — no cross-session lock needed.
  */
 
@@ -153,7 +153,7 @@ export async function preExecutionRebase(
         ok: false,
         reason: "conflict",
         detail: `Rebase encountered conflicts in ${rebaseResult.conflictFiles.length} file(s).`,
-        hint: "Resolve conflicts manually or rebase main into your branch outside /adv-apply.",
+        hint: "Resolve conflicts manually or rebase main into your branch outside /determinus-apply.",
         conflictFiles: rebaseResult.conflictFiles,
       };
     }

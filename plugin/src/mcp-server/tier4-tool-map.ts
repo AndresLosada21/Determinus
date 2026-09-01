@@ -28,7 +28,7 @@ export const createTier4ToolMap: CreateToolMapFn = (
   const tier4Tools: ToolMap = {};
 
   for (const name of TIER_4_MCP_TOOLS) {
-    const hostName = `adv_${name}`;
+    const hostName = `determinus_${name}`;
     const tool = allTools[hostName];
     if (
       !tool &&
@@ -38,7 +38,7 @@ export const createTier4ToolMap: CreateToolMapFn = (
         name === "backlog_show")
     ) {
       const group = name.startsWith("epic_") ? epicTools : backlogShellTools;
-      const definition = group[`adv_${name}` as keyof typeof group] as {
+      const definition = group[`determinus_${name}` as keyof typeof group] as {
         description: string;
         args: Record<string, import("zod").ZodTypeAny>;
         execute: (args: unknown, store: unknown) => Promise<string>;

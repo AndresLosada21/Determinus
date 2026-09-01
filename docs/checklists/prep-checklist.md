@@ -1,8 +1,8 @@
 # Prep Checklist
 
-Referenced by `/adv-prep`. Enforces semantic validation before implementation begins.
+Referenced by `/determinus-prep`. Enforces semantic validation before implementation begins.
 
-> **Machine-Enforced Checks**: Items tagged with a check ID (e.g., `SCENARIO_MISSING`) are automatically enforced by `adv_gate_complete gateId: planning`. Must-failures block the gate; warnings are advisory only.
+> **Machine-Enforced Checks**: Items tagged with a check ID (e.g., `SCENARIO_MISSING`) are automatically enforced by `determinus_gate_complete gateId: planning`. Must-failures block the gate; warnings are advisory only.
 
 ---
 
@@ -77,7 +77,7 @@ Every scenario MUST be translatable to a test:
 - [ ] **Explicit exclusions** — What is OUT of scope is documented
 - [ ] **Affected files identified** — Codebase search performed for key terms
 - [ ] **No scope creep** — Tasks align with stated requirements (no extras)
-- [ ] **Cross-spec conflicts resolved** — `adv_spec action: "search"` run, no contradictions
+- [ ] **Cross-spec conflicts resolved** — `determinus_spec action: "search"` run, no contradictions
 
 ---
 
@@ -141,14 +141,14 @@ Analysis is complete when ALL of the following are true:
 - [ ] All requirements checked against INVEST criteria
 - [ ] Codebase searched for 3+ key terms from the change
 - [ ] 2+ libraries researched via Context7 (if applicable)
-- [ ] All deployed specs scanned for conflicts via `adv_spec action: "search"`
+- [ ] All deployed specs scanned for conflicts via `determinus_spec action: "search"`
 - [ ] Cross-cutting concerns checklist completed
 - [ ] Task sequencing validated (no inversions, no unnecessary splits)
 - [ ] Contract Traceability checklist completed when `change.contract` exists
-- [ ] `adv_change_validate` passes in strict mode
-- [ ] `adv_gate_complete gateId: planning` passes (no must-failures from machine-enforced checks)
+- [ ] `determinus_change_validate` passes in strict mode
+- [ ] `determinus_gate_complete gateId: planning` passes (no must-failures from machine-enforced checks)
 
-**Gate blocker**: Prep gate cannot be marked complete until all heuristics are satisfied and `adv_gate_complete gateId: planning` returns success.
+**Gate blocker**: Prep gate cannot be marked complete until all heuristics are satisfied and `determinus_gate_complete gateId: planning` returns success.
 
 ---
 

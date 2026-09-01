@@ -13,16 +13,16 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 
 **ID:** `rq-problemSpecLaw01` | **Priority:** **[MUST]**
 
-/adv-problem MUST include a spec-law impact assessment when triage clarifies expected durable product/system behavior. If the finding requires spec-law change, the triage outcome MUST route to /adv-proposal with a draft spec-delta obligation carried forward. If no spec law update is required, direct fix remains allowed only when all direct-fix guardrails pass and the triage summary records the no-delta rationale. A finding with uncertain spec-law impact MUST NOT be classified as a trivial direct-fix candidate. /adv-problem remains read-only and MUST NOT create changes, tasks, gates, or spec deltas directly.
+/determinus-problem MUST include a spec-law impact assessment when triage clarifies expected durable product/system behavior. If the finding requires spec-law change, the triage outcome MUST route to /determinus-proposal with a draft spec-delta obligation carried forward. If no spec law update is required, direct fix remains allowed only when all direct-fix guardrails pass and the triage summary records the no-delta rationale. A finding with uncertain spec-law impact MUST NOT be classified as a trivial direct-fix candidate. /determinus-problem remains read-only and MUST NOT create changes, tasks, gates, or spec deltas directly.
 
-**Tags:** `workflow`, `adv-problem`, `spec-law`, `triage`
+**Tags:** `workflow`, `determinus-problem`, `spec-law`, `triage`
 
 #### Scenarios
 
 **Behavior-significant finding routes to proposal with spec-law obligation** (`rq-problemSpecLaw01.1`)
 
 **Given:**
-- A user reports through /adv-problem that page X must have behavior Y
+- A user reports through /determinus-problem that page X must have behavior Y
 
 **When:** Triage concludes behavior Y is a durable expected behavior or contract change
 
@@ -34,7 +34,7 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 **Non-law direct fix requires no-delta rationale** (`rq-problemSpecLaw01.2`)
 
 **Given:**
-- /adv-problem identifies a narrow defect that does not alter durable behavior or existing spec law
+- /determinus-problem identifies a narrow defect that does not alter durable behavior or existing spec law
 
 **When:** The command recommends a direct-fix candidate
 
@@ -46,13 +46,13 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 **Problem triage remains read-only** (`rq-problemSpecLaw01.3`)
 
 **Given:**
-- /adv-problem identifies a behavior-significant issue
+- /determinus-problem identifies a behavior-significant issue
 
 **When:** The command completes triage
 
 **Then:**
 - It does not create or mutate changes, tasks, gates, or spec files
-- It hands off to /adv-proposal for artifact creation
+- It hands off to /determinus-proposal for artifact creation
 
 ---
 
@@ -60,16 +60,16 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 
 **ID:** `rq-taskSpecLaw01` | **Priority:** **[MUST]**
 
-/adv-task MUST include a spec-law impact assessment for small well-understood durable changes before planning completes. The assessment MUST classify impact as add, modify, remove, No spec law update required, or Uncertain. Add/modify/remove outcomes MUST persist draft spec-delta obligations with concrete rq-* requirement IDs and at least one Given/When/Then scenario per obligation before implementation tasks are generated. No-update outcomes MUST persist a no-delta rationale. Uncertain outcomes MUST NOT complete planning or create implementation tasks for the uncertain scope; they route to /adv-proposal or deeper discovery. ADV agent routing SHOULD prefer /adv-task over ad hoc/direct implementation when full /adv-proposal ceremony is not warranted but durable change/task state exists before implementation for crash recovery.
+/determinus-task MUST include a spec-law impact assessment for small well-understood durable changes before planning completes. The assessment MUST classify impact as add, modify, remove, No spec law update required, or Uncertain. Add/modify/remove outcomes MUST persist draft spec-delta obligations with concrete rq-* requirement IDs and at least one Given/When/Then scenario per obligation before implementation tasks are generated. No-update outcomes MUST persist a no-delta rationale. Uncertain outcomes MUST NOT complete planning or create implementation tasks for the uncertain scope; they route to /determinus-proposal or deeper discovery. ADV agent routing SHOULD prefer /determinus-task over ad hoc/direct implementation when full /determinus-proposal ceremony is not warranted but durable change/task state exists before implementation for crash recovery.
 
-**Tags:** `workflow`, `adv-task`, `spec-law`, `tracking`
+**Tags:** `workflow`, `determinus-task`, `spec-law`, `tracking`
 
 #### Scenarios
 
 **Fast-track spec delta obligations are concrete** (`rq-taskSpecLaw01.1`)
 
 **Given:**
-- A small well-understood durable change is routed through /adv-task
+- A small well-understood durable change is routed through /determinus-task
 
 **When:** The spec-law impact assessment classifies the change as add, modify, or remove
 
@@ -81,7 +81,7 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 **No-delta fast-track records rationale** (`rq-taskSpecLaw01.2`)
 
 **Given:**
-- A small well-understood durable change is routed through /adv-task
+- A small well-understood durable change is routed through /determinus-task
 
 **When:** The spec-law impact assessment determines no spec law update is required
 
@@ -95,25 +95,25 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 **Given:**
 - A user asks for a small well-understood durable change
 
-**When:** Full /adv-proposal ceremony is not warranted but implementation work is needed
+**When:** Full /determinus-proposal ceremony is not warranted but implementation work is needed
 
 **Then:**
-- ADV agent routing prefers /adv-task over ad hoc/direct implementation
+- ADV agent routing prefers /determinus-task over ad hoc/direct implementation
 - Durable change/task state exists before implementation begins
 - A crash can resume from tracked change/task state
 
 **Uncertain fast-track scope routes deeper before planning** (`rq-taskSpecLaw01.4`)
 
 **Given:**
-- A small durable change is routed through /adv-task
+- A small durable change is routed through /determinus-task
 - The spec-law impact assessment cannot resolve whether spec law must be added, modified, removed, or left unchanged
 
 **When:** The assessment classifies the impact as Uncertain
 
 **Then:**
-- /adv-task does not complete planning for the uncertain scope
-- /adv-task creates no implementation tasks for the uncertain scope
-- The change routes to /adv-proposal or deeper discovery before implementation planning resumes
+- /determinus-task does not complete planning for the uncertain scope
+- /determinus-task creates no implementation tasks for the uncertain scope
+- The change routes to /determinus-proposal or deeper discovery before implementation planning resumes
 
 ---
 
@@ -121,7 +121,7 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 
 **ID:** `rq-R3v13wR1` | **Priority:** **[MUST]**
 
-/adv-review and /adv-harden must prevent shallow 'LGTM' behavior through evidence-backed clean verdicts, checked dimensions, and red-flag invalidators instead of a fixed finding count. /adv-review owns contract, correctness, security, tests, and scope validation. /adv-harden owns release, deploy, production, docs, and cleanup readiness. Both phases retain a critical blocker backstop and mandatory remediation for blocker/issue and validated in-scope findings.
+/determinus-review and /determinus-harden must prevent shallow 'LGTM' behavior through evidence-backed clean verdicts, checked dimensions, and red-flag invalidators instead of a fixed finding count. /determinus-review owns contract, correctness, security, tests, and scope validation. /determinus-harden owns release, deploy, production, docs, and cleanup readiness. Both phases retain a critical blocker backstop and mandatory remediation for blocker/issue and validated in-scope findings.
 
 #### Scenarios
 
@@ -157,7 +157,7 @@ Capability: Workflow contract layer for ADV — gate model, autonomy boundaries,
 
 **ID:** `rq-scopeReentry01` | **Priority:** **[MUST]**
 
-When new objectives or acceptance criteria are introduced after a change has already progressed through the gate workflow, the added scope must be routed back through the earliest invalidated pre-implementation gate via adv_change_reenter before execution continues. Agents may trigger this re-entry autonomously; explicit user approval is not required to circle back to an earlier gate. Unaffected approved scope may continue without re-entry, and non-invalidating clarifications do not require re-entry.
+When new objectives or acceptance criteria are introduced after a change has already progressed through the gate workflow, the added scope must be routed back through the earliest invalidated pre-implementation gate via determinus_change_reenter before execution continues. Agents may trigger this re-entry autonomously; explicit user approval is not required to circle back to an earlier gate. Unaffected approved scope may continue without re-entry, and non-invalidating clarifications do not require re-entry.
 
 **Tags:** `workflow`, `re-entry`, `scope-expansion`, `gates`
 
@@ -169,7 +169,7 @@ When new objectives or acceptance criteria are introduced after a change has alr
 - A change is in execution or a later gate
 - New objectives or acceptance criteria are discovered that were not part of the approved agreement
 
-**When:** adv_change_reenter is used from the earliest affected gate
+**When:** determinus_change_reenter is used from the earliest affected gate
 
 **Then:**
 - The newly added scope is routed back through discovery, agreement, design, and planning as needed before execution resumes
@@ -196,7 +196,7 @@ When new objectives or acceptance criteria are introduced after a change has alr
 **When:** The clarification is applied
 
 **Then:**
-- adv_change_reenter is not required
+- determinus_change_reenter is not required
 - Execution may continue within the existing scope
 
 **Re-entry may proceed without explicit user approval** (`rq-scopeReentry01.4`)
@@ -204,7 +204,7 @@ When new objectives or acceptance criteria are introduced after a change has alr
 **Given:**
 - A change needs scope-expansion re-entry
 
-**When:** adv_change_reenter is executed
+**When:** determinus_change_reenter is executed
 
 **Then:**
 - The call may succeed without approvedByUser or approvalEvidence
@@ -227,7 +227,7 @@ Reopening a change from gate X must reset gate X and all downstream gates to pen
 **Given:**
 - A change has completed proposal, discovery, design, planning, execution, acceptance, and release is still pending
 
-**When:** adv_change_reenter reopens from discovery
+**When:** determinus_change_reenter reopens from discovery
 
 **Then:**
 - discovery, design, planning, execution, acceptance, and release are reset to pending
@@ -238,7 +238,7 @@ Reopening a change from gate X must reset gate X and all downstream gates to pen
 **Given:**
 - A change has existing tasks, including completed tasks
 
-**When:** adv_change_reenter resets gates to pending
+**When:** determinus_change_reenter resets gates to pending
 
 **Then:**
 - All existing tasks remain on the change
@@ -247,7 +247,7 @@ Reopening a change from gate X must reset gate X and all downstream gates to pen
 **Re-entry appends audit history** (`rq-scopeReentry02.3`)
 
 **Given:**
-- A change has been reopened via adv_change_reenter
+- A change has been reopened via determinus_change_reenter
 
 **When:** The re-entry is persisted
 
@@ -272,7 +272,7 @@ The canonical ADV workflow is seven sequential gates: proposal, discovery, desig
 **Given:**
 - A change with the proposal gate pending
 
-**When:** adv_gate_complete is called for the discovery gate
+**When:** determinus_gate_complete is called for the discovery gate
 
 **Then:**
 - The call is rejected
@@ -284,7 +284,7 @@ The canonical ADV workflow is seven sequential gates: proposal, discovery, desig
 - A change with gates proposal through acceptance marked done
 - The release gate still pending
 
-**When:** adv_change_archive is called
+**When:** determinus_change_archive is called
 
 **Then:**
 - The archive is rejected with incomplete-gates error
@@ -297,11 +297,11 @@ The canonical ADV workflow is seven sequential gates: proposal, discovery, desig
 - All seven gates including release are otherwise satisfied
 - Conformance verdict is DRIFT and no override is recorded
 
-**When:** /adv-archive Phase 5.5 evaluates the conformance gate
+**When:** /determinus-archive Phase 5.5 evaluates the conformance gate
 
 **Then:**
 - Archive is halted before Phase 6 (Execute Archive)
-- adv_change_archive is not called
+- determinus_change_archive is not called
 - The user is presented with the failing AC labels and three explicit options (fix locally, override, unlock + amend) per rq-confTriage01
 
 **Execution-gate requires all non-cancelled tasks done** (`rq-gatemodel01.4`)
@@ -310,7 +310,7 @@ The canonical ADV workflow is seven sequential gates: proposal, discovery, desig
 - A change whose execution gate is being completed
 - The change has tasks with status not 'done' and not 'cancelled'
 
-**When:** adv_gate_complete is called with gateId 'execution'
+**When:** determinus_gate_complete is called with gateId 'execution'
 
 **Then:**
 - The call is rejected
@@ -323,7 +323,7 @@ The canonical ADV workflow is seven sequential gates: proposal, discovery, desig
 - A change whose execution gate is being completed
 - All tasks are either 'done' or 'cancelled' (including zero tasks)
 
-**When:** adv_gate_complete is called with gateId 'execution'
+**When:** determinus_gate_complete is called with gateId 'execution'
 
 **Then:**
 - The gate completes normally
@@ -334,7 +334,7 @@ The canonical ADV workflow is seven sequential gates: proposal, discovery, desig
 
 **ID:** `rq-extConfGate01` | **Priority:** **[MUST]**
 
-Archive of a change that touches a spec with `conformance_required: true` is blocked unless the external conformance verdict is PASS or a valid override is recorded. The external conformance capability is defined by `spec-conformance` (rq-confSource01 through rq-confTriage01). The conformance gate runs as `/adv-archive` Phase 5.5, between User Signoff (Phase 5) and Execute Archive (Phase 6), so active source removal (rq-archiveRetirement01) only triggers on a passing or override-approved release.
+Archive of a change that touches a spec with `conformance_required: true` is blocked unless the external conformance verdict is PASS or a valid override is recorded. The external conformance capability is defined by `spec-conformance` (rq-confSource01 through rq-confTriage01). The conformance gate runs as `/determinus-archive` Phase 5.5, between User Signoff (Phase 5) and Execute Archive (Phase 6), so active source removal (rq-archiveRetirement01) only triggers on a passing or override-approved release.
 
 **Tags:** `workflow`, `archive`, `conformance`, `cross-link`
 
@@ -351,7 +351,7 @@ Archive of a change that touches a spec with `conformance_required: true` is blo
 
 **Then:**
 - Archive halts at Phase 5.5
-- adv_change_archive is not invoked
+- determinus_change_archive is not invoked
 - The drift triage flow defined by rq-confTriage01 is surfaced to the user
 
 **Archive proceeds on PASS** (`rq-extConfGate01.2`)
@@ -385,7 +385,7 @@ Archive of a change that touches a spec with `conformance_required: true` is blo
 
 **ID:** `rq-approvedPrAutoMerge01` | **Priority:** **[MUST]**
 
-When a user explicitly grants merge authority for the current ADV change and requested end-state, ADV MUST retain that authority within the active orchestration session for matching same-change remediation PRs and MUST immediately arm GitHub squash auto-merge after each matching PR is pushed or created. Authority is bound to changeId, repository, change/<changeId> head branch, resolved default base branch, requested end-state, and active session; push-only permission, generic gate approval, and unrelated PRs do not authorize merge. ADV MUST run `gh pr merge <number> --repo <owner/repo> --squash --auto`, re-read the OPEN PR, and require `autoMergeRequest.enabledAt` before reporting auto-merge armed. After remediation it MUST push, re-read PR identity/state, re-arm, verify, and resume adv-ci-waiter. CI green is nonterminal until PR state is MERGED or canonical default-branch reachability is proven. Authority ends on revocation, stop/cancel, identity drift, unrelated scope, terminal completion, requested-end-state completion, or session restart/compaction/context loss that removes authoritative approval evidence; a new explicit merge grant is then required. Tier-B archive sign-off remains unchanged. The auto-merge command MUST NOT include `--delete-branch` or `-d`; cleanup remains post-merge. This immediate-auto-merge obligation has one exception: when the target project's `archive.pr_title_policy.format` is `conventional`, `armPullRequestAutoMerge` MUST first verify the live PR title conforms to `allowed_types` and that a semantic type is resolvable; on a non-conforming title, an unresolvable type, or a live-title lookup failure it MUST return a typed blocker (`PR_TITLE_POLICY_VIOLATION`, `PR_TITLE_TYPE_UNRESOLVED`, or `PR_TITLE_LOOKUP_FAILED`) instead of arming. All other authority, identity, `--delete-branch` prohibition, and Tier-B sign-off invariants are unchanged.
+When a user explicitly grants merge authority for the current ADV change and requested end-state, ADV MUST retain that authority within the active orchestration session for matching same-change remediation PRs and MUST immediately arm GitHub squash auto-merge after each matching PR is pushed or created. Authority is bound to changeId, repository, change/<changeId> head branch, resolved default base branch, requested end-state, and active session; push-only permission, generic gate approval, and unrelated PRs do not authorize merge. ADV MUST run `gh pr merge <number> --repo <owner/repo> --squash --auto`, re-read the OPEN PR, and require `autoMergeRequest.enabledAt` before reporting auto-merge armed. After remediation it MUST push, re-read PR identity/state, re-arm, verify, and resume determinus-ci-waiter. CI green is nonterminal until PR state is MERGED or canonical default-branch reachability is proven. Authority ends on revocation, stop/cancel, identity drift, unrelated scope, terminal completion, requested-end-state completion, or session restart/compaction/context loss that removes authoritative approval evidence; a new explicit merge grant is then required. Tier-B archive sign-off remains unchanged. The auto-merge command MUST NOT include `--delete-branch` or `-d`; cleanup remains post-merge. This immediate-auto-merge obligation has one exception: when the target project's `archive.pr_title_policy.format` is `conventional`, `armPullRequestAutoMerge` MUST first verify the live PR title conforms to `allowed_types` and that a semantic type is resolvable; on a non-conforming title, an unresolvable type, or a live-title lookup failure it MUST return a typed blocker (`PR_TITLE_POLICY_VIOLATION`, `PR_TITLE_TYPE_UNRESOLVED`, or `PR_TITLE_LOOKUP_FAILED`) instead of arming. All other authority, identity, `--delete-branch` prohibition, and Tier-B sign-off invariants are unchanged.
 
 **Tags:** `workflow`, `approval`, `git`, `auto-merge`
 
@@ -403,7 +403,7 @@ When a user explicitly grants merge authority for the current ADV change and req
 **Then:**
 - ADV immediately runs `gh pr merge <number> --repo <owner/repo> --squash --auto` without waiting for CI green or asking again
 - ADV verifies the PR remains OPEN and `autoMergeRequest.enabledAt` is present
-- ADV starts adv-ci-waiter and requires MERGED proof before completion
+- ADV starts determinus-ci-waiter and requires MERGED proof before completion
 
 **Remediation re-arms same-change PR** (`rq-approvedPrAutoMerge01.2`)
 
@@ -416,7 +416,7 @@ When a user explicitly grants merge authority for the current ADV change and req
 **Then:**
 - ADV re-reads PR number, repository, head, base, and state before mutation
 - ADV arms or re-arms squash auto-merge and verifies `autoMergeRequest.enabledAt`
-- ADV resumes adv-ci-waiter instead of requesting merge approval again
+- ADV resumes determinus-ci-waiter instead of requesting merge approval again
 
 **Authority invalidation fails closed** (`rq-approvedPrAutoMerge01.3`)
 
@@ -515,12 +515,12 @@ Phase 9 Git Finalization must refresh the current default-branch basis before de
 - A change has completed all gates before release
 - The change lacks post-fetch `origin/{default-branch}` reachability, and merged PR state
 
-**When:** Any caller invokes `adv_gate_complete` with `gateId: "release"`
+**When:** Any caller invokes `determinus_gate_complete` with `gateId: "release"`
 
 **Then:**
 - The gate rejects completion with code `RELEASE_REQUIRES_TRUNK_MERGE`
 - The response cites `rq-releaseFinalization01`
-- The response points to `/adv-archive {change-id}` to complete Phase 9
+- The response points to `/determinus-archive {change-id}` to complete Phase 9
 
 **PR auto-merge pending keeps release incomplete** (`rq-releaseFinalization01.6`)
 
@@ -573,7 +573,7 @@ Phase 9 Git Finalization must refresh the current default-branch basis before de
 **Phase 9 skip cannot bypass release proof** (`rq-releaseFinalization01.9`)
 
 **Given:**
-- A caller requests `adv_change_archive` with `phase9:"skip"`
+- A caller requests `determinus_change_archive` with `phase9:"skip"`
 - The change is remote-backed or otherwise requires origin/default or merged PR proof
 
 **When:** Archive attempts to transition the change to archived
@@ -631,7 +631,7 @@ Phase 9 Git Finalization must refresh the current default-branch basis before de
 
 **ID:** `rq-releaseFinalization02` | **Priority:** **[MUST]**
 
-When Phase 9 Git Finalization returns route “pr_auto_merge” or “merge_queue” with auto-merge armed (i.e. the archive tool would otherwise return “phase9: ‘pending_merge’”), ADV orchestrates the remaining completion rather than handing back to the human. The orchestration spawns “adv-ci-waiter”, the bounded-poll exception to P37, and waits for it to report a terminal result. `oc-ci-wait` (called by `adv-ci-waiter`) owns GitHub API polling and rate-limit backoff; the sub-agent samples `oc-ci-wait result --watch-id <id> --json` every 20–30 seconds. CI terminal statuses are `completed`, `timeout`, `cancelled`, `error`; `conclusion` is CI success/failure, NOT PR merge state. CI success alone is not sufficient for release completion. Release completion requires either (a) explicit PR merge-state evidence (`gh pr view <number> --json state,mergedAt,mergeCommit` returning `state == MERGED`) or (b) unchanged `origin/{default-branch}` reachability proof. On terminal `MERGED` (verified separately) it syncs the local default branch in place and re-runs “verifyReleaseEvidenceFromMain” (which already proves reachability through “pr_merged” proof and is branch-ref-independent via the persisted tip SHA delivered by parent change “fixPhase9SquashMergeRedetect”). The auto-drive applies only to “pr_auto_merge” and “merge_queue” routes; direct-push, no-remote, and “ff-only” paths remain unchanged. Auto-drive orchestration lives in “adv-archive.md”; the trunk-sync helper lives in “plugin/src/tools/archive-helpers/git-finalize.ts”.
+When Phase 9 Git Finalization returns route “pr_auto_merge” or “merge_queue” with auto-merge armed (i.e. the archive tool would otherwise return “phase9: ‘pending_merge’”), ADV orchestrates the remaining completion rather than handing back to the human. The orchestration spawns “determinus-ci-waiter”, the bounded-poll exception to P37, and waits for it to report a terminal result. `oc-ci-wait` (called by `determinus-ci-waiter`) owns GitHub API polling and rate-limit backoff; the sub-agent samples `oc-ci-wait result --watch-id <id> --json` every 20–30 seconds. CI terminal statuses are `completed`, `timeout`, `cancelled`, `error`; `conclusion` is CI success/failure, NOT PR merge state. CI success alone is not sufficient for release completion. Release completion requires either (a) explicit PR merge-state evidence (`gh pr view <number> --json state,mergedAt,mergeCommit` returning `state == MERGED`) or (b) unchanged `origin/{default-branch}` reachability proof. On terminal `MERGED` (verified separately) it syncs the local default branch in place and re-runs “verifyReleaseEvidenceFromMain” (which already proves reachability through “pr_merged” proof and is branch-ref-independent via the persisted tip SHA delivered by parent change “fixPhase9SquashMergeRedetect”). The auto-drive applies only to “pr_auto_merge” and “merge_queue” routes; direct-push, no-remote, and “ff-only” paths remain unchanged. Auto-drive orchestration lives in “determinus-archive.md”; the trunk-sync helper lives in “plugin/src/tools/archive-helpers/git-finalize.ts”.
 
 **Tags:** `workflow`, `archive`, `git`
 
@@ -640,13 +640,13 @@ When Phase 9 Git Finalization returns route “pr_auto_merge” or “merge_queu
 **Auto-drive triggers on pending_merge** (`rq-releaseFinalization02.1`)
 
 **Given:**
-- ADV calls “adv_change_archive phase9:“run””
+- ADV calls “determinus_change_archive phase9:“run””
 - The archive tool returns “phase9: ‘pending_merge’” with the route coerced from “pr_auto_merge” or “merge_queue”
 
 **When:** The orchestrator inspects the archive tool return
 
 **Then:**
-- ADV spawns “adv-ci-waiter” against the PR via the Task tool
+- ADV spawns “determinus-ci-waiter” against the PR via the Task tool
 - The main agent does not poll CI status itself
 - ADV reads “finalization.prNumber”, “finalization.prUrl”, “finalization.mainCheckout”, “finalization.defaultBranch” from the structured return (fields are nested inside “finalization”, not top-level)
 
@@ -659,7 +659,7 @@ When Phase 9 Git Finalization returns route “pr_auto_merge” or “merge_queu
 
 **Then:**
 - ADV merges and pushes the archive from an ephemeral detached worktree; the shared main checkout is not inspected or mutated
-- ADV re-calls “adv_change_archive phase9:“run”” and lets “verifyReleaseEvidenceFromMain” return “Shipped.” via the “pr_merged” proof branch-ref-independent
+- ADV re-calls “determinus_change_archive phase9:“run”” and lets “verifyReleaseEvidenceFromMain” return “Shipped.” via the “pr_merged” proof branch-ref-independent
 - No second human turn is required; the change reaches the “Shipped.” state end-to-end
 
 **Non-pending-PR paths are untouched** (`rq-releaseFinalization02.3`)
@@ -742,7 +742,7 @@ ADV archive finalization MUST NOT inspect, reset, merge, or commit into the shar
 
 **ID:** `rq-releaseFinalization04` | **Priority:** **[MUST]**
 
-When the spawned “adv-ci-waiter” returns a non-terminal outcome (timeout, blocked, red CI it cannot fix, missing credentials, ambiguous/partial report, or CI success while PR state is not yet `MERGED`), ADV MUST NOT escalate to release completion. The change MUST stay active; the terminal report MUST be “Pending auto-merge.” or “Blocked.” with the PR URL and the exact retry command. CI success alone is necessary but not sufficient; a “Shipped.” verdict requires `gh pr view <number> --json state` returning `MERGED` or unchanged `origin/{default-branch}` reachability. A false “Shipped.” contradicts the shipped-invariant bar carried by “rq-releaseFinalization01”. The retry command rendered in the report MUST match a copy-pasteable invocation that the user can run to resume the archive after fixing the upstream cause.
+When the spawned “determinus-ci-waiter” returns a non-terminal outcome (timeout, blocked, red CI it cannot fix, missing credentials, ambiguous/partial report, or CI success while PR state is not yet `MERGED`), ADV MUST NOT escalate to release completion. The change MUST stay active; the terminal report MUST be “Pending auto-merge.” or “Blocked.” with the PR URL and the exact retry command. CI success alone is necessary but not sufficient; a “Shipped.” verdict requires `gh pr view <number> --json state` returning `MERGED` or unchanged `origin/{default-branch}` reachability. A false “Shipped.” contradicts the shipped-invariant bar carried by “rq-releaseFinalization01”. The retry command rendered in the report MUST match a copy-pasteable invocation that the user can run to resume the archive after fixing the upstream cause.
 
 **Tags:** `workflow`, `archive`, `git`
 
@@ -759,7 +759,7 @@ When the spawned “adv-ci-waiter” returns a non-terminal outcome (timeout, bl
 **Then:**
 - The change stays active (status remains “draft”/“pending_merge”, archive not retired)
 - The report renders “Pending auto-merge.” with the PR URL
-- The render includes the exact retry command: “adv_change_archive changeId:{id} worktreePath:{worktree} phase9:“run””
+- The render includes the exact retry command: “determinus_change_archive changeId:{id} worktreePath:{worktree} phase9:“run””
 
 **Blocked (no PR / no auth / red CI) preserves active state** (`rq-releaseFinalization04.2`)
 
@@ -779,7 +779,7 @@ When the spawned “adv-ci-waiter” returns a non-terminal outcome (timeout, bl
 
 **ID:** `rq-releaseProjectionDurability01` | **Priority:** **[MUST]**
 
-When `/adv-archive` Phase 9 finalization succeeds, archive success MUST be gated by durable release-gate projection proof. Before `adv_change_archive phase9:"run"` reports success or performs archive retirement side effects, the surviving authoritative projection used by `adv_gate_status` MUST report `gates.release.status === "done"` with Phase 9 evidence in the release completion record. If this proof cannot be established, archive MUST return a blocked/recoverable result and MUST NOT claim shipped success, close linked issues, or run terminal cleanup as a successful retirement. When the active projection is absent and a validated existing bundle survives, retry MUST re-verify structural Phase 9 evidence, commit release-gate and Phase 9 completion together against that bundle under the archive projection lock, regenerate projection-derived bundle files through the canonical archive writer while preserving the original archive timestamp, and make exact replay a no-op.
+When `/determinus-archive` Phase 9 finalization succeeds, archive success MUST be gated by durable release-gate projection proof. Before `determinus_change_archive phase9:"run"` reports success or performs archive retirement side effects, the surviving authoritative projection used by `determinus_gate_status` MUST report `gates.release.status === "done"` with Phase 9 evidence in the release completion record. If this proof cannot be established, archive MUST return a blocked/recoverable result and MUST NOT claim shipped success, close linked issues, or run terminal cleanup as a successful retirement. When the active projection is absent and a validated existing bundle survives, retry MUST re-verify structural Phase 9 evidence, commit release-gate and Phase 9 completion together against that bundle under the archive projection lock, regenerate projection-derived bundle files through the canonical archive writer while preserving the original archive timestamp, and make exact replay a no-op.
 
 **Tags:** `workflow`, `archive`, `release`, `projection`, `durability`
 
@@ -791,10 +791,10 @@ When `/adv-archive` Phase 9 finalization succeeds, archive success MUST be gated
 - Phase 9 finalization returns direct shipped origin proof, local bare origin proof, or merged PR proof
 - The release gate completion signal or recovery path has run
 
-**When:** adv_change_archive phase9:"run" is about to return success
+**When:** determinus_change_archive phase9:"run" is about to return success
 
 **Then:**
-- The store-backed gate read used by adv_gate_status reports gates.release.status === "done"
+- The store-backed gate read used by determinus_gate_status reports gates.release.status === "done"
 - The release completion record includes Phase 9 evidence
 - Archive does not report success while the gate-status-equivalent read would show release pending
 
@@ -804,7 +804,7 @@ When `/adv-archive` Phase 9 finalization succeeds, archive success MUST be gated
 - Phase 9 finalization has succeeded
 - The store-backed release gate proof is missing, stale, pending, unreadable, or lacks matching Phase 9 evidence
 
-**When:** adv_change_archive evaluates archive success
+**When:** determinus_change_archive evaluates archive success
 
 **Then:**
 - The archive returns a blocked or recoverable result citing rq-releaseProjectionDurability01
@@ -832,7 +832,7 @@ When `/adv-archive` Phase 9 finalization succeeds, archive success MUST be gated
 - A change whose Phase 9 finalization is `shipped` (git-verified default-branch reachability/merge — `finalization.status === "shipped"`, derived only from confirmed reachability, un-forgeable)
 - Both the store-backed release-gate read and the disk release-gate projection lag `pending` (propagation lag)
 
-**When:** adv_change_archive runs the durable release-gate proof
+**When:** determinus_change_archive runs the durable release-gate proof
 
 **Then:**
 - The proof ACCEPTS via `shipped` (authoritative reachability)
@@ -845,7 +845,7 @@ When `/adv-archive` Phase 9 finalization succeeds, archive success MUST be gated
 - A change whose finalization is NOT `shipped` (`pending_merge`/`blocked`/etc.)
 - The release-gate projection is `pending`
 
-**When:** adv_change_archive evaluates the durable release-gate proof
+**When:** determinus_change_archive evaluates the durable release-gate proof
 
 **Then:**
 - The durable proof REJECTS with the existing strict guard
@@ -989,7 +989,7 @@ Archive MUST prove the terminal transition through the authoritative disk projec
 
 **ID:** `rq-archiveRecoveryConsistency01` | **Priority:** **[MUST]**
 
-Archive finalization recovery and status repair MUST be structural, idempotent, and read-after-write verified. A stale `phase9_status: pending_merge` MAY be finalized only when merged PR evidence or post-fetch `origin/{default-branch}` reachability proves release completion; successful recovery MUST record `phase9_status: done` before archived status is reported. A `phase9_status: failed` state without structural release proof MUST return a typed blocker classification and MUST NOT mark the change archived. Status-repair success MUST be gated by the same durable read model used by `adv_change_show` and `adv_change_list`: immediate show reads archived, in-flight lists omit the change, and archived lists include it exactly once. Target-project repair MUST mutate the target directly only when target confirmation and fresh queue/serviceability proof are present; otherwise it MUST emit an exact same-project recovery packet and fail closed without target mutation. No archive recovery path may read or write ADV external state files directly. Recovery is consolidated through the operator-only `bin/adv doctor` command, which diagnoses the release-stuck projection and applies the safe repair path; batch terminal-projection repair over all release-stuck candidates and single-change targeted status flip are internalized behind `bin/adv doctor` and gated on structural branch-merge evidence or precise change projection evidence.
+Archive finalization recovery and status repair MUST be structural, idempotent, and read-after-write verified. A stale `phase9_status: pending_merge` MAY be finalized only when merged PR evidence or post-fetch `origin/{default-branch}` reachability proves release completion; successful recovery MUST record `phase9_status: done` before archived status is reported. A `phase9_status: failed` state without structural release proof MUST return a typed blocker classification and MUST NOT mark the change archived. Status-repair success MUST be gated by the same durable read model used by `determinus_change_show` and `determinus_change_list`: immediate show reads archived, in-flight lists omit the change, and archived lists include it exactly once. Target-project repair MUST mutate the target directly only when target confirmation and fresh queue/serviceability proof are present; otherwise it MUST emit an exact same-project recovery packet and fail closed without target mutation. No archive recovery path may read or write ADV external state files directly. Recovery is consolidated through the operator-only `bin/adv doctor` command, which diagnoses the release-stuck projection and applies the safe repair path; batch terminal-projection repair over all release-stuck candidates and single-change targeted status flip are internalized behind `bin/adv doctor` and gated on structural branch-merge evidence or precise change projection evidence.
 
 **Tags:** `change projection`, `archive`, `repair`, `status`, `target-path`
 
@@ -1033,7 +1033,7 @@ Archive finalization recovery and status repair MUST be structural, idempotent, 
 **When:** The repair is about to report success
 
 **Then:**
-- The same durable source used by `adv_change_show` reads status `archived`
+- The same durable source used by `determinus_change_show` reads status `archived`
 - The in-flight change list omits the repaired change
 - The archived change list includes the repaired change exactly once
 - If any readback check fails, the repair reports failure with source/evidence mismatch instead of success
@@ -1111,7 +1111,7 @@ Release-repair recovery for completed or unavailable change projections MUST be 
 
 **ID:** `rq-archiveVisibility01` | **Priority:** **[MUST]**
 
-/adv-archive terminal output MUST keep deploy and reflection status visible and prominent while treating deploy/reflection failures as nonblocking advisories unless they reveal a structural release-safety failure already governed by contract proof, conformance, merge reachability, push safety, release projection durability, or dirty-main safety checks. /adv-reflect MUST provide an archive-visible summary and rerun guidance. This policy MUST NOT absorb separate active-change scope such as archive cleanup scanner behavior or first-class executive-summary ownership; those remain coordinated boundaries, not duplicate implementation in this slice.
+/determinus-archive terminal output MUST keep deploy and reflection status visible and prominent while treating deploy/reflection failures as nonblocking advisories unless they reveal a structural release-safety failure already governed by contract proof, conformance, merge reachability, push safety, release projection durability, or dirty-main safety checks. /determinus-reflect MUST provide an archive-visible summary and rerun guidance. This policy MUST NOT absorb separate active-change scope such as archive cleanup scanner behavior or first-class executive-summary ownership; those remain coordinated boundaries, not duplicate implementation in this slice.
 
 **Tags:** `workflow`, `archive`, `reflection`, `deploy`, `noise`
 
@@ -1120,7 +1120,7 @@ Release-repair recovery for completed or unavailable change projections MUST be 
 **Archive report exposes deploy/reflection advisory state** (`rq-archiveVisibility01.1`)
 
 **Given:**
-- A change is finalized through /adv-archive
+- A change is finalized through /determinus-archive
 
 **When:** The archive terminal report is emitted
 
@@ -1269,7 +1269,7 @@ ADV MAY link separate repositories into one product state plane. Linked products
 
 **ID:** `rq-productScopedChanges01` | **Priority:** **[MUST]**
 
-Product-linked changes MUST declare repository scope structurally with scope_repos. scope_repos entries MUST reference product repo ids from ProductContext.repos and MAY include path, repo_project_id, required, role, and merge_order. When product linking is enabled and no explicit scope_repos is provided, change creation MUST default to the current repo. adv_change_list and adv_status MUST default to current-repo scope while exposing explicit product-wide mode.
+Product-linked changes MUST declare repository scope structurally with scope_repos. scope_repos entries MUST reference product repo ids from ProductContext.repos and MAY include path, repo_project_id, required, role, and merge_order. When product linking is enabled and no explicit scope_repos is provided, change creation MUST default to the current repo. determinus_change_list and determinus_status MUST default to current-repo scope while exposing explicit product-wide mode.
 
 **Tags:** `workflow`, `product`, `scope`, `status`
 
@@ -1280,7 +1280,7 @@ Product-linked changes MUST declare repository scope structurally with scope_rep
 **Given:**
 - ADV is running from a linked secondary repo
 
-**When:** adv_change_create is called without scope_repos
+**When:** determinus_change_create is called without scope_repos
 
 **Then:**
 - The change has one scope_repos entry for the current repo
@@ -1290,7 +1290,7 @@ Product-linked changes MUST declare repository scope structurally with scope_rep
 **Given:**
 - Product state contains backend-scoped and web-scoped changes
 
-**When:** adv_change_list or adv_status runs without scope: product
+**When:** determinus_change_list or determinus_status runs without scope: product
 
 **Then:**
 - Current repo scoped changes are shown
@@ -1324,7 +1324,7 @@ Wisdom and reflection entries created in linked-product state MUST persist origi
 **Given:**
 - ADV runs from a linked product repo
 
-**When:** adv_wisdom_add records or promotes an entry
+**When:** determinus_wisdom_add records or promotes an entry
 
 **Then:**
 - The entry includes product_id, origin_repo_id, origin_repo_project_id, and origin_repo_path
@@ -1334,7 +1334,7 @@ Wisdom and reflection entries created in linked-product state MUST persist origi
 **Given:**
 - Product wisdom contains current repo entries, other repo entries, promoted entries, and legacy untagged entries
 
-**When:** adv_wisdom_list runs with default scope
+**When:** determinus_wisdom_list runs with default scope
 
 **Then:**
 - Current repo entries are returned
@@ -1347,7 +1347,7 @@ Wisdom and reflection entries created in linked-product state MUST persist origi
 **Given:**
 - Product wisdom contains entries from multiple repos
 
-**When:** adv_wisdom_list runs with scope: product
+**When:** determinus_wisdom_list runs with scope: product
 
 **Then:**
 - All matching product wisdom entries are returned
@@ -1369,7 +1369,7 @@ When a change has scope_repos, archive MUST collect multi-repo evidence before b
 **Given:**
 - A change has backend and web scope_repos with merge_order
 
-**When:** adv_change_archive creates the archive bundle
+**When:** determinus_change_archive creates the archive bundle
 
 **Then:**
 - multi-repo-archive.json exists in the bundle
@@ -1382,7 +1382,7 @@ When a change has scope_repos, archive MUST collect multi-repo evidence before b
 **Given:**
 - A required scoped repo cannot fast-forward merge to the default branch
 
-**When:** adv_change_archive runs preflight
+**When:** determinus_change_archive runs preflight
 
 **Then:**
 - The tool returns success: false
@@ -1395,7 +1395,7 @@ When a change has scope_repos, archive MUST collect multi-repo evidence before b
 
 **ID:** `rq-archiveRetirement01` | **Priority:** **[MUST]**
 
-When adv_change_archive completes successfully, ADV MUST create the archive bundle first, transition the change workflow/status to archived, and only then remove the active changes/<id>/ source directory. Post-archive persistence MUST NOT recreate active change.json for archived changes.
+When determinus_change_archive completes successfully, ADV MUST create the archive bundle first, transition the change workflow/status to archived, and only then remove the active changes/<id>/ source directory. Post-archive persistence MUST NOT recreate active change.json for archived changes.
 
 **Tags:** `workflow`, `archive`, `recovery`, `cleanup`
 
@@ -1406,7 +1406,7 @@ When adv_change_archive completes successfully, ADV MUST create the archive bund
 **Given:**
 - A change has satisfied all archive gates
 
-**When:** adv_change_archive completes successfully
+**When:** determinus_change_archive completes successfully
 
 **Then:**
 - The archive bundle exists
@@ -1430,7 +1430,7 @@ When adv_change_archive completes successfully, ADV MUST create the archive bund
 **Given:**
 - A change in active status still has a source changes/<id>/ directory
 
-**When:** adv_cleanup or archive flow attempts source removal
+**When:** determinus_cleanup or archive flow attempts source removal
 
 **Then:**
 - The change status is verified as archived before source removal
@@ -1519,7 +1519,7 @@ When a durable terminal projection exists for a change, terminal-aware reads MUS
 - A change with an archive bundle on the default branch
 - A stale draft or active disk projection for the same change
 
-**When:** adv_change_list, its summary path, and adv_change_show each resolve the change
+**When:** determinus_change_list, its summary path, and determinus_change_show each resolve the change
 
 **Then:**
 - All three surfaces report the same terminal status
@@ -1568,7 +1568,7 @@ Default active or in-flight change listing MUST preserve the summary/memo/cache 
 
 **ID:** `rq-boundedAuthoritativeRead01` | **Priority:** **[MUST]**
 
-Authoritative change-read surfaces (`adv_change_list`, `adv_status`) MUST resolve state inside a single request-scoped 8,000 ms aggregate deadline (`disk_READ_DEADLINE_BUDGET_MS`). The deadline context is created per request (`creatediskReadDeadline`) and threaded through source enumeration, archive pre-scan, candidate hydration, fallback classification, and disk retry/query admission; it is never shared across projects or calls. A result is complete only when every required source and candidate resolves before expiry; otherwise it is explicitly degraded and names the incomplete candidates or sources through typed metadata (`SOURCE_DEADLINE_EXCEEDED`, `hydrationStats.deadlineExceeded`, `omittedIds`), and MUST never claim completeness or let a caller infer completeness from row count or cache warmth. `safeExecute` remains outer containment (defense in depth), not the normal timeout-control mechanism; the existing `diskQueryTimeoutError`/retry machinery is extended with remaining-budget admission rather than replaced by a second timer abstraction. This requirement generalizes the terminal degradation semantics of `rq-terminalAggregateRead01` to the authoritative read path while preserving existing terminal warning codes (`TERMINAL_SOURCE_DEGRADED`, `TERMINAL_CANDIDATE_OMITTED`) and the active fast path (`rq-activeListFastPath01`) unchanged. No worker restart, unreadable-change projection mutation, or timeout-ceiling increase may be used as a read-path workaround. Deadline behavior MUST be proven with deterministic tests that use controlled timers/promises, not elapsed wall-clock timing.
+Authoritative change-read surfaces (`determinus_change_list`, `determinus_status`) MUST resolve state inside a single request-scoped 8,000 ms aggregate deadline (`disk_READ_DEADLINE_BUDGET_MS`). The deadline context is created per request (`creatediskReadDeadline`) and threaded through source enumeration, archive pre-scan, candidate hydration, fallback classification, and disk retry/query admission; it is never shared across projects or calls. A result is complete only when every required source and candidate resolves before expiry; otherwise it is explicitly degraded and names the incomplete candidates or sources through typed metadata (`SOURCE_DEADLINE_EXCEEDED`, `hydrationStats.deadlineExceeded`, `omittedIds`), and MUST never claim completeness or let a caller infer completeness from row count or cache warmth. `safeExecute` remains outer containment (defense in depth), not the normal timeout-control mechanism; the existing `diskQueryTimeoutError`/retry machinery is extended with remaining-budget admission rather than replaced by a second timer abstraction. This requirement generalizes the terminal degradation semantics of `rq-terminalAggregateRead01` to the authoritative read path while preserving existing terminal warning codes (`TERMINAL_SOURCE_DEGRADED`, `TERMINAL_CANDIDATE_OMITTED`) and the active fast path (`rq-activeListFastPath01`) unchanged. No worker restart, unreadable-change projection mutation, or timeout-ceiling increase may be used as a read-path workaround. Deadline behavior MUST be proven with deterministic tests that use controlled timers/promises, not elapsed wall-clock timing.
 
 **Tags:** `change projection`, `read-model`, `performance`, `degraded`, `deadline`
 
@@ -1577,7 +1577,7 @@ Authoritative change-read surfaces (`adv_change_list`, `adv_status`) MUST resolv
 **Slow candidate or source degrades explicitly within the aggregate deadline** (`rq-boundedAuthoritativeRead01.1`)
 
 **Given:**
-- adv_change_list or adv_status is resolving authoritative change state
+- determinus_change_list or determinus_status is resolving authoritative change state
 - One or more candidate change projections or sources exceed the internal read budget
 
 **When:** The aggregate 8-second internal deadline is reached
@@ -1593,7 +1593,7 @@ Authoritative change-read surfaces (`adv_change_list`, `adv_status`) MUST resolv
 **Given:**
 - All required sources and candidates resolve within the aggregate deadline
 
-**When:** adv_change_list or adv_status runs
+**When:** determinus_change_list or determinus_status runs
 
 **Then:**
 - The read returns a complete result preserving existing authoritative state
@@ -1667,7 +1667,7 @@ Archive and projection lookup candidate sources MUST be included in the aggregat
 
 **ID:** `rq-summaryReadBound01` | **Priority:** **[MUST]**
 
-`adv_status` with `view: "summary"` MUST apply the existing `STATUS_SUMMARY_RECENT_LIMIT` bound before non-required deep hydration, artifact reads, or recent-change enrichment, truncating the tail with typed bounded degradation (`SOURCE_BOUND_EXCEEDED`, `hydrationStats.boundedOmitted`, `omittedIds`) rather than paying full hydration cost. The bound is applied in the shared resolver (`listResolvedChanges` candidateLimit) with memo-recency ordering so the bounded recent set stays meaningful; complete summary counts/recency semantics are preserved when data resolves within the bound, and otherwise the result publishes explicit degradation instead of inaccurate totals. Changes already hydrated during the request MUST be reused for recent-change, proposal-derived, product-scope, and fast-follow context via a request-local resolved-document map that is transport-only and stripped before serialization; the request MUST NOT issue a duplicate per-change disk read or `readArtifact` call for an already-resolved row. This requirement governs change-resolution ordering and complements the provider-group planning of `rq-statusSummaryLazy01` (advance-meta); full views retain their explicit behavior but share the aggregate deadline.
+`determinus_status` with `view: "summary"` MUST apply the existing `STATUS_SUMMARY_RECENT_LIMIT` bound before non-required deep hydration, artifact reads, or recent-change enrichment, truncating the tail with typed bounded degradation (`SOURCE_BOUND_EXCEEDED`, `hydrationStats.boundedOmitted`, `omittedIds`) rather than paying full hydration cost. The bound is applied in the shared resolver (`listResolvedChanges` candidateLimit) with memo-recency ordering so the bounded recent set stays meaningful; complete summary counts/recency semantics are preserved when data resolves within the bound, and otherwise the result publishes explicit degradation instead of inaccurate totals. Changes already hydrated during the request MUST be reused for recent-change, proposal-derived, product-scope, and fast-follow context via a request-local resolved-document map that is transport-only and stripped before serialization; the request MUST NOT issue a duplicate per-change disk read or `readArtifact` call for an already-resolved row. This requirement governs change-resolution ordering and complements the provider-group planning of `rq-statusSummaryLazy01` (advance-meta); full views retain their explicit behavior but share the aggregate deadline.
 
 **Tags:** `status`, `read-model`, `performance`, `degraded`
 
@@ -1676,7 +1676,7 @@ Archive and projection lookup candidate sources MUST be included in the aggregat
 **Summary applies the recent-limit bound before deep hydration** (`rq-summaryReadBound01.1`)
 
 **Given:**
-- adv_status is called with view: "summary"
+- determinus_status is called with view: "summary"
 
 **When:** Status resolution starts
 
@@ -1715,7 +1715,7 @@ Archive and projection lookup candidate sources MUST be included in the aggregat
 
 **ID:** `rq-readCacheAdvisory01` | **Priority:** **[MUST]**
 
-Change/task/gate state MUST remain authoritative for `adv_change_list` and `adv_status`; TTL cache data MUST NOT become the primary list/status truth source for lifecycle, gate, or task state. The memo/summary fast path (`rq-activeListFastPath01`) serves only rows that were resolved authoritatively for the request or remain valid projections; warm memo/summary rows MAY still be served after deadline expiry, but the result MUST then be marked degraded and never complete. Completeness MUST never be inferred from cache warmth or row count. This requirement scopes the change-read cache and is distinct from the bounded health-probe cache of `rq-statusProbeCache01` (advance-meta), which governs diagnostic probes only.
+Change/task/gate state MUST remain authoritative for `determinus_change_list` and `determinus_status`; TTL cache data MUST NOT become the primary list/status truth source for lifecycle, gate, or task state. The memo/summary fast path (`rq-activeListFastPath01`) serves only rows that were resolved authoritatively for the request or remain valid projections; warm memo/summary rows MAY still be served after deadline expiry, but the result MUST then be marked degraded and never complete. Completeness MUST never be inferred from cache warmth or row count. This requirement scopes the change-read cache and is distinct from the bounded health-probe cache of `rq-statusProbeCache01` (advance-meta), which governs diagnostic probes only.
 
 **Tags:** `workflow`, `read-model`, `cache`, `authoritative`
 
@@ -1724,7 +1724,7 @@ Change/task/gate state MUST remain authoritative for `adv_change_list` and `adv_
 **TTL cache is not the primary list/status truth source** (`rq-readCacheAdvisory01.1`)
 
 **Given:**
-- adv_change_list or adv_status resolves lifecycle, gate, or task state
+- determinus_change_list or determinus_status resolves lifecycle, gate, or task state
 
 **When:** A TTL or memo cache holds candidate row data
 
@@ -1772,7 +1772,7 @@ ADV must pause for human input only at explicit approval/judgment checkpoints an
 **Human checkpoint pauses for approval** (`rq-autonomy01.2`)
 
 **Given:**
-- A change has completed the acceptance gate via /adv-review
+- A change has completed the acceptance gate via /determinus-review
 - Archive sign-off is the next step
 
 **When:** The ADV orchestrator evaluates the next gate
@@ -1797,10 +1797,10 @@ ADV must pause for human input only at explicit approval/judgment checkpoints an
 - A change is in the execution gate with multiple pending ready tasks
 - No enumerated human checkpoint has triggered (no doom-loop, no environmental blocker, no cancellation, no re-entry)
 
-**When:** A task completes successfully and `adv_task_ready` returns another pending task
+**When:** A task completes successfully and `determinus_task_ready` returns another pending task
 
 **Then:**
-- `/adv-apply` proceeds immediately to the next task's TDD loop
+- `/determinus-apply` proceeds immediately to the next task's TDD loop
 - No "task complete", "section complete", "progress update", or "shall I continue?" pause is emitted
 - No question tool call is made between tasks
 
@@ -1810,7 +1810,7 @@ ADV must pause for human input only at explicit approval/judgment checkpoints an
 - A change has completed planning and is entering the execution gate
 - User-value tradeoffs have been resolved at the design approval checkpoint per rq-autonomy01.3
 
-**When:** `/adv-apply` begins the TDD work loop
+**When:** `/determinus-apply` begins the TDD work loop
 
 **Then:**
 - No "Begin work / Modify criteria / Cancel" prompt or equivalent execution-start approval is emitted
@@ -1843,7 +1843,7 @@ ADV changes with an approved agreement may carry a typed change.contract spine. 
 **Discovery mints typed contract from approved agreement** (`rq-contractTrace01.1`)
 
 **Given:**
-- The user has approved acceptance criteria during /adv-discover
+- The user has approved acceptance criteria during /determinus-discover
 - The change will use structural contract traceability
 
 **When:** The discovery gate is completed
@@ -1858,7 +1858,7 @@ ADV changes with an approved agreement may carry a typed change.contract spine. 
 **Given:**
 - A change has change.contract set
 
-**When:** /adv-prep synthesizes or updates the task graph
+**When:** /determinus-prep synthesizes or updates the task graph
 
 **Then:**
 - Tasks that implement obligations carry contract_refs.implements
@@ -1868,12 +1868,12 @@ ADV changes with an approved agreement may carry a typed change.contract spine. 
 **Review persists bounded proof matrix** (`rq-contractTrace01.3`)
 
 **Given:**
-- A change with change.contract reaches /adv-review
+- A change with change.contract reaches /determinus-review
 
 **When:** Acceptance evidence is prepared
 
 **Then:**
-- /adv-review persists contract.reviewMatrix before acceptance sign-off
+- /determinus-review persists contract.reviewMatrix before acceptance sign-off
 - Each required contract item has a bounded evidence row
 - Failing, violated, unknown, or missing required proof blocks acceptance until fixed or formally amended
 
@@ -1903,10 +1903,10 @@ Acceptance and success criteria that presume a capability surface exists (a tool
 **Mint fails on a warrant naming a nonexistent surface** (`rq-acWarrant01.1`)
 
 **Given:**
-- An approved agreement declares a criterion with [warrant: tool:adv_change_archive#target_path]
-- adv_change_archive has no target_path argument in the live tool surface
+- An approved agreement declares a criterion with [warrant: tool:determinus_change_archive#target_path]
+- determinus_change_archive has no target_path argument in the live tool surface
 
-**When:** adv_contract_mint mints the contract
+**When:** determinus_contract_mint mints the contract
 
 **Then:**
 - The mint fails fast with CONTRACT_UNRESOLVED_WARRANT naming the unresolved ref
@@ -1915,10 +1915,10 @@ Acceptance and success criteria that presume a capability surface exists (a tool
 **Mint succeeds and records a warrant that resolves** (`rq-acWarrant01.2`)
 
 **Given:**
-- An approved agreement declares a criterion with [warrant: cli:bin/adv-doctor#target_path]
+- An approved agreement declares a criterion with [warrant: cli:bin/determinus-doctor#target_path]
 - `bin/adv doctor` exposes an equivalent target-project routing flag
 
-**When:** adv_contract_mint mints the contract
+**When:** determinus_contract_mint mints the contract
 
 **Then:**
 - The mint succeeds
@@ -1930,7 +1930,7 @@ Acceptance and success criteria that presume a capability surface exists (a tool
 **Given:**
 - An approved agreement contains only behavioral criteria with no [warrant: ...] tags
 
-**When:** adv_contract_mint mints the contract
+**When:** determinus_contract_mint mints the contract
 
 **Then:**
 - The mint succeeds unchanged
@@ -1954,7 +1954,7 @@ Acceptance and success criteria that presume a capability surface exists (a tool
 
 **ID:** `rq-remediation01` | **Priority:** **[MUST]**
 
-When /adv-review or /adv-harden validates an actionable finding or suggestion as in-scope, the current change must fix it before completion. No report-only, future-work, or accepted-debt path is permitted for validated in-scope findings. Findings may only be left unresolved if rejected with evidence showing they are invalid or out of scope.
+When /determinus-review or /determinus-harden validates an actionable finding or suggestion as in-scope, the current change must fix it before completion. No report-only, future-work, or accepted-debt path is permitted for validated in-scope findings. Findings may only be left unresolved if rejected with evidence showing they are invalid or out of scope.
 
 **Tags:** `workflow`, `review`, `harden`, `quality`
 
@@ -1963,7 +1963,7 @@ When /adv-review or /adv-harden validates an actionable finding or suggestion as
 **Validated suggestion implemented before completion** (`rq-remediation01.1`)
 
 **Given:**
-- /adv-review validates a suggestion as in-scope and correct
+- /determinus-review validates a suggestion as in-scope and correct
 
 **When:** Remediation runs
 
@@ -1974,7 +1974,7 @@ When /adv-review or /adv-harden validates an actionable finding or suggestion as
 **Report-only path rejected for in-scope findings** (`rq-remediation01.2`)
 
 **Given:**
-- /adv-harden identifies an actionable in-scope finding
+- /determinus-harden identifies an actionable in-scope finding
 
 **When:** Remediation options are presented
 
@@ -1985,7 +1985,7 @@ When /adv-review or /adv-harden validates an actionable finding or suggestion as
 **Rejection with evidence is permitted** (`rq-remediation01.3`)
 
 **Given:**
-- /adv-review flags a suggestion as potentially in-scope
+- /determinus-review flags a suggestion as potentially in-scope
 
 **When:** Investigation determines the suggestion is invalid or out of scope
 
@@ -1999,7 +1999,7 @@ When /adv-review or /adv-harden validates an actionable finding or suggestion as
 
 **ID:** `rq-touchedScope01` | **Priority:** **[MUST]**
 
-A change owns quality and test coverage for: (1) directly touched implementation files, (2) adjacent tests and docs needed for correctness, and (3) same-pattern quality or test issues in the local touched subsystem. This ownership boundary must remain local enough to avoid implicit repo-wide refactors. /adv-prep must synthesize tasks covering touched-scope obligations, /adv-apply must verify them before execution completes, and /adv-review and /adv-harden must enforce them.
+A change owns quality and test coverage for: (1) directly touched implementation files, (2) adjacent tests and docs needed for correctness, and (3) same-pattern quality or test issues in the local touched subsystem. This ownership boundary must remain local enough to avoid implicit repo-wide refactors. /determinus-prep must synthesize tasks covering touched-scope obligations, /determinus-apply must verify them before execution completes, and /determinus-review and /determinus-harden must enforce them.
 
 **Tags:** `workflow`, `quality`, `ownership`, `testing`
 
@@ -2047,7 +2047,7 @@ A change owns quality and test coverage for: (1) directly touched implementation
 
 **ID:** `rq-designval01` | **Priority:** **[MUST]**
 
-Before the design gate can complete, /adv-design must run an independent validation pass via an independent, read-only, externally informed validator sub-agent. The validator must be a distinct agent from the designer (different model or isolated context), have read-only access to ADV state, and possess external research capabilities (documentation lookup, web search). The validator assesses correctness, simplicity, spec-law compliance, and key alternatives. The current implementation of this capability is adv-researcher. Validator failure or timeout results in an INCONCLUSIVE warning and does not block gate completion.
+Before the design gate can complete, /determinus-design must run an independent validation pass via an independent, read-only, externally informed validator sub-agent. The validator must be a distinct agent from the designer (different model or isolated context), have read-only access to ADV state, and possess external research capabilities (documentation lookup, web search). The validator assesses correctness, simplicity, spec-law compliance, and key alternatives. The current implementation of this capability is determinus-researcher. Validator failure or timeout results in an INCONCLUSIVE warning and does not block gate completion.
 
 **Tags:** `workflow`, `design`, `validation`, `autonomy`
 
@@ -2058,10 +2058,10 @@ Before the design gate can complete, /adv-design must run an independent validat
 **Given:**
 - A change has a confirmed agreement and completed design work
 
-**When:** /adv-design is executed
+**When:** /determinus-design is executed
 
 **Then:**
-- An independent validation sub-agent pass runs before adv_gate_complete is called for the design gate
+- An independent validation sub-agent pass runs before determinus_gate_complete is called for the design gate
 - The validator is a distinct agent from the designer with read-only state access and external research capabilities
 - The validator assesses at least: correctness, simplicity, spec-law compliance, and key alternatives
 
@@ -2070,12 +2070,12 @@ Before the design gate can complete, /adv-design must run an independent validat
 **Given:**
 - The validator sub-agent fails, returns empty, or times out
 
-**When:** /adv-design handles the failed validator response
+**When:** /determinus-design handles the failed validator response
 
 **Then:**
 - The result is recorded as INCONCLUSIVE with a warning
 - The design gate is not blocked by the validator failure
-- The warning is surfaced in the /adv-design presentation output
+- The warning is surfaced in the /determinus-design presentation output
 
 ---
 
@@ -2083,7 +2083,7 @@ Before the design gate can complete, /adv-design must run an independent validat
 
 **ID:** `rq-designval02` | **Priority:** **[MUST]**
 
-When /adv-design summarizes the design, it must include the validator verdict and findings from the design validation step. VALIDATED shows a brief clean-pass note. CAUTION shows findings inline. CONFLICT shows conflict details. INCONCLUSIVE shows a warning. Legacy designs without validation data omit the section silently.
+When /determinus-design summarizes the design, it must include the validator verdict and findings from the design validation step. VALIDATED shows a brief clean-pass note. CAUTION shows findings inline. CONFLICT shows conflict details. INCONCLUSIVE shows a warning. Legacy designs without validation data omit the section silently.
 
 **Tags:** `workflow`, `design`, `presentation`
 
@@ -2094,7 +2094,7 @@ When /adv-design summarizes the design, it must include the validator verdict an
 **Given:**
 - The design validator returned VALIDATED
 
-**When:** /adv-design presents the design summary
+**When:** /determinus-design presents the design summary
 
 **Then:**
 - The output includes a one-line clean-pass note (e.g. 'Validator: clean pass')
@@ -2105,7 +2105,7 @@ When /adv-design summarizes the design, it must include the validator verdict an
 **Given:**
 - The design validator returned CONFLICT with findings
 
-**When:** /adv-design presents the design summary
+**When:** /determinus-design presents the design summary
 
 **Then:**
 - The conflict details and unresolved findings are shown to the user
@@ -2117,7 +2117,7 @@ When /adv-design summarizes the design, it must include the validator verdict an
 
 **ID:** `rq-designval03` | **Priority:** **[MUST]**
 
-When the design validator returns a CONFLICT verdict, the orchestrator must not silently auto-continue to planning. The conflict must be surfaced to the user or resolved inline before /adv-prep can proceed.
+When the design validator returns a CONFLICT verdict, the orchestrator must not silently auto-continue to planning. The conflict must be surfaced to the user or resolved inline before /determinus-prep can proceed.
 
 **Tags:** `workflow`, `design`, `autonomy`, `checkpoints`
 
@@ -2131,8 +2131,8 @@ When the design validator returns a CONFLICT verdict, the orchestrator must not 
 **When:** The orchestrator evaluates whether to proceed from design to planning
 
 **Then:**
-- The orchestrator does not silently proceed to /adv-prep
-- The conflict is surfaced to the user via /adv-design presentation pause or inline resolution attempt
+- The orchestrator does not silently proceed to /determinus-prep
+- The conflict is surfaced to the user via /determinus-design presentation pause or inline resolution attempt
 
 **VALIDATED and CAUTION verdicts auto-continue** (`rq-designval03.2`)
 
@@ -2185,7 +2185,7 @@ When an agent identifies that a proposed design can only be delivered by comprom
 
 **ID:** `rq-handoffVoice01` | **Priority:** **[MUST]**
 
-Every /adv-* command that emits a user-facing gate-transition message MUST use the Gate Handoff Voice spine: Problem / Chosen direction / Delivered, followed by a blockquote wayfinder block. The blockquote MUST contain three rows: bolded `**{change-id}**`, the gate transition `{gate} ✓ → {next-gate}`, and an arrow-prefixed runnable command `→ `/adv-{next-command} {change-id}``. The command shown MUST be the single manifest-registered command needed to continue the next gate transition, taken from the current actionable phase-plan / directive. It MUST NOT be inferred, guessed, or substituted from prose. If no actionable command is available (blocked, recovery, approval, terminal, or missing command), the arrow-prefixed row MUST be omitted and the blockquote MUST show a blocked/recovery/approval status line. If a user reaches ADV with the retired `/adv-accept` wording, returned guidance MUST correct `/adv-accept` to `/adv-review` and MUST NOT register `/adv-accept` as a command or alias. Canonical source: docs/command-voice-standard.md § Gate Handoff Voice.
+Every /determinus-* command that emits a user-facing gate-transition message MUST use the Gate Handoff Voice spine: Problem / Chosen direction / Delivered, followed by a blockquote wayfinder block. The blockquote MUST contain three rows: bolded `**{change-id}**`, the gate transition `{gate} ✓ → {next-gate}`, and an arrow-prefixed runnable command `→ `/determinus-{next-command} {change-id}``. The command shown MUST be the single manifest-registered command needed to continue the next gate transition, taken from the current actionable phase-plan / directive. It MUST NOT be inferred, guessed, or substituted from prose. If no actionable command is available (blocked, recovery, approval, terminal, or missing command), the arrow-prefixed row MUST be omitted and the blockquote MUST show a blocked/recovery/approval status line. If a user reaches ADV with the retired `/determinus-accept` wording, returned guidance MUST correct `/determinus-accept` to `/determinus-review` and MUST NOT register `/determinus-accept` as a command or alias. Canonical source: docs/command-voice-standard.md § Gate Handoff Voice.
 
 **Tags:** `voice`, `handoff`, `presentation`
 
@@ -2194,7 +2194,7 @@ Every /adv-* command that emits a user-facing gate-transition message MUST use t
 **Handoff follows spine with blockquote wayfinder block** (`rq-handoffVoice01.1`)
 
 **Given:**
-- An /adv-* command completes a gate and emits a user-facing gate-transition message
+- An /determinus-* command completes a gate and emits a user-facing gate-transition message
 
 **When:** The handoff message is rendered
 
@@ -2202,14 +2202,14 @@ Every /adv-* command that emits a user-facing gate-transition message MUST use t
 - All three narrative spine headings are present: Problem, Chosen direction, Delivered, followed by a blockquote wayfinder block below a --- separator
 - The blockquote contains a row with `**{change-id}**` (bolded change ID)
 - The blockquote contains a row with `{gate} ✓ → {next-gate}` (gate transition)
-- The blockquote contains an arrow-prefixed row `→ `/adv-{next-command} {change-id}`` showing exactly one runnable command
+- The blockquote contains an arrow-prefixed row `→ `/determinus-{next-command} {change-id}`` showing exactly one runnable command
 - The archive terminal variant uses a single-line blockquote `> **{change-id}** · release ✓ ·` followed by a terminal verb for final states (Shipped. when `origin/{default-branch}` reachability, merged PR proof, or verified local bare origin push exists); non-final remote-backed states use `release pending` / `release blocked` with `Pending auto-merge.` or `Blocked.` and leave the change active
 - When the handoff is paired with a human-checkpoint approval, reply instructions appear as plain prose below the blockquote (not inside it); the three-section spine (Problem / Chosen direction / Delivered) is unchanged
 
 **No mechanics leakage** (`rq-handoffVoice01.2`)
 
 **Given:**
-- An /adv-* command completes a gate and emits a user-facing gate-transition message
+- An /determinus-* command completes a gate and emits a user-facing gate-transition message
 
 **When:** The handoff message is rendered
 
@@ -2236,7 +2236,7 @@ Every /adv-* command that emits a user-facing gate-transition message MUST use t
 **Blockquote wayfinder block replaces Next sections** (`rq-handoffVoice01.4`)
 
 **Given:**
-- An /adv-* command completes a gate and emits a user-facing gate-transition message
+- An /determinus-* command completes a gate and emits a user-facing gate-transition message
 
 **When:** The handoff message is rendered
 
@@ -2249,7 +2249,7 @@ Every /adv-* command that emits a user-facing gate-transition message MUST use t
 **Blockquote wayfinder shows only the needed command** (`rq-handoffVoice01.5`)
 
 **Given:**
-- An /adv-* command completes a gate and emits a user-facing gate-transition message
+- An /determinus-* command completes a gate and emits a user-facing gate-transition message
 
 **When:** The blockquote wayfinder block is inspected
 
@@ -2261,7 +2261,7 @@ Every /adv-* command that emits a user-facing gate-transition message MUST use t
 **Shared wayfinder command is registered for the transition** (`rq-handoffVoice01.6`)
 
 **Given:**
-- An /adv-* command emits a user-facing gate-transition message through the shared wayfinder
+- An /determinus-* command emits a user-facing gate-transition message through the shared wayfinder
 
 **When:** The arrow-prefixed command row is inspected
 
@@ -2270,16 +2270,16 @@ Every /adv-* command that emits a user-facing gate-transition message MUST use t
 - The command is the manifest-registered primary command for that gate transition
 - If no actionable command is available, the arrow-prefixed row is omitted and the blockquote shows a blocked/recovery/approval status line
 
-**Retired /adv-accept wording is corrected to /adv-review without alias** (`rq-handoffVoice01.7`)
+**Retired /determinus-accept wording is corrected to /determinus-review without alias** (`rq-handoffVoice01.7`)
 
 **Given:**
-- A user reaches ADV with the retired /adv-accept wording
+- A user reaches ADV with the retired /determinus-accept wording
 
 **When:** Guidance is returned
 
 **Then:**
-- The returned guidance names /adv-review as the canonical acceptance route
-- No /adv-accept command, alias, or runnable route is emitted or registered
+- The returned guidance names /determinus-review as the canonical acceptance route
+- No /determinus-accept command, alias, or runnable route is emitted or registered
 
 ---
 
@@ -2455,7 +2455,7 @@ ADV's seven named human checkpoints (proposal confirmation, agreement sign-off, 
 **Given:**
 - The user replies with a Tier A whitelist word at the prep checkpoint
 
-**When:** The agent calls adv_gate_complete gateId: planning
+**When:** The agent calls determinus_gate_complete gateId: planning
 
 **Then:**
 - userApproved: true is passed
@@ -2476,7 +2476,7 @@ ADV's seven named human checkpoints (proposal confirmation, agreement sign-off, 
 **Exact shown Tier A continuation command counts as approval** (`rq-inlineApproval01.7`)
 
 **Given:**
-- A Tier A checkpoint (proposal, agreement, design, prep, acceptance) is presented with a blockquote wayfinder block showing a specific continuation command (e.g., `/adv-apply {change-id}`)
+- A Tier A checkpoint (proposal, agreement, design, prep, acceptance) is presented with a blockquote wayfinder block showing a specific continuation command (e.g., `/determinus-apply {change-id}`)
 - The user invokes that exact command while the checkpoint is pending
 
 **When:** The agent processes the command invocation
@@ -2505,7 +2505,7 @@ ADV's seven named human checkpoints (proposal confirmation, agreement sign-off, 
 
 **ID:** `rq-scopeFollowupSchema01` | **Priority:** **[MUST]**
 
-The ChangeSchema must support an optional `fast_follow_of` field that records same-project parent lineage. The `adv_change_create` tool must accept `parent_change_id` and enforce mutual exclusion with `target_path`.
+The ChangeSchema must support an optional `fast_follow_of` field that records same-project parent lineage. The `determinus_change_create` tool must accept `parent_change_id` and enforce mutual exclusion with `target_path`.
 
 **Tags:** `schema`, `lineage`, `fast-follow`
 
@@ -2516,7 +2516,7 @@ The ChangeSchema must support an optional `fast_follow_of` field that records sa
 **Given:**
 - A valid parent change ID in the current project
 
-**When:** adv_change_create is called with parent_change_id
+**When:** determinus_change_create is called with parent_change_id
 
 **Then:**
 - The new change has fast_follow_of: { parent_change_id, linked_at } set
@@ -2538,7 +2538,7 @@ The ChangeSchema must support an optional `fast_follow_of` field that records sa
 **Given:**
 - Both target_path and parent_change_id are provided
 
-**When:** adv_change_create is called
+**When:** determinus_change_create is called
 
 **Then:**
 - A mutual-exclusion error is returned
@@ -2550,7 +2550,7 @@ The ChangeSchema must support an optional `fast_follow_of` field that records sa
 
 **ID:** `rq-crossProjectCoordination01` | **Priority:** **[MUST]**
 
-ADV tools that support cross-project coordination must use explicit `target_path` routing, persist structured cross_project_links and advisory external_dependencies on changes, require explicit confirmation before mutating untrusted target projects, and present dependency status as summary by default with drilldown available on request. `adv_change_create` with `target_path` is a target mutation: it must route creation through the target project's disk-backed store, seed `cross_project_origin` before change projection start, avoid synchronous target change projection `getState` queries from the source process, and fail without leaving active disk-only target state when target change projection start fails. Active disk-only target records must be recoverable through the normal list/read reseed path; archived and closed records must not be recreated. External dependencies are advisory warnings only and must not block gates or archive by default.
+ADV tools that support cross-project coordination must use explicit `target_path` routing, persist structured cross_project_links and advisory external_dependencies on changes, require explicit confirmation before mutating untrusted target projects, and present dependency status as summary by default with drilldown available on request. `determinus_change_create` with `target_path` is a target mutation: it must route creation through the target project's disk-backed store, seed `cross_project_origin` before change projection start, avoid synchronous target change projection `getState` queries from the source process, and fail without leaving active disk-only target state when target change projection start fails. Active disk-only target records must be recoverable through the normal list/read reseed path; archived and closed records must not be recreated. External dependencies are advisory warnings only and must not block gates or archive by default.
 
 **Tags:** `change projection`, `cross-project`, `target-path`, `advisory-dependencies`, `safety`
 
@@ -2584,7 +2584,7 @@ ADV tools that support cross-project coordination must use explicit `target_path
 **Cross-project create starts target change projection state** (`rq-crossProjectCoordination01.5`)
 
 **Given:**
-- adv_change_create is called with target_path for another ADV project
+- determinus_change_create is called with target_path for another ADV project
 - The target mutation is trusted or explicitly confirmed
 
 **When:** The target change is created
@@ -2698,7 +2698,7 @@ ADV tools that read another project via target_path in snapshot-ok mode MUST tre
 **Snapshot-ok reads mark target context as non-authoritative** (`rq-targetReadAuthority01.1`)
 
 **Given:**
-- A snapshot-ok tool such as adv_change_show, adv_change_list, adv_status, adv_task_show, adv_task_list, or adv_task_ready is called with target_path
+- A snapshot-ok tool such as determinus_change_show, determinus_change_list, determinus_status, determinus_task_show, determinus_task_list, or determinus_task_ready is called with target_path
 
 **When:** The tool returns data from the target project
 
@@ -2736,7 +2736,7 @@ ADV tools that read another project via target_path in snapshot-ok mode MUST tre
 
 **ID:** `rq-crossProjectTaskMutation01` | **Priority:** **[MUST]**
 
-Task mutation tools that support task creation, cancellation, status updates, or TDD reclassification must accept explicit `target_path` routing when operating on another ADV-enabled project. The target store must own every task lookup, gate check, relational validation, disk mutation, cache refresh, and context snapshot for that call. Real mutations of untrusted target projects require explicit confirmation evidence; dry-run previews may read target state without mutation confirmation because they must not write target state.
+Task mutation tools that support task creation, cancellation, status updates, or TDD reclassification must accept explicit `target_path` routing when operating on another determinus-enabled project. The target store must own every task lookup, gate check, relational validation, disk mutation, cache refresh, and context snapshot for that call. Real mutations of untrusted target projects require explicit confirmation evidence; dry-run previews may read target state without mutation confirmation because they must not write target state.
 
 **Tags:** `change projection`, `cross-project`, `target-path`, `tasks`, `mutation-safety`
 
@@ -2745,7 +2745,7 @@ Task mutation tools that support task creation, cancellation, status updates, or
 **Task add uses target store end to end** (`rq-crossProjectTaskMutation01.1`)
 
 **Given:**
-- adv_task_add is called with target_path for a target ADV project
+- determinus_task_add is called with target_path for a target ADV project
 
 **When:** The tool validates and creates the task
 
@@ -2758,7 +2758,7 @@ Task mutation tools that support task creation, cancellation, status updates, or
 **Task cancel and TDD reclassify use target store end to end** (`rq-crossProjectTaskMutation01.2`)
 
 **Given:**
-- adv_task_cancel or adv_task_reclassify_tdd is called with target_path
+- determinus_task_cancel or determinus_task_reclassify_tdd is called with target_path
 
 **When:** The tool validates task ids and applies the mutation
 
@@ -2785,7 +2785,7 @@ Task mutation tools that support task creation, cancellation, status updates, or
 
 **ID:** `rq-targetPathCanonicalShard01` | **Priority:** **[MUST]**
 
-ADV tools that resolve another ADV-enabled project via `target_path` MUST derive that target project's external ADV state root from the target project id, not from the caller project's per-process OpenCode shard. When `XDG_DATA_HOME` structurally matches the per-project shard layout `.../opencode-projects/{40-hex-project-id}`, target state MUST resolve to the sibling shard `.../opencode-projects/{target-project-id}/opencode/plugins/advance/{target-project-id}`. When the shard layout cannot be derived, tools MUST preserve the legacy `$XDG_DATA_HOME/opencode/plugins/advance/{target-project-id}` behavior. Existing shadow records in caller shards MUST NOT be automatically migrated by this routing rule.
+ADV tools that resolve another determinus-enabled project via `target_path` MUST derive that target project's external ADV state root from the target project id, not from the caller project's per-process OpenCode shard. When `XDG_DATA_HOME` structurally matches the per-project shard layout `.../opencode-projects/{40-hex-project-id}`, target state MUST resolve to the sibling shard `.../opencode-projects/{target-project-id}/opencode/plugins/advance/{target-project-id}`. When the shard layout cannot be derived, tools MUST preserve the legacy `$XDG_DATA_HOME/opencode/plugins/advance/{target-project-id}` behavior. Existing shadow records in caller shards MUST NOT be automatically migrated by this routing rule.
 
 **Tags:** `workflow`, `cross-project`, `target-path`, `state-routing`, `opencode-sharding`
 
@@ -2921,7 +2921,7 @@ ADV must not ship a direct non-LLM cross-project tool-execution CLI unless it ca
 
 **ID:** `rq-scopeDiscoveryProtocol01` | **Priority:** **[MUST]**
 
-When non-P23-campsite-eligible scope is discovered during /adv-apply, /adv-review, or /adv-harden, the agent must emit a Tier A inline prompt with options reenter/split/keep/cancel. The agent must never silently absorb discovered scope.
+When non-P23-campsite-eligible scope is discovered during /determinus-apply, /determinus-review, or /determinus-harden, the agent must emit a Tier A inline prompt with options reenter/split/keep/cancel. The agent must never silently absorb discovered scope.
 
 **Tags:** `workflow`, `scope-discovery`, `inline-approval`, `campsite-rule`
 
@@ -2930,7 +2930,7 @@ When non-P23-campsite-eligible scope is discovered during /adv-apply, /adv-revie
 **Non-campsite scope triggers inline prompt** (`rq-scopeDiscoveryProtocol01.1`)
 
 **Given:**
-- Non-P23-campsite-eligible scope discovered during /adv-apply, /adv-review, or /adv-harden
+- Non-P23-campsite-eligible scope discovered during /determinus-apply, /determinus-review, or /determinus-harden
 
 **When:** The agent evaluates the discovered scope
 
@@ -2946,7 +2946,7 @@ When non-P23-campsite-eligible scope is discovered during /adv-apply, /adv-revie
 **When:** The agent processes the reply
 
 **Then:**
-- adv_change_create is called with parent_change_id set to the current change
+- determinus_change_create is called with parent_change_id set to the current change
 - The new change is a fast-follow child
 
 **Keep with new objectives requires re-entry** (`rq-scopeDiscoveryProtocol01.3`)
@@ -2957,7 +2957,7 @@ When non-P23-campsite-eligible scope is discovered during /adv-apply, /adv-revie
 **When:** The agent processes the reply
 
 **Then:**
-- adv_change_reenter is invoked per rq-scopeReentry01
+- determinus_change_reenter is invoked per rq-scopeReentry01
 - Keep does not bypass re-entry when scope adds objectives/AC
 
 **Campsite-eligible scope applied freely** (`rq-scopeDiscoveryProtocol01.4`)
@@ -2977,40 +2977,40 @@ When non-P23-campsite-eligible scope is discovered during /adv-apply, /adv-revie
 
 **ID:** `rq-scopeFollowupSurfacing01` | **Priority:** **[MUST]**
 
-Tools that surface change data must display fast-follow lineage: adv_change_show includes _fastFollowOrigin, adv_change_list annotates entries with parent_change_id, and adv_status prefixes child labels and references parents in recommendations.
+Tools that surface change data must display fast-follow lineage: determinus_change_show includes _fastFollowOrigin, determinus_change_list annotates entries with parent_change_id, and determinus_status prefixes child labels and references parents in recommendations.
 
 **Tags:** `lineage`, `surfacing`, `ui`
 
 #### Scenarios
 
-**adv_change_show surfaces _fastFollowOrigin** (`rq-scopeFollowupSurfacing01.1`)
+**determinus_change_show surfaces _fastFollowOrigin** (`rq-scopeFollowupSurfacing01.1`)
 
 **Given:**
 - A change with fast_follow_of set
 
-**When:** adv_change_show is called
+**When:** determinus_change_show is called
 
 **Then:**
 - Output includes _fastFollowOrigin parallel to _crossProjectOrigin
 - _fastFollowOrigin contains note, parent_change_id, and linked_at
 
-**adv_change_list annotates parent_change_id** (`rq-scopeFollowupSurfacing01.2`)
+**determinus_change_list annotates parent_change_id** (`rq-scopeFollowupSurfacing01.2`)
 
 **Given:**
 - Changes with fast_follow_of in the list
 
-**When:** adv_change_list is called
+**When:** determinus_change_list is called
 
 **Then:**
 - Entries with fast_follow_of include parent_change_id at the top level
 - Children remain top-level (not nested)
 
-**adv_status prefixes and references parents** (`rq-scopeFollowupSurfacing01.3`)
+**determinus_status prefixes and references parents** (`rq-scopeFollowupSurfacing01.3`)
 
 **Given:**
 - Changes with fast_follow_of in the project
 
-**When:** adv_status is called
+**When:** determinus_status is called
 
 **Then:**
 - Child change labels are prefixed with ↳ 
@@ -3049,7 +3049,7 @@ Once a change has completed the prep gate with userApproved, the agent must not 
 
 **Then:**
 - The hardstop is advisory only
-- It does not auto-trigger split or adv_change_reenter
+- It does not auto-trigger split or determinus_change_reenter
 
 ---
 
@@ -3057,7 +3057,7 @@ Once a change has completed the prep gate with userApproved, the agent must not 
 
 **ID:** `rq-archiveOrdering01` | **Priority:** **[MUST]**
 
-adv_change_archive MUST be idempotent when retrying after a previous failure where the disk bundle was written but the disk status transition failed. On retry, if the archive bundle already exists on disk and the change status is not 'archived', the disk write MUST be skipped and the flow proceeds directly to the status transition. This prevents double-writing the bundle and allows recovery from transient disk failures.
+determinus_change_archive MUST be idempotent when retrying after a previous failure where the disk bundle was written but the disk status transition failed. On retry, if the archive bundle already exists on disk and the change status is not 'archived', the disk write MUST be skipped and the flow proceeds directly to the status transition. This prevents double-writing the bundle and allows recovery from transient disk failures.
 
 #### Scenarios
 
@@ -3068,7 +3068,7 @@ adv_change_archive MUST be idempotent when retrying after a previous failure whe
 - The change status is not 'archived' (previous status transition failed)
 - dryRun is false
 
-**When:** adv_change_archive is called
+**When:** determinus_change_archive is called
 
 **Then:**
 - archiveChange() is NOT called (disk write skipped)
@@ -3089,7 +3089,7 @@ adv_change_archive MUST be idempotent when retrying after a previous failure whe
 
 ---
 
-### Single ADV-controlled system entry per turn
+### Single determinus-controlled system entry per turn
 
 **ID:** `rq-singleSystemBlock01` | **Priority:** **[MUST]**
 
@@ -3252,18 +3252,18 @@ Backlog coordination state (claims, projection fields, snapshot freshness) is up
 
 ---
 
-### Project-wide ambiguity scanning in /adv-audit
+### Project-wide ambiguity scanning in /determinus-audit
 
 **ID:** `rq-ambiguityScan01` | **Priority:** **[MUST]**
 
-/adv-audit MUST detect ambiguity in committed spec laws using the B/F/S/Q/E taxonomy. Detection runs inline during Phase 3 Synthesis via runSpecAmbiguityChecks(markdown, capability) — not a sub-agent stage. Categories: B (Boundaries), F (Functional), S (Completion Signals), Q (Quality Attributes), E (Error Handling).
+/determinus-audit MUST detect ambiguity in committed spec laws using the B/F/S/Q/E taxonomy. Detection runs inline during Phase 3 Synthesis via runSpecAmbiguityChecks(markdown, capability) — not a sub-agent stage. Categories: B (Boundaries), F (Functional), S (Completion Signals), Q (Quality Attributes), E (Error Handling).
 
 #### Scenarios
 
 **Ambiguity detection runs for each spec audited** (`rq-ambiguityScan01.1`)
 
 **Given:**
-- An /adv-audit execution targeting one or more specs
+- An /determinus-audit execution targeting one or more specs
 
 **When:** Phase 3 Synthesis executes
 
@@ -3371,7 +3371,7 @@ When clarify_enforcement is 'off', ambiguity detection MUST be skipped entirely.
 **Given:**
 - clarify_enforcement is set to 'off'
 
-**When:** /adv-audit Phase 3 Synthesis runs
+**When:** /determinus-audit Phase 3 Synthesis runs
 
 **Then:**
 - runSpecAmbiguityChecks is NOT called
@@ -3394,7 +3394,7 @@ When clarify_enforcement is 'off', ambiguity detection MUST be skipped entirely.
 
 **ID:** `rq-ambiguityScan05` | **Priority:** **[MUST]**
 
-Remediation handoff for ambiguity findings MUST be informational only. The audit report MAY suggest /adv-clarify as a resolution path, but MUST NOT mutate ADV change state or spawn clarification sub-agents directly.
+Remediation handoff for ambiguity findings MUST be informational only. The audit report MAY suggest /determinus-clarify as a resolution path, but MUST NOT mutate ADV change state or spawn clarification sub-agents directly.
 
 #### Scenarios
 
@@ -3406,7 +3406,7 @@ Remediation handoff for ambiguity findings MUST be informational only. The audit
 **When:** The remediation section is rendered
 
 **Then:**
-- The report contains informational text suggesting /adv-clarify
+- The report contains informational text suggesting /determinus-clarify
 - No ADV state is mutated (no task updates, no gate changes, no change creation)
 
 ---
@@ -3421,12 +3421,12 @@ ADV task-readiness surfaces MUST expose a TodoWrite-safe projection derived from
 
 #### Scenarios
 
-**adv_task_ready emits projection rows** (`rq-todoProjection01.1`)
+**determinus_task_ready emits projection rows** (`rq-todoProjection01.1`)
 
 **Given:**
 - A change has pending or in-progress ADV tasks
 
-**When:** adv_task_ready is called
+**When:** determinus_task_ready is called
 
 **Then:**
 - The response includes _todoProjection rows derived from ADV task state
@@ -3437,12 +3437,12 @@ ADV task-readiness surfaces MUST expose a TodoWrite-safe projection derived from
 
 **Given:**
 - A change has ready tasks
-- adv_change_show is called with include.readyTasks true
+- determinus_change_show is called with include.readyTasks true
 
 **When:** The response is built
 
 **Then:**
-- The response includes _todoProjection with the same row shape as adv_task_ready
+- The response includes _todoProjection with the same row shape as determinus_task_ready
 - The default projection window includes the current in-progress task when present plus the next three ready tasks
 - Legacy ready-task fields remain present for existing callers
 
@@ -3550,7 +3550,7 @@ ADV tools MUST reject missing required arguments and high-risk empty mutation pa
 
 **ID:** `rq-toolPlaceholderPolicy01` | **Priority:** **[MUST]**
 
-ADV tool invocation preflight MUST centrally classify placeholder-sensitive arguments before tool execution through explicit `FIELD_POLICIES` metadata. Blank or whitespace-only strings, omission sentinels such as 'none'/'n/a'/'null'/'transcript', and empty arrays/objects MUST be rejected or normalized only by an explicit field policy. Required content, durable audit, path, lineage, origin, approval-evidence, command, and worktree branch/base fields MUST reject blank placeholders when provided. Omission-equivalent normalization is allowed only for fields whose schema and semantics make omission equivalent, such as scope_repos: [] on adv_change_create. Preflight MUST return deterministic `INVALID_TOOL_ARGS` field-level diagnostics and execute tools with normalized arguments so tool execution, workflow state, persistence, and spec compliance are not governed by heuristic caller interpretation. Drift guards MUST fail when audited placeholder-sensitive fields lack policy coverage or when registry-known policies reference dead tool fields.
+ADV tool invocation preflight MUST centrally classify placeholder-sensitive arguments before tool execution through explicit `FIELD_POLICIES` metadata. Blank or whitespace-only strings, omission sentinels such as 'none'/'n/a'/'null'/'transcript', and empty arrays/objects MUST be rejected or normalized only by an explicit field policy. Required content, durable audit, path, lineage, origin, approval-evidence, command, and worktree branch/base fields MUST reject blank placeholders when provided. Omission-equivalent normalization is allowed only for fields whose schema and semantics make omission equivalent, such as scope_repos: [] on determinus_change_create. Preflight MUST return deterministic `INVALID_TOOL_ARGS` field-level diagnostics and execute tools with normalized arguments so tool execution, workflow state, persistence, and spec compliance are not governed by heuristic caller interpretation. Drift guards MUST fail when audited placeholder-sensitive fields lack policy coverage or when registry-known policies reference dead tool fields.
 
 **Tags:** `tools`, `validation`, `placeholders`, `preflight`, `structural-correctness`
 
@@ -3589,7 +3589,7 @@ ADV tool invocation preflight MUST centrally classify placeholder-sensitive argu
 
 **Then:**
 - The placeholder is rejected or left to schema validation rather than silently normalized
-- Only explicitly whitelisted fields such as adv_change_create scope_repos: [] may be removed from normalizedArgs
+- Only explicitly whitelisted fields such as determinus_change_create scope_repos: [] may be removed from normalizedArgs
 
 **Normalized arguments are the execute payload** (`rq-toolPlaceholderPolicy01.4`)
 
@@ -3606,7 +3606,7 @@ ADV tool invocation preflight MUST centrally classify placeholder-sensitive argu
 **Strict-mode optional fields normalize blanks to omitted** (`rq-toolPlaceholderPolicy01.5`)
 
 **Given:**
-- A strict-mode provider sends adv_change_create with optional fields filled with blank strings or zero
+- A strict-mode provider sends determinus_change_create with optional fields filled with blank strings or zero
 
 **When:** Tool argument preflight runs
 
@@ -3633,7 +3633,7 @@ ADV tool invocation preflight MUST centrally classify placeholder-sensitive argu
 
 **ID:** `rq-toolArgBlankArtifactLinkage01` | **Priority:** **[MUST]**
 
-ADV mutation tools MUST normalize provided blank or whitespace-only strings to omitted for fields that write durable narrative artifacts or origin linkage metadata. Required-when-present audit, evidence, and identity fields MUST still reject blank values. For adv_change_update this applies to proposal, problemStatement, agreement, design, and executiveSummary, including mixed payloads where another artifact field is non-blank. For adv_change_create this applies to provided narrative artifact fields and origin_source_artifact. Omitted fields preserve existing omission/default semantics. Normalization MUST occur before writes or workflow signals. Storage artifact write boundaries MUST also reject blank artifact content so bypassing preflight cannot erase an artifact.
+ADV mutation tools MUST normalize provided blank or whitespace-only strings to omitted for fields that write durable narrative artifacts or origin linkage metadata. Required-when-present audit, evidence, and identity fields MUST still reject blank values. For determinus_change_update this applies to proposal, problemStatement, agreement, design, and executiveSummary, including mixed payloads where another artifact field is non-blank. For determinus_change_create this applies to provided narrative artifact fields and origin_source_artifact. Omitted fields preserve existing omission/default semantics. Normalization MUST occur before writes or workflow signals. Storage artifact write boundaries MUST also reject blank artifact content so bypassing preflight cannot erase an artifact.
 
 **Tags:** `tools`, `validation`, `artifacts`, `origin`
 
@@ -3642,7 +3642,7 @@ ADV mutation tools MUST normalize provided blank or whitespace-only strings to o
 **Mixed update payload normalizes blank field to omitted; only writes provided non-blank artifacts** (`rq-toolArgBlankArtifactLinkage01.1`)
 
 **Given:**
-- adv_change_update receives a payload with proposal: 'real content' and design: ''
+- determinus_change_update receives a payload with proposal: 'real content' and design: ''
 
 **When:** The tool invocation is validated
 
@@ -3654,7 +3654,7 @@ ADV mutation tools MUST normalize provided blank or whitespace-only strings to o
 **Omitted artifact fields keep omission semantics** (`rq-toolArgBlankArtifactLinkage01.2`)
 
 **Given:**
-- adv_change_update receives proposal: 'new content' and omits design
+- determinus_change_update receives proposal: 'new content' and omits design
 
 **When:** The update succeeds
 
@@ -3665,7 +3665,7 @@ ADV mutation tools MUST normalize provided blank or whitespace-only strings to o
 **Create normalizes blank provided narrative artifacts to omitted** (`rq-toolArgBlankArtifactLinkage01.3`)
 
 **Given:**
-- adv_change_create receives agreement: '   '
+- determinus_change_create receives agreement: '   '
 
 **When:** The create invocation is validated
 
@@ -3688,7 +3688,7 @@ ADV mutation tools MUST normalize provided blank or whitespace-only strings to o
 **Blank origin source artifact is normalized to omitted** (`rq-toolArgBlankArtifactLinkage01.5`)
 
 **Given:**
-- adv_change_create receives origin_source_artifact: '   '
+- determinus_change_create receives origin_source_artifact: '   '
 
 **When:** The create invocation is validated
 
@@ -3699,7 +3699,7 @@ ADV mutation tools MUST normalize provided blank or whitespace-only strings to o
 **Required-when-present audit fields still reject blank** (`rq-toolArgBlankArtifactLinkage01.6`)
 
 **Given:**
-- adv_change_update receives confirmationEvidence: ''
+- determinus_change_update receives confirmationEvidence: ''
 
 **When:** The update invocation is validated
 
@@ -3819,7 +3819,7 @@ Gate readiness MUST be derived from workflow-owned state and expose deterministi
 **Given:**
 - Workflow readiness rejects a gate completion
 
-**When:** adv_gate_complete or adv_gate_status reports the result
+**When:** determinus_gate_complete or determinus_gate_status reports the result
 
 **Then:**
 - The tool response includes the workflow-derived blockers
@@ -3937,7 +3937,7 @@ Acceptance gate completion MUST use typed contract, review matrix state, change.
 
 **ID:** `rq-acceptanceEvidenceTiming01` | **Priority:** **[MUST]**
 
-/adv-review MUST persist and verify all required acceptance proof before presenting the acceptance approval prompt. Required proof includes contract.reviewMatrix, generated or generatable change.documents.acceptance from typed contract state, and workflow-visible change.documents.executiveSummary evidence. If any required proof cannot be persisted, verified, or made workflow-visible, /adv-review MUST stop before asking for acceptance and the acceptance gate MUST remain pending or stuck with deterministic blockers. This is the no-late-homework rule: evidence required to justify acceptance cannot be submitted only after user approval.
+/determinus-review MUST persist and verify all required acceptance proof before presenting the acceptance approval prompt. Required proof includes contract.reviewMatrix, generated or generatable change.documents.acceptance from typed contract state, and workflow-visible change.documents.executiveSummary evidence. If any required proof cannot be persisted, verified, or made workflow-visible, /determinus-review MUST stop before asking for acceptance and the acceptance gate MUST remain pending or stuck with deterministic blockers. This is the no-late-homework rule: evidence required to justify acceptance cannot be submitted only after user approval.
 
 **Tags:** `workflow`, `acceptance`, `evidence`, `review`
 
@@ -3946,7 +3946,7 @@ Acceptance gate completion MUST use typed contract, review matrix state, change.
 **Review stops before prompt when required proof is missing** (`rq-acceptanceEvidenceTiming01.1`)
 
 **Given:**
-- /adv-review is preparing the acceptance checkpoint
+- /determinus-review is preparing the acceptance checkpoint
 
 **When:** contract.reviewMatrix, acceptance projection proof, or workflow-visible executive-summary evidence is missing or invalid
 
@@ -4023,7 +4023,7 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 
 **ID:** `rq-acceptancePreviewUrl01` | **Priority:** **[MUST]**
 
-/adv-discover MUST capture preview applicability for each change as visual_surface: true, false, or unknown with rationale and preview_expectation fields for exact route, data-state expectation, viewport expectation, and rationale. /adv-review MUST surface a Preview URL line before the acceptance Inline Approval prompt. For changes with visual_surface true or implementation evidence of front-end, browser-visible, or visual-output work, the Preview URL line MUST include a user-facing dev-environment URL and preview proof for the exact route/path and affected state/data source the user will open. Preview proof MUST include verification method, result/status, hydration/readiness signal or fallback rationale, reviewed timestamp/context, and viewport context; runnable visual surfaces MUST include a 375px width viewport check or documented project equivalent unless unavailable with rationale. Preview URLs MUST target visual output only, MUST be sanitized before durable recording, and MUST NOT point at internal services, dashboards, databases, admin panels, CI systems, Temporal UI, or other non-visual infrastructure. A bare unverified URL MUST NOT satisfy acceptance proof. URL-source evidence such as agent-observed dev-server output, CI/deploy URL assignment, or user-confirmed URL may establish where a URL came from, but is insufficient by itself for visual preview proof; browser-open evidence or equivalent reviewed visual-surface evidence is required for the intended visual surface when runnable. Fixture/mock URLs or seeded sample states MUST be explicitly labeled as fixture/mock evidence and MUST NOT be presented as user-facing live preview proof unless the approved agreement allows that state. Stale/cache/error-page evidence MUST NOT pass acceptance; /adv-review MUST require fresh-session, cache-busted, or equivalent freshness context when stale, cached, or error-page state is suspected. Agents MUST NOT perform arbitrary HTTP probing of untrusted URLs to satisfy this requirement. Missing URL, missing exact route proof, missing hydration/readiness evidence, missing required viewport evidence, unknown applicability, visual-surface drift, fixture/mock evidence presented as live, stale/cache/error-page proof, or missing matrix evidence MUST block acceptance before user sign-off. Non-visual changes MAY use Preview URL: not_applicable with rationale. Durable preview proof MUST be represented through contract review evidence and included in acceptance or executive-summary evidence; generated acceptance.md remains projection-only and MUST NOT be hand-edited as authoritative proof. Archived preview URLs are point-in-time evidence and MUST include verification context rather than being treated as maintained current URLs.
+/determinus-discover MUST capture preview applicability for each change as visual_surface: true, false, or unknown with rationale and preview_expectation fields for exact route, data-state expectation, viewport expectation, and rationale. /determinus-review MUST surface a Preview URL line before the acceptance Inline Approval prompt. For changes with visual_surface true or implementation evidence of front-end, browser-visible, or visual-output work, the Preview URL line MUST include a user-facing dev-environment URL and preview proof for the exact route/path and affected state/data source the user will open. Preview proof MUST include verification method, result/status, hydration/readiness signal or fallback rationale, reviewed timestamp/context, and viewport context; runnable visual surfaces MUST include a 375px width viewport check or documented project equivalent unless unavailable with rationale. Preview URLs MUST target visual output only, MUST be sanitized before durable recording, and MUST NOT point at internal services, dashboards, databases, admin panels, CI systems, Temporal UI, or other non-visual infrastructure. A bare unverified URL MUST NOT satisfy acceptance proof. URL-source evidence such as agent-observed dev-server output, CI/deploy URL assignment, or user-confirmed URL may establish where a URL came from, but is insufficient by itself for visual preview proof; browser-open evidence or equivalent reviewed visual-surface evidence is required for the intended visual surface when runnable. Fixture/mock URLs or seeded sample states MUST be explicitly labeled as fixture/mock evidence and MUST NOT be presented as user-facing live preview proof unless the approved agreement allows that state. Stale/cache/error-page evidence MUST NOT pass acceptance; /determinus-review MUST require fresh-session, cache-busted, or equivalent freshness context when stale, cached, or error-page state is suspected. Agents MUST NOT perform arbitrary HTTP probing of untrusted URLs to satisfy this requirement. Missing URL, missing exact route proof, missing hydration/readiness evidence, missing required viewport evidence, unknown applicability, visual-surface drift, fixture/mock evidence presented as live, stale/cache/error-page proof, or missing matrix evidence MUST block acceptance before user sign-off. Non-visual changes MAY use Preview URL: not_applicable with rationale. Durable preview proof MUST be represented through contract review evidence and included in acceptance or executive-summary evidence; generated acceptance.md remains projection-only and MUST NOT be hand-edited as authoritative proof. Archived preview URLs are point-in-time evidence and MUST include verification context rather than being treated as maintained current URLs.
 
 **Tags:** `workflow`, `acceptance`, `preview-url`, `front-end`
 
@@ -4032,7 +4032,7 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 **Discovery records preview applicability** (`rq-acceptancePreviewUrl01.1`)
 
 **Given:**
-- A change is being finalized through /adv-discover
+- A change is being finalized through /determinus-discover
 
 **When:** The agreement is drafted and persisted
 
@@ -4047,7 +4047,7 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 **Given:**
 - A change has visual_surface true or implementation evidence of front-end, browser-visible, or visual-output work
 
-**When:** /adv-review presents the acceptance summary before the Inline Approval prompt
+**When:** /determinus-review presents the acceptance summary before the Inline Approval prompt
 
 **Then:**
 - The summary includes Preview URL: {url}
@@ -4064,7 +4064,7 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 **When:** No dev-environment URL, exact route proof, hydration/readiness evidence, required viewport evidence, or freshness evidence is available
 
 **Then:**
-- /adv-review reports Preview URL: blocked with a concrete reason and remediation hint
+- /determinus-review reports Preview URL: blocked with a concrete reason and remediation hint
 - The acceptance checkpoint is not presented
 - The acceptance gate remains pending
 
@@ -4076,7 +4076,7 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 **When:** Only URL-source evidence, fixture/mock evidence presented as live, or stale/cache/error-page evidence is available
 
 **Then:**
-- /adv-review reports Preview URL: blocked with a concrete reason
+- /determinus-review reports Preview URL: blocked with a concrete reason
 - The acceptance checkpoint is not presented
 - The contract review evidence does not mark visual preview proof as passing
 
@@ -4084,12 +4084,12 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 
 **Given:**
 - The approved agreement records visual_surface false
-- /adv-review detects implementation evidence of front-end, browser-visible, or visual-output work
+- /determinus-review detects implementation evidence of front-end, browser-visible, or visual-output work
 
-**When:** /adv-review evaluates preview applicability
+**When:** /determinus-review evaluates preview applicability
 
 **Then:**
-- /adv-review reports Preview URL: blocked with a visual-surface drift reason
+- /determinus-review reports Preview URL: blocked with a visual-surface drift reason
 - The acceptance checkpoint is not presented
 - The agreement must be clarified or re-entered before acceptance can proceed
 
@@ -4098,7 +4098,7 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 **Given:**
 - A change has visual_surface false and no implementation evidence of front-end, browser-visible, or visual-output work
 
-**When:** /adv-review presents the acceptance summary
+**When:** /determinus-review presents the acceptance summary
 
 **Then:**
 - The summary may include Preview URL: not_applicable
@@ -4111,7 +4111,7 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 
 **ID:** `rq-stageDesignCriteriaBoundary01` | **Priority:** **[MUST]**
 
-/adv-design MUST produce validated architecture decisions, implementation strategy, and any design-derived technical criteria such as performance, security, scale, migration, or operational budgets. /adv-design MUST NOT invent new user-facing acceptance criteria. If design invalidates or requires changing approved user-facing criteria, the workflow MUST treat discovery re-entry as the routine path for criteria revision before prep resumes.
+/determinus-design MUST produce validated architecture decisions, implementation strategy, and any design-derived technical criteria such as performance, security, scale, migration, or operational budgets. /determinus-design MUST NOT invent new user-facing acceptance criteria. If design invalidates or requires changing approved user-facing criteria, the workflow MUST treat discovery re-entry as the routine path for criteria revision before prep resumes.
 
 **Tags:** `workflow`, `design`, `criteria`, `re-entry`, `stage-boundary`
 
@@ -4120,9 +4120,9 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 **Design records technical criteria without new user AC** (`rq-stageDesignCriteriaBoundary01.1`)
 
 **Given:**
-- A change reaches /adv-design with approved discovery criteria
+- A change reaches /determinus-design with approved discovery criteria
 
-**When:** /adv-design writes change.documents.design
+**When:** /determinus-design writes change.documents.design
 
 **Then:**
 - change.documents.design may include a Design-Derived Criteria section for technical budgets and constraints
@@ -4134,11 +4134,11 @@ Completed-change projection or unavailable-projection acceptance recovery MUST b
 **Given:**
 - A design decision proves an approved acceptance criterion invalid, incomplete, or mechanism-derived
 
-**When:** /adv-design handles the conflict
+**When:** /determinus-design handles the conflict
 
 **Then:**
 - The conflict is surfaced before planning
-- adv_change_reenter is used from discovery when criteria must change
+- determinus_change_reenter is used from discovery when criteria must change
 - The design gate does not silently rewrite approved user-facing criteria
 
 ---
@@ -4170,7 +4170,7 @@ Workflow enforcement MUST NOT require change.documents.proposal to contain testa
 **Given:**
 - The ChangeContract contains approved `AC*` items from discovery
 
-**When:** /adv-review builds the acceptance review matrix
+**When:** /determinus-review builds the acceptance review matrix
 
 **Then:**
 - Each `AC*` item is reviewed with its evidence policy as before
@@ -4183,7 +4183,7 @@ Workflow enforcement MUST NOT require change.documents.proposal to contain testa
 
 **ID:** `rq-designOpportunityScout01` | **Priority:** **[MUST]**
 
-/adv-design MUST execute a bounded Design Leverage Scout pass (Phase 2.5) for every full proposal workflow after draft design (Phase 2) and before independent validation (Phase 3.5). The scout uses a split-load contract: orchestrator owns ScoutCandidate schema, routing, fallback/degradation, adoption, and mutations; adv-researcher may load the adv-opportunity-scout skill in design mode for worker methodology. It returns ≤5 structured candidates. The scout identifies leverage points: shortcuts, reusable components, parallelism, simplification paths. The scout phase MUST include an INCONCLUSIVE degradation path. Trivially scoped changes MAY skip with rationale. Auto-adopted candidates are incorporated into the design before the validator runs.
+/determinus-design MUST execute a bounded Design Leverage Scout pass (Phase 2.5) for every full proposal workflow after draft design (Phase 2) and before independent validation (Phase 3.5). The scout uses a split-load contract: orchestrator owns ScoutCandidate schema, routing, fallback/degradation, adoption, and mutations; determinus-researcher may load the determinus-opportunity-scout skill in design mode for worker methodology. It returns ≤5 structured candidates. The scout identifies leverage points: shortcuts, reusable components, parallelism, simplification paths. The scout phase MUST include an INCONCLUSIVE degradation path. Trivially scoped changes MAY skip with rationale. Auto-adopted candidates are incorporated into the design before the validator runs.
 
 **Tags:** `design`, `scout`, `leverage`, `mandatory`
 
@@ -4192,14 +4192,14 @@ Workflow enforcement MUST NOT require change.documents.proposal to contain testa
 **Scout phase executes for full proposals** (`rq-designOpportunityScout01.1`)
 
 **Given:**
-- A /adv-design invocation for a full proposal workflow
+- A /determinus-design invocation for a full proposal workflow
 - Design Phase 2 (draft design) has completed
 
 **When:** Phase 2.5 executes
 
 **Then:**
 - The orchestrator prepares schema, routing, fallback/degradation, and adoption rules
-- adv-researcher is spawned with design-mode prompt and may load adv-opportunity-scout in worker context
+- determinus-researcher is spawned with design-mode prompt and may load determinus-opportunity-scout in worker context
 - ≤5 candidates are returned with 8-field ScoutCandidate schema
 - Candidates are sorted by payoff/risk ratio
 - Auto-adopted candidates are integrated into design before validator
@@ -4271,7 +4271,7 @@ The review/harden flow MUST block release when required in-scope obligations rem
 
 **ID:** `rq-requiredObligation02` | **Priority:** **[MUST]**
 
-Out-of-scope required obligations MUST NOT be silently dropped or auto-resolved. When a required-critical contract item is classified as out-of-scope during execution or review, the workflow MUST require explicit routing: either re-enter the item into scope via adv_change_reenter with a rationale, or split the obligation into a new change with a tracking reference. Silent deferral or implicit postponement of required obligations is prohibited.
+Out-of-scope required obligations MUST NOT be silently dropped or auto-resolved. When a required-critical contract item is classified as out-of-scope during execution or review, the workflow MUST require explicit routing: either re-enter the item into scope via determinus_change_reenter with a rationale, or split the obligation into a new change with a tracking reference. Silent deferral or implicit postponement of required obligations is prohibited.
 
 **Tags:** `workflow`, `required-obligation`, `routing`, `scope`, `split`
 
@@ -4292,7 +4292,7 @@ Out-of-scope required obligations MUST NOT be silently dropped or auto-resolved.
 **Re-enter with rationale resolves routing blocker** (`rq-requiredObligation02.2`)
 
 **Given:**
-- An out-of-scope required-critical item is re-entered via adv_change_reenter
+- An out-of-scope required-critical item is re-entered via determinus_change_reenter
 - The re-enter rationale explains why the item is now in-scope
 
 **When:** The release gate is re-evaluated
@@ -4332,7 +4332,7 @@ ADV read surfaces MUST NOT expose nonexistent active artifact filesystem paths a
 - An active change has change.documents.design populated
 - The design is not materialized as an active-directory .md file for the change
 
-**When:** adv_change_show is called with include.design true
+**When:** determinus_change_show is called with include.design true
 
 **Then:**
 - The response includes the design content in _design
@@ -4393,7 +4393,7 @@ ADV read surfaces MUST NOT expose nonexistent active artifact filesystem paths a
 
 **ID:** `rq-archiveBranchCleanup01` | **Priority:** **[MUST]**
 
-PR-mode ADV archives that survive through PR creation must be cleanable post-merge via an operator-explicit tool. Local deletion uses safe `git branch -d` semantics (refuses unmerged). The cleanup tool is the `archived_branches` mode of the `adv_worktree_cleanup` MCP tool; merged-branch cleanup is git-branch hygiene, not ADV recovery state, so it does not live on archive recovery tools. It is operator-explicit (no background sweeps, no daemons, no session-start auto-cleanup per P37). Detection is squash-merge-safe via tree-SHA match (primary) with `git cherry` diff-equivalence fallback.
+PR-mode ADV archives that survive through PR creation must be cleanable post-merge via an operator-explicit tool. Local deletion uses safe `git branch -d` semantics (refuses unmerged). The cleanup tool is the `archived_branches` mode of the `determinus_worktree_cleanup` MCP tool; merged-branch cleanup is git-branch hygiene, not ADV recovery state, so it does not live on archive recovery tools. It is operator-explicit (no background sweeps, no daemons, no session-start auto-cleanup per P37). Detection is squash-merge-safe via tree-SHA match (primary) with `git cherry` diff-equivalence fallback.
 
 **Tags:** `workflow`, `archive`, `branch-cleanup`, `release-finalization`
 
@@ -4404,7 +4404,7 @@ PR-mode ADV archives that survive through PR creation must be cleanable post-mer
 **Given:**
 - An archived ADV change whose `change/{id}` branch was squash-merged into the default branch
 
-**When:** operator runs `adv_worktree_cleanup mode=archived_branches`
+**When:** operator runs `determinus_worktree_cleanup mode=archived_branches`
 
 **Then:**
 - The branch is detected as `tree-identical` (tree-SHA match) OR `patch-equivalent` (git cherry)
@@ -4415,7 +4415,7 @@ PR-mode ADV archives that survive through PR creation must be cleanable post-mer
 **Given:**
 - An archived ADV change whose `change/{id}` branch is currently checked out in any active worktree
 
-**When:** operator runs `adv_worktree_cleanup mode=archived_branches`
+**When:** operator runs `determinus_worktree_cleanup mode=archived_branches`
 
 **Then:**
 - The branch is excluded from deletion candidates
@@ -4426,7 +4426,7 @@ PR-mode ADV archives that survive through PR creation must be cleanable post-mer
 **Given:**
 - Operator wants to preview before deleting
 
-**When:** operator runs `adv_worktree_cleanup mode=archived_branches dryRun=true`
+**When:** operator runs `determinus_worktree_cleanup mode=archived_branches dryRun=true`
 
 **Then:**
 - The tool returns the candidate list with per-branch merge proof
@@ -4437,11 +4437,11 @@ PR-mode ADV archives that survive through PR creation must be cleanable post-mer
 **Given:**
 - At least 1 archived-change local branch is safely deletable
 
-**When:** operator runs `adv_status view:"summary"`
+**When:** operator runs `determinus_status view:"summary"`
 
 **Then:**
 - A recommendation line appears in `recommendations[]`
-- When operator runs `adv_status view:"hygiene"`, a full `archived_branch_hygiene` section appears with per-branch detail
+- When operator runs `determinus_status view:"hygiene"`, a full `archived_branch_hygiene` section appears with per-branch detail
 
 **Non-regression of direct-archive path** (`rq-archiveBranchCleanup01.5`)
 
@@ -4452,7 +4452,7 @@ PR-mode ADV archives that survive through PR creation must be cleanable post-mer
 
 **Then:**
 - The existing direct-mode branch cleanup gate (`archiveMode === "direct"`) continues to delete the branch at archive time
-- Direct-archive cleanup behavior is unchanged by moving merged-branch cleanup to `adv_worktree_cleanup mode=archived_branches`
+- Direct-archive cleanup behavior is unchanged by moving merged-branch cleanup to `determinus_worktree_cleanup mode=archived_branches`
 
 ---
 
@@ -4472,7 +4472,7 @@ Linked ops/enabler follow-up work MUST persist structural source provenance in a
 - A sub-agent report contains a required_critical follow-up tied to contract item C8
 - The parent change has no existing ops_followup_links
 
-**When:** adv_followup_promote creates the ops follow-up change
+**When:** determinus_followup_promote creates the ops follow-up change
 
 **Then:**
 - The child change ops_followup.source records the parent change ID, source artifact ID, relationship, and created_at
@@ -4485,7 +4485,7 @@ Linked ops/enabler follow-up work MUST persist structural source provenance in a
 - An agent creates an ops follow-up from a manual source with a parent change
 - No report artifact exists
 
-**When:** adv_followup_promote uses source kind manual
+**When:** determinus_followup_promote uses source kind manual
 
 **Then:**
 - The child source provenance records the parent change ID and manual rationale
@@ -4521,7 +4521,7 @@ An ops follow-up change MUST support append-only light evidence entries capturin
 **Given:**
 - An ops follow-up has status running
 
-**When:** adv_ops_evidence_add appends a batch result with status partial and 50% progress summary
+**When:** determinus_ops_evidence_add appends a batch result with status partial and 50% progress summary
 
 **Then:**
 - The evidence[] array contains the entry with env, action, status, timestamp, and summary
@@ -4591,7 +4591,7 @@ Parent release/archive reporting MUST surface open linked ops obligations and re
 **Given:**
 - A parent change is archived with an open follows_release link
 
-**When:** /adv-archive terminal output is emitted
+**When:** /determinus-archive terminal output is emitted
 
 **Then:**
 - The output includes the open ops follow-up list
@@ -4807,7 +4807,7 @@ Acceptance and archive/complete HITL approval surfaces MUST render a bounded, so
 **Acceptance prompt shows consequence context** (`rq-approvalConsequenceContext01.1`)
 
 **Given:**
-- A change has completed execution and /adv-review is preparing the acceptance checkpoint
+- A change has completed execution and /determinus-review is preparing the acceptance checkpoint
 
 **When:** The acceptance approval prompt is emitted
 
@@ -4820,7 +4820,7 @@ Acceptance and archive/complete HITL approval surfaces MUST render a bounded, so
 **Archive sign-off shows harden and release consequences** (`rq-approvalConsequenceContext01.2`)
 
 **Given:**
-- A change has completed acceptance and /adv-archive is preparing Tier B archive sign-off
+- A change has completed acceptance and /determinus-archive is preparing Tier B archive sign-off
 
 **When:** The archive sign-off report is emitted
 
@@ -4860,7 +4860,7 @@ Acceptance and archive/complete HITL approval surfaces MUST render a bounded, so
 
 **ID:** `rq-hardenReadinessCarryForward01` | **Priority:** **[MUST]**
 
-/adv-harden MUST synthesize release/deploy/production/docs/cleanup readiness into durable or workflow-visible evidence that /adv-archive can read after resume. The carried-forward evidence MUST be sufficient to populate Approval Consequence Context categories for ops readiness, migration/data impact, frontend/preview impact when relevant, collision/release risk, open follow-ups, and next action without relying on prior chat history. If the evidence cannot be read at archive time, /adv-archive MUST surface explicit unavailable/blocked/warning status instead of N/A for categories that require harden evidence.
+/determinus-harden MUST synthesize release/deploy/production/docs/cleanup readiness into durable or workflow-visible evidence that /determinus-archive can read after resume. The carried-forward evidence MUST be sufficient to populate Approval Consequence Context categories for ops readiness, migration/data impact, frontend/preview impact when relevant, collision/release risk, open follow-ups, and next action without relying on prior chat history. If the evidence cannot be read at archive time, /determinus-archive MUST surface explicit unavailable/blocked/warning status instead of N/A for categories that require harden evidence.
 
 **Tags:** `workflow`, `harden`, `archive`, `release-readiness`, `evidence`
 
@@ -4869,7 +4869,7 @@ Acceptance and archive/complete HITL approval surfaces MUST render a bounded, so
 **Harden emits compact release-readiness summary** (`rq-hardenReadinessCarryForward01.1`)
 
 **Given:**
-- /adv-harden checks deployment, production, documentation, cleanup, and release readiness dimensions
+- /determinus-harden checks deployment, production, documentation, cleanup, and release readiness dimensions
 
 **When:** Harden emits its final summary or persisted report evidence
 
@@ -4883,7 +4883,7 @@ Acceptance and archive/complete HITL approval surfaces MUST render a bounded, so
 **Given:**
 - A session resumes after harden completed and before archive sign-off
 
-**When:** /adv-archive builds Approval Consequence Context
+**When:** /determinus-archive builds Approval Consequence Context
 
 **Then:**
 - Archive uses durable or workflow-visible harden evidence instead of chat history
@@ -4933,9 +4933,9 @@ Approval Consequence Context category vocabulary, category order, status values,
 
 **ID:** `rq-nonCodeWorkflow01` | **Priority:** **[MUST]**
 
-Large non-code deliverables such as market research, design improvement, competitive research, writing, analysis, and planning MUST route to a tracked ADV change after any optional pre-change research clarifies direction, unless the user explicitly scopes the work as one-off/read-only. /adv-improve remains a read-only pre-proposal research-pack command: it may create docs/*-prep.md evidence packs consumed by proposal/discovery, but it MUST NOT replace the tracked workflow for consequential deliverables or mutate ADV change/task/gate state.
+Large non-code deliverables such as market research, design improvement, competitive research, writing, analysis, and planning MUST route to a tracked ADV change after any optional pre-change research clarifies direction, unless the user explicitly scopes the work as one-off/read-only. /determinus-improve remains a read-only pre-proposal research-pack command: it may create docs/*-prep.md evidence packs consumed by proposal/discovery, but it MUST NOT replace the tracked workflow for consequential deliverables or mutate ADV change/task/gate state.
 
-**Tags:** `workflow`, `non-code`, `routing`, `adv-improve`, `deliverables`
+**Tags:** `workflow`, `non-code`, `routing`, `determinus-improve`, `deliverables`
 
 #### Scenarios
 
@@ -4962,16 +4962,16 @@ Large non-code deliverables such as market research, design improvement, competi
 - The agent may complete the read-only work without creating ADV change/task/gate state
 - If durable implementation or acceptance criteria emerge, the agent routes the follow-up through a tracked ADV change
 
-**adv-improve remains a pre-proposal research pack** (`rq-nonCodeWorkflow01.3`)
+**determinus-improve remains a pre-proposal research pack** (`rq-nonCodeWorkflow01.3`)
 
 **Given:**
-- /adv-improve produces a docs/*-prep.md research pack
+- /determinus-improve produces a docs/*-prep.md research pack
 
 **When:** The pack identifies a significant improvement or direction
 
 **Then:**
-- The pack is cited by /adv-proposal or /adv-discover as prior research
-- /adv-improve does not create changes, tasks, gates, spec deltas, or agenda items
+- The pack is cited by /determinus-proposal or /determinus-discover as prior research
+- /determinus-improve does not create changes, tasks, gates, spec deltas, or agenda items
 - The pack does not replace tracked acceptance evidence for the resulting deliverable
 
 ---
@@ -4980,16 +4980,16 @@ Large non-code deliverables such as market research, design improvement, competi
 
 **ID:** `rq-designQualityEvidence01` | **Priority:** **[MUST]**
 
-Design-quality concerns raised by adv-designer reports MUST be enforced structurally, not by reviewer prose. A sandbox-safe gate-readiness evaluator MUST read persisted adv-designer reports from change state and block the acceptance and release gates while the latest designer report for any task carries an undispositioned design_dimensions concern or neighboring_recommendation. A concern clears only when (a) a later all-pass designer report supersedes it, or (b) a typed disposition (fixed, rejected_with_evidence, split, or fast_follow) is recorded via the designConcernDispositioned signal path (adv_design_concern_disposition). On report submission, each concern and neighboring recommendation MUST also surface an advisory design_concern_promoted consumer warning with an attempt-stable dedupe key; this consumer warning is ADVISORY routing only and MUST NOT be the gate authority. No accepted_debt terminal state exists anywhere in specs, contract, commands, or agents. Review and harden ownership remains with adv-reviewer, and adv-designer remains apply-phase only.
+Design-quality concerns raised by determinus-designer reports MUST be enforced structurally, not by reviewer prose. A sandbox-safe gate-readiness evaluator MUST read persisted determinus-designer reports from change state and block the acceptance and release gates while the latest designer report for any task carries an undispositioned design_dimensions concern or neighboring_recommendation. A concern clears only when (a) a later all-pass designer report supersedes it, or (b) a typed disposition (fixed, rejected_with_evidence, split, or fast_follow) is recorded via the designConcernDispositioned signal path (determinus_design_concern_disposition). On report submission, each concern and neighboring recommendation MUST also surface an advisory design_concern_promoted consumer warning with an attempt-stable dedupe key; this consumer warning is ADVISORY routing only and MUST NOT be the gate authority. No accepted_debt terminal state exists anywhere in specs, contract, commands, or agents. Review and harden ownership remains with determinus-reviewer, and determinus-designer remains apply-phase only.
 
-**Tags:** `workflow`, `review`, `acceptance`, `release`, `frontend`, `design-proof`, `adv-designer`, `structural`
+**Tags:** `workflow`, `review`, `acceptance`, `release`, `frontend`, `design-proof`, `determinus-designer`, `structural`
 
 #### Scenarios
 
 **Unresolved designer concern structurally blocks acceptance and release** (`rq-designQualityEvidence01.1`)
 
 **Given:**
-- A task's latest adv-designer report contains a design_dimensions concern
+- A task's latest determinus-designer report contains a design_dimensions concern
 - No typed disposition exists for that concern
 
 **When:** Gate readiness is evaluated for acceptance or release
@@ -5002,7 +5002,7 @@ Design-quality concerns raised by adv-designer reports MUST be enforced structur
 **Concerns and neighboring recommendations are advisably promoted, never silently dropped** (`rq-designQualityEvidence01.2`)
 
 **Given:**
-- An adv-designer report includes a design_dimensions concern or a neighboring_recommendation
+- An determinus-designer report includes a design_dimensions concern or a neighboring_recommendation
 
 **When:** The report is submitted
 
@@ -5016,7 +5016,7 @@ Design-quality concerns raised by adv-designer reports MUST be enforced structur
 **Given:**
 - An unresolved design concern blocks acceptance
 
-**When:** A disposition is recorded via adv_design_concern_disposition (fixed, rejected_with_evidence, split, or fast_follow), or a later all-pass designer report supersedes the concern
+**When:** A disposition is recorded via determinus_design_concern_disposition (fixed, rejected_with_evidence, split, or fast_follow), or a later all-pass designer report supersedes the concern
 
 **Then:**
 - The DESIGN_CONCERN_UNRESOLVED blocker is cleared
@@ -5028,7 +5028,7 @@ Design-quality concerns raised by adv-designer reports MUST be enforced structur
 **Given:**
 - A frontend change has a runnable visual surface or preview
 
-**When:** /adv-review evaluates design-quality proof
+**When:** /determinus-review evaluates design-quality proof
 
 **Then:**
 - Browser/design evidence includes viewport context
@@ -5041,7 +5041,7 @@ Design-quality concerns raised by adv-designer reports MUST be enforced structur
 
 **ID:** `rq-verificationEvidence01` | **Priority:** **[MUST]**
 
-Verification-evidence warnings surfaced on typed worker reports MUST be enforced structurally at acceptance and release, not by reviewer prose and not by submit-time rejection. Reports remain submit-time advisory (warnings only; no hard block at adv_subagent_report_submit). A sandbox-safe gate-readiness evaluator MUST read the latest task-scoped report per agent for each completed task and the task's typed evidence_policy. For proof-bearing policies (test, static_check, review, artifact_reference), an unresolved verification_missing or verification_mismatch consumer warning on the latest task-scoped report MUST produce a typed VERIFICATION_EVIDENCE_MISSING blocker at both the acceptance and release gates. Non-proof policies (source_citation, source_audit, rubric_review, stakeholder_acceptance, design_proof, not_applicable) MUST remain warn-first so valid non-code and source-based workflows do not regress. A blocker clears only when (a) a newer warning-free report for that agent supersedes the warning-bearing report (latest-wins durable evidence), or (b) a typed disposition (fixed, rejected_with_evidence, split, or fast_follow) is recorded via adv_verification_evidence_disposition for the task's verification concernKey. The check MUST NOT be bypassed by compatibilityReason (no silent grandfathering of legacy changes). No accepted_debt terminal state exists. The mechanism adds no counters, dashboards, status metrics, adoption analytics, or other telemetry surfaces; enforcement state is the typed blocker plus the disposition record.
+Verification-evidence warnings surfaced on typed worker reports MUST be enforced structurally at acceptance and release, not by reviewer prose and not by submit-time rejection. Reports remain submit-time advisory (warnings only; no hard block at determinus_subagent_report_submit). A sandbox-safe gate-readiness evaluator MUST read the latest task-scoped report per agent for each completed task and the task's typed evidence_policy. For proof-bearing policies (test, static_check, review, artifact_reference), an unresolved verification_missing or verification_mismatch consumer warning on the latest task-scoped report MUST produce a typed VERIFICATION_EVIDENCE_MISSING blocker at both the acceptance and release gates. Non-proof policies (source_citation, source_audit, rubric_review, stakeholder_acceptance, design_proof, not_applicable) MUST remain warn-first so valid non-code and source-based workflows do not regress. A blocker clears only when (a) a newer warning-free report for that agent supersedes the warning-bearing report (latest-wins durable evidence), or (b) a typed disposition (fixed, rejected_with_evidence, split, or fast_follow) is recorded via determinus_verification_evidence_disposition for the task's verification concernKey. The check MUST NOT be bypassed by compatibilityReason (no silent grandfathering of legacy changes). No accepted_debt terminal state exists. The mechanism adds no counters, dashboards, status metrics, adoption analytics, or other telemetry surfaces; enforcement state is the typed blocker plus the disposition record.
 
 **Tags:** `workflow`, `acceptance`, `release`, `verification`, `evidence`, `structural`
 
@@ -5080,7 +5080,7 @@ Verification-evidence warnings surfaced on typed worker reports MUST be enforced
 **Given:**
 - An unresolved verification warning blocks acceptance or release for a completed task
 
-**When:** A newer warning-free task-scoped report for the same agent supersedes the warning-bearing report (latest-wins), or a typed disposition is recorded via adv_verification_evidence_disposition (fixed, rejected_with_evidence, split, or fast_follow)
+**When:** A newer warning-free task-scoped report for the same agent supersedes the warning-bearing report (latest-wins), or a typed disposition is recorded via determinus_verification_evidence_disposition (fixed, rejected_with_evidence, split, or fast_follow)
 
 **Then:**
 - The VERIFICATION_EVIDENCE_MISSING blocker is cleared
@@ -5091,12 +5091,12 @@ Verification-evidence warnings surfaced on typed worker reports MUST be enforced
 
 **Given:**
 - A legacy in-flight change has a compatibilityReason
-- An adv-engineer or adv-reviewer report would emit verification_missing or verification_mismatch warnings
+- An determinus-engineer or determinus-reviewer report would emit verification_missing or verification_mismatch warnings
 
 **When:** The report is submitted and gate readiness is later evaluated
 
 **Then:**
-- Submit-time behavior remains advisory; adv_subagent_report_submit does not hard-block on verification warnings
+- Submit-time behavior remains advisory; determinus_subagent_report_submit does not hard-block on verification warnings
 - compatibilityReason does not bypass the VERIFICATION_EVIDENCE_MISSING readiness check
 - No counters, dashboards, status metrics, adoption analytics, or other telemetry surfaces are added as part of enforcement
 
@@ -5106,7 +5106,7 @@ Verification-evidence warnings surfaced on typed worker reports MUST be enforced
 
 **ID:** `rq-reviewerEvidenceAuthority01` | **Priority:** **[MUST]**
 
-The stage-v2 evidence authority MUST partition verification requirements by evidence policy. For a completed task with evidence_policy "review", a persisted same-task adv-reviewer report IS the authoritative completion evidence; its aggregate tests_run command list neither creates nor substitutes for durable adv_run_test execution evidence, and the consumer_warning emitter MUST NOT emit verification_missing for it. For evidence_policy "test" or "static_check", reviewer aggregate command evidence MUST NOT satisfy the verification requirement; durable adv_run_test execution evidence remains required.
+The stage-v2 evidence authority MUST partition verification requirements by evidence policy. For a completed task with evidence_policy "review", a persisted same-task determinus-reviewer report IS the authoritative completion evidence; its aggregate tests_run command list neither creates nor substitutes for durable determinus_run_test execution evidence, and the consumer_warning emitter MUST NOT emit verification_missing for it. For evidence_policy "test" or "static_check", reviewer aggregate command evidence MUST NOT satisfy the verification requirement; durable determinus_run_test execution evidence remains required.
 
 **Tags:** `workflow`, `verification`, `evidence`, `structural`, `review`
 
@@ -5116,7 +5116,7 @@ The stage-v2 evidence authority MUST partition verification requirements by evid
 
 **Given:**
 - A completed stage-v2 task has evidence_policy "review"
-- A persisted same-task adv-reviewer report is linked as review_evidence_ref
+- A persisted same-task determinus-reviewer report is linked as review_evidence_ref
 
 **When:** Acceptance or release readiness evaluates verification evidence
 
@@ -5127,20 +5127,20 @@ The stage-v2 evidence authority MUST partition verification requirements by evid
 
 **Given:**
 - A completed task has evidence_policy "test" or "static_check"
-- A persisted same-task adv-reviewer report carries aggregate tests_run
-- No durable adv_run_test run exists
+- A persisted same-task determinus-reviewer report carries aggregate tests_run
+- No durable determinus_run_test run exists
 
 **When:** Acceptance or release readiness evaluates verification evidence
 
 **Then:**
 - A VERIFICATION_EVIDENCE_MISSING blocker is emitted
 
-**Emitter policy-gates verification_missing for adv-reviewer reports** (`rq-reviewerEvidenceAuthority01.3`)
+**Emitter policy-gates verification_missing for determinus-reviewer reports** (`rq-reviewerEvidenceAuthority01.3`)
 
 **Given:**
 - A task has evidence_policy "review"
 
-**When:** An adv-reviewer report is submitted with aggregate tests_run
+**When:** An determinus-reviewer report is submitted with aggregate tests_run
 
 **Then:**
 - The consumer_warning emitter produces no verification_missing warnings
@@ -5148,7 +5148,7 @@ The stage-v2 evidence authority MUST partition verification requirements by evid
 **Same-task ownership preserved — change-scoped reviewer report cannot satisfy task review_evidence_ref** (`rq-reviewerEvidenceAuthority01.4`)
 
 **Given:**
-- A change-scoped adv-reviewer report has no task_id anchor
+- A change-scoped determinus-reviewer report has no task_id anchor
 
 **When:** Task completion validation runs
 
@@ -5161,7 +5161,7 @@ The stage-v2 evidence authority MUST partition verification requirements by evid
 
 **ID:** `rq-reviewBadTestCleanup01` | **Priority:** **[MUST]**
 
-/adv-review and /adv-harden MUST remediate clearly bad tests (flaky, tautological, permanently skipped, or implementation-coupled) in the directly touched subsystem when the remediation is safe and local. The finding must be evidence-backed and the scope bounded to the change's touched subsystem; broader consumer-repository cleanup remains out of scope. Review and harden MUST NOT use a bad-test finding to bypass a valid non-test evidence route or create a repo-wide cleanup obligation.
+/determinus-review and /determinus-harden MUST remediate clearly bad tests (flaky, tautological, permanently skipped, or implementation-coupled) in the directly touched subsystem when the remediation is safe and local. The finding must be evidence-backed and the scope bounded to the change's touched subsystem; broader consumer-repository cleanup remains out of scope. Review and harden MUST NOT use a bad-test finding to bypass a valid non-test evidence route or create a repo-wide cleanup obligation.
 
 **Tags:** `workflow`, `review`, `harden`, `cleanup`, `evidence`, `touched-scope`
 
@@ -5197,7 +5197,7 @@ The stage-v2 evidence authority MUST partition verification requirements by evid
 
 **ID:** `rq-dupActiveCreate01` | **Priority:** **[MUST]**
 
-adv_change_create MUST reject creation of a new active change whose generated change ID or exact summary title matches an existing active (in-flight) change. The rejection MUST return existing-change evidence including the existing change ID and title, MUST NOT create a suffixed active duplicate such as `fixOpenBugs2`, and MUST allow the operator to resume the existing change or archive it first.
+determinus_change_create MUST reject creation of a new active change whose generated change ID or exact summary title matches an existing active (in-flight) change. The rejection MUST return existing-change evidence including the existing change ID and title, MUST NOT create a suffixed active duplicate such as `fixOpenBugs2`, and MUST allow the operator to resume the existing change or archive it first.
 
 **Tags:** `workflow`, `change-create`, `duplicate`, `idempotency`
 
@@ -5208,7 +5208,7 @@ adv_change_create MUST reject creation of a new active change whose generated ch
 **Given:**
 - An active change exists with summary "Fix open bugs"
 
-**When:** adv_change_create is called with summary "Fix open bugs"
+**When:** determinus_change_create is called with summary "Fix open bugs"
 
 **Then:**
 - The call is rejected with code DUPLICATE_ACTIVE_CHANGE
@@ -5231,7 +5231,7 @@ adv_change_create MUST reject creation of a new active change whose generated ch
 **Given:**
 - A change with summary "Fix open bugs" is archived
 
-**When:** adv_change_create is called with summary "Fix open bugs"
+**When:** determinus_change_create is called with summary "Fix open bugs"
 
 **Then:**
 - Creation proceeds normally subject to other validation
@@ -5242,7 +5242,7 @@ adv_change_create MUST reject creation of a new active change whose generated ch
 
 **ID:** `rq-archiveTargetPathRouting01` | **Priority:** **[MUST]**
 
-adv_change_archive and adv_task_checkpoint MUST support target_path routing to the target project’s disk store. Untrusted target mutation requires explicit confirmation evidence; same-project safety semantics, worktree validation, branch/HEAD guards, and task-to-change resolution remain required. An unreachable or mismatched target MUST fail closed without target mutation.
+determinus_change_archive and determinus_task_checkpoint MUST support target_path routing to the target project’s disk store. Untrusted target mutation requires explicit confirmation evidence; same-project safety semantics, worktree validation, branch/HEAD guards, and task-to-change resolution remain required. An unreachable or mismatched target MUST fail closed without target mutation.
 
 **Tags:** `change projection`, `archive`, `checkpoint`, `target-path`, `cross-project`
 
@@ -5253,7 +5253,7 @@ adv_change_archive and adv_task_checkpoint MUST support target_path routing to t
 **Given:**
 - An untrusted target_path is explicitly approved with confirmationEvidence
 
-**When:** adv_change_archive is called with target_path
+**When:** determinus_change_archive is called with target_path
 
 **Then:**
 - The change is loaded from the target project's store
@@ -5265,7 +5265,7 @@ adv_change_archive and adv_task_checkpoint MUST support target_path routing to t
 **Given:**
 - An untrusted target_path is explicitly approved with confirmationEvidence
 
-**When:** adv_task_checkpoint is called with target_path
+**When:** determinus_task_checkpoint is called with target_path
 
 **Then:**
 - The task is resolved from the target project's store
@@ -5277,7 +5277,7 @@ adv_change_archive and adv_task_checkpoint MUST support target_path routing to t
 **Given:**
 - A target_path is provided without target_confirmed or confirmationEvidence
 
-**When:** adv_change_archive or adv_task_checkpoint evaluates the call
+**When:** determinus_change_archive or determinus_task_checkpoint evaluates the call
 
 **Then:**
 - The call is rejected before filesystem or state mutation
@@ -5286,7 +5286,7 @@ adv_change_archive and adv_task_checkpoint MUST support target_path routing to t
 **Checkpoint target_path selects store, explicit workdir selects git cwd** (`rq-archiveTargetPathRouting01.4`)
 
 **Given:**
-- adv_task_checkpoint is called with both target_path and an explicit workdir
+- determinus_task_checkpoint is called with both target_path and an explicit workdir
 - The explicit workdir is a linked worktree of the target repository (matching git common directory)
 
 **When:** The checkpoint resolves its execution context
@@ -5299,7 +5299,7 @@ adv_change_archive and adv_task_checkpoint MUST support target_path routing to t
 **Explicit blank workdir is rejected before any git or state operation** (`rq-archiveTargetPathRouting01.5`)
 
 **Given:**
-- adv_task_checkpoint is called with a workdir argument that is empty or whitespace-only
+- determinus_task_checkpoint is called with a workdir argument that is empty or whitespace-only
 
 **When:** The checkpoint evaluates the call
 
@@ -5310,7 +5310,7 @@ adv_change_archive and adv_task_checkpoint MUST support target_path routing to t
 **Checkpoint refuses an explicit workdir outside the target repository** (`rq-archiveTargetPathRouting01.6`)
 
 **Given:**
-- adv_task_checkpoint is called with both target_path and an explicit workdir
+- determinus_task_checkpoint is called with both target_path and an explicit workdir
 - The workdir's git common directory differs from the target repository's, or cannot be probed
 
 **When:** The checkpoint compares git common directories
@@ -5326,7 +5326,7 @@ adv_change_archive and adv_task_checkpoint MUST support target_path routing to t
 
 **ID:** `rq-archiveRetryIdempotence01` | **Priority:** **[MUST]**
 
-adv_change_archive MUST detect when a change is already archived and the archive bundle's spec projection is committed in-repo at the released commit. Only a committed in-repo projection is durable authority; a bundle present in the external store (on-disk project store) without a committed in-repo projection is advisory metadata and MUST route to reconcile rather than no-op. When the in-repo projection is committed and matches the expected projection, adv_change_archive MUST return bounded success with `noOp: true`, MUST report the existing archive path, MUST NOT repeat Phase 9 finalization, branch deletion, linked issue closure, or terminal cleanup, and MUST still surface any open ops follow-up obligations. When the bundle exists in the external store but the status is not yet archived or the in-repo projection is absent, the tool MUST recover by applying the deltas and committing the projection without rewriting the bundle.
+determinus_change_archive MUST detect when a change is already archived and the archive bundle's spec projection is committed in-repo at the released commit. Only a committed in-repo projection is durable authority; a bundle present in the external store (on-disk project store) without a committed in-repo projection is advisory metadata and MUST route to reconcile rather than no-op. When the in-repo projection is committed and matches the expected projection, determinus_change_archive MUST return bounded success with `noOp: true`, MUST report the existing archive path, MUST NOT repeat Phase 9 finalization, branch deletion, linked issue closure, or terminal cleanup, and MUST still surface any open ops follow-up obligations. When the bundle exists in the external store but the status is not yet archived or the in-repo projection is absent, the tool MUST recover by applying the deltas and committing the projection without rewriting the bundle.
 
 **Tags:** `workflow`, `archive`, `idempotency`
 
@@ -5338,7 +5338,7 @@ adv_change_archive MUST detect when a change is already archived and the archive
 - A change has status archived
 - The archive bundle's spec-projection.json is committed in-repo at the released commit and matches the expected projection
 
-**When:** adv_change_archive retries on this change
+**When:** determinus_change_archive retries on this change
 
 **Then:**
 - The tool returns bounded success with noOp: true
@@ -5353,7 +5353,7 @@ adv_change_archive MUST detect when a change is already archived and the archive
 - An archive bundle exists in the external store
 - The in-repo spec-projection.json is absent at the released commit
 
-**When:** adv_change_archive retries on this change
+**When:** determinus_change_archive retries on this change
 
 **Then:**
 - The tool does NOT return noOp
@@ -5366,7 +5366,7 @@ adv_change_archive MUST detect when a change is already archived and the archive
 
 **ID:** `rq-briefingPacketReadProjection01` | **Priority:** **[MUST]**
 
-ADV MUST generate briefing packets as read-only projections from existing structured workflow state when requested through existing change/handoff read surfaces. A standalone adv_briefing_packet tool MUST NOT be introduced. Packet generation MUST NOT mutate workflow state, complete gates, override release proof, or independently persist live packet bodies. Session and tool-read metadata MUST remain audit-only and MUST NOT become live briefing packet state.
+ADV MUST generate briefing packets as read-only projections from existing structured workflow state when requested through existing change/handoff read surfaces. A standalone determinus_briefing_packet tool MUST NOT be introduced. Packet generation MUST NOT mutate workflow state, complete gates, override release proof, or independently persist live packet bodies. Session and tool-read metadata MUST remain audit-only and MUST NOT become live briefing packet state.
 
 **Tags:** `workflow`, `briefing_packets`, `read_projection`, `no_tool`
 
@@ -5381,7 +5381,7 @@ ADV MUST generate briefing packets as read-only projections from existing struct
 
 **Then:**
 - The packet is included as a generated projection
-- No new adv_briefing_packet tool is invoked
+- No new determinus_briefing_packet tool is invoked
 
 **Packet generation does not mutate state** (`rq-briefingPacketReadProjection01.2`)
 
@@ -5583,7 +5583,7 @@ The existing 8-second authoritative list/status deadline remains mandatory for a
 
 **ID:** `rq-statusHealthAggregateBudget01` | **Priority:** **[MUST]**
 
-`adv_status view:health` MUST execute authoritative loading, candidate orientation, advisory probes, and deterministic composition under one request-scoped absolute deadline no greater than 8,000 ms. Provider admission MUST stop early enough to reserve bounded composition time. Candidate hydration and read-only provider concurrency MUST be fixed and explicit. Deadline expiry MUST return typed partial output; no new work may start after admission closes, and late provider completion MUST NOT mutate the returned result or authoritative state.
+`determinus_status view:health` MUST execute authoritative loading, candidate orientation, advisory probes, and deterministic composition under one request-scoped absolute deadline no greater than 8,000 ms. Provider admission MUST stop early enough to reserve bounded composition time. Candidate hydration and read-only provider concurrency MUST be fixed and explicit. Deadline expiry MUST return typed partial output; no new work may start after admission closes, and late provider completion MUST NOT mutate the returned result or authoritative state.
 
 **Tags:** `status`, `health`, `deadline`, `concurrency`
 
@@ -5799,7 +5799,7 @@ This requirement supersedes legacy rq-aw-backlog01. Issue claim projection field
 **Retired roadmap projections do not affect gates** (`rq-AwB1gN3w01.3`)
 
 **Given:**
-- ROADMAP.md, .adv/roadmap-snapshot.json, and adv_roadmap are absent
+- ROADMAP.md, .adv/roadmap-snapshot.json, and determinus_roadmap are absent
 
 **When:** A change advances through gates
 
@@ -5813,7 +5813,7 @@ This requirement supersedes legacy rq-aw-backlog01. Issue claim projection field
 
 **ID:** `rq-resumeFreshness01` | **Priority:** **[MUST]**
 
-When an agent resumes a change whose `lastActivityAgeMinutes` exceeds the resume-freshness band (default 60 minutes), the agent MUST emit a bounded Resume Freshness advisory before the Gate Machine proceeds. The advisory MUST surface one or more stable finding codes (`resume:sibling_overlap`, `resume:archived_duplicate`, `resume:codebase_drift`, `resume:freshness_limited`) using the `/adv-coordinate` taxonomy (`repo_backed_fact | adv_backed_fact | judgment_call | freshness_limited`). The advisory MUST NOT block any gate transition. The advisory MUST NOT mutate ADV state. The advisory MUST stay within a bounded tool-call cost ceiling (~5 calls per stale resume) and MUST invoke the resolver at most once per `adv_status` call (primary candidate only). Fresh changes (`lastActivityAgeMinutes <= 60`) MUST skip the advisory entirely. Missing or stale evidence MUST degrade to `freshness_limited`, not block. User dismissal of findings is NOT persisted — the advisory re-raises on every resume. The advisory scope is current-project only.
+When an agent resumes a change whose `lastActivityAgeMinutes` exceeds the resume-freshness band (default 60 minutes), the agent MUST emit a bounded Resume Freshness advisory before the Gate Machine proceeds. The advisory MUST surface one or more stable finding codes (`resume:sibling_overlap`, `resume:archived_duplicate`, `resume:codebase_drift`, `resume:freshness_limited`) using the `/determinus-coordinate` taxonomy (`repo_backed_fact | determinus_backed_fact | judgment_call | freshness_limited`). The advisory MUST NOT block any gate transition. The advisory MUST NOT mutate ADV state. The advisory MUST stay within a bounded tool-call cost ceiling (~5 calls per stale resume) and MUST invoke the resolver at most once per `determinus_status` call (primary candidate only). Fresh changes (`lastActivityAgeMinutes <= 60`) MUST skip the advisory entirely. Missing or stale evidence MUST degrade to `freshness_limited`, not block. User dismissal of findings is NOT persisted — the advisory re-raises on every resume. The advisory scope is current-project only.
 
 **Tags:** `workflow`, `resume`, `freshness`, `advisory`
 
@@ -5829,7 +5829,7 @@ When an agent resumes a change whose `lastActivityAgeMinutes` exceeds the resume
 **Then:**
 - A bounded Resume Freshness advisory is emitted before Step 3 Gate Machine proceeds
 - At least one finding code from the stable set is present (or freshness_limited)
-- The advisory carries a label from the inherited /adv-coordinate taxonomy
+- The advisory carries a label from the inherited /determinus-coordinate taxonomy
 
 **Fresh change skips advisory** (`rq-resumeFreshness01.2`)
 
@@ -5912,7 +5912,7 @@ When an agent resumes a change whose `lastActivityAgeMinutes` exceeds the resume
 **Primary-only invocation bounds cost** (`rq-resumeFreshness01.9`)
 
 **Given:**
-- An adv_status call processes N recent changes
+- An determinus_status call processes N recent changes
 
 **When:** Status enrichments are computed
 
@@ -5928,7 +5928,7 @@ When an agent resumes a change whose `lastActivityAgeMinutes` exceeds the resume
 **When:** The recommendation is emitted
 
 **Then:**
-- A copy-pasteable adv_change_close ... supersededBy snippet is surfaced
+- A copy-pasteable determinus_change_close ... supersededBy snippet is surfaced
 - The snippet requires the user to run it explicitly with their own approval evidence
 - The advisory itself does NOT auto-execute close
 - The wording uses 'one-command accept (copy-paste and run)' — never 'one-click' or any phrasing implying button-click auto-execution
@@ -5939,7 +5939,7 @@ When an agent resumes a change whose `lastActivityAgeMinutes` exceeds the resume
 
 **ID:** `rq-wisdomAutoSurfacing01` | **Priority:** **[MUST]**
 
-ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMANTIC error_recovery attempts to lower the friction of capturing cross-task learnings. All enrichment is advisory-only: it MUST NOT be used to complete gates, override specs/contracts, or replace task evidence. WisdomDrafts follow a strict one-way lifecycle: suggested → promoted (via adv_wisdom_add from_draft_id) | dismissed (auto at adv_task_checkpoint with reason auto_checkpoint OR explicit user dismiss with reason user_dismissed). Drafts are task-scoped: cancelled tasks' drafts do not appear in change-level wisdom queries. The generic [ADV:RECORD_WISDOM] system-block nudge is retired; it is replaced by a draft-aware [ADV:WISDOM_DRAFTS] nudge that fires only when drafts are pending review. The plugin emits a capabilities-gated episode recall hint only — it never executes MCP calls directly (preserves plugin↔MCP isolation). Existing callers of affected tools MUST observe byte-identical behavior when new optional fields/features are absent (backward-compat invariant).
+ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMANTIC error_recovery attempts to lower the friction of capturing cross-task learnings. All enrichment is advisory-only: it MUST NOT be used to complete gates, override specs/contracts, or replace task evidence. WisdomDrafts follow a strict one-way lifecycle: suggested → promoted (via determinus_wisdom_add from_draft_id) | dismissed (auto at determinus_task_checkpoint with reason auto_checkpoint OR explicit user dismiss with reason user_dismissed). Drafts are task-scoped: cancelled tasks' drafts do not appear in change-level wisdom queries. The generic [ADV:RECORD_WISDOM] system-block nudge is retired; it is replaced by a draft-aware [ADV:WISDOM_DRAFTS] nudge that fires only when drafts are pending review. The plugin emits a capabilities-gated episode recall hint only — it never executes MCP calls directly (preserves plugin↔MCP isolation). Existing callers of affected tools MUST observe byte-identical behavior when new optional fields/features are absent (backward-compat invariant).
 
 **Tags:** `workflow`, `wisdom`, `advisory`, `task-show`, `task-update`, `task-checkpoint`, `wisdom-add`, `system-block`
 
@@ -5948,7 +5948,7 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 **_relevantWisdom is top 5 by recency when contract_refs.implements is non-empty** (`rq-wisdomAutoSurfacing01.1`)
 
 **Given:**
-- adv_task_show is invoked on a task whose contract_refs.implements is non-empty
+- determinus_task_show is invoked on a task whose contract_refs.implements is non-empty
 
 **When:** The tool computes _relevantWisdom
 
@@ -5962,7 +5962,7 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 **_episodeRecallHint is emitted capabilities-gated; plugin never calls MCP** (`rq-wisdomAutoSurfacing01.2`)
 
 **Given:**
-- adv_task_show is invoked on a task whose contract_refs.implements is non-empty
+- determinus_task_show is invoked on a task whose contract_refs.implements is non-empty
 
 **When:** The tool emits the hint
 
@@ -5976,7 +5976,7 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 **SEMANTIC error_recovery with attempts auto-creates exactly one WisdomDraft** (`rq-wisdomAutoSurfacing01.3`)
 
 **Given:**
-- adv_task_update is invoked with error_recovery.error_class === 'SEMANTIC'
+- determinus_task_update is invoked with error_recovery.error_class === 'SEMANTIC'
 - error_recovery.attempts[] is non-empty
 - The task does not already carry a draft in the 'suggested' state
 
@@ -5993,7 +5993,7 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 **Non-SEMANTIC or empty-attempts recovery does NOT create a draft** (`rq-wisdomAutoSurfacing01.4`)
 
 **Given:**
-- adv_task_update is invoked with error_recovery.error_class in {TRANSIENT, ENVIRONMENTAL, FATAL}
+- determinus_task_update is invoked with error_recovery.error_class in {TRANSIENT, ENVIRONMENTAL, FATAL}
 - Or error_recovery.attempts[] is empty
 
 **When:** The update is applied
@@ -6021,15 +6021,15 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 **When:** A transition is attempted
 
 **Then:**
-- suggested → promoted is the only path to promoted (via adv_wisdom_add from_draft_id)
+- suggested → promoted is the only path to promoted (via determinus_wisdom_add from_draft_id)
 - suggested → dismissed is the only path to dismissed (with reason auto_checkpoint OR user_dismissed)
 - promoted and dismissed are terminal — no revival path
 - No 'rejected' state exists in the lifecycle vocabulary
 
-**adv_wisdom_add from_draft_id atomically promotes** (`rq-wisdomAutoSurfacing01.7`)
+**determinus_wisdom_add from_draft_id atomically promotes** (`rq-wisdomAutoSurfacing01.7`)
 
 **Given:**
-- adv_wisdom_add is invoked with from_draft_id and sourceTask
+- determinus_wisdom_add is invoked with from_draft_id and sourceTask
 - The referenced draft exists on the sourceTask in the 'suggested' state
 
 **When:** The wisdom entry is added successfully
@@ -6042,10 +6042,10 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 - If the draft is dismissed: DRAFT_DISMISSED
 - If from_draft_id is supplied without sourceTask: FROM_DRAFT_ID_REQUIRES_SOURCE_TASK
 
-**adv_task_checkpoint auto-dismisses suggested drafts with counts** (`rq-wisdomAutoSurfacing01.8`)
+**determinus_task_checkpoint auto-dismisses suggested drafts with counts** (`rq-wisdomAutoSurfacing01.8`)
 
 **Given:**
-- adv_task_checkpoint is invoked in 'complete' mode
+- determinus_task_checkpoint is invoked in 'complete' mode
 - The task carries one or more drafts in the 'suggested' state
 
 **When:** The checkpoint completion signal fires and readback succeeds
@@ -6067,7 +6067,7 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 
 **Then:**
 - Drafts from cancelled tasks are not promoted to change-level wisdom entries
-- Drafts only become real Wisdom entries via explicit adv_wisdom_add from_draft_id
+- Drafts only become real Wisdom entries via explicit determinus_wisdom_add from_draft_id
 
 **System-block nudge is draft-aware; [ADV:RECORD_WISDOM] retired** (`rq-wisdomAutoSurfacing01.10`)
 
@@ -6079,16 +6079,16 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 
 **Then:**
 - An [ADV:WISDOM_DRAFTS] prompt fires listing each task with its pending draft count
-- The prompt references adv_wisdom_add from_draft_id and notes auto-dismiss-at-checkpoint
+- The prompt references determinus_wisdom_add from_draft_id and notes auto-dismiss-at-checkpoint
 - The retired [ADV:RECORD_WISDOM] prompt does NOT fire even when lastCompletedTask is set
 - When no drafts are pending, neither prompt fires
 
 **Advisory-only enrichment never gates or overrides** (`rq-wisdomAutoSurfacing01.11`)
 
 **Given:**
-- adv_task_show returns _relevantWisdom and/or _episodeRecallHint
-- Or adv_task_update auto-creates a WisdomDraft
-- Or adv_task_checkpoint reports drafts_pending_review/drafts_auto_dismissed counts
+- determinus_task_show returns _relevantWisdom and/or _episodeRecallHint
+- Or determinus_task_update auto-creates a WisdomDraft
+- Or determinus_task_checkpoint reports drafts_pending_review/drafts_auto_dismissed counts
 
 **When:** Any downstream gate, contract validation, or evidence evaluation runs
 
@@ -6101,7 +6101,7 @@ ADV auto-surfaces relevant wisdom and creates typed WisdomDraft entries on SEMAN
 **Backward-compat: existing callers unaffected when new optional fields are absent** (`rq-wisdomAutoSurfacing01.12`)
 
 **Given:**
-- An existing caller invokes adv_task_show, adv_task_update, adv_wisdom_add, or adv_task_checkpoint
+- An existing caller invokes determinus_task_show, determinus_task_update, determinus_wisdom_add, or determinus_task_checkpoint
 - The caller does not pass any new optional field (from_draft_id, pendingWisdomDraftTasks, etc.)
 
 **When:** The tool executes
@@ -6241,7 +6241,7 @@ The archive lifecycle MUST support staged spec deltas with operations: add, modi
 **Then:**
 - The staged entry dl-x is atomically replaced with the corrected postimage
 - The delta id dl-x is preserved
-- adv_change_show exposes the amended postimage before success is returned
+- determinus_change_show exposes the amended postimage before success is returned
 - A second amend of dl-x succeeds (no first-modify-only limit)
 
 **Amend of an invalid payload is atomically rejected** (`rq-stagedDeltaCrud01.2`)
@@ -6264,7 +6264,7 @@ The archive lifecycle MUST support staged spec deltas with operations: add, modi
 
 **Then:**
 - dl-x is removed from the change-owned delta record
-- adv_change_show no longer lists dl-x
+- determinus_change_show no longer lists dl-x
 - Readback confirms absence before success is returned
 
 **Remove and rename operation deltas can be staged** (`rq-stagedDeltaCrud01.4`)
@@ -6485,7 +6485,7 @@ ADV state-changing commands MUST carry stable operation identity, be validated a
 
 **ID:** `rq-structuredAcceptance01` | **Priority:** **[MUST]**
 
-The ChangeContract item model MUST support an optional typed variant annotation for the four supported criterion kinds (behavioral, evidence, spec_law, constraint) while keeping canonical text, stable ID, kind, and evidence policy as the contract authority. The variant MUST be parsed and validated once at the adv_contract_mint boundary. Legacy flat-text items without a variant MUST remain valid and render unchanged. Malformed or unsupported structured input MUST fail minting with a clear validation result and MUST leave the previously valid contract unchanged.
+The ChangeContract item model MUST support an optional typed variant annotation for the four supported criterion kinds (behavioral, evidence, spec_law, constraint) while keeping canonical text, stable ID, kind, and evidence policy as the contract authority. The variant MUST be parsed and validated once at the determinus_contract_mint boundary. Legacy flat-text items without a variant MUST remain valid and render unchanged. Malformed or unsupported structured input MUST fail minting with a clear validation result and MUST leave the previously valid contract unchanged.
 
 **Tags:** `workflow`, `contract`, `acceptance-criteria`, `variant`, `compatibility`
 
@@ -6496,7 +6496,7 @@ The ChangeContract item model MUST support an optional typed variant annotation 
 **Given:**
 - An approved agreement contains a supported structured criterion with a stable ACn/SCn/Cn/DONTn label
 
-**When:** adv_contract_mint parses the agreement
+**When:** determinus_contract_mint parses the agreement
 
 **Then:**
 - The contract item records the optional variant annotation
@@ -6520,7 +6520,7 @@ The ChangeContract item model MUST support an optional typed variant annotation 
 **Given:**
 - An approved agreement contains an incomplete behavioral scenario or malformed evidence/spec-law variant
 
-**When:** adv_contract_mint attempts to parse the contract
+**When:** determinus_contract_mint attempts to parse the contract
 
 **Then:**
 - Mint returns a clear CONTRACT_MALFORMED_VARIANT result
@@ -6532,7 +6532,7 @@ The ChangeContract item model MUST support an optional typed variant annotation 
 **Given:**
 - An approved structured criterion declares a bracketed [warrant: ...] tag
 
-**When:** adv_contract_mint parses the item
+**When:** determinus_contract_mint parses the item
 
 **Then:**
 - The warrant is verified against the live tool surface or spec ids
@@ -6577,11 +6577,11 @@ For a proof-bearing task, acceptance and release readiness MUST evaluate typed v
 
 ---
 
-### Unified hygiene triage scope for /adv-cleanup
+### Unified hygiene triage scope for /determinus-cleanup
 
 **ID:** `rq-cleanupHygieneScope01` | **Priority:** **[MUST]**
 
-/adv-cleanup MUST triage all four ADV hygiene surfaces in a single run: active-change debt, worktree drift, merged archived change/* branch debt, and archived/closed state leaks. Discovery MUST route through adv_change_list, adv_worktree_triage, adv_worktree_cleanup mode archived_branches dryRun true, and adv_status view hygiene respectively. Dry-run remains the default mode and no surface may be silently omitted when empty. Candidate buckets MUST be classified by reversibility, and irreversible buckets (worktree deletion, branch deletion) MUST require a stronger confirmation than reversible buckets: a count-matched typed reply that rejects the reversible-bucket approve-all token, with no LLM fallback. Deletion MUST delegate to adv_worktree_delete or adv_worktree_cleanup per rq-terminalCleanupSafety01; adv_worktree_triage classification is advisory discovery and selection data and is never sufficient deletion authority. Invocation remains operator-explicit with no background sweeps, daemons, or session-start auto-cleanup.
+/determinus-cleanup MUST triage all four ADV hygiene surfaces in a single run: active-change debt, worktree drift, merged archived change/* branch debt, and archived/closed state leaks. Discovery MUST route through determinus_change_list, determinus_worktree_triage, determinus_worktree_cleanup mode archived_branches dryRun true, and determinus_status view hygiene respectively. Dry-run remains the default mode and no surface may be silently omitted when empty. Candidate buckets MUST be classified by reversibility, and irreversible buckets (worktree deletion, branch deletion) MUST require a stronger confirmation than reversible buckets: a count-matched typed reply that rejects the reversible-bucket approve-all token, with no LLM fallback. Deletion MUST delegate to determinus_worktree_delete or determinus_worktree_cleanup per rq-terminalCleanupSafety01; determinus_worktree_triage classification is advisory discovery and selection data and is never sufficient deletion authority. Invocation remains operator-explicit with no background sweeps, daemons, or session-start auto-cleanup.
 
 **Tags:** `cleanup`, `hygiene`, `approval`, `safety`
 
@@ -6592,7 +6592,7 @@ For a proof-bearing task, acceptance and release readiness MUST evaluate typed v
 **Given:**
 - A project has stale active changes, drifted worktrees, merged archived change/* branches, and archived or closed state leaks
 
-**When:** The user runs /adv-cleanup in default dry-run mode
+**When:** The user runs /determinus-cleanup in default dry-run mode
 
 **Then:**
 - The report contains a distinct section for each of the four hygiene surfaces
@@ -6633,15 +6633,15 @@ For a proof-bearing task, acceptance and release readiness MUST evaluate typed v
 **When:** The command applies the approved bucket
 
 **Then:**
-- Deletion is performed by adv_worktree_delete or adv_worktree_cleanup
+- Deletion is performed by determinus_worktree_delete or determinus_worktree_cleanup
 - The deletion tool's own safety refusals are honoured and surfaced verbatim in the result lines
-- adv_worktree_triage classification alone never authorises removal
+- determinus_worktree_triage classification alone never authorises removal
 - Each bucket remains atomic and a bucket failure does not halt remaining buckets
 
 **Dry-run default preserved** (`rq-cleanupHygieneScope01.5`)
 
 **Given:**
-- The user runs /adv-cleanup without an execute flag
+- The user runs /determinus-cleanup without an execute flag
 
 **When:** The command completes its scan and renders the report
 
@@ -6657,7 +6657,7 @@ For a proof-bearing task, acceptance and release readiness MUST evaluate typed v
 
 **ID:** `rq-findingRouting01` | **Priority:** **[MUST]**
 
-Command contracts that encounter mid-lifecycle findings — prep MoSCoW Won't path, design risk-table framing, apply/review/harden routing — MUST name adv_backlog_add as the durable middle-tier option. Findings that do not warrant immediate change creation MUST be routable to the backlog without friction (no mandatory prose justification gate). The command contracts MUST carry a fidelity anchor (asset-test claim) that fails if the routing direction is removed, so the vocabulary does not silently regress.
+Command contracts that encounter mid-lifecycle findings — prep MoSCoW Won't path, design risk-table framing, apply/review/harden routing — MUST name determinus_backlog_add as the durable middle-tier option. Findings that do not warrant immediate change creation MUST be routable to the backlog without friction (no mandatory prose justification gate). The command contracts MUST carry a fidelity anchor (asset-test claim) that fails if the routing direction is removed, so the vocabulary does not silently regress.
 
 **Tags:** `workflow`, `backlog`, `findings`, `vocabulary`, `routing`
 
@@ -6671,7 +6671,7 @@ Command contracts that encounter mid-lifecycle findings — prep MoSCoW Won't pa
 **When:** The agent follows the MoSCoW Won't path
 
 **Then:**
-- The contract names adv_backlog_add as the durable middle-tier option
+- The contract names determinus_backlog_add as the durable middle-tier option
 - No mandatory prose justification blocks the routing
 
 **Design risk-table requires durable-record framing** (`rq-findingRouting01.2`)
@@ -6682,7 +6682,7 @@ Command contracts that encounter mid-lifecycle findings — prep MoSCoW Won't pa
 **When:** The mitigation is framed
 
 **Then:**
-- The adv-design contract requires durable-record framing
+- The determinus-design contract requires durable-record framing
 - No-change-owns-it is not an acceptable mitigation
 
 **Apply/review/harden routing claims are drift-guarded** (`rq-findingRouting01.3`)
@@ -6702,7 +6702,7 @@ Command contracts that encounter mid-lifecycle findings — prep MoSCoW Won't pa
 
 **ID:** `rq-respectsEvaluation01` | **Priority:** **[MUST]**
 
-A task's contract_refs.respects claim targeting an avoidance (DONT) or out_of_scope (OOS) contract item is a positive compliance assertion that the claiming agent cannot self-certify. At acceptance and release gate readiness, every done task with such a respects claim MUST carry task-scoped review authority from a non-claiming agent (adv-reviewer). A change-scoped review report does not qualify — the reviewer must have examined THIS task. Self-asserted compliance alone MUST fail with a typed RESPECTS_EVIDENCE_AUTHORITY_MISSING blocker. The check applies to ALL done tasks (no grandfathering); existing recorded review evidence is accepted, not re-litigated. A task whose evidence_policy is 'test' is not exempt: respects on avoidance/OOS items requires review authority regardless of the task's own evidence route.
+A task's contract_refs.respects claim targeting an avoidance (DONT) or out_of_scope (OOS) contract item is a positive compliance assertion that the claiming agent cannot self-certify. At acceptance and release gate readiness, every done task with such a respects claim MUST carry task-scoped review authority from a non-claiming agent (determinus-reviewer). A change-scoped review report does not qualify — the reviewer must have examined THIS task. Self-asserted compliance alone MUST fail with a typed RESPECTS_EVIDENCE_AUTHORITY_MISSING blocker. The check applies to ALL done tasks (no grandfathering); existing recorded review evidence is accepted, not re-litigated. A task whose evidence_policy is 'test' is not exempt: respects on avoidance/OOS items requires review authority regardless of the task's own evidence route.
 
 **Tags:** `workflow`, `contract`, `acceptance`, `release`, `evidence`, `authority`, `respects`
 
@@ -6712,7 +6712,7 @@ A task's contract_refs.respects claim targeting an avoidance (DONT) or out_of_sc
 
 **Given:**
 - A done task has contract_refs.respects referencing a DONT or OOS item
-- No task-scoped adv-reviewer report exists for the task
+- No task-scoped determinus-reviewer report exists for the task
 
 **When:** Acceptance or release readiness evaluates the task
 
@@ -6724,7 +6724,7 @@ A task's contract_refs.respects claim targeting an avoidance (DONT) or out_of_sc
 
 **Given:**
 - A done task has contract_refs.respects referencing a DONT or OOS item
-- A task-scoped adv-reviewer report exists
+- A task-scoped determinus-reviewer report exists
 
 **When:** Acceptance or release readiness evaluates the task
 
@@ -6756,11 +6756,11 @@ A task's contract_refs.respects claim targeting an avoidance (DONT) or out_of_sc
 
 ---
 
-### adv_change_create surfaces bounded portfolio state with graceful degradation
+### determinus_change_create surfaces bounded portfolio state with graceful degradation
 
 **ID:** `rq-createPortfolioLine01` | **Priority:** **[SHOULD]**
 
-adv_change_create MUST surface bounded portfolio state at creation time: non-terminal change count, never-terminal share, and a soft nudge above threshold. Change creation is where reflexive change creation happens; surfacing the portfolio at that moment gives the creating agent the state it needs to consider the durable middle tier (adv_backlog_add). The portfolio read is deadline-capped (well under the store budget) and MUST degrade to an explicit { available: false } marker on any failure or timeout — creation is never blocked by the portfolio read. The nudge fires only above BOTH thresholds (minimum open count AND never-terminal share) so small portfolios stay quiet. An empty portfolio reports zero share with no nudge.
+determinus_change_create MUST surface bounded portfolio state at creation time: non-terminal change count, never-terminal share, and a soft nudge above threshold. Change creation is where reflexive change creation happens; surfacing the portfolio at that moment gives the creating agent the state it needs to consider the durable middle tier (determinus_backlog_add). The portfolio read is deadline-capped (well under the store budget) and MUST degrade to an explicit { available: false } marker on any failure or timeout — creation is never blocked by the portfolio read. The nudge fires only above BOTH thresholds (minimum open count AND never-terminal share) so small portfolios stay quiet. An empty portfolio reports zero share with no nudge.
 
 **Tags:** `workflow`, `change-create`, `portfolio`, `backlog`, `degradation`
 
@@ -6771,7 +6771,7 @@ adv_change_create MUST surface bounded portfolio state at creation time: non-ter
 **Given:**
 - A portfolio with non-terminal and terminal changes
 
-**When:** adv_change_create completes successfully
+**When:** determinus_change_create completes successfully
 
 **Then:**
 - The result carries portfolioState with available: true
@@ -6782,7 +6782,7 @@ adv_change_create MUST surface bounded portfolio state at creation time: non-ter
 **Given:**
 - The portfolio read exceeds its deadline or throws
 
-**When:** adv_change_create runs under a failing or slow portfolio read
+**When:** determinus_change_create runs under a failing or slow portfolio read
 
 **Then:**
 - Creation still succeeds
@@ -6794,17 +6794,17 @@ adv_change_create MUST surface bounded portfolio state at creation time: non-ter
 **Given:**
 - A portfolio above both nudge thresholds (open count AND never-terminal share)
 
-**When:** adv_change_create evaluates the portfolio
+**When:** determinus_change_create evaluates the portfolio
 
 **Then:**
-- The nudge message is present and names adv_backlog_add
+- The nudge message is present and names determinus_backlog_add
 
 **Small portfolios stay quiet** (`rq-createPortfolioLine01.4`)
 
 **Given:**
 - A portfolio below either threshold
 
-**When:** adv_change_create evaluates the portfolio
+**When:** determinus_change_create evaluates the portfolio
 
 **Then:**
 - No nudge is emitted
@@ -6888,7 +6888,7 @@ Change enumeration MUST resolve terminal dominance per requested ID, including r
 - A change has an archive bundle
 - Its durable summary shard still records a non-terminal status such as draft
 
-**When:** adv_change_list and its summary enumeration path each resolve the change
+**When:** determinus_change_list and its summary enumeration path each resolve the change
 
 **Then:**
 - Both surfaces return status archived
@@ -6993,7 +6993,7 @@ Every archive path that would report terminal success, return an archived no-op,
 - An archive bundle exists in the external store (on-disk project store)
 - The in-repo spec-projection.json is absent at the released commit because the bundle was never committed in-repo
 
-**When:** adv_change_archive retries on this change
+**When:** determinus_change_archive retries on this change
 
 **Then:**
 - The retry MUST NOT treat external-store bundle presence as proof the in-repo projection is durable

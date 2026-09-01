@@ -389,13 +389,13 @@ function classifyOrchestrator(
   if (sessionKind === "sub-agent") return false;
   if (Array.isArray(toolHistory)) {
     const orchestratorTools = new Set([
-      "adv_change_create",
-      "adv_change_archive",
-      "adv_task_update",
-      "adv_gate_complete",
-      "adv_worktree_create",
-      "adv_status",
-      "adv_triage",
+      "determinus_change_create",
+      "determinus_change_archive",
+      "determinus_task_update",
+      "determinus_gate_complete",
+      "determinus_worktree_create",
+      "determinus_status",
+      "determinus_triage",
     ]);
     const orchestratorToolHits = toolHistory.filter((t) =>
       orchestratorTools.has(String(t)),

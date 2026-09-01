@@ -85,7 +85,7 @@ export {
   type ToolGroup,
   type ToolLifecycleGate,
   type ToolMetadataV1,
-  ADV_PUBLIC_TOOL_BASELINE_COUNT,
+  determinus_PUBLIC_TOOL_BASELINE_COUNT,
   REALM_OVERRIDES,
   REALM_PREFIXES,
   GROUP_OVERRIDES,
@@ -305,7 +305,7 @@ interface ToolDef<TArgs, TStore> {
   execute: (args: TArgs, store: TStore) => Promise<string>;
 }
 
-/** Tool definition shape for adv_spec, which receives SDK execution context. */
+/** Tool definition shape for determinus_spec, which receives SDK execution context. */
 interface ToolDefWithContext<TArgs> {
   description: string;
   args: ToolArgsSchema;
@@ -317,7 +317,7 @@ interface ToolDefWithContext<TArgs> {
 
 /**
  * Bind a store-based tool definition to a store instance.
- * Usage: `adv_spec: bindTool(specTools.adv_spec, "adv_spec", store)`
+ * Usage: `determinus_spec: bindTool(specTools.determinus_spec, "determinus_spec", store)`
  */
 function bindTool<TArgs, TStore>(
   def: ToolDef<TArgs, TStore>,
@@ -336,18 +336,18 @@ function bindTool<TArgs, TStore>(
 }
 
 export const EXPLICITLY_BOUND = new Set([
-  "adv_spec",
-  "adv_wip_state",
-  "adv_change_archive",
-  "adv_task_cancel",
-  "adv_gate_complete",
-  "adv_run_test",
-  "adv_task_checkpoint",
-  "adv_worktree_create",
-  "adv_worktree_delete",
-  "adv_worktree_cleanup",
-  "adv_worktree_triage",
-  "adv_tool_invoke",
+  "determinus_spec",
+  "determinus_wip_state",
+  "determinus_change_archive",
+  "determinus_task_cancel",
+  "determinus_gate_complete",
+  "determinus_run_test",
+  "determinus_task_checkpoint",
+  "determinus_worktree_create",
+  "determinus_worktree_delete",
+  "determinus_worktree_cleanup",
+  "determinus_worktree_triage",
+  "determinus_tool_invoke",
 ]);
 
 function bindGroup(
@@ -371,11 +371,11 @@ function bindGroup(
 }
 
 /**
- * Bind adv_spec to a store instance while threading SDK execution context
+ * Bind determinus_spec to a store instance while threading SDK execution context
  * (worktree/directory) so spec reads can resolve the calling worktree's
  * .adv/specs directory.
  *
- * Usage: `adv_spec: bindToolWithContext(specTools.adv_spec, "adv_spec", store)`
+ * Usage: `determinus_spec: bindToolWithContext(specTools.determinus_spec, "determinus_spec", store)`
  */
 function bindToolWithContext<TArgs>(
   def: ToolDefWithContext<TArgs>,
@@ -418,11 +418,15 @@ export function createFullToolMap(
   const baseToolMap = {
     // Spec Tools
     ...bindGroup(specTools, store),
-    adv_spec: bindToolWithContext(specTools.adv_spec, "adv_spec", store),
+    determinus_spec: bindToolWithContext(
+      specTools.determinus_spec,
+      "determinus_spec",
+      store,
+    ),
 
     ...bindGroup(backlogTools, store),
 
-    // adv_wip_state — fixTriageTimeouts.
+    // determinus_wip_state — fixTriageTimeouts.
     //
     // WIP aggregator reads active changes, cross-change worktree inventory, and
     // peer sessions. The worktree inventory fans out to every change workflow
@@ -437,15 +441,15 @@ export function createFullToolMap(
     // ToolContext and forwarded to the collector only on this tool, so a
     // caller cancellation stops new workflow queries without losing sections
     // that have already settled.
-    adv_wip_state: registerTool(
-      backlogTools.adv_wip_state.description,
-      backlogTools.adv_wip_state.args,
+    determinus_wip_state: registerTool(
+      backlogTools.determinus_wip_state.description,
+      backlogTools.determinus_wip_state.args,
       namedExecute(
-        "adv_wip_state",
+        "determinus_wip_state",
         safeExecute(
           async (args, sdkContext: unknown) => {
             const signal = extractAbortSignal(sdkContext);
-            return backlogTools.adv_wip_state.execute(
+            return backlogTools.determinus_wip_state.execute(
               args as Record<string, unknown>,
               {
                 store,
@@ -453,7 +457,7 @@ export function createFullToolMap(
               },
             );
           },
-          "adv_wip_state",
+          "determinus_wip_state",
           undefined,
           { timeoutMs: WIP_CALLER_TIMEOUT_MS },
         ),
@@ -462,7 +466,7 @@ export function createFullToolMap(
 
     // Change Tools
     ...bindGroup(changeTools, store),
-    // adv_change_archive — fixArchiveTerminalProjection SC3/AC4 +
+    // determinus_change_archive — fixArchiveTerminalProjection SC3/AC4 +
     // rq-toolTimeoutOverride01. Heavy-tier outer budget: the inner git
     // push alone defaults to 300s (DEFAULT_GIT_PUSH_TIMEOUT_MS in
     // archive-helpers/git-finalize.ts), plus fetch/merge/gh ops at 30s
@@ -473,20 +477,20 @@ export function createFullToolMap(
     // bundle write, onToolTimeout returns a typed still-finalizing /
     // re-run-to-reconcile result instead of a bare ToolExecutionTimeout
     // (re-runs are idempotent — rq-archiveOrdering01).
-    adv_change_archive: registerTool(
-      changeTools.adv_change_archive.description,
-      changeTools.adv_change_archive.args,
+    determinus_change_archive: registerTool(
+      changeTools.determinus_change_archive.description,
+      changeTools.determinus_change_archive.args,
       namedExecute(
-        "adv_change_archive",
+        "determinus_change_archive",
         safeExecute(
           async (args) =>
-            changeTools.adv_change_archive.execute(
+            changeTools.determinus_change_archive.execute(
               args as Parameters<
-                typeof changeTools.adv_change_archive.execute
+                typeof changeTools.determinus_change_archive.execute
               >[0],
               store,
             ),
-          "adv_change_archive",
+          "determinus_change_archive",
           undefined,
           {
             timeoutMs: 420_000,
@@ -516,14 +520,14 @@ export function createFullToolMap(
     ...bindGroup(taskTools, store),
 
     // Task cancel — needs Record<string,string> type coercion
-    adv_task_cancel: registerTool(
-      taskTools.adv_task_cancel.description,
-      taskTools.adv_task_cancel.args,
+    determinus_task_cancel: registerTool(
+      taskTools.determinus_task_cancel.description,
+      taskTools.determinus_task_cancel.args,
       namedExecute(
-        "adv_task_cancel",
+        "determinus_task_cancel",
         safeExecute(
           async (args) =>
-            taskTools.adv_task_cancel.execute(
+            taskTools.determinus_task_cancel.execute(
               {
                 ...(args as Record<string, unknown>),
                 reasons: (args as Record<string, unknown>).reasons as Record<
@@ -533,10 +537,12 @@ export function createFullToolMap(
                 supersededBy: (args as Record<string, unknown>).supersededBy as
                   | Record<string, string>
                   | undefined,
-              } as Parameters<typeof taskTools.adv_task_cancel.execute>[0],
+              } as Parameters<
+                typeof taskTools.determinus_task_cancel.execute
+              >[0],
               store,
             ),
-          "adv_task_cancel",
+          "determinus_task_cancel",
         ),
       ),
     ),
@@ -544,9 +550,9 @@ export function createFullToolMap(
     // Sub-agent Report Tools
     ...bindGroup(subagentReportTools, store),
 
-    // Wisdom Tools — adv_project_wisdom_list was removed by
+    // Wisdom Tools — determinus_project_wisdom_list was removed by
     // consolidateAdvToolSurface2 (tk-11d902254d63); its project-only listing
-    // folded into adv_wisdom_list behind project_only + bounded maxEntries.
+    // folded into determinus_wisdom_list behind project_only + bounded maxEntries.
     ...bindGroup(wisdomTools, store),
 
     // Status Tool
@@ -557,22 +563,24 @@ export function createFullToolMap(
 
     // Gate Tools
     ...bindGroup(gateTools, store),
-    // adv_gate_complete uses a longer safety-net because the durable write
+    // determinus_gate_complete uses a longer safety-net because the durable write
     // may have landed while the agent sees a ToolExecutionTimeout. The
     // classifier returns a typed "may have landed — verify via
-    // adv_gate_status" advisory instead of encouraging a blind retry.
-    adv_gate_complete: registerTool(
-      gateTools.adv_gate_complete.description,
-      gateTools.adv_gate_complete.args,
+    // determinus_gate_status" advisory instead of encouraging a blind retry.
+    determinus_gate_complete: registerTool(
+      gateTools.determinus_gate_complete.description,
+      gateTools.determinus_gate_complete.args,
       namedExecute(
-        "adv_gate_complete",
+        "determinus_gate_complete",
         safeExecute(
           async (args) =>
-            gateTools.adv_gate_complete.execute(
-              args as Parameters<typeof gateTools.adv_gate_complete.execute>[0],
+            gateTools.determinus_gate_complete.execute(
+              args as Parameters<
+                typeof gateTools.determinus_gate_complete.execute
+              >[0],
               store,
             ),
-          "adv_gate_complete",
+          "determinus_gate_complete",
           undefined,
           {
             timeoutMs: 30_000,
@@ -586,7 +594,7 @@ export function createFullToolMap(
       ),
     ),
 
-    // Test Tools — adv_run_test takes (args, store, directory)
+    // Test Tools — determinus_run_test takes (args, store, directory)
     ...bindGroup(testTools, store),
     //
     // Outer safety-net timeout must exceed the inner subprocess budget.
@@ -596,47 +604,49 @@ export function createFullToolMap(
     // 305s = 300s schema max + 5s bookkeeping. The inner subprocess timeout
     // remains the authoritative wall-clock bound; the outer net catches
     // genuine hangs (infinite loops, stuck SDK calls) beyond the inner limit.
-    adv_run_test: registerTool(
-      testTools.adv_run_test.description,
-      testTools.adv_run_test.args,
+    determinus_run_test: registerTool(
+      testTools.determinus_run_test.description,
+      testTools.determinus_run_test.args,
       namedExecute(
-        "adv_run_test",
+        "determinus_run_test",
         safeExecute(
           async (args) =>
-            testTools.adv_run_test.execute(
-              args as Parameters<typeof testTools.adv_run_test.execute>[0],
+            testTools.determinus_run_test.execute(
+              args as Parameters<
+                typeof testTools.determinus_run_test.execute
+              >[0],
               store,
               directory,
             ),
-          "adv_run_test",
+          "determinus_run_test",
           undefined,
           { timeoutMs: 305_000 },
         ),
       ),
     ),
 
-    // Checkpoint Tool — adv_task_checkpoint takes (args, store, directory)
+    // Checkpoint Tool — determinus_task_checkpoint takes (args, store, directory)
     ...bindGroup(checkpointTools, store),
     //
     // Outer safety-net timeout must exceed the inner git subprocess budget
     // (DEFAULT_TIMEOUT_MS = 30s in checkpoint.ts) so the subprocess is the
     // authoritative timeout source. Pre-commit hook chains in large repos
     // routinely run 15-25s, leaving little headroom under the default 10s.
-    adv_task_checkpoint: registerTool(
-      checkpointTools.adv_task_checkpoint.description,
-      checkpointTools.adv_task_checkpoint.args,
+    determinus_task_checkpoint: registerTool(
+      checkpointTools.determinus_task_checkpoint.description,
+      checkpointTools.determinus_task_checkpoint.args,
       namedExecute(
-        "adv_task_checkpoint",
+        "determinus_task_checkpoint",
         safeExecute(
           async (args) =>
-            checkpointTools.adv_task_checkpoint.execute(
+            checkpointTools.determinus_task_checkpoint.execute(
               args as Parameters<
-                typeof checkpointTools.adv_task_checkpoint.execute
+                typeof checkpointTools.determinus_task_checkpoint.execute
               >[0],
               store,
               directory,
             ),
-          "adv_task_checkpoint",
+          "determinus_task_checkpoint",
           undefined,
           { timeoutMs: 35_000 },
         ),
@@ -651,16 +661,16 @@ export function createFullToolMap(
 
     // Worktree Tools
     ...bindGroup(advWorktreeTools, store),
-    adv_worktree_create: registerTool(
-      advWorktreeTools.adv_worktree_create.description,
-      advWorktreeTools.adv_worktree_create.args,
+    determinus_worktree_create: registerTool(
+      advWorktreeTools.determinus_worktree_create.description,
+      advWorktreeTools.determinus_worktree_create.args,
       namedExecute(
-        "adv_worktree_create",
+        "determinus_worktree_create",
         safeExecute(
           async (args, context) =>
-            advWorktreeTools.adv_worktree_create.execute(
+            advWorktreeTools.determinus_worktree_create.execute(
               args as Parameters<
-                typeof advWorktreeTools.adv_worktree_create.execute
+                typeof advWorktreeTools.determinus_worktree_create.execute
               >[0],
               store,
               {
@@ -669,7 +679,7 @@ export function createFullToolMap(
                 client,
               },
             ),
-          "adv_worktree_create",
+          "determinus_worktree_create",
         ),
       ),
     ),
@@ -678,45 +688,45 @@ export function createFullToolMap(
     // chains. On large repositories (dozens of worktrees, hundreds of changes)
     // that chain cannot fit the 10s default execute ceiling: the 8s-era inner
     // budget timed out at every stage while bare git/gh calls stayed
-    // sub-second. Carry the same >10s override pattern as adv_task_checkpoint
-    // and adv_worktree_triage: 50s outer net over the 45s
+    // sub-second. Carry the same >10s override pattern as determinus_task_checkpoint
+    // and determinus_worktree_triage: 50s outer net over the 45s
     // WORKTREE_TOOL_SAFE_TIMEOUT_MS inner budget, preserving a 5s typed
     // timeout response reserve.
-    adv_worktree_delete: registerTool(
-      advWorktreeTools.adv_worktree_delete.description,
-      advWorktreeTools.adv_worktree_delete.args,
+    determinus_worktree_delete: registerTool(
+      advWorktreeTools.determinus_worktree_delete.description,
+      advWorktreeTools.determinus_worktree_delete.args,
       namedExecute(
-        "adv_worktree_delete",
+        "determinus_worktree_delete",
         safeExecute(
           async (args) =>
-            advWorktreeTools.adv_worktree_delete.execute(
+            advWorktreeTools.determinus_worktree_delete.execute(
               args as Parameters<
-                typeof advWorktreeTools.adv_worktree_delete.execute
+                typeof advWorktreeTools.determinus_worktree_delete.execute
               >[0],
               store,
               { serverUrl, client },
             ),
-          "adv_worktree_delete",
+          "determinus_worktree_delete",
           undefined,
           { timeoutMs: 50_000 },
         ),
       ),
     ),
-    adv_worktree_cleanup: registerTool(
-      advWorktreeTools.adv_worktree_cleanup.description,
-      advWorktreeTools.adv_worktree_cleanup.args,
+    determinus_worktree_cleanup: registerTool(
+      advWorktreeTools.determinus_worktree_cleanup.description,
+      advWorktreeTools.determinus_worktree_cleanup.args,
       namedExecute(
-        "adv_worktree_cleanup",
+        "determinus_worktree_cleanup",
         safeExecute(
           async (args) =>
-            advWorktreeTools.adv_worktree_cleanup.execute(
+            advWorktreeTools.determinus_worktree_cleanup.execute(
               args as Parameters<
-                typeof advWorktreeTools.adv_worktree_cleanup.execute
+                typeof advWorktreeTools.determinus_worktree_cleanup.execute
               >[0],
               store,
               { serverUrl, client },
             ),
-          "adv_worktree_cleanup",
+          "determinus_worktree_cleanup",
           undefined,
           { timeoutMs: 50_000 },
         ),
@@ -725,20 +735,20 @@ export function createFullToolMap(
     // Triage shares the 55s bounded inventory collector with WIP. Preserve a
     // 5s formatting reserve beneath this 60s outer containment so partial
     // findings and omissions return before safeExecute can become opaque.
-    adv_worktree_triage: registerTool(
-      advWorktreeTools.adv_worktree_triage.description,
-      advWorktreeTools.adv_worktree_triage.args,
+    determinus_worktree_triage: registerTool(
+      advWorktreeTools.determinus_worktree_triage.description,
+      advWorktreeTools.determinus_worktree_triage.args,
       namedExecute(
-        "adv_worktree_triage",
+        "determinus_worktree_triage",
         safeExecute(
           async (args, sdkContext: unknown) =>
-            advWorktreeTools.adv_worktree_triage.execute(
+            advWorktreeTools.determinus_worktree_triage.execute(
               args as Parameters<
-                typeof advWorktreeTools.adv_worktree_triage.execute
+                typeof advWorktreeTools.determinus_worktree_triage.execute
               >[0],
               { store, signal: extractAbortSignal(sdkContext) },
             ),
-          "adv_worktree_triage",
+          "determinus_worktree_triage",
           undefined,
           { timeoutMs: WIP_CALLER_TIMEOUT_MS },
         ),
@@ -773,16 +783,16 @@ export function createFullToolMap(
   // Dispatches to the same wrapped ToolDefinition.execute used by direct
   // calls, preserving ToolContext, validation, authorization, approvals,
   // recovery restrictions, and timeouts. The outer 10-minute safety net
-  // is longer than any current tool timeout (max 420s for adv_change_archive)
+  // is longer than any current tool timeout (max 420s for determinus_change_archive)
   // so inner target timeouts remain authoritative.
-  const adv_tool_invoke = registerTool(
-    advInvokeTools.adv_tool_invoke.description,
-    advInvokeTools.adv_tool_invoke.args,
+  const determinus_tool_invoke = registerTool(
+    advInvokeTools.determinus_tool_invoke.description,
+    advInvokeTools.determinus_tool_invoke.args,
     namedExecute(
-      "adv_tool_invoke",
+      "determinus_tool_invoke",
       safeExecute(
         async (args, sdkContext) =>
-          advInvokeTools.adv_tool_invoke.execute(
+          advInvokeTools.determinus_tool_invoke.execute(
             args as { name: string; args: Record<string, unknown> },
             (
               name,
@@ -803,7 +813,7 @@ export function createFullToolMap(
             },
             sdkContext,
           ),
-        "adv_tool_invoke",
+        "determinus_tool_invoke",
         undefined,
         { timeoutMs: 600_000 },
       ),
@@ -812,28 +822,28 @@ export function createFullToolMap(
 
   return {
     ...baseToolMap,
-    adv_tool_invoke,
+    determinus_tool_invoke,
   };
 }
 
 /** Tools registered directly in the SDK-facing OpenCode surface (Tier 1). */
 export const DIRECT_TOOL_NAMES: readonly string[] = Object.freeze([
-  "adv_change_archive",
-  "adv_change_close",
-  "adv_change_create",
-  "adv_change_list",
-  "adv_change_show",
-  "adv_change_update",
-  "adv_gate_complete",
-  "adv_gate_status",
-  "adv_run_test",
-  "adv_subagent_report_submit",
-  "adv_task_add",
-  "adv_task_checkpoint",
-  "adv_task_list",
-  "adv_task_update",
-  "adv_tool_catalog",
-  "adv_tool_invoke",
+  "determinus_change_archive",
+  "determinus_change_close",
+  "determinus_change_create",
+  "determinus_change_list",
+  "determinus_change_show",
+  "determinus_change_update",
+  "determinus_gate_complete",
+  "determinus_gate_status",
+  "determinus_run_test",
+  "determinus_subagent_report_submit",
+  "determinus_task_add",
+  "determinus_task_checkpoint",
+  "determinus_task_list",
+  "determinus_task_update",
+  "determinus_tool_catalog",
+  "determinus_tool_invoke",
 ]);
 
 /** Build the reduced SDK-facing map; invoke-only tools stay in the full map. */
@@ -871,7 +881,7 @@ export function createToolMap(
  * (consolidateAdvToolSurface2 — SC1/SC2/AC5/C5, DDC1/DDC2/DDC3).
  *
  * This readonly, type-checked inventory is the single source of truth for the
- * full canonical ADV tool surface. Canonical names (ADV_TOOL_NAMES) and the
+ * full canonical ADV tool surface. Canonical names (determinus_TOOL_NAMES) and the
  * warrant-visible argument surface (getToolSurface) are BOTH derived from it,
  * so discovery metadata can no longer drift from the exported `*Tools`
  * groups. `createFullToolMap` above uses `bindGroup` for group-granular
@@ -887,7 +897,7 @@ export function createToolMap(
  * execute a handler or grant access (C1/DONT1/DONT2/DONT3).
  */
 export const toolCatalogTools = {
-  adv_tool_catalog: {
+  determinus_tool_catalog: {
     description:
       "Bounded read-only catalog of all canonical ADV tools. Returns each tool's name, description, argument keys, and visibility metadata (realm, group, lifecycle gates, risk, recovery-only). Restriction labels are descriptive only and do not grant access.",
     args: {
@@ -917,10 +927,10 @@ export const toolCatalogTools = {
         a.name.localeCompare(b.name),
       );
       const items: ToolCatalogItem[] = sortedEntries.map((entry) => {
-        const meta = ADV_TOOL_METADATA[entry.name];
+        const meta = determinus_TOOL_METADATA[entry.name];
         if (!meta) {
           throw new Error(
-            `Metadata parity mismatch: ${entry.name} has no ADV_TOOL_METADATA entry`,
+            `Metadata parity mismatch: ${entry.name} has no determinus_TOOL_METADATA entry`,
           );
         }
         return {
@@ -933,7 +943,7 @@ export const toolCatalogTools = {
       const paged = paginate(items, {
         limit,
         offset,
-        tool: "adv_tool_catalog",
+        tool: "determinus_tool_catalog",
       });
       return formatToolOutput(
         {
@@ -945,14 +955,16 @@ export const toolCatalogTools = {
     },
   },
 
-  adv_tool_describe: {
+  determinus_tool_describe: {
     description:
       "Describe a single canonical ADV tool by exact name. Returns metadata, argument keys, and a JSON Schema representation of the tool's input arguments. Does not execute the tool or grant access.",
     args: {
       name: z
         .string()
         .min(1)
-        .describe("Exact canonical ADV tool name (e.g. adv_change_show)"),
+        .describe(
+          "Exact canonical ADV tool name (e.g. determinus_change_show)",
+        ),
     },
     execute: async (
       args: { name: string },
@@ -965,10 +977,10 @@ export const toolCatalogTools = {
           code: "TOOL_NOT_FOUND",
         });
       }
-      const meta = ADV_TOOL_METADATA[entry.name];
+      const meta = determinus_TOOL_METADATA[entry.name];
       if (!meta) {
         return formatToolOutput({
-          error: `Metadata parity mismatch: ${entry.name} has no ADV_TOOL_METADATA entry`,
+          error: `Metadata parity mismatch: ${entry.name} has no determinus_TOOL_METADATA entry`,
           code: "METADATA_PARITY_MISMATCH",
         });
       }
@@ -1044,25 +1056,26 @@ export function getToolSurface(): Map<string, Set<string>> {
  * for every name; exact-set parity with createToolMap and getToolSurface is
  * enforced by deterministic tests (DDC1).
  */
-export const ADV_TOOL_NAMES: readonly string[] = Object.freeze(
+export const determinus_TOOL_NAMES: readonly string[] = Object.freeze(
   PUBLIC_TOOL_ENTRIES.map((entry) => entry.name),
 );
 
-export const ADV_TOOL_METADATA: Readonly<Record<string, ToolMetadataV1>> =
-  Object.freeze(
-    Object.fromEntries(
-      ADV_TOOL_NAMES.map((name) => [name, deriveToolMetadata(name)]),
-    ),
-  );
+export const determinus_TOOL_METADATA: Readonly<
+  Record<string, ToolMetadataV1>
+> = Object.freeze(
+  Object.fromEntries(
+    determinus_TOOL_NAMES.map((name) => [name, deriveToolMetadata(name)]),
+  ),
+);
 
 /**
  * Build a degraded tool map for the case where plugin init fails
- * (createStore/store.init throws). Every adv_* tool is registered as a stub
- * that returns a structured ADV_PLUGIN_INIT_FAILED payload so agents
+ * (createStore/store.init throws). Every determinus_* tool is registered as a stub
+ * that returns a structured determinus_PLUGIN_INIT_FAILED payload so agents
  * discover the real cause through any tool call rather than seeing the
  * tools silently disappear from the session.
  *
- * Keeps parity with createFullToolMap's tool names via ADV_TOOL_NAMES.
+ * Keeps parity with createFullToolMap's tool names via determinus_TOOL_NAMES.
  */
 export function createDegradedToolMap(
   initError: Error,
@@ -1070,9 +1083,9 @@ export function createDegradedToolMap(
 ): Record<string, ReturnType<typeof registerTool>> {
   const payload = JSON.stringify(
     {
-      status: "ADV_PLUGIN_INIT_FAILED",
+      status: "determinus_PLUGIN_INIT_FAILED",
       message:
-        "ADV plugin failed to initialize. Every adv_* tool is stubbed until the underlying issue is resolved. Restart the OpenCode session after applying a fix.",
+        "ADV plugin failed to initialize. Every determinus_* tool is stubbed until the underlying issue is resolved. Restart the OpenCode session after applying a fix.",
       error: initError.message,
       directory,
       remediation: [
@@ -1080,10 +1093,10 @@ export function createDegradedToolMap(
         "Check ~/.config/opencode/opencode.json — the .plugin array must point to the built plugin directory",
         "If project.json is present, verify it is valid JSON and matches the ADV ProjectConfig schema",
         "Check the ADV external state dir (~/.local/share/opencode/plugins/advance/{project-id}/) for malformed change/spec JSON; repair the artifact, then restart OpenCode",
-        "Set ADV_DEBUG=1 in your shell and restart OpenCode to capture init errors in $ADV_CACHE_DIR/adv-debug.log",
+        "Set determinus_DEBUG=1 in your shell and restart OpenCode to capture init errors in $determinus_CACHE_DIR/determinus-debug.log",
       ],
       readinessHint:
-        "When initialized, ADV mutation tools are gated per-target by a session-readiness probe. If the target queue is not yet adopted, mutations return ADV_SESSION_NOT_READY. Set ADV_SESSION_READINESS_BYPASS=1 to skip this gate (tests/dev only). This degraded stub is not a readiness authority and cannot know the per-target queue state.",
+        "When initialized, ADV mutation tools are gated per-target by a session-readiness probe. If the target queue is not yet adopted, mutations return determinus_SESSION_NOT_READY. Set determinus_SESSION_READINESS_BYPASS=1 to skip this gate (tests/dev only). This degraded stub is not a readiness authority and cannot know the per-target queue state.",
     },
     null,
     2,
@@ -1094,7 +1107,7 @@ export function createDegradedToolMap(
   const map: Record<string, ReturnType<typeof registerTool>> = {};
   for (const name of DIRECT_TOOL_NAMES) {
     map[name] = registerTool(
-      `[ADV plugin init failed — ${name} stub] ${initError.message.slice(0, 160)} (readiness hint: when initialized, mutation tools may be gated by session readiness; set ADV_SESSION_READINESS_BYPASS=1 to skip)`,
+      `[ADV plugin init failed — ${name} stub] ${initError.message.slice(0, 160)} (readiness hint: when initialized, mutation tools may be gated by session readiness; set determinus_SESSION_READINESS_BYPASS=1 to skip)`,
       {} as ToolArgsSchema,
       namedExecute(name, stubExecute),
     );

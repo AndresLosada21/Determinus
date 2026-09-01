@@ -16,7 +16,9 @@ const inspectScript = resolve(
 
 describe("scripts/maintenance/inspect.mjs", () => {
   test("reports archived release-gate eligible changes", async () => {
-    const projectRoot = await mkdtemp(join(tmpdir(), "adv-maintenance-"));
+    const projectRoot = await mkdtemp(
+      join(tmpdir(), "determinus-maintenance-"),
+    );
     const archiveDir = join(
       projectRoot,
       ".adv",

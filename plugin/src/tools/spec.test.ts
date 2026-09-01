@@ -31,9 +31,9 @@ describe("Spec Tools", () => {
     await cleanupTempDir(tempDir);
   });
 
-  describe("adv_spec", () => {
+  describe("determinus_spec", () => {
     test("returns all specs with metadata", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "list" },
         { store },
       );
@@ -49,7 +49,7 @@ describe("Spec Tools", () => {
     });
 
     test("filters by capability name", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "list", capability: "test-capability" },
         { store },
       );
@@ -60,7 +60,7 @@ describe("Spec Tools", () => {
     });
 
     test("returns empty array for non-matching capability", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "list", capability: "nonexistent" },
         { store },
       );
@@ -70,7 +70,7 @@ describe("Spec Tools", () => {
     });
 
     test("filters by tag", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "list", tag: "security" },
         { store },
       );
@@ -81,7 +81,7 @@ describe("Spec Tools", () => {
     });
 
     test("returns empty for non-matching tag", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "list", tag: "nonexistent-tag" },
         { store },
       );
@@ -91,9 +91,9 @@ describe("Spec Tools", () => {
     });
   });
 
-  describe("adv_spec", () => {
+  describe("determinus_spec", () => {
     test("returns full spec with requirements", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "show", capability: "test-capability" },
         { store },
       );
@@ -106,7 +106,7 @@ describe("Spec Tools", () => {
     });
 
     test("includes scenarios in requirements", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "show", capability: "test-capability" },
         { store },
       );
@@ -121,7 +121,7 @@ describe("Spec Tools", () => {
     });
 
     test("returns error for nonexistent spec", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "show", capability: "nonexistent" },
         { store },
       );
@@ -131,7 +131,7 @@ describe("Spec Tools", () => {
     });
   });
 
-  describe("adv_spec with worktree context", () => {
+  describe("determinus_spec with worktree context", () => {
     const writeSpec = async (specsDir: string, spec: unknown) => {
       const name = (spec as { name: string }).name;
       await mkdir(join(specsDir, name), { recursive: true });
@@ -149,7 +149,7 @@ describe("Spec Tools", () => {
         title: "Edited Title from Worktree",
       });
 
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "show", capability: "test-capability" },
         { store, worktree },
       );
@@ -166,7 +166,7 @@ describe("Spec Tools", () => {
         title: "Listed from Worktree",
       });
 
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "list" },
         { store, worktree },
       );
@@ -193,7 +193,7 @@ describe("Spec Tools", () => {
         ],
       });
 
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "search", query: "xyzzyworktreeunique" },
         { store, worktree },
       );
@@ -215,11 +215,11 @@ describe("Spec Tools", () => {
         title: "Worktree B",
       });
 
-      const resA = await specTools.adv_spec.execute(
+      const resA = await specTools.determinus_spec.execute(
         { action: "show", capability: "test-capability" },
         { store, worktree: wtA },
       );
-      const resB = await specTools.adv_spec.execute(
+      const resB = await specTools.determinus_spec.execute(
         { action: "show", capability: "test-capability" },
         { store, worktree: wtB },
       );
@@ -229,9 +229,9 @@ describe("Spec Tools", () => {
     });
   });
 
-  describe("adv_spec", () => {
+  describe("determinus_spec", () => {
     test("finds requirements by body content", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "search", query: "authentication" },
         { store },
       );
@@ -242,7 +242,7 @@ describe("Spec Tools", () => {
     });
 
     test("finds requirements by title", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "search", query: "Sample" },
         { store },
       );
@@ -253,7 +253,7 @@ describe("Spec Tools", () => {
     });
 
     test("respects limit parameter", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "search", query: "requirement", limit: 1 },
         { store },
       );
@@ -263,7 +263,7 @@ describe("Spec Tools", () => {
     });
 
     test("returns empty array for no matches", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "search", query: "xyznonexistent123" },
         { store },
       );
@@ -273,7 +273,7 @@ describe("Spec Tools", () => {
     });
 
     test("includes spec name in results", async () => {
-      const result = await specTools.adv_spec.execute(
+      const result = await specTools.determinus_spec.execute(
         { action: "search", query: "testing" },
         { store },
       );

@@ -1,7 +1,7 @@
 ---
-name: adv-apply-subagent-packets
-description: "Canonical sub-agent packet templates and verification result schema for /adv-apply delegation"
-keywords: ["adv-apply", "sub-agent", "packet", "verification-triage", "apply-context"]
+name: determinus-apply-subagent-packets
+description: "Canonical sub-agent packet templates and verification result schema for /determinus-apply delegation"
+keywords: ["determinus-apply", "sub-agent", "packet", "verification-triage", "apply-context"]
 metadata:
   priority: high
   source: command-asset
@@ -9,15 +9,15 @@ metadata:
 
 # ADV Apply Sub-Agent Packets
 
-Canonical detail offloaded from `.opencode/command/adv-apply.md`. Command owns the decision path; this document owns the verbatim packet templates and result schema.
+Canonical detail offloaded from `.opencode/command/determinus-apply.md`. Command owns the decision path; this document owns the verbatim packet templates and result schema.
 
 ## Verify-Burst Verification Triage Packet
 
-Spawn `adv-verifier` (or `general` fallback) for heavy verification bursts that would pollute the main agent context.
+Spawn `determinus-verifier` (or `general` fallback) for heavy verification bursts that would pollute the main agent context.
 
 **When to delegate:** output expected >200 lines, runtime >30s, combined lint/typecheck/tests, or timeout isolation needed.
 
-**When to keep inline:** focused TDD `adv_run_test`, single-file lint, or short expected output.
+**When to keep inline:** focused TDD `determinus_run_test`, single-file lint, or short expected output.
 
 ```text
 WORKING DIRECTORY: {workdir}
@@ -46,7 +46,7 @@ CI CHECKS (when PHASE=ci_check):
   - run_url: {optional URL}
 RULES:
   - Do not edit files, write files, or patch files.
-  - Do not call adv_subagent_report_submit.
+  - Do not call determinus_subagent_report_submit.
   - Do not complete gates, mutate ADV state, change scope, or publish final conclusions.
 ```
 
@@ -54,11 +54,11 @@ SCOPE KEY slug is hyphen-only; do not mirror underscored PHASE values.
 
 ## Verification Triage Result
 
-Strict JSON returned by the verify worker; main ADV wraps with `schema_version: "1.0"`, `change_id`, `attempt`, `workdir_used`, and `scope: { kind: "change", scope_key: "verifier:<slug>" }` before submitting `adv-verification-triage-bundle`.
+Strict JSON returned by the verify worker; main ADV wraps with `schema_version: "1.0"`, `change_id`, `attempt`, `workdir_used`, and `scope: { kind: "change", scope_key: "verifier:<slug>" }` before submitting `determinus-verification-triage-bundle`.
 
 ```json
 {
-  "agent": "adv-verification-triage-bundle",
+  "agent": "determinus-verification-triage-bundle",
   "phase": "local_verify | ci_check",
   "targets": [
     { "kind": "command", "command": "exact command", "exit_code": 1, "duration_ms": 1234 },
@@ -69,7 +69,7 @@ Strict JSON returned by the verify worker; main ADV wraps with `schema_version: 
   "confidence": "high | medium | low",
   "evidence_basis": "bounded source-backed reason",
   "findings": [{ "id": "...", "severity": "blocker|issue|suggestion|info", "summary": "...", "evidence": [{ "label": "test output", "locator": "command/check/log URL", "summary": "bounded excerpt or cited signal" }] }],
-  "recommended_next_action": "continue | retry_narrower | route_adv_engineer | ask_user | block_environment | wait_ci | no_action",
+  "recommended_next_action": "continue | retry_narrower | route_determinus_engineer | ask_user | block_environment | wait_ci | no_action",
   "scope_risk": false,
   "suggested_handoff": { "summary": "...", "in_scope": [], "out_of_scope": [], "done_when": [], "verification": [] },
   "failure_attribution": {
@@ -88,11 +88,11 @@ Strict JSON returned by the verify worker; main ADV wraps with `schema_version: 
 }
 ```
 
-**Handling:** PASS/continue → continue task. FAIL with `route_adv_engineer` → validate predicates, build actual `adv-engineer` packet. `retry_narrower` / timeout / malformed → retry once narrower, then inline. `ask_user` / `block_environment` / UNKNOWN → main ADV owns escalation. `route_adv_engineer` is valid only when `error_class` is `SEMANTIC`, `scope_risk` false, `confidence` high/medium, and `suggested_handoff` populated. UNKNOWN is routing-only: treat as inconclusive; never map into task `error_recovery`.
+**Handling:** PASS/continue → continue task. FAIL with `route_determinus_engineer` → validate predicates, build actual `determinus-engineer` packet. `retry_narrower` / timeout / malformed → retry once narrower, then inline. `ask_user` / `block_environment` / UNKNOWN → main ADV owns escalation. `route_determinus_engineer` is valid only when `error_class` is `SEMANTIC`, `scope_risk` false, `confidence` high/medium, and `suggested_handoff` populated. UNKNOWN is routing-only: treat as inconclusive; never map into task `error_recovery`.
 
 ## Apply Context Packet
 
-Spawn `adv-engineer` for delegated implementation tasks.
+Spawn `determinus-engineer` for delegated implementation tasks.
 
 ```text
 WORKING DIRECTORY: {workdir}
@@ -115,12 +115,12 @@ VERIFICATION:
 BRIEFING PACKET: inject the generated `_briefingPacket` (lane: engineer) here — includes identity_anchors, scope, contract, tasks, affected_files, EPIC CONTEXT, verification_expectations, durable_facts, unavailable_state
 PROJECT STRUCTURE: {brief ls or glob output showing relevant directories/files in workdir}
 DESIGN EXCERPT: {relevant section if task references design}
-EXPECTED OUTPUT: implement the task, run tests, then call adv_subagent_report_submit with ENGINEER_REPORT per .opencode/agents/adv-engineer.md; use evidence_binding_version: typed-v1 and bind every verification row's test_run_id to the same-task runId returned by adv_run_test
+EXPECTED OUTPUT: implement the task, run tests, then call determinus_subagent_report_submit with ENGINEER_REPORT per .opencode/agents/determinus-engineer.md; use evidence_binding_version: typed-v1 and bind every verification row's test_run_id to the same-task runId returned by determinus_run_test
 ```
 
 ## Designer Apply Context Packet
 
-Mandatory follow-up after a successful same-cycle `adv-engineer` report or classified inline implementation for `metadata.frontend == "true"`. `adv-designer` remediates in scope; review/harden ownership stays with `adv-reviewer`.
+Mandatory follow-up after a successful same-cycle `determinus-engineer` report or classified inline implementation for `metadata.frontend == "true"`. `determinus-designer` remediates in scope; review/harden ownership stays with `determinus-reviewer`.
 
 ```text
 WORKING DIRECTORY: {workdir}
@@ -158,10 +158,10 @@ VISUAL_CONTEXT:
   evidence_expectation: {browser/design proof expected with exact affected route/state, post-hydration readiness, and viewport context, or fallback rationale when unavailable}
 DESIGN QUALITY BAR: component correctness, semantic HTML/accessibility, responsive behavior, visual polish, matching site design, finer details
 NEIGHBORING RECOMMENDATIONS: finish owned UI scope if safe; surface adjacent UI inconsistencies via DESIGNER_REPORT.neighboring_recommendations[] and required_main_agent_actions
-BACKEND BOUNDARY: if the UI task requires changing storage, APIs, Temporal, or business logic, stop and report. Populate scope_drift.recommendation: "stop_and_report" and required_main_agent_actions with handoff to adv-engineer. Do NOT edit backend files.
+BACKEND BOUNDARY: if the UI task requires changing storage, APIs, Temporal, or business logic, stop and report. Populate scope_drift.recommendation: "stop_and_report" and required_main_agent_actions with handoff to determinus-engineer. Do NOT edit backend files.
 PROJECT STRUCTURE: {brief ls or glob output showing relevant directories/files in workdir}
 DESIGN EXCERPT: {relevant section if task references design}
-EXPECTED OUTPUT: implement the UI/component task, run tests, then call adv_subagent_report_submit with DESIGNER_REPORT per .opencode/agents/adv-designer.md; use evidence_binding_version: typed-v1 and bind every verification row's test_run_id to the same-task runId returned by adv_run_test
+EXPECTED OUTPUT: implement the UI/component task, run tests, then call determinus_subagent_report_submit with DESIGNER_REPORT per .opencode/agents/determinus-designer.md; use evidence_binding_version: typed-v1 and bind every verification row's test_run_id to the same-task runId returned by determinus_run_test
 ```
 
 The active cycle is bound in the designer report under `apply_context.implementation_cycle_id`, not as a top-level key:

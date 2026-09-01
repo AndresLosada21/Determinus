@@ -103,7 +103,7 @@ let cachedGitBinary: string | null = null;
  * Resolve `git` to an absolute path. Memoized after first successful
  * resolution. Order of precedence:
  *
- *   1. Explicit `ADV_GIT_PATH` env override
+ *   1. Explicit `determinus_GIT_PATH` env override
  *   2. Common absolute paths (`/usr/bin/git`, `/opt/homebrew/bin/git`, …)
  *   3. `which git` / `where git` against an augmented PATH
  *   4. Fallback to the literal string `"git"` (caller may still succeed
@@ -121,7 +121,7 @@ export function resolveGitBinary(opts: ResolveGitBinaryOptions = {}): string {
   const platform = opts.platform ?? process.platform;
 
   // 1. explicit override
-  const override = (env.ADV_GIT_PATH ?? "").trim();
+  const override = (env.determinus_GIT_PATH ?? "").trim();
   if (override && isExecutableFile(override)) {
     cachedGitBinary = override;
     return override;

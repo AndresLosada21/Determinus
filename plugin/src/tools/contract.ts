@@ -204,7 +204,7 @@ function isFailingContractReviewStatus(
 }
 
 const contractToolDefinitions = {
-  adv_contract_mint: {
+  determinus_contract_mint: {
     description:
       "Mint a typed ChangeContract from the approved agreement artifact and persist it through the contractSetSignal path. Recovery is classified internally from machine evidence (D4/AC5).",
     args: {
@@ -332,7 +332,7 @@ const contractToolDefinitions = {
       }),
   },
 
-  adv_contract_review_matrix_set: {
+  determinus_contract_review_matrix_set: {
     description:
       "Persist a typed contract.reviewMatrix through the contractReviewMatrixSetSignal path. Missing/failing rows still block acceptance.",
     args: {
@@ -392,7 +392,7 @@ const contractToolDefinitions = {
           if (!hasRows && !hasReviewMatrix) {
             return formatToolOutput({
               error:
-                "adv_contract_review_matrix_set requires either rows or reviewMatrix with at least one row",
+                "determinus_contract_review_matrix_set requires either rows or reviewMatrix with at least one row",
               changeId: args.changeId,
               ...(projectContext ? { _projectContext: projectContext } : {}),
             });
@@ -498,8 +498,8 @@ const contractToolDefinitions = {
 };
 
 const {
-  adv_contract_mint: _contractMintDefinition,
-  adv_contract_review_matrix_set: _contractReviewMatrixSetDefinition,
+  determinus_contract_mint: _contractMintDefinition,
+  determinus_contract_review_matrix_set: _contractReviewMatrixSetDefinition,
   ...contractPublicTools
 } = contractToolDefinitions;
 

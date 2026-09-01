@@ -21,7 +21,7 @@ const receipt = {
 
 describe("reconcile reports", () => {
   test("receipts are atomic and progress is rebuilt from them", async () => {
-    const root = await createTempDir("adv-reconcile-report-");
+    const root = await createTempDir("determinus-reconcile-report-");
     try {
       const runDir = join(root, "runs", "run-1");
       await writeReconcileReceipt(runDir, receipt);
@@ -37,7 +37,7 @@ describe("reconcile reports", () => {
   });
 
   test("corrupt progress does not block receipt-derived resume", async () => {
-    const root = await createTempDir("adv-reconcile-report-progress-");
+    const root = await createTempDir("determinus-reconcile-report-progress-");
     try {
       const runDir = join(root, "runs", "run-1");
       await writeReconcileReceipt(runDir, receipt);
@@ -50,7 +50,7 @@ describe("reconcile reports", () => {
   });
 
   test("corrupt progress can recover a persisted budget cursor from its report", async () => {
-    const root = await createTempDir("adv-reconcile-report-cursor-");
+    const root = await createTempDir("determinus-reconcile-report-cursor-");
     try {
       const runDir = join(root, "runs", "run-1");
       await mkdir(runDir, { recursive: true });
@@ -76,7 +76,7 @@ describe("reconcile reports", () => {
   });
 
   test("failed receipts are not treated as completed resume progress", async () => {
-    const root = await createTempDir("adv-reconcile-report-failed-");
+    const root = await createTempDir("determinus-reconcile-report-failed-");
     try {
       const runDir = join(root, "runs", "run-1");
       await writeReconcileReceipt(runDir, {
@@ -93,7 +93,7 @@ describe("reconcile reports", () => {
   });
 
   test("missing final report is derivably interrupted", async () => {
-    const root = await createTempDir("adv-reconcile-report-status-");
+    const root = await createTempDir("determinus-reconcile-report-status-");
     try {
       const runDir = join(root, "runs", "run-1");
       await writeReconcileReceipt(runDir, receipt);

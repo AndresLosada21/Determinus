@@ -20,7 +20,7 @@ import { appendProfileLog } from "./debug-log";
 import { recordToolDuration } from "./metrics";
 import {
   isAdvSessionNotReady,
-  ADV_SESSION_NOT_READY_KIND,
+  determinus_SESSION_NOT_READY_KIND,
 } from "./readiness-envelope";
 import { DEFAULT_TOOL_TIMEOUT_MS } from "./tool-budgets";
 import { withToolDeadline } from "./tool-deadline";
@@ -179,14 +179,14 @@ export function formatErrorResponse(
     args === undefined ? undefined : redactSensitiveArgs(args);
   mergeDefinedContext(enrichment as ErrorContext, derived);
 
-  // Preserve the typed ADV_SESSION_NOT_READY envelope when the fail-closed
+  // Preserve the typed determinus_SESSION_NOT_READY envelope when the fail-closed
   // session-readiness barrier throws it. This is distinct from
-  // ADV_PLUGIN_INIT_FAILED and no_poller diagnostics and must remain
+  // determinus_PLUGIN_INIT_FAILED and no_poller diagnostics and must remain
   // caller-discriminable at the tool-result boundary.
   if (isAdvSessionNotReady(error)) {
     enrichment.errorClass = "AdvSessionNotReady";
     return formatToolOutput({
-      error: ADV_SESSION_NOT_READY_KIND,
+      error: determinus_SESSION_NOT_READY_KIND,
       kind: error.kind,
       blockers: error.blockers,
       retryHint: error.retryHint,
@@ -256,7 +256,7 @@ export interface SafeExecuteOptions<TArgs = unknown> {
    * Optional timeout classifier invoked when the safety-net timeout fires.
    *
    * Tools whose durable work may already have landed when the outer
-   * budget expires (e.g. adv_change_archive's bundle-first write) can
+   * budget expires (e.g. determinus_change_archive's bundle-first write) can
    * replace the bare `ToolExecutionTimeout` response with a typed,
    * actionable result. Return a formatted tool-output string to use it,
    * or `undefined` to keep the generic timeout response.
@@ -323,7 +323,7 @@ function formatToolTimeoutHint(error: unknown): string | undefined {
   return (
     "Tool execution timed out. Likely causes: (1) missing required args — " +
     "verify all required fields are provided; (2) stale persisted state — " +
-    "retry with `adv_status` and `adv_doctor`; (3) an unresponsive host " +
+    "retry with `determinus_status` and `determinus_doctor`; (3) an unresponsive host " +
     "dependency — an OpenCode restart may be required."
   );
 }
@@ -376,12 +376,12 @@ export type ContextExtractorSimple<TArgs, TExtra> = (
 ) => ErrorContext;
 
 function isProfilingEnabled(): boolean {
-  return process.env.ADV_PROFILE === "1";
+  return process.env.determinus_PROFILE === "1";
 }
 
 /**
  * rq-advLatencyTelemetry01: always-on in-memory per-tool duration
- * recording for safeExecute-wrapped tools. Keeps `ADV_PROFILE` file
+ * recording for safeExecute-wrapped tools. Keeps `determinus_PROFILE` file
  * logging as an opt-in extra so existing profile workflows are not
  * altered.
  */

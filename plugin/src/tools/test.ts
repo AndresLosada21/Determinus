@@ -19,7 +19,7 @@ import {
 import { coordinateChangeMutation } from "./change-mutation-coordinator";
 
 /**
- * Default bounded-execution limits for `adv_run_test`.
+ * Default bounded-execution limits for `determinus_run_test`.
  *
  * These protect the agent session from runaway user test commands:
  *  - `DEFAULT_TEST_TIMEOUT_MS` caps wall-clock runtime via SIGTERM.
@@ -33,8 +33,8 @@ export const DEFAULT_TEST_MAX_BUFFER = 10 * 1024 * 1024;
 const DEFAULT_OUTPUT_MAX_LENGTH = 2000;
 const TEST_RUN_RING_BUFFER_LIMIT = 20;
 const TRUNCATION_SUFFIX = "... (truncated)";
-const ADV_RUN_TEST_PHASES = ["red", "green", "verify"] as const;
-type AdvRunTestPhase = (typeof ADV_RUN_TEST_PHASES)[number];
+const determinus_RUN_TEST_PHASES = ["red", "green", "verify"] as const;
+type AdvRunTestPhase = (typeof determinus_RUN_TEST_PHASES)[number];
 
 interface ExecBounds {
   timeoutMs?: number;
@@ -110,7 +110,7 @@ const withTruncationSuffix = (output: string, maxLength: number): string => {
 
 /**
  * Shape noisy command output for agent consumption without changing the
- * `adv_run_test` API. Keep output bounded, but prefer high-signal failure or
+ * `determinus_run_test` API. Keep output bounded, but prefer high-signal failure or
  * summary lines plus tail context over raw head-only truncation.
  */
 export const shapeCommandOutput = (
@@ -122,9 +122,11 @@ export const shapeCommandOutput = (
 
   const lines = rawOutput.split(/\r?\n/);
   const diagnosticLines = lines.filter((line) =>
-    line.startsWith("[adv_run_test]"),
+    line.startsWith("[determinus_run_test]"),
   );
-  const bodyLines = lines.filter((line) => !line.startsWith("[adv_run_test]"));
+  const bodyLines = lines.filter(
+    (line) => !line.startsWith("[determinus_run_test]"),
+  );
   const signalPattern = exitCode === 0 ? SUMMARY_LINE : FAILURE_LINE;
   const signalLines = bodyLines.filter((line) => signalPattern.test(line));
   const selectedSignalLines =
@@ -132,7 +134,7 @@ export const shapeCommandOutput = (
   const tailLines = bodyLines.slice(-20);
 
   const shapedLines: string[] = [
-    "[adv_run_test] Output truncated; showing high-signal lines.",
+    "[determinus_run_test] Output truncated; showing high-signal lines.",
   ];
   const seen = new Set<string>();
   appendUnique(shapedLines, seen, diagnosticLines);
@@ -203,7 +205,7 @@ const buildTestWorkflowAdvisories = (
     {
       kind: "repo_test_wrapper_available",
       message:
-        "Repo-local bin/oc-test is available for targeted/smoke/full suite routing; adv_run_test executed supplied command unchanged.",
+        "Repo-local bin/oc-test is available for targeted/smoke/full suite routing; determinus_run_test executed supplied command unchanged.",
     },
   ];
 };
@@ -346,7 +348,7 @@ const runCommand = async (
 // maxBuffer classification, exit-code reporting, and output shaping.
 
 export const testTools = {
-  adv_run_test: {
+  determinus_run_test: {
     description:
       "Run a test command, capture the exit code, and return typed pass/fail evidence with bounded output.",
     args: {
@@ -355,7 +357,7 @@ export const testTools = {
         .string()
         .describe("The exact shell command to run (e.g. 'npm test')"),
       phase: z
-        .enum(ADV_RUN_TEST_PHASES)
+        .enum(determinus_RUN_TEST_PHASES)
         .optional()
         .describe(
           "Optional descriptive TDD phase metadata. Does not gate task completion; use 'red', 'green', or 'verify'.",
@@ -406,30 +408,34 @@ export const testTools = {
     ): Promise<string> => {
       if (args.target_path) {
         const targetPath = args.target_path;
-        return withRecordedPhase("adv_run_test", "targetRouting", async () =>
-          withTargetPathStore(
-            {
-              currentProjectPath: store.paths.root,
-              target_path: targetPath,
-              stateRequirement: "authoritative",
-              target_confirmed: args.target_confirmed,
-              confirmationEvidence: args.confirmationEvidence,
-            },
-            async ({ context, store: targetStore }): Promise<string> => {
-              const output: string = await testTools.adv_run_test.execute(
-                { ...args, target_path: undefined },
-                targetStore,
-                args.workdir ?? context.root,
-                bounds,
-              );
-              return appendTargetProjectContextOutput(output, context);
-            },
-          ),
+        return withRecordedPhase(
+          "determinus_run_test",
+          "targetRouting",
+          async () =>
+            withTargetPathStore(
+              {
+                currentProjectPath: store.paths.root,
+                target_path: targetPath,
+                stateRequirement: "authoritative",
+                target_confirmed: args.target_confirmed,
+                confirmationEvidence: args.confirmationEvidence,
+              },
+              async ({ context, store: targetStore }): Promise<string> => {
+                const output: string =
+                  await testTools.determinus_run_test.execute(
+                    { ...args, target_path: undefined },
+                    targetStore,
+                    args.workdir ?? context.root,
+                    bounds,
+                  );
+                return appendTargetProjectContextOutput(output, context);
+              },
+            ),
         );
       }
 
       const task = await withRecordedPhase(
-        "adv_run_test",
+        "determinus_run_test",
         "taskLookup",
         async () => store.tasks.get(args.taskId),
       );
@@ -466,7 +472,7 @@ export const testTools = {
       const classification = classifyRun(run);
       const passed = classification === "passed";
       recordPhaseDuration({
-        tool: "adv_run_test",
+        tool: "determinus_run_test",
         phase: "commandExecution",
         durationMs,
         outcome: passed ? "success" : "error",
@@ -554,14 +560,14 @@ export const testTools = {
       let rawOutput = `${stdout}\n${stderr}`.trim();
       if (timedOut) {
         rawOutput = [
-          `[adv_run_test] Command timed out after ${effective.timeoutMs}ms: ${args.command}`,
+          `[determinus_run_test] Command timed out after ${effective.timeoutMs}ms: ${args.command}`,
           rawOutput,
         ]
           .filter(Boolean)
           .join("\n");
       } else if (maxBufferExceeded) {
         rawOutput = [
-          `[adv_run_test] Command exceeded maxBuffer (${effective.maxBuffer} bytes): ${args.command}`,
+          `[determinus_run_test] Command exceeded maxBuffer (${effective.maxBuffer} bytes): ${args.command}`,
           rawOutput,
         ]
           .filter(Boolean)
@@ -569,7 +575,7 @@ export const testTools = {
       }
 
       const truncatedOutput = await withRecordedPhase(
-        "adv_run_test",
+        "determinus_run_test",
         "outputShaping",
         async () => shapeCommandOutput(rawOutput, exitCode),
       );
@@ -597,7 +603,7 @@ export const testTools = {
         timedOut,
         maxBufferExceeded,
         evidence: {
-          schema_version: "adv_run_test.v1",
+          schema_version: "determinus_run_test.v1",
           command: args.command,
           exitCode,
           passed,

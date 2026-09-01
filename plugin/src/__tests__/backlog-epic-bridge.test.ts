@@ -69,7 +69,7 @@ describe("backlog-epic bridge", () => {
     expect(EpicEntrySchema.parse(valid).kind).toBe("shell");
   });
 
-  test("adv_epic_add_shell derives title/success_hint from backlog_ref", async () => {
+  test("determinus_epic_add_shell derives title/success_hint from backlog_ref", async () => {
     const item = await addBacklogItem(tempDir, {
       id: "bl-derived",
       title: "Backlog Title",
@@ -90,7 +90,7 @@ describe("backlog-epic bridge", () => {
     });
 
     const result = parseToolOutput(
-      await epicTools.adv_epic_add_shell.execute(
+      await epicTools.determinus_epic_add_shell.execute(
         { epic_id: "epic", backlog_ref: item.id },
         store,
       ),
@@ -104,7 +104,7 @@ describe("backlog-epic bridge", () => {
     });
   });
 
-  test("adv_epic_add_shell refuses archived backlog import", async () => {
+  test("determinus_epic_add_shell refuses archived backlog import", async () => {
     const item = await addBacklogItem(tempDir, {
       id: "bl-archived",
       title: "Archived",
@@ -117,7 +117,7 @@ describe("backlog-epic bridge", () => {
     });
 
     const result = parseToolOutput(
-      await epicTools.adv_epic_add_shell.execute(
+      await epicTools.determinus_epic_add_shell.execute(
         { epic_id: "epic", backlog_ref: item.id },
         store,
       ),

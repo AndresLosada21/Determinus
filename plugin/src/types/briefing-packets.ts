@@ -32,13 +32,13 @@ export const BRIEFING_PACKET_LANE_TO_AGENT: Record<
   Exclude<BriefingPacketLane, "archive">,
   PersistedSubagentReportAgent
 > = {
-  researcher: "adv-researcher",
-  engineer: "adv-engineer",
-  designer: "adv-designer",
-  reviewer: "adv-reviewer",
-  scanner: "adv-scanner-bundle",
-  verifier: "adv-verification-triage-bundle",
-  visual_review: "adv-visual-review",
+  researcher: "determinus-researcher",
+  engineer: "determinus-engineer",
+  designer: "determinus-designer",
+  reviewer: "determinus-reviewer",
+  scanner: "determinus-scanner-bundle",
+  verifier: "determinus-verification-triage-bundle",
+  visual_review: "determinus-visual-review",
 };
 
 /**
@@ -58,7 +58,9 @@ export interface ManifestLaneDescriptor {
 export interface VirtualLaneDescriptor {
   readonly kind: "virtual";
   /** Orchestrator-submitted bundle identity; no independent manifest. */
-  readonly bundle: "adv-scanner-bundle" | "adv-verification-triage-bundle";
+  readonly bundle:
+    | "determinus-scanner-bundle"
+    | "determinus-verification-triage-bundle";
 }
 
 export interface ArchiveLaneDescriptor {
@@ -73,13 +75,16 @@ export type BriefingPacketLaneDescriptor =
 export const BRIEFING_PACKET_LANE_DESCRIPTORS: Readonly<
   Record<BriefingPacketLane, BriefingPacketLaneDescriptor>
 > = {
-  researcher: { kind: "manifest", agent: "adv-researcher" },
-  engineer: { kind: "manifest", agent: "adv-engineer" },
-  designer: { kind: "manifest", agent: "adv-designer" },
-  reviewer: { kind: "manifest", agent: "adv-reviewer" },
-  scanner: { kind: "virtual", bundle: "adv-scanner-bundle" },
-  verifier: { kind: "virtual", bundle: "adv-verification-triage-bundle" },
-  visual_review: { kind: "manifest", agent: "adv-visual-review" },
+  researcher: { kind: "manifest", agent: "determinus-researcher" },
+  engineer: { kind: "manifest", agent: "determinus-engineer" },
+  designer: { kind: "manifest", agent: "determinus-designer" },
+  reviewer: { kind: "manifest", agent: "determinus-reviewer" },
+  scanner: { kind: "virtual", bundle: "determinus-scanner-bundle" },
+  verifier: {
+    kind: "virtual",
+    bundle: "determinus-verification-triage-bundle",
+  },
+  visual_review: { kind: "manifest", agent: "determinus-visual-review" },
   archive: { kind: "archive" },
 };
 
@@ -87,7 +92,7 @@ export const BriefingFactOutcomeSchema = z.enum([
   "transient_prompt_context",
   // retireAgendaWorkflow: replaces the retired "agenda" label. Facts carrying
   // this outcome are source-attributed report follow-up metadata; promotion
-  // happens only via adv_followup_promote and
+  // happens only via determinus_followup_promote and
   // never by writing into an unowned queue.
   "report_follow_up",
   "wisdom_candidate",
@@ -102,7 +107,7 @@ export type BriefingFactOutcome = z.infer<typeof BriefingFactOutcomeSchema>;
 
 /**
  * Bounded rendering cap for `research_citation` facts derived from a single
- * `adv-researcher` report's `sources` array. The first
+ * `determinus-researcher` report's `sources` array. The first
  * RESEARCH_CITATION_RENDER_LIMIT sources render as durable facts in stable
  * report order; any remaining sources are summarized by exactly one
  * deterministic omission marker (source_label `sources.omitted`).

@@ -55,7 +55,7 @@ afterEach(async () => {
 });
 
 async function tempProject(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "adv-archive-summary-fail-"));
+  const dir = await mkdtemp(join(tmpdir(), "determinus-archive-summary-fail-"));
   tempDirs.push(dir);
   return dir;
 }

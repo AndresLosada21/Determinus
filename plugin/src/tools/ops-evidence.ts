@@ -164,7 +164,7 @@ function buildRun(
 }
 
 export const opsEvidenceTools = {
-  adv_ops_run_upsert: {
+  determinus_ops_run_upsert: {
     description:
       "Create or replace a typed ops runbook run on a change's ops_followup profile. " +
       "Production execute steps without an explicit bounded-autonomous policy default to approval-required.",
@@ -284,7 +284,7 @@ export const opsEvidenceTools = {
       });
     },
   },
-  adv_ops_run_evidence_add: {
+  determinus_ops_run_evidence_add: {
     description:
       "Append typed, secret-safe evidence to an ops runbook run and update run/profile status. " +
       "Approval-required production execute steps must carry approval evidence before completion can be recorded.",

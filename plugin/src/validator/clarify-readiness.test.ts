@@ -1,7 +1,7 @@
 /**
  * Clarify-Readiness Validator Tests
  *
- * Tests for programmatic ambiguity detection that triggers /adv-clarify
+ * Tests for programmatic ambiguity detection that triggers /determinus-clarify
  * recommendations without consuming agent context window.
  */
 

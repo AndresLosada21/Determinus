@@ -13,11 +13,11 @@ import {
 describe("parseFrontmatterText", () => {
   it("returns ok=false with error for a blockquote inside frontmatter", () => {
     const text = `---
-name: adv-tron
+name: determinus-tron
 tools:
-  adv_*: false
+  determinus_*: false
 > **Invoke routing:** this breaks YAML
-  adv_spec: true
+  determinus_spec: true
 ---
 body text`;
     const result = parseFrontmatterText(text);
@@ -28,7 +28,7 @@ body text`;
 
   it("returns ok=false for unquoted colon-space in a scalar value", () => {
     const text = `---
-name: adv-archive
+name: determinus-archive
 description: Archive completed change: apply spec deltas
 ---`;
     const result = parseFrontmatterText(text);
@@ -38,17 +38,19 @@ description: Archive completed change: apply spec deltas
 
   it("returns ok=true with parsed doc for valid frontmatter", () => {
     const text = `---
-name: adv-verifier
+name: determinus-verifier
 description: "Verify things"
 tools:
-  adv_*: false
-  adv_spec: true
+  determinus_*: false
+  determinus_spec: true
 ---
 body`;
     const result = parseFrontmatterText(text);
     expect(result.ok).toBe(true);
     expect(result.doc).not.toBeNull();
-    expect((result.doc as Record<string, unknown>).name).toBe("adv-verifier");
+    expect((result.doc as Record<string, unknown>).name).toBe(
+      "determinus-verifier",
+    );
   });
 
   it("returns ok=true with null doc when there is no frontmatter", () => {
@@ -63,7 +65,7 @@ No frontmatter here.`;
     const text = `---
 name: broken
 tools:
-  adv_*: false
+  determinus_*: false
 no closing marker`;
     const result = parseFrontmatterText(text);
     expect(result.ok).toBe(false);
@@ -82,7 +84,7 @@ describe("parseFrontmatter (file I/O)", () => {
       `---
 name: x
 tools:
-  adv_spec: true
+  determinus_spec: true
 ---
 body`,
     );
@@ -100,36 +102,36 @@ body`,
 
 describe("assertPolicyMatch", () => {
   it("detects an empty tools map", () => {
-    const doc = { name: "adv-engineer", tools: {} };
+    const doc = { name: "determinus-engineer", tools: {} };
     const result = assertPolicyMatch(
       doc as Record<string, unknown>,
-      "adv-engineer",
+      "determinus-engineer",
     );
     expect(result.ok).toBe(false);
     expect(result.drift).toContain("tools map is empty");
   });
 
   it("detects a missing tools key entirely", () => {
-    const doc = { name: "adv-engineer" };
+    const doc = { name: "determinus-engineer" };
     const result = assertPolicyMatch(
       doc as Record<string, unknown>,
-      "adv-engineer",
+      "determinus-engineer",
     );
     expect(result.ok).toBe(false);
   });
 
-  it("detects drifted adv_* grants", () => {
-    // adv-verifier's policy allows 11 Tier-1 tools; give it only 2
+  it("detects drifted determinus_* grants", () => {
+    // determinus-verifier's policy allows 11 Tier-1 tools; give it only 2
     const doc = {
       tools: {
-        "adv_*": false,
-        adv_change_show: true,
-        adv_tool_catalog: true,
+        "determinus_*": false,
+        determinus_change_show: true,
+        determinus_tool_catalog: true,
       },
     };
     const result = assertPolicyMatch(
       doc as Record<string, unknown>,
-      "adv-verifier",
+      "determinus-verifier",
     );
     expect(result.ok).toBe(false);
     expect(result.drift).toBeTruthy();
@@ -137,32 +139,32 @@ describe("assertPolicyMatch", () => {
   });
 
   it("passes when grants match the declared policy", () => {
-    // Build a doc that matches adv-verifier's policy exactly
-    // adv-verifier gets the 16-tool Tier-1 allowlist + adv_*: false
+    // Build a doc that matches determinus-verifier's policy exactly
+    // determinus-verifier gets the 16-tool Tier-1 allowlist + determinus_*: false
     const tier1 = [
-      "adv_change_archive",
-      "adv_change_close",
-      "adv_change_create",
-      "adv_change_list",
-      "adv_change_show",
-      "adv_change_update",
-      "adv_gate_complete",
-      "adv_gate_status",
-      "adv_run_test",
-      "adv_subagent_report_submit",
-      "adv_task_add",
-      "adv_task_checkpoint",
-      "adv_task_list",
-      "adv_task_update",
-      "adv_tool_catalog",
-      "adv_tool_invoke",
+      "determinus_change_archive",
+      "determinus_change_close",
+      "determinus_change_create",
+      "determinus_change_list",
+      "determinus_change_show",
+      "determinus_change_update",
+      "determinus_gate_complete",
+      "determinus_gate_status",
+      "determinus_run_test",
+      "determinus_subagent_report_submit",
+      "determinus_task_add",
+      "determinus_task_checkpoint",
+      "determinus_task_list",
+      "determinus_task_update",
+      "determinus_tool_catalog",
+      "determinus_tool_invoke",
     ];
-    const tools: Record<string, boolean> = { "adv_*": false };
+    const tools: Record<string, boolean> = { "determinus_*": false };
     for (const t of tier1) tools[t] = true;
     const doc = { tools };
     const result = assertPolicyMatch(
       doc as Record<string, unknown>,
-      "adv-verifier",
+      "determinus-verifier",
     );
     expect(result.ok).toBe(true);
   });
@@ -178,7 +180,7 @@ describe("scanDir", () => {
       `---
 name: clean
 tools:
-  adv_spec: true
+  determinus_spec: true
 ---
 body`,
     );
@@ -207,7 +209,7 @@ describe("runtimeFrontmatterCheck", () => {
       `---
 name: clean
 tools:
-  adv_spec: true
+  determinus_spec: true
 ---
 body`,
     );

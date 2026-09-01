@@ -1,11 +1,11 @@
 /**
- * adv-reviewer Agent Asset Tests
+ * determinus-reviewer Agent Asset Tests
  *
- * Pins `.opencode/agents/adv-reviewer.md` shape so the bundled-global reviewer
+ * Pins `.opencode/agents/determinus-reviewer.md` shape so the bundled-global reviewer
  * cannot silently drift away from its design contract:
  *
  *   - mode: subagent, hidden: true
- *   - repo/code/docs/test write capability (mirrors adv-engineer)
+ *   - repo/code/docs/test write capability (mirrors determinus-engineer)
  *   - NO nested delegation (task: false)
  *   - NO ADV orchestration mutations (gates/tasks/changes/worktree/agenda)
  *   - REVIEWER_REPORT schema with scope_drift + required_main_agent_actions
@@ -26,8 +26,11 @@ import {
 import { PHASE_DIRECTIVES } from "./utils/phase-directive-content";
 
 const REPO_ROOT = resolve(__dirname, "../..");
-const AGENT_PATH = join(REPO_ROOT, ".opencode/agents/adv-reviewer.md");
-const HARDEN_COMMAND_PATH = join(REPO_ROOT, ".opencode/command/adv-harden.md");
+const AGENT_PATH = join(REPO_ROOT, ".opencode/agents/determinus-reviewer.md");
+const HARDEN_COMMAND_PATH = join(
+  REPO_ROOT,
+  ".opencode/command/determinus-harden.md",
+);
 
 /**
  * Split a frontmatter+markdown file into { frontmatter, body }.
@@ -100,7 +103,7 @@ function expectPacketAnchors(
 // Tool boundary per design Decision 1.
 //
 // ALLOWED — repo writes, code intelligence, web research, ADV reads, evidence,
-// wisdom emission. Mirrors adv-engineer with no orchestration mutators added.
+// wisdom emission. Mirrors determinus-engineer with no orchestration mutators added.
 const REQUIRED_ALLOWED_TOOLS = [
   // Repo writes
   "read",
@@ -114,7 +117,7 @@ const REQUIRED_ALLOWED_TOOLS = [
   "todowrite",
   "question",
   "skill",
-  // Local code intelligence (representative — full lgrep set follows adv-engineer)
+  // Local code intelligence (representative — full lgrep set follows determinus-engineer)
   "lgrep_search_semantic",
   "lgrep_search_symbols",
   "lgrep_search_text",
@@ -127,9 +130,9 @@ const REQUIRED_ALLOWED_TOOLS = [
   // Browser/UI verification
   "playwright_*",
   // ADV reads
-  "adv_change_show",
-  "adv_task_list",
-  "adv_gate_status",
+  "determinus_change_show",
+  "determinus_task_list",
+  "determinus_gate_status",
   // Evidence + wisdom emission
 ];
 
@@ -139,17 +142,17 @@ const REQUIRED_BLOCKED_TOOLS = [
   // Nested delegation
   "task",
   // Invoke-only lifecycle tools remain blocked in this reviewer asset.
-  "adv_change_reenter",
-  "adv_change_update_issues",
-  "adv_change_validate",
+  "determinus_change_reenter",
+  "determinus_change_update_issues",
+  "determinus_change_validate",
   // Tier 1 task mutations are directly granted.
-  "adv_task_cancel",
-  "adv_task_reclassify_tdd",
+  "determinus_task_cancel",
+  "determinus_task_reclassify_tdd",
   // Worktree mutations
-  "adv_worktree_create",
-  "adv_worktree_delete",
-  "adv_worktree_cleanup",
-  "adv_worktree_detach",
+  "determinus_worktree_create",
+  "determinus_worktree_delete",
+  "determinus_worktree_cleanup",
+  "determinus_worktree_detach",
 ];
 
 // Body anchor strings — pin the system prompt's required sections.
@@ -168,8 +171,8 @@ const REQUIRED_BODY_ANCHORS = [
   "VERIFICATION",
 ];
 
-describe("adv-reviewer agent asset", () => {
-  test("agent file exists at .opencode/agents/adv-reviewer.md", () => {
+describe("determinus-reviewer agent asset", () => {
+  test("agent file exists at .opencode/agents/determinus-reviewer.md", () => {
     expect(existsSync(AGENT_PATH)).toBe(true);
   });
 
@@ -267,14 +270,14 @@ describe("adv-reviewer agent asset", () => {
 
   test("body forbids nested delegation explicitly", () => {
     const { body } = splitFrontmatter(readFileSync(AGENT_PATH, "utf8"));
-    // The "× NEVER spawn additional sub-agents" guard from adv-engineer
+    // The "× NEVER spawn additional sub-agents" guard from determinus-engineer
     // pattern — pin equivalent wording.
     expect(body).toMatch(/NEVER\s+spawn\s+additional\s+sub-agents/i);
   });
 
-  test("body forbids /adv-* slash command invocation", () => {
+  test("body forbids /determinus-* slash command invocation", () => {
     const { body } = splitFrontmatter(readFileSync(AGENT_PATH, "utf8"));
-    expect(body).toMatch(/NEVER\s+invoke\s+`?\/adv-\*?/i);
+    expect(body).toMatch(/NEVER\s+invoke\s+`?\/determinus-\*?/i);
   });
 
   test("body does not advertise prep pre-flight routing", () => {
@@ -297,7 +300,7 @@ describe("adv-reviewer agent asset", () => {
       .map((block) => JSON.parse(block) as Record<string, unknown>)
       .filter(
         (parsed) =>
-          parsed.agent === "adv-reviewer" &&
+          parsed.agent === "determinus-reviewer" &&
           typeof parsed.change_id === "string" &&
           !parsed.change_id.includes("{"),
       );
@@ -323,7 +326,7 @@ describe("adv-reviewer agent asset", () => {
 
   test("REVIEWER_REPORT transport is tool-call based, not sentinel based", () => {
     const { body } = splitFrontmatter(readFileSync(AGENT_PATH, "utf8"));
-    expect(body).toContain("adv_subagent_report_submit");
+    expect(body).toContain("determinus_subagent_report_submit");
     expect(body).not.toContain("REVIEWER_REPORT:");
     expect(body).not.toContain("END_REVIEWER_REPORT");
   });
@@ -352,7 +355,7 @@ describe("adv-reviewer agent asset", () => {
   });
 
   test("review and harden scanner context packets stay explore-only", () => {
-    const review = PHASE_DIRECTIVES["adv-review"].content;
+    const review = PHASE_DIRECTIVES["determinus-review"].content;
     const harden = readFileSync(HARDEN_COMMAND_PATH, "utf8");
 
     const scannerPackets = [
@@ -368,16 +371,18 @@ describe("adv-reviewer agent asset", () => {
       expect(packet).toContain(
         "EXPECTED OUTPUT: {dimension-specific JSON schema}",
       );
-      expect(packet).not.toContain("adv_subagent_report_submit");
+      expect(packet).not.toContain("determinus_subagent_report_submit");
       expect(packet).not.toContain("ENGINEER_REPORT");
       expect(packet).not.toContain("REVIEWER_REPORT");
     }
   });
 
   test("review and harden reviewer remediation packets include REVIEWER_REPORT packet anchors", () => {
-    const review = PHASE_DIRECTIVES["adv-review"].content;
+    const review = PHASE_DIRECTIVES["determinus-review"].content;
     const harden = readFileSync(HARDEN_COMMAND_PATH, "utf8");
-    const reviewerAnchors = getSubagentReportPacketAnchors("adv-reviewer");
+    const reviewerAnchors = getSubagentReportPacketAnchors(
+      "determinus-reviewer",
+    );
 
     expectPacketAnchors(
       firstFencedBlock(
@@ -422,9 +427,11 @@ describe("adv-reviewer agent asset", () => {
   });
 
   test("review and harden engineer remediation packets include ENGINEER_REPORT packet anchors", () => {
-    const review = PHASE_DIRECTIVES["adv-review"].content;
+    const review = PHASE_DIRECTIVES["determinus-review"].content;
     const harden = readFileSync(HARDEN_COMMAND_PATH, "utf8");
-    const engineerAnchors = getSubagentReportPacketAnchors("adv-engineer");
+    const engineerAnchors = getSubagentReportPacketAnchors(
+      "determinus-engineer",
+    );
 
     expectPacketAnchors(
       firstFencedBlock(
@@ -456,8 +463,8 @@ describe("adv-reviewer agent asset", () => {
     );
   });
 
-  test('review and harden reviewer remediation packets reference skill("adv-frontend-review") AND retain inline 6-dimension checklist as fallback', () => {
-    const review = PHASE_DIRECTIVES["adv-review"].content;
+  test('review and harden reviewer remediation packets reference skill("determinus-frontend-review") AND retain inline 6-dimension checklist as fallback', () => {
+    const review = PHASE_DIRECTIVES["determinus-review"].content;
     const harden = readFileSync(HARDEN_COMMAND_PATH, "utf8");
 
     const reviewPacket = firstFencedBlock(
@@ -470,7 +477,7 @@ describe("adv-reviewer agent asset", () => {
     for (const packet of [reviewPacket, hardenPacket]) {
       expect(packet).toContain("FRONTEND DESIGN REVIEW SKILL:");
       // Primary: canonical methodology reference to the iteration-2 skill.
-      expect(packet).toContain('skill("adv-frontend-review")');
+      expect(packet).toContain('skill("determinus-frontend-review")');
       // Fallback: inline 6-dimension checklist for offline reviewers and older
       // deployments that haven't pulled the skill yet. Both stay pinned so the
       // packet works whether or not the skill is loadable.
@@ -488,21 +495,21 @@ describe("adv-reviewer agent asset", () => {
     }
   });
 
-  test("review and harden keep adv-reviewer as review/harden owner and do NOT route to adv-designer", () => {
-    const review = PHASE_DIRECTIVES["adv-review"].content;
+  test("review and harden keep determinus-reviewer as review/harden owner and do NOT route to determinus-designer", () => {
+    const review = PHASE_DIRECTIVES["determinus-review"].content;
     const harden = readFileSync(HARDEN_COMMAND_PATH, "utf8");
 
     for (const content of [review, harden]) {
-      // adv-designer must not appear as a review/harden spawn directive.
-      // Safety-rail prose mentioning adv-designer (e.g., "MUST NOT be spawned
-      // here") is allowed; spawn directives like `subagent_type: "adv-designer"`
-      // or `EXPECTED OUTPUT: ... spawn adv-designer` are not.
+      // determinus-designer must not appear as a review/harden spawn directive.
+      // Safety-rail prose mentioning determinus-designer (e.g., "MUST NOT be spawned
+      // here") is allowed; spawn directives like `subagent_type: "determinus-designer"`
+      // or `EXPECTED OUTPUT: ... spawn determinus-designer` are not.
       const spawnDirective =
-        /(subagent_type\s*[:=]\s*["']?adv-designer|spawn\s+`?adv-designer)/i;
+        /(subagent_type\s*[:=]\s*["']?determinus-designer|spawn\s+`?determinus-designer)/i;
       expect(content).not.toMatch(spawnDirective);
       // Sanity-check that we did add the safety-rail prose explicitly.
       expect(content).toMatch(
-        /adv-designer.*apply-phase only.*MUST NOT be spawned/i,
+        /determinus-designer.*apply-phase only.*MUST NOT be spawned/i,
       );
     }
   });

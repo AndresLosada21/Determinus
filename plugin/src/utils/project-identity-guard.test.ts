@@ -32,7 +32,7 @@ let multiRootRepo: string;
 let trueRoot: string;
 
 beforeAll(async () => {
-  base = await mkdtemp(join(tmpdir(), "adv-identity-guard-"));
+  base = await mkdtemp(join(tmpdir(), "determinus-identity-guard-"));
 
   // Origin with 3 commits so --depth 1 grafts a non-root boundary.
   originDir = join(base, "origin");

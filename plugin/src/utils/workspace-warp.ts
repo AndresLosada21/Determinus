@@ -145,7 +145,7 @@ export async function createAdvWorkspace(
     method: "POST",
     headers: directoryHeaders(deps, { "content-type": "application/json" }),
     body: JSON.stringify({
-      type: "adv-worktree",
+      type: "determinus-worktree",
       branch: input.branch,
       extra: {
         directory: input.directory,
@@ -293,7 +293,7 @@ const isAdvWorkspaceListItem = (
   value: unknown,
 ): value is {
   id: string;
-  type: "adv-worktree";
+  type: "determinus-worktree";
   directory: string | null;
   extra: { directory: string; branch?: string };
 } =>
@@ -301,7 +301,7 @@ const isAdvWorkspaceListItem = (
   "id" in value &&
   typeof value.id === "string" &&
   value.id.length > 0 &&
-  value.type === "adv-worktree" &&
+  value.type === "determinus-worktree" &&
   "directory" in value &&
   (typeof value.directory === "string" || value.directory === null) &&
   isRecord(value.extra) &&

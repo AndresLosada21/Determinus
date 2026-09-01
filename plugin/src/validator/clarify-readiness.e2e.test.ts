@@ -2,8 +2,8 @@
  * Clarify-Readiness E2E Regression Test
  *
  * Cross-cutting test verifying zero false positives on well-specified changes
- * across all integration points: adv_change_create, adv_change_show,
- * adv_status, and adv_gate_complete prep.
+ * across all integration points: determinus_change_create, determinus_change_show,
+ * determinus_status, and determinus_gate_complete prep.
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
@@ -105,8 +105,8 @@ mechanisms introduced.
     await cleanupTempDir(tempDir);
   });
 
-  test("adv_change_create produces no clarifyNeeded for well-specified change", async () => {
-    const result = await changeTools.adv_change_create.execute(
+  test("determinus_change_create produces no clarifyNeeded for well-specified change", async () => {
+    const result = await changeTools.determinus_change_create.execute(
       {
         summary: "Add rate limiting",
         proposal: CLEAN_PROPOSAL,
@@ -119,9 +119,9 @@ mechanisms introduced.
     expect(parsed.clarifyNeeded).toBeUndefined();
   });
 
-  test("adv_change_show produces no clarifyFindings for well-specified change", async () => {
+  test("determinus_change_show produces no clarifyFindings for well-specified change", async () => {
     // Create the change first
-    const createResult = await changeTools.adv_change_create.execute(
+    const createResult = await changeTools.determinus_change_create.execute(
       {
         summary: "Add rate limiting",
         proposal: CLEAN_PROPOSAL,
@@ -168,7 +168,7 @@ mechanisms introduced.
     await store.changes.save(change);
 
     // Show the change
-    const showResult = await changeTools.adv_change_show.execute(
+    const showResult = await changeTools.determinus_change_show.execute(
       { changeId },
       store,
     );
@@ -177,9 +177,9 @@ mechanisms introduced.
     expect(parsed.clarifyFindings).toBeUndefined();
   });
 
-  test("adv_status produces no clarify recommendation for well-specified change", async () => {
+  test("determinus_status produces no clarify recommendation for well-specified change", async () => {
     // Create a well-specified change
-    await changeTools.adv_change_create.execute(
+    await changeTools.determinus_change_create.execute(
       {
         summary: "Add rate limiting",
         proposal: CLEAN_PROPOSAL,
@@ -187,7 +187,7 @@ mechanisms introduced.
       store,
     );
 
-    const statusResult = await statusTools.adv_status.execute({}, store);
+    const statusResult = await statusTools.determinus_status.execute({}, store);
     const parsed = parseToolOutput(statusResult);
 
     const clarifyRecs = parsed.recommendations.filter((r: string) =>

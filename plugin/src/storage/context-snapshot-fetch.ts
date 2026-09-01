@@ -76,8 +76,8 @@ async function computeResumeFreshnessInput(
 /**
  * Fetch a compact context ticker (single-line) for a change. Mirrors
  * fetchChangeContextSnapshot but uses buildChangeContextTicker — emit this
- * from transient task-state tools (adv_task_update / adv_task_ready /
- * adv_task_add / adv_task_cancel) per rq-ctxticker2.
+ * from transient task-state tools (determinus_task_update / determinus_task_ready /
+ * determinus_task_add / determinus_task_cancel) per rq-ctxticker2.
  */
 export async function fetchChangeContextTicker(
   store: Store,

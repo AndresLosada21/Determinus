@@ -51,7 +51,7 @@ export function execGit(
  * config (e.g. `init.defaultBranch=trunk`) was unrelated to the actual default
  * branch of an existing repo lacking `origin/HEAD`. The leak surfaced as
  * `git branch --merged trunk` failing with "fatal: malformed object name
- * trunk" in `adv_worktree_delete` (#113). The fix: local-branch detection
+ * trunk" in `determinus_worktree_delete` (#113). The fix: local-branch detection
  * comes first; `init.defaultBranch` is only consulted when no branches exist.
  */
 export async function getDefaultBranch(cwd: string): Promise<string> {

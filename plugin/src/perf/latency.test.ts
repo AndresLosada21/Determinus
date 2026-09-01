@@ -49,7 +49,7 @@ describe("latency harness", () => {
       },
       operations: [
         {
-          label: "adv_status",
+          label: "determinus_status",
           stats: {
             count: 5,
             min_ms: 1,
@@ -64,7 +64,7 @@ describe("latency harness", () => {
 
     expect(report).toContain("# ADV Latency Report");
     expect(report).toContain("backend_mode");
-    expect(report).toContain("adv_status");
+    expect(report).toContain("determinus_status");
     expect(report).toContain("p95");
   });
 });

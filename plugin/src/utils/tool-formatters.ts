@@ -283,7 +283,7 @@ const VALIDATION_FIX_SUGGESTIONS: Record<string, string> = {
   SPEC_NOT_FOUND: "Check spec file exists in .adv/specs/",
   MISSING_SCENARIO: "Add Given/When/Then scenario",
   TASK_TDD_INVERSION: "Merge test task into implementation task",
-  NO_TASKS: "Run /adv-prep to generate task graph",
+  NO_TASKS: "Run /determinus-prep to generate task graph",
   NO_DELTAS: "Add spec deltas or document why none needed",
   PROPOSAL_TASK_DRIFT: "Add tasks for proposal sections or verify coverage",
   CROSS_REPO_MISSING_METADATA:
@@ -679,7 +679,7 @@ export function formatSmellReport(smells: SmellInput[]): FormattedSmellReport {
   const smellReport = `## Requirement Smells\n${lines.join("\n")}`;
   const gapChecklist = `## Gap Checklist\n- [ ] Fix ${smells.length} smell(s)`;
 
-  const nextAction = `Fix ${smells.length} requirement smell(s) before /adv-prep`;
+  const nextAction = `Fix ${smells.length} requirement smell(s) before /determinus-prep`;
 
   return { smellReport, gapChecklist, nextAction };
 }

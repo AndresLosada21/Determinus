@@ -10,8 +10,8 @@ const mocks = vi.hoisted(() => ({
   withTargetPathStore: vi.fn(),
 }));
 
-const SOURCE_ROOT = `${tmpdir()}/adv-cross-project-create-source`;
-const TARGET_ROOT = `${tmpdir()}/adv-cross-project-create-target`;
+const SOURCE_ROOT = `${tmpdir()}/determinus-cross-project-create-source`;
+const TARGET_ROOT = `${tmpdir()}/determinus-cross-project-create-target`;
 
 vi.mock("./target-project", async () => {
   const actual =
@@ -58,7 +58,7 @@ function makeSourceStore(): Store {
   } as Store;
 }
 
-describe("adv_change_create cross-project Temporal routing", () => {
+describe("determinus_change_create cross-project Temporal routing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -93,7 +93,7 @@ describe("adv_change_create cross-project Temporal routing", () => {
     );
 
     const sourceStore = makeSourceStore();
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Add target followup",
         capability: "advance-meta",
@@ -180,7 +180,7 @@ describe("adv_change_create cross-project Temporal routing", () => {
     );
 
     const sourceStore = makeSourceStore();
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Add target followup",
         target_path: TARGET_ROOT,
@@ -224,7 +224,7 @@ describe("adv_change_create cross-project Temporal routing", () => {
     );
 
     const sourceStore = makeSourceStore();
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Add failing target",
         capability: "advance-meta",
@@ -316,7 +316,7 @@ describe("adv_change_create cross-project Temporal routing", () => {
     );
 
     const sourceStore = makeSourceStore();
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Epic child followup",
         capability: "advance-meta",
@@ -392,7 +392,7 @@ describe("adv_change_create cross-project Temporal routing", () => {
     );
 
     const sourceStore = makeSourceStore();
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Orphan epic child",
         target_path: TARGET_ROOT,
@@ -413,7 +413,7 @@ describe("adv_change_create cross-project Temporal routing", () => {
   });
 
   test("rejects partial create-time epic seed before cross-project create", async () => {
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Partial epic child",
         target_path: TARGET_ROOT,

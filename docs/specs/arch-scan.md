@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Capability: /adv-arch-scan command — detect architecture inconsistencies with deterministic tools first, research fallback second, and low-confidence AI heuristic fallback last.
+Capability: /determinus-arch-scan command — detect architecture inconsistencies with deterministic tools first, research fallback second, and low-confidence AI heuristic fallback last.
 
 ## Requirements
 
@@ -13,7 +13,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 
 **ID:** `rq-archp33` | **Priority:** **[MUST]**
 
-/adv-arch-scan must detect architecture-level violations of structural correctness: correctness, security, persistence, workflow state, gate completion, or spec compliance boundaries must be owned by machine-checkable mechanisms such as types, schemas, parsers, state machines, validators, exact refs, conformance verdicts, or explicit user approvals rather than heuristic inference, prose convention, regex-only matching, or LLM/agent judgment.
+/determinus-arch-scan must detect architecture-level violations of structural correctness: correctness, security, persistence, workflow state, gate completion, or spec compliance boundaries must be owned by machine-checkable mechanisms such as types, schemas, parsers, state machines, validators, exact refs, conformance verdicts, or explicit user approvals rather than heuristic inference, prose convention, regex-only matching, or LLM/agent judgment.
 
 **Tags:** `structural-correctness`, `architecture`, `heuristics`, `p33`
 
@@ -25,7 +25,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 - Code lets a fuzzy match, title heuristic, prose parser, or LLM/agent judgment decide workflow state, persistence, gate completion, or spec compliance
 - No schema, state machine, validator, exact ref, conformance verdict, or explicit user approval owns the transition
 
-**When:** /adv-arch-scan runs
+**When:** /determinus-arch-scan runs
 
 **Then:**
 - A structural-correctness architecture finding is emitted
@@ -38,7 +38,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 - Heuristics are used only for discovery, ranking, advisory warnings, or legacy fallback
 - A typed field, schema, validator, state machine, exact ref, conformance verdict, or explicit user approval owns the correctness decision
 
-**When:** /adv-arch-scan runs
+**When:** /determinus-arch-scan runs
 
 **Then:**
 - No blocking structural-correctness finding is emitted
@@ -49,7 +49,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 **Given:**
 - A module processes untrusted input in business logic before parser/schema/allowlist recognition and normalization
 
-**When:** /adv-arch-scan runs
+**When:** /determinus-arch-scan runs
 
 **Then:**
 - A structural-correctness or security architecture finding is emitted
@@ -61,7 +61,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 
 **ID:** `rq-archstack01` | **Priority:** **[MUST]**
 
-/adv-arch-scan must detect relevant stack files, apply matching stack packs before research fallback or generic AI heuristic fallback, and report when a relevant stack has no applicable pack.
+/determinus-arch-scan must detect relevant stack files, apply matching stack packs before research fallback or generic AI heuristic fallback, and report when a relevant stack has no applicable pack.
 
 **Tags:** `stack-pack`, `detection`, `fallback`, `coverage`
 
@@ -72,7 +72,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 **Given:**
 - Project files identify a stack with a known stack pack
 
-**When:** /adv-arch-scan runs
+**When:** /determinus-arch-scan runs
 
 **Then:**
 - The matching stack pack is applied in Phase 1
@@ -84,7 +84,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 **Given:**
 - Project files identify a relevant stack with no known stack pack
 
-**When:** /adv-arch-scan runs
+**When:** /determinus-arch-scan runs
 
 **Then:**
 - The stack is listed in coverage.missingPacks
@@ -97,7 +97,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 
 **ID:** `rq-archstack02` | **Priority:** **[MUST]**
 
-/adv-arch-scan must include an initial ADV stack pack for the TypeScript/Bun/OpenCode plugin/disk/spec-command-skill asset stack. The pack must cite existing structural enforcers as authoritative checks rather than making prose or a single external tool the sole authority.
+/determinus-arch-scan must include an initial ADV stack pack for the TypeScript/Bun/OpenCode plugin/disk/spec-command-skill asset stack. The pack must cite existing structural enforcers as authoritative checks rather than making prose or a single external tool the sole authority.
 
 **Tags:** `stack-pack`, `advance`, `typescript`, `disk`, `p33`
 
@@ -118,9 +118,9 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 **ADV stack pack does not replace structural tests** (`rq-archstack02.2`)
 
 **Given:**
-- An ADV-specific architecture concern is already enforced by a test, validator, or spec asset check
+- An determinus-specific architecture concern is already enforced by a test, validator, or spec asset check
 
-**When:** /adv-arch-scan reports pack coverage
+**When:** /determinus-arch-scan reports pack coverage
 
 **Then:**
 - The scanner cites the structural enforcer
@@ -133,7 +133,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 
 **ID:** `rq-archcov01` | **Priority:** **[MUST]**
 
-/adv-arch-scan must summarize detected stacks, applied packs, missing packs, skipped detectors, and degraded detectors in normal text output, and expose detailed architecture coverage in JSON metadata.
+/determinus-arch-scan must summarize detected stacks, applied packs, missing packs, skipped detectors, and degraded detectors in normal text output, and expose detailed architecture coverage in JSON metadata.
 
 **Tags:** `coverage`, `stack-pack`, `output`, `json`
 
@@ -171,7 +171,7 @@ Capability: /adv-arch-scan command — detect architecture inconsistencies with 
 
 **ID:** `rq-archcap01` | **Priority:** **[MUST]**
 
-/adv-arch-scan must detect cross-artifact capability inconsistencies (config↔code↔deps disagreements) via the typed arch-scan pipeline (bin/arch-scan.ts). The typed pipeline is the primary detector; the markdown layer is advisory only. Each shipped rule in bin/lib/arch-scan/registry.ts must produce evidence-backed findings with file:line cross-references per P34, must respect the intent_required gate for Phase 3 rules (false-positive protection), and must honor exception_semantics (suppress | escalate) per entry.
+/determinus-arch-scan must detect cross-artifact capability inconsistencies (config↔code↔deps disagreements) via the typed arch-scan pipeline (bin/arch-scan.ts). The typed pipeline is the primary detector; the markdown layer is advisory only. Each shipped rule in bin/lib/arch-scan/registry.ts must produce evidence-backed findings with file:line cross-references per P34, must respect the intent_required gate for Phase 3 rules (false-positive protection), and must honor exception_semantics (suppress | escalate) per entry.
 
 **Tags:** `capability-consistency`, `phase-1`, `phase-3`, `evidence`, `intent-gate`
 

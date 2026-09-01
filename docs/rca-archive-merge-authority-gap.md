@@ -14,7 +14,7 @@
 Two rules govern whether a PR may be auto-merged, and they disagree.
 
 The ADV orchestrator prompt states that archive sign-off does **not** grant merge authority.
-`adv_change_archive` arms GitHub auto-merge as part of its normal release route.
+`determinus_change_archive` arms GitHub auto-merge as part of its normal release route.
 
 In the observed session the outcome was correct and desired, but it was reached by the tool
 doing something the orchestrator had been explicitly instructed not to do. Right result, wrong
@@ -37,7 +37,7 @@ phrases that grant merge authority.
 ### 2.2 What the tool did
 
 The user replied `approve` at the Tier B archive checkpoint. No merge grant was given at any
-point in the session. `adv_change_archive` returned:
+point in the session. `determinus_change_archive` returned:
 
 ```json
 "finalization": {
@@ -64,7 +64,7 @@ merge decision**, and the component with the weaker stated authority is the one 
 
 ## 3. Root cause
 
-`adv_change_archive`'s `pr_auto_merge` route treats archive sign-off as sufficient authority to
+`determinus_change_archive`'s `pr_auto_merge` route treats archive sign-off as sufficient authority to
 arm auto-merge. The orchestrator prompt treats archive sign-off as explicitly insufficient.
 
 Neither is internally inconsistent; they were specified against different assumptions about
@@ -79,15 +79,15 @@ independent prose rules rather than one typed contract.
 
 Related, surfaced in the same sequence.
 
-`adv_change_archive` returned `success: true` and wrote the archive bundle, but
-`adv_gate_status` still showed:
+`determinus_change_archive` returned `success: true` and wrote the archive bundle, but
+`determinus_gate_status` still showed:
 
 ```json
 "release": { "status": "pending" }
 ```
 
 while `_directive` simultaneously reported `phase: "archived"`, `action: {"kind": "archived"}`.
-The release gate row required an explicit `adv_gate_complete gateId:"release"` after
+The release gate row required an explicit `determinus_gate_complete gateId:"release"` after
 merge reachability was proven.
 
 So the change was simultaneously "archived" by directive and "release pending" by gate row.
@@ -99,12 +99,12 @@ leave the change permanently mid-release.
 ## 5. Proposed scope
 
 1. **Single source of truth for merge authority.** Define it once, typed, consulted by both
-   `adv_change_archive` and the orchestrator prompt. Prose in two places with different content
+   `determinus_change_archive` and the orchestrator prompt. Prose in two places with different content
    is the defect.
 2. **Decide the intended semantics explicitly.** Either:
    - Tier B archive sign-off *does* authorize auto-merge — then correct the orchestrator prompt
      and stop describing archive approval as insufficient; or
-   - it does *not* — then `adv_change_archive` must not arm auto-merge without a merge grant,
+   - it does *not* — then `determinus_change_archive` must not arm auto-merge without a merge grant,
      and should expose a parameter for the orchestrator to pass one through.
 3. **Make the archive route's merge behavior visible at the sign-off checkpoint.** The user
    approving archive should be told whether approving also merges. Currently the Tier B prompt

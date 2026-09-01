@@ -1,7 +1,7 @@
 /**
  * Clarify-Readiness Validator
  *
- * Programmatic ambiguity detection that triggers /adv-clarify recommendations
+ * Programmatic ambiguity detection that triggers /determinus-clarify recommendations
  * without consuming agent context window. Runs against persisted change data
  * (title, proposal text, deltas) and surfaces structured findings.
  *
@@ -9,7 +9,7 @@
  * - Pure functions — no I/O, no filesystem access beyond Change object + proposal text
  * - Reuses existing ValidationIssue type (severity: "warning" for all clarify findings)
  * - All check IDs defined in ClarifyReadinessCodes for human/tool contract alignment
- * - Each finding includes a questionCategory mapping to adv-clarify Socratic question types
+ * - Each finding includes a questionCategory mapping to determinus-clarify Socratic question types
  */
 
 import type { Change } from "../types";
@@ -87,7 +87,7 @@ const TRIVIAL_CHANGE_PATTERN =
 
 /**
  * Scan change title for subjective/vague terms that indicate unmeasurable requirements.
- * Maps to adv-clarify question type: "clarification" (explore origin of thinking).
+ * Maps to determinus-clarify question type: "clarification" (explore origin of thinking).
  */
 export function checkSubjectiveLanguage(change: Change): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -103,7 +103,7 @@ export function checkSubjectiveLanguage(change: Change): ValidationIssue[] {
       details: {
         matchedTerm: match[0],
         questionCategory: "clarification",
-        remediation: `Replace "${match[0]}" with a concrete, measurable target. Run /adv-clarify to define specific acceptance criteria.`,
+        remediation: `Replace "${match[0]}" with a concrete, measurable target. Run /determinus-clarify to define specific acceptance criteria.`,
       },
     });
   }
@@ -117,7 +117,7 @@ export function checkSubjectiveLanguage(change: Change): ValidationIssue[] {
 
 /**
  * Check if deltas add requirements without scenarios (untestable requirements).
- * Maps to adv-clarify question type: "implications" (examine downstream effects).
+ * Maps to determinus-clarify question type: "implications" (examine downstream effects).
  */
 export function checkMissingScenarios(change: Change): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -138,7 +138,7 @@ export function checkMissingScenarios(change: Change): ValidationIssue[] {
             requirementTitle: req.title,
             questionCategory: "implications",
             remediation:
-              "Add at least one scenario with given/when/then clauses. Run /adv-clarify to discover edge cases and expected behaviors.",
+              "Add at least one scenario with given/when/then clauses. Run /determinus-clarify to discover edge cases and expected behaviors.",
           },
         });
       }
@@ -154,7 +154,7 @@ export function checkMissingScenarios(change: Change): ValidationIssue[] {
 
 /**
  * Check if proposal has a concrete scope section (not placeholder or missing).
- * Maps to adv-clarify question type: "clarification" (what's in/out of scope).
+ * Maps to determinus-clarify question type: "clarification" (what's in/out of scope).
  */
 export function checkUnclearScope(
   _change: Change,
@@ -179,7 +179,7 @@ export function checkUnclearScope(
       details: {
         questionCategory: "clarification",
         remediation:
-          "Add a ## Scope section listing affected files/modules. Run /adv-clarify to define boundaries.",
+          "Add a ## Scope section listing affected files/modules. Run /determinus-clarify to define boundaries.",
       },
     });
     return issues;
@@ -200,7 +200,7 @@ export function checkUnclearScope(
       details: {
         questionCategory: "clarification",
         remediation:
-          "Replace placeholder scope with specific file paths or module names. Run /adv-clarify to define boundaries.",
+          "Replace placeholder scope with specific file paths or module names. Run /determinus-clarify to define boundaries.",
       },
     });
   }
@@ -214,7 +214,7 @@ export function checkUnclearScope(
 
 /**
  * Check if proposal references auth/access/permissions without specifying the model.
- * Maps to adv-clarify question type: "assumptions" (probe underlying beliefs).
+ * Maps to determinus-clarify question type: "assumptions" (probe underlying beliefs).
  */
 export function checkAssumptionHeavy(
   _change: Change,
@@ -241,7 +241,7 @@ export function checkAssumptionHeavy(
     details: {
       questionCategory: "assumptions",
       remediation:
-        "Specify the auth model (JWT, OAuth, API keys, session cookies, etc.). Run /adv-clarify to resolve auth assumptions.",
+        "Specify the auth model (JWT, OAuth, API keys, session cookies, etc.). Run /determinus-clarify to resolve auth assumptions.",
     },
   });
 
@@ -254,7 +254,7 @@ export function checkAssumptionHeavy(
 
 /**
  * Check if proposal describes behavior that could fail but doesn't mention error handling.
- * Maps to adv-clarify question type: "implications" (what happens when things go wrong).
+ * Maps to determinus-clarify question type: "implications" (what happens when things go wrong).
  */
 export function checkMissingErrorHandling(
   _change: Change,
@@ -290,7 +290,7 @@ export function checkMissingErrorHandling(
     details: {
       questionCategory: "implications",
       remediation:
-        "Add error handling expectations: retry strategy, fallback behavior, rollback plan. Run /adv-clarify to define failure modes.",
+        "Add error handling expectations: retry strategy, fallback behavior, rollback plan. Run /determinus-clarify to define failure modes.",
     },
   });
 

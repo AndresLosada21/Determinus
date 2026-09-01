@@ -122,9 +122,9 @@ export const LoopLedgerEntrySchema = z
     /** Stable dedupe identity: source kind + source id/report key + attempt. */
     id: z.string().min(1),
     kind: LoopKindSchema,
-    /** Agent/loop that emitted the evidence (e.g. adv-reviewer, apply). */
+    /** Agent/loop that emitted the evidence (e.g. determinus-reviewer, apply). */
     producer: z.string().min(1),
-    /** Authority that produced the verdict (e.g. adv-reviewer, task-completion). */
+    /** Authority that produced the verdict (e.g. determinus-reviewer, task-completion). */
     evaluator: z.string().min(1),
     attemptCount: z.number().int().nonnegative(),
     verdict: LoopVerdictSchema,

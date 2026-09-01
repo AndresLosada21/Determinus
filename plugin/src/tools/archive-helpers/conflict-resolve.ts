@@ -1,5 +1,5 @@
 /**
- * Decision-tree applier for handling rebase conflicts during /adv-archive Phase 9.
+ * Decision-tree applier for handling rebase conflicts during /determinus-archive Phase 9.
  *
  * J3 SCOPE EXPANSION — driven by T28d's classification taxonomy.
  */

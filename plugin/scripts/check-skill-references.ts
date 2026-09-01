@@ -55,6 +55,16 @@ const EXEMPTIONS: Exemption[] = [
     surface: /^docs\/specs\//,
     reason: "scenario placeholder in spec documentation",
   },
+  {
+    skill: "determinus-foo",
+    surface: /^docs\/specs\//,
+    reason: "scenario placeholder in spec documentation",
+  },
+  {
+    skill: "determinus-foo",
+    surface: /^docs\/specs\//,
+    reason: "scenario placeholder in spec documentation",
+  },
   // Globally installed under ~/.config/opencode/skills/, declared in agent
   // manifests and the specs that govern them — never repo-local.
   {
@@ -86,6 +96,21 @@ const EXEMPTIONS: Exemption[] = [
   },
   {
     skill: "adv-harden-methodology",
+    surface: /^ADV_INSTRUCTIONS\.md$/,
+    reason: "retired-skill do-not-call note",
+  },
+  {
+    skill: "determinus-review-methodology",
+    surface: /^ADV_INSTRUCTIONS\.md$/,
+    reason: "retired-skill do-not-call note",
+  },
+  {
+    skill: "determinus-apply-methodology",
+    surface: /^ADV_INSTRUCTIONS\.md$/,
+    reason: "retired-skill do-not-call note",
+  },
+  {
+    skill: "determinus-harden-methodology",
     surface: /^ADV_INSTRUCTIONS\.md$/,
     reason: "retired-skill do-not-call note",
   },

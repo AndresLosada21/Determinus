@@ -110,7 +110,7 @@ describe("scanSnapshotHealth", () => {
   let tempRoot: string;
 
   beforeEach(async () => {
-    tempRoot = await createTempDir("adv-snapshot-scan-");
+    tempRoot = await createTempDir("determinus-snapshot-scan-");
   });
 
   afterEach(async () => {
@@ -235,7 +235,7 @@ describe("scanSnapshotHealth", () => {
     expect(f.project_id).toBe("test-pid");
     expect(f.metadata).toHaveProperty("error_line");
     // Bug fix: fsck_error findings MUST carry a remediation so users can
-    // auto-repair fsck'd snapshots via adv_snapshot_health repair.
+    // auto-repair fsck'd snapshots via determinus_snapshot_health repair.
     expect(f.remediation).toBe("delete_fsck_corrupt_repos");
   });
 
@@ -404,7 +404,7 @@ describe("executeRepair", () => {
   let tempRoot: string;
 
   beforeEach(async () => {
-    tempRoot = await createTempDir("adv-snapshot-repair-");
+    tempRoot = await createTempDir("determinus-snapshot-repair-");
   });
 
   afterEach(async () => {

@@ -42,7 +42,7 @@ function sessionFile(migrationRoot: string, pid: number): string {
 
 describe("registerLoadedBuildSession", () => {
   test("writes a schema-valid session record atomically", async () => {
-    const root = await tempDir("adv-sessreg-write-");
+    const root = await tempDir("determinus-sessreg-write-");
     const result = registerLoadedBuildSession({
       migrationRoot: root,
       projectId: "0000100000000000000000000000000000000000",
@@ -65,7 +65,7 @@ describe("registerLoadedBuildSession", () => {
   });
 
   test("re-registering the same pid overwrites (session restart)", async () => {
-    const root = await tempDir("adv-sessreg-rewrite-");
+    const root = await tempDir("determinus-sessreg-rewrite-");
     registerLoadedBuildSession({
       migrationRoot: root,
       projectId: "0000100000000000000000000000000000000000",
@@ -102,7 +102,7 @@ describe("registerLoadedBuildSession", () => {
 
 describe("unregisterLoadedBuildSession", () => {
   test("removes only the own-pid record; missing files are fine", async () => {
-    const root = await tempDir("adv-sessreg-unreg-");
+    const root = await tempDir("determinus-sessreg-unreg-");
     registerLoadedBuildSession({
       migrationRoot: root,
       projectId: "0000100000000000000000000000000000000000",
@@ -127,7 +127,7 @@ describe("unregisterLoadedBuildSession", () => {
 
 describe("listLiveBuildSessions", () => {
   test("reaps dead-pid records and returns live ones", async () => {
-    const root = await tempDir("adv-sessreg-list-");
+    const root = await tempDir("determinus-sessreg-list-");
     for (const [pid, ticks] of [
       [100, "500"],
       [200, "600"],
@@ -152,7 +152,7 @@ describe("listLiveBuildSessions", () => {
   });
 
   test("malformed records are unknown inventory, not silently dropped", async () => {
-    const root = await tempDir("adv-sessreg-malformed-");
+    const root = await tempDir("determinus-sessreg-malformed-");
     const dir = join(root, "sessions");
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "300.json"), "{ not json", {
@@ -165,7 +165,7 @@ describe("listLiveBuildSessions", () => {
   });
 
   test("missing sessions directory is an empty registry", async () => {
-    const root = await tempDir("adv-sessreg-empty-");
+    const root = await tempDir("determinus-sessreg-empty-");
     const result = listLiveBuildSessions({ migrationRoot: root });
     expect(result).toEqual({ live: [], reaped: 0, malformed: [] });
   });
@@ -173,7 +173,7 @@ describe("listLiveBuildSessions", () => {
 
 describe("registerPluginSession (init seam)", () => {
   test("skips registration in test mode even with an identity", async () => {
-    const root = await tempDir("adv-sessreg-seam-test-");
+    const root = await tempDir("determinus-sessreg-seam-test-");
     const result = registerPluginSession({
       projectId: "0000100000000000000000000000000000000000",
       migrationRoot: root,
@@ -192,7 +192,7 @@ describe("registerPluginSession (init seam)", () => {
   });
 
   test("skips when no build identity is available (dev/src mode)", async () => {
-    const root = await tempDir("adv-sessreg-seam-noident-");
+    const root = await tempDir("determinus-sessreg-seam-noident-");
     const result = registerPluginSession({
       projectId: "0000100000000000000000000000000000000000",
       migrationRoot: root,
@@ -204,7 +204,7 @@ describe("registerPluginSession (init seam)", () => {
   });
 
   test("registers when identity is present outside test mode", async () => {
-    const root = await tempDir("adv-sessreg-seam-ok-");
+    const root = await tempDir("determinus-sessreg-seam-ok-");
     const result = registerPluginSession({
       projectId: "0000100000000000000000000000000000000000",
       migrationRoot: root,

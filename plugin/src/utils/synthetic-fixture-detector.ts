@@ -8,11 +8,11 @@
  * predictable patterns and never cleaned up after themselves. Result:
  * ~600 stale records leaked across 16 ADV project directories. The
  * leak was reaped manually (see audit 2026-05-07), and the
- * adv_change_create tool now rejects these patterns at change-creation
+ * determinus_change_create tool now rejects these patterns at change-creation
  * time. This module re-exports that predicate so the lower-level
  * storage save path can apply the same guard, catching any code path
  * (legacy tools, test harnesses, manual disk writes) that bypasses
- * adv_change_create and would otherwise re-introduce the leak.
+ * determinus_change_create and would otherwise re-introduce the leak.
  *
  * Spec ref: rq-synthstate01 (Synthetic Validation Draft Isolation)
  *
@@ -63,7 +63,7 @@ const SYNTHETIC_PATTERNS: RegExp[] = [
  * validation/parity/latency/roundtrip pattern.
  *
  * Used by:
- *   - adv_change_create (input: change summary, pre-creation)
+ *   - determinus_change_create (input: change summary, pre-creation)
  *   - storage/json.ts saveChange (input: change.id, defense-in-depth at
  *     write time)
  *

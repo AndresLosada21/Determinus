@@ -1,4 +1,4 @@
-export const ADV_MORPH_WORKTREE_CAPABILITY = Symbol.for(
+export const determinus_MORPH_WORKTREE_CAPABILITY = Symbol.for(
   "advance.morph-worktree-capability.v1",
 );
 
@@ -32,7 +32,7 @@ export async function authorizeMorphWorktree(
   if (canonicalRequested !== canonicalExpected) {
     throw new Error("Morph ADV workdir does not match its task worktree");
   }
-  Object.defineProperty(args, ADV_MORPH_WORKTREE_CAPABILITY, {
+  Object.defineProperty(args, determinus_MORPH_WORKTREE_CAPABILITY, {
     value: { root: canonicalExpected, taskId, sessionID },
     enumerable: false,
     configurable: false,

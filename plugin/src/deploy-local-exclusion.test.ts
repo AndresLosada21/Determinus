@@ -4,10 +4,10 @@
  * `scripts/deploy-local.sh` deploys `.opencode/agents/*.md` to the global
  * agents directory by default, EXCEPT for agents named in two exclusion lists:
  *
- *   REPO_LOCAL_ONLY     — agents that stay repo-local (e.g. `adv-tron.md`)
+ *   REPO_LOCAL_ONLY     — agents that stay repo-local (e.g. `determinus-tron.md`)
  *   SHARED_OVERLAY_ONLY — overlay-managed shared globals (build/general/plan)
  *
- * This test pins those exclusion lists so `adv-reviewer.md` cannot silently
+ * This test pins those exclusion lists so `determinus-reviewer.md` cannot silently
  * drift into either list and stop deploying as a bundled global agent.
  *
  * Realizes design Decision 6 (deploy path) and Decision 4 (asset-test
@@ -23,9 +23,9 @@ const DEPLOY_SCRIPT_PATH = resolve(REPO_ROOT, "scripts/deploy-local.sh");
 
 /**
  * Extract the literal value assigned to a bash variable like:
- *   REPO_LOCAL_ONLY="adv-tron.md"
+ *   REPO_LOCAL_ONLY="determinus-tron.md"
  *
- * Returns the space-separated tokens (e.g. ["adv-tron.md"]) or null if the
+ * Returns the space-separated tokens (e.g. ["determinus-tron.md"]) or null if the
  * assignment is not found. Only matches simple double-quoted assignments;
  * anything more dynamic would require executing bash and is intentionally
  * out of scope.
@@ -48,22 +48,22 @@ describe("deploy-local.sh exclusion lists", () => {
     expect(script.length).toBeGreaterThan(0);
   });
 
-  test("REPO_LOCAL_ONLY contains adv-tron.md (sanity check)", () => {
+  test("REPO_LOCAL_ONLY contains determinus-tron.md (sanity check)", () => {
     const list = extractList(script, "REPO_LOCAL_ONLY");
     expect(list).not.toBeNull();
-    expect(list).toContain("adv-tron.md");
+    expect(list).toContain("determinus-tron.md");
   });
 
-  test("REPO_LOCAL_ONLY does NOT contain adv-reviewer.md", () => {
+  test("REPO_LOCAL_ONLY does NOT contain determinus-reviewer.md", () => {
     const list = extractList(script, "REPO_LOCAL_ONLY");
     expect(list).not.toBeNull();
-    expect(list).not.toContain("adv-reviewer.md");
+    expect(list).not.toContain("determinus-reviewer.md");
   });
 
-  test("SHARED_OVERLAY_ONLY does NOT contain adv-reviewer.md", () => {
+  test("SHARED_OVERLAY_ONLY does NOT contain determinus-reviewer.md", () => {
     const list = extractList(script, "SHARED_OVERLAY_ONLY");
     expect(list).not.toBeNull();
-    expect(list).not.toContain("adv-reviewer.md");
+    expect(list).not.toContain("determinus-reviewer.md");
   });
 
   test("SHARED_OVERLAY_ONLY contains expected overlay-managed agents", () => {
@@ -77,26 +77,26 @@ describe("deploy-local.sh exclusion lists", () => {
     expect(list).toContain("plan.md");
   });
 
-  test("REPO_LOCAL_ONLY does NOT contain adv-engineer.md or adv-researcher.md", () => {
-    // adv-engineer and adv-researcher are bundled global agents — they must
-    // deploy via the standard loop, same as adv-reviewer will.
+  test("REPO_LOCAL_ONLY does NOT contain determinus-engineer.md or determinus-researcher.md", () => {
+    // determinus-engineer and determinus-researcher are bundled global agents — they must
+    // deploy via the standard loop, same as determinus-reviewer will.
     const list = extractList(script, "REPO_LOCAL_ONLY");
     expect(list).not.toBeNull();
-    expect(list).not.toContain("adv-engineer.md");
-    expect(list).not.toContain("adv-researcher.md");
+    expect(list).not.toContain("determinus-engineer.md");
+    expect(list).not.toContain("determinus-researcher.md");
   });
 
-  test("REPO_LOCAL_ONLY does NOT contain adv-designer.md", () => {
-    // adv-designer is a bundled global apply-phase frontend worker — it must
-    // deploy via the standard loop alongside adv-engineer / adv-reviewer.
+  test("REPO_LOCAL_ONLY does NOT contain determinus-designer.md", () => {
+    // determinus-designer is a bundled global apply-phase frontend worker — it must
+    // deploy via the standard loop alongside determinus-engineer / determinus-reviewer.
     const list = extractList(script, "REPO_LOCAL_ONLY");
     expect(list).not.toBeNull();
-    expect(list).not.toContain("adv-designer.md");
+    expect(list).not.toContain("determinus-designer.md");
   });
 
-  test("SHARED_OVERLAY_ONLY does NOT contain adv-designer.md", () => {
+  test("SHARED_OVERLAY_ONLY does NOT contain determinus-designer.md", () => {
     const list = extractList(script, "SHARED_OVERLAY_ONLY");
     expect(list).not.toBeNull();
-    expect(list).not.toContain("adv-designer.md");
+    expect(list).not.toContain("determinus-designer.md");
   });
 });

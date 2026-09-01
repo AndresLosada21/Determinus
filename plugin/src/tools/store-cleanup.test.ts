@@ -1,5 +1,5 @@
 /**
- * adv_store_cleanup — legacy Agenda cleanup tests.
+ * determinus_store_cleanup — legacy Agenda cleanup tests.
  *
  * Maintenance-only cleanup for legacy Agenda data across discoverable local
  * ADV stores. Reuses shared store-discovery primitives: walkStoreDirs, content
@@ -192,7 +192,7 @@ const storeC = "c".repeat(40);
 const shardHash = "d".repeat(40);
 
 beforeAll(async () => {
-  base = await mkdtemp(join(tmpdir(), "adv-store-cleanup-"));
+  base = await mkdtemp(join(tmpdir(), "determinus-store-cleanup-"));
   repoDir = join(base, "repo");
   await run("git", ["init", "-b", "main", repoDir]);
   await git(repoDir, "config", "user.email", "t@t");
@@ -385,7 +385,7 @@ describe("executeCleanup", () => {
   });
 
   test("deletes agenda from safe stores, retains unsafe stores, writes manifest", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-cleanup-exec-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-cleanup-exec-"));
     try {
       await writeStoreDir(legacyStorePath(root, storeA), {
         changes: [{ id: "change-a", status: "active" }],
@@ -442,7 +442,7 @@ describe("executeCleanup", () => {
   });
 
   test("second run after success is a no-op via manifest idempotency", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-cleanup-idem-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-cleanup-idem-"));
     try {
       await writeStoreDir(legacyStorePath(root, storeA), {
         changes: [{ id: "change-a", status: "active" }],
@@ -475,7 +475,7 @@ describe("executeCleanup", () => {
   });
 
   test("manifest row validates against schema", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-cleanup-manifest-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-cleanup-manifest-"));
     try {
       await writeStoreDir(legacyStorePath(root, storeA), {
         changes: [{ id: "change-a", status: "active" }],
@@ -513,7 +513,7 @@ describe("executeCleanup", () => {
 // tool-level behavior
 // =============================================================================
 
-describe("adv_store_cleanup tool", () => {
+describe("determinus_store_cleanup tool", () => {
   test("scan via tool succeeds end-to-end", async () => {
     const result = (await executeTool({
       action: "scan",
@@ -555,7 +555,9 @@ describe("adv_store_cleanup tool", () => {
 
 describe("manifest outcome accuracy", () => {
   test("failed delete writes failed manifest row, not applied", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-cleanup-delete-fail-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-cleanup-delete-fail-"),
+    );
     try {
       const storePath = legacyStorePath(root, storeA);
       await writeStoreDir(storePath, {
@@ -596,7 +598,9 @@ describe("manifest outcome accuracy", () => {
   });
 
   test("persists a manifest row before invoking destructive deletion", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-cleanup-manifest-first-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-cleanup-manifest-first-"),
+    );
     try {
       const storePath = legacyStorePath(root, storeA);
       await writeStoreDir(storePath, {
@@ -719,7 +723,7 @@ describe("plan summary and pagination", () => {
 // dry_run paging at the tool boundary (AC9)
 // =============================================================================
 
-describe("adv_store_cleanup dry_run paging", () => {
+describe("determinus_store_cleanup dry_run paging", () => {
   test("dry_run applies a bounded default page and exposes summary + has_more", async () => {
     const result = (await executeTool({
       action: "dry_run",
@@ -781,7 +785,9 @@ describe("adv_store_cleanup dry_run paging", () => {
   });
 
   test("execute accepts a plan_hash from a paged dry_run and applies the full plan", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-cleanup-paged-exec-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "determinus-cleanup-paged-exec-"),
+    );
     try {
       await writeStoreDir(legacyStorePath(root, storeA), {
         changes: [{ id: "change-a", status: "active" }],

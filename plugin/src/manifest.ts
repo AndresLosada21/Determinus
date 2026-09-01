@@ -74,23 +74,27 @@ export interface CommandDef {
 
 export const COMMAND_MANIFEST: Record<string, CommandDef> = {
   // ---- Core Workflow ----
-  "adv-status": {
-    name: "adv-status",
+  "determinus-status": {
+    name: "determinus-status",
     description: "Show fast ADV status table",
     phase: "core",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal", "adv-apply", "adv-triage"],
+    successors: [
+      "determinus-proposal",
+      "determinus-apply",
+      "determinus-triage",
+    ],
   },
-  "adv-proposal": {
-    name: "adv-proposal",
+  "determinus-proposal": {
+    name: "determinus-proposal",
     description:
       "Extract problem statement, user outcomes, and constraints without creating tasks",
     phase: "core",
     gate: "proposal",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-clarify", "adv-research"],
+    successors: ["determinus-clarify", "determinus-research"],
     scope: {
       creates: ["change", "proposal"],
       reads: ["specs"],
@@ -100,23 +104,23 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
     phaseGoal:
       "Clarify the problem, user needs, and high-level user outcomes. Establish what and why \u2014 no how.",
   },
-  "adv-validate": {
-    name: "adv-validate",
+  "determinus-validate": {
+    name: "determinus-validate",
     description:
       "Validate change compliance against specs; block archive on failure",
     phase: "core",
     requiresChangeId: true,
-    prerequisites: ["adv-proposal"],
-    successors: ["adv-archive"],
+    prerequisites: ["determinus-proposal"],
+    successors: ["determinus-archive"],
     args_hint: "<change-id> [--strict]",
   },
-  "adv-archive": {
-    name: "adv-archive",
+  "determinus-archive": {
+    name: "determinus-archive",
     description: "Archive completed change: apply spec deltas and finalize git",
     phase: "core",
     gate: "release",
     requiresChangeId: true,
-    prerequisites: ["adv-harden"],
+    prerequisites: ["determinus-harden"],
     successors: [],
     scope: {
       creates: ["archive"],
@@ -130,13 +134,13 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
   },
 
   // ---- Pre-Implementation (Ideation + Discovery + Design + Planning) ----
-  "adv-idea": {
-    name: "adv-idea",
+  "determinus-idea": {
+    name: "determinus-idea",
     description: "Explore rough ideas before drafting a proposal",
     phase: "pre-implementation",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal", "adv-epic"],
+    successors: ["determinus-proposal", "determinus-epic"],
     scope: {
       creates: [],
       reads: ["specs", "codebase"],
@@ -144,14 +148,14 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       gates: [],
     },
   },
-  "adv-problem": {
-    name: "adv-problem",
+  "determinus-problem": {
+    name: "determinus-problem",
     description:
       "Triage defects and unintended behavior before fixing or drafting a proposal",
     phase: "pre-implementation",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal", "adv-epic"],
+    successors: ["determinus-proposal", "determinus-epic"],
     scope: {
       creates: [],
       reads: ["specs", "codebase"],
@@ -159,13 +163,13 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       gates: [],
     },
   },
-  "adv-epic": {
-    name: "adv-epic",
+  "determinus-epic": {
+    name: "determinus-epic",
     description: "Gather Epic goals before typed creation",
     phase: "pre-implementation",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal"],
+    successors: ["determinus-proposal"],
     scope: {
       creates: ["epic"],
       reads: ["specs", "epics", "changes", "backlog"],
@@ -173,14 +177,14 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       gates: [],
     },
   },
-  "adv-backlog": {
-    name: "adv-backlog",
+  "determinus-backlog": {
+    name: "determinus-backlog",
     description:
       "Capture future work as backlog-status changes before proposal",
     phase: "pre-implementation",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-epic", "adv-proposal"],
+    successors: ["determinus-epic", "determinus-proposal"],
     scope: {
       creates: ["backlog_item"],
       reads: ["backlog", "epics"],
@@ -188,22 +192,22 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       gates: [],
     },
   },
-  "adv-clarify": {
-    name: "adv-clarify",
+  "determinus-clarify": {
+    name: "determinus-clarify",
     description: "Ask clarifying questions to resolve ambiguous requirements",
     phase: "pre-implementation",
     requiresChangeId: false,
-    prerequisites: ["adv-proposal"],
-    successors: ["adv-research", "adv-discover"],
+    prerequisites: ["determinus-proposal"],
+    successors: ["determinus-research", "determinus-discover"],
   },
-  "adv-research": {
-    name: "adv-research",
+  "determinus-research": {
+    name: "determinus-research",
     description:
       "Produce a defined, fully-researched proposed plan ready for user approval",
     phase: "pre-implementation",
     requiresChangeId: false,
-    prerequisites: ["adv-proposal"],
-    successors: ["adv-discover", "adv-prep"],
+    prerequisites: ["determinus-proposal"],
+    successors: ["determinus-discover", "determinus-prep"],
     scope: {
       creates: [],
       reads: ["specs", "proposal", "codebase"],
@@ -213,15 +217,15 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
     phaseGoal:
       "Produce a defined, fully-researched proposed plan ready for user approval. Validate the how.",
   },
-  "adv-discover": {
-    name: "adv-discover",
+  "determinus-discover": {
+    name: "determinus-discover",
     description:
       "Gather context, analyze current state, identify objectives, and obtain user agreement",
     phase: "pre-implementation",
     gate: "discovery",
     requiresChangeId: true,
-    prerequisites: ["adv-proposal"],
-    successors: ["adv-design"],
+    prerequisites: ["determinus-proposal"],
+    successors: ["determinus-design"],
     scope: {
       creates: [],
       reads: ["specs", "proposal", "codebase"],
@@ -232,15 +236,15 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       "Gather current-state evidence, resolve agreement, and capture objectives and acceptance criteria before design.",
     args_hint: "<change-id>",
   },
-  "adv-design": {
-    name: "adv-design",
+  "determinus-design": {
+    name: "determinus-design",
     description:
       "Validate architecture decisions, produce implementation strategy, and present design for user review",
     phase: "pre-implementation",
     gate: "design",
     requiresChangeId: true,
-    prerequisites: ["adv-discover"],
-    successors: ["adv-prep"],
+    prerequisites: ["determinus-discover"],
+    successors: ["determinus-prep"],
     scope: {
       creates: [],
       reads: ["specs", "proposal", "codebase"],
@@ -251,15 +255,15 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       "Convert the approved agreement into a validated implementation strategy ready for planning.",
     args_hint: "<change-id>",
   },
-  "adv-prep": {
-    name: "adv-prep",
+  "determinus-prep": {
+    name: "determinus-prep",
     description:
       "Analyze gaps and synthesize tasks from approved agreement plus validated design",
     phase: "pre-implementation",
     gate: "planning",
     requiresChangeId: true,
-    prerequisites: ["adv-design"],
-    successors: ["adv-apply"],
+    prerequisites: ["determinus-design"],
+    successors: ["determinus-apply"],
     scope: {
       creates: ["tasks"],
       reads: ["specs", "proposal", "codebase"],
@@ -270,13 +274,13 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       "Complete the flight-check: every gap closed, every dependency mapped, every task ready \u2014 ready for autonomous implementation.",
     args_hint: "<change-id>",
   },
-  "adv-reflect": {
-    name: "adv-reflect",
+  "determinus-reflect": {
+    name: "determinus-reflect",
     description:
       "Produce a structured two-plane reflection report for an archived change",
     phase: "post-implementation",
     requiresChangeId: true,
-    prerequisites: ["adv-archive"],
+    prerequisites: ["determinus-archive"],
     successors: [],
     scope: {
       reads: ["specs", "proposal", "tasks"],
@@ -290,15 +294,15 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
   },
 
   // ---- Implementation ----
-  "adv-apply": {
-    name: "adv-apply",
+  "determinus-apply": {
+    name: "determinus-apply",
     description:
       "Implement change with TDD, retry on failure, and final verification",
     phase: "implementation",
     gate: "execution",
     requiresChangeId: true,
-    prerequisites: ["adv-prep"],
-    successors: ["adv-apply"],
+    prerequisites: ["determinus-prep"],
+    successors: ["determinus-apply"],
     scope: {
       creates: [],
       reads: ["specs", "proposal", "tasks", "codebase"],
@@ -309,14 +313,14 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       "Execute the approved plan autonomously. Add discovered tasks within scope. Escalate only on failure.",
     args_hint: "<change-id>",
   },
-  "adv-task": {
-    name: "adv-task",
+  "determinus-task": {
+    name: "determinus-task",
     description:
       "Fast-track small changes: assess spec-law impact, prep, and hand off",
     phase: "implementation",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-apply"],
+    successors: ["determinus-apply"],
     scope: {
       creates: ["change", "proposal", "tasks"],
       reads: ["specs", "codebase"],
@@ -325,15 +329,15 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
     },
   },
   // ---- Post-Implementation ----
-  "adv-review": {
-    name: "adv-review",
+  "determinus-review": {
+    name: "determinus-review",
     description:
       "Review code for correctness, security, and architecture; emit REVIEW_FINDINGS",
     phase: "post-implementation",
     gate: "acceptance",
     requiresChangeId: true,
-    prerequisites: ["adv-apply"],
-    successors: ["adv-harden"],
+    prerequisites: ["determinus-apply"],
+    successors: ["determinus-harden"],
     scope: {
       creates: [],
       reads: ["specs", "proposal", "tasks", "codebase"],
@@ -344,14 +348,14 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       "Verify implementation matches the approved plan. Auto-fix within scope. Stop on drift.",
     args_hint: "<change-id>",
   },
-  "adv-harden": {
-    name: "adv-harden",
+  "determinus-harden": {
+    name: "determinus-harden",
     description:
       "Detect low-quality code, verify test coverage, clean up; block archive on open findings",
     phase: "post-implementation",
     requiresChangeId: true,
-    prerequisites: ["adv-review"],
-    successors: ["adv-validate", "adv-archive"],
+    prerequisites: ["determinus-review"],
+    successors: ["determinus-validate", "determinus-archive"],
     scope: {
       creates: [],
       reads: ["specs", "proposal", "tasks", "codebase"],
@@ -362,36 +366,36 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
       "Verify production-readiness. Auto-fix scoped issues. Stop on drift.",
     args_hint: "<change-id>",
   },
-  "adv-audit": {
-    name: "adv-audit",
+  "determinus-audit": {
+    name: "determinus-audit",
     description: "Detect drift between specs and current implementation",
     phase: "post-implementation",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal"],
+    successors: ["determinus-proposal"],
   },
-  "adv-slop-scan": {
-    name: "adv-slop-scan",
+  "determinus-slop-scan": {
+    name: "determinus-slop-scan",
     description: "Scan slop, deletion safety, and detector coverage",
     phase: "post-implementation",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-harden"],
+    successors: ["determinus-harden"],
   },
 
   // ---- Advanced ----
-  "adv-refactor": {
-    name: "adv-refactor",
+  "determinus-refactor": {
+    name: "determinus-refactor",
     description:
       "Refresh a stale proposal or batch-refresh the oldest 30% of active changes",
     phase: "advanced",
     requiresChangeId: false,
-    prerequisites: ["adv-proposal"],
-    successors: ["adv-prep"],
+    prerequisites: ["determinus-proposal"],
+    successors: ["determinus-prep"],
     args_hint: "[change-id]",
   },
-  "adv-cleanup": {
-    name: "adv-cleanup",
+  "determinus-cleanup": {
+    name: "determinus-cleanup",
     description:
       "Triage stale changes, drifted worktrees, merged branches, and state leaks; delete approved candidates",
     phase: "advanced",
@@ -400,8 +404,8 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
     successors: [],
     args_hint: "[--execute] [--bucket <name>] [--age-threshold <duration>]",
   },
-  "adv-coordinate": {
-    name: "adv-coordinate",
+  "determinus-coordinate": {
+    name: "determinus-coordinate",
     description:
       "Audit project changes, Epic alignment, sequencing, and membership health; includes Epic-unlinked in-flight changes",
     phase: "advanced",
@@ -417,59 +421,59 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
   },
 
   // ---- Utility ----
-  "adv-improve": {
-    name: "adv-improve",
+  "determinus-improve": {
+    name: "determinus-improve",
     description:
       "Analyze improvements across existing specs, implementation, and external landscape",
     phase: "utility",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal", "adv-task", "adv-audit"],
+    successors: ["determinus-proposal", "determinus-task", "determinus-audit"],
   },
-  "adv-arch-scan": {
-    name: "adv-arch-scan",
+  "determinus-arch-scan": {
+    name: "determinus-arch-scan",
     description:
       "Scan architecture stack packs, coverage, and heuristic fallbacks",
     phase: "utility",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal"],
+    successors: ["determinus-proposal"],
   },
-  "adv-comp-scan": {
-    name: "adv-comp-scan",
+  "determinus-comp-scan": {
+    name: "determinus-comp-scan",
     description:
       "Scan competitor capabilities against this project for competitive intelligence",
     phase: "utility",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal"],
+    successors: ["determinus-proposal"],
   },
-  "adv-tron": {
-    name: "adv-tron",
+  "determinus-tron": {
+    name: "determinus-tron",
     description:
       "Investigate codebase structure, hotspots, risks, and suggest follow-up candidates",
     phase: "utility",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal", "adv-task"],
+    successors: ["determinus-proposal", "determinus-task"],
   },
-  "adv-optimizer": {
-    name: "adv-optimizer",
+  "determinus-optimizer": {
+    name: "determinus-optimizer",
     description:
       "Analyze code simplification opportunities and propose optimizer changes",
     phase: "utility",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal", "adv-task"],
+    successors: ["determinus-proposal", "determinus-task"],
   },
-  "adv-triage": {
-    name: "adv-triage",
+  "determinus-triage": {
+    name: "determinus-triage",
     description:
       "Triage sources, coalesce issue links, assign bug priority, and balance portfolio",
     phase: "utility",
     requiresChangeId: false,
     prerequisites: [],
-    successors: ["adv-proposal", "adv-task"],
+    successors: ["determinus-proposal", "determinus-task"],
     args_hint: "[--execute] [--no-commit] [--source <name>]",
   },
 } as const satisfies Record<string, CommandDef>;

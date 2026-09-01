@@ -2,7 +2,7 @@
  * ADV MCP stdio server entry point.
  *
  * Exposes a minimal read surface over the Model Context Protocol:
- *   - adv_handshake: capability/version meta-tool
+ *   - determinus_handshake: capability/version meta-tool
  *   - Tier-4 read tools (including project_context) dispatched through a
  *     narrow injected factory covering exactly the 13 catalog tools
  *
@@ -66,7 +66,7 @@ export async function startServer(
   const anyArgsSchema = z.object({}).passthrough();
 
   mcp.registerTool(
-    "adv_handshake",
+    "determinus_handshake",
     {
       description:
         "ADV capability handshake: returns the Tier-4 tool inventory and contract version.",
@@ -137,6 +137,6 @@ export async function startServer(
 // Auto-start when run as a direct entry point (dist/mcp-server.js).
 // When imported as a module (e.g. in tests), startServer must be called explicitly.
 startServer().catch((err) => {
-  console.error("[adv-mcp-server] Fatal startup error:", err);
+  console.error("[determinus-mcp-server] Fatal startup error:", err);
   process.exit(1);
 });

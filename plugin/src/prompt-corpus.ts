@@ -9,12 +9,12 @@
  *
  * Deployment ownership model (deploy-local.sh):
  *   - .opencode/agents/*.md            -> synced to global agents
- *   - .opencode/overlays/*.overlay.md  -> managed ADV_SYNC blocks spliced
+ *   - .opencode/overlays/*.overlay.md  -> managed determinus_SYNC blocks spliced
  *                                         into shared agents (general/build/plan)
- *   - .opencode/command/adv-*.md       -> synced to global commands
- *   - skills/<adv-*>/ (whole dir, recursive) -> synced to global skills
+ *   - .opencode/command/determinus-*.md       -> synced to global commands
+ *   - skills/<determinus-*>/ (whole dir, recursive) -> synced to global skills
  *                                         (ADR-002: SKILL.md + siblings)
- *   - ADV_INSTRUCTIONS.md, SETUP.md    -> canonical reference prose
+ *   - determinus_INSTRUCTIONS.md, SETUP.md    -> canonical reference prose
  * `.adv/**` (archives) is never part of the active corpus.
  */
 
@@ -186,19 +186,19 @@ export function activePromptCorpus(): CorpusFile[] {
     corpus.push(toCorpusFile(path, "overlay"));
   }
   for (const path of listMarkdownFlat(".opencode/command").filter((path) =>
-    /(^|\/)adv-[^/]*\.md$/.test(path),
+    /(^|\/)determinus-[^/]*\.md$/.test(path),
   )) {
     corpus.push(toCorpusFile(path, "command"));
   }
   const skillsRoot = join(REPO_ROOT, "skills");
   for (const entry of readdirSync(skillsRoot).sort()) {
-    if (!entry.startsWith("adv-")) continue;
+    if (!entry.startsWith("determinus-")) continue;
     if (!statSync(join(skillsRoot, entry)).isDirectory()) continue;
     for (const path of listMarkdownRecursive(join("skills", entry))) {
       corpus.push(toCorpusFile(path, "skill"));
     }
   }
-  for (const path of ["ADV_INSTRUCTIONS.md", "SETUP.md"]) {
+  for (const path of ["determinus_INSTRUCTIONS.md", "SETUP.md"]) {
     corpus.push(toCorpusFile(path, "reference"));
   }
 
@@ -207,7 +207,7 @@ export function activePromptCorpus(): CorpusFile[] {
 
 /**
  * Apply an overlay to an agent prompt using deploy-local.sh
- * `apply_overlay_block` semantics: when ADV_SYNC markers exist, the whole
+ * `apply_overlay_block` semantics: when determinus_SYNC markers exist, the whole
  * marked region (markers inclusive) is replaced by the overlay file content;
  * otherwise the overlay is inserted directly after frontmatter.
  */
@@ -216,8 +216,8 @@ export function applyOverlay(
   overlayText: string,
   overlayName: string,
 ): string {
-  const startMarker = `<!-- ADV_SYNC:START ${overlayName} -->`;
-  const endMarker = `<!-- ADV_SYNC:END ${overlayName} -->`;
+  const startMarker = `<!-- determinus_SYNC:START ${overlayName} -->`;
+  const endMarker = `<!-- determinus_SYNC:END ${overlayName} -->`;
   let overlay = overlayText.replace(/\s+$/, "") + "\n";
 
   const start = agentText.indexOf(startMarker);
@@ -262,7 +262,7 @@ const OVERLAY_SPLICED_AGENTS = ["build", "plan"] as const;
 
 /**
  * Effective assembled agent prompts as deployed: repo-owned agents verbatim,
- * shared agents with their ADV_SYNC managed block replaced by the canonical
+ * shared agents with their determinus_SYNC managed block replaced by the canonical
  * overlay source, and overlay-only surfaces (general) represented by the
  * Advance-authored overlay itself.
  */

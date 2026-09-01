@@ -5,7 +5,7 @@
  * no self-edges, no duplicates, no unresolved same-project targets, no cycles.
  *
  * Used by Phase D mutation-time enforcement at every edge-writing ingress:
- * adv_epic_add_shell, adv_epic_promote_shell, adv_change_create.
+ * determinus_epic_add_shell, determinus_epic_promote_shell, determinus_change_create.
  *
  * rq-workGraphTypes01 (addDependencyAwareResume) — Phase C
  */

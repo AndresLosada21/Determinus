@@ -53,7 +53,7 @@ function residue(
 }
 
 async function fixture() {
-  const root = await createTempDir("adv-reconcile-apply-");
+  const root = await createTempDir("determinus-reconcile-apply-");
   const paths = getProjectPaths(root);
   return { root, paths, cleanup: () => cleanupTempDir(root) };
 }

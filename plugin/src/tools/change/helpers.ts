@@ -1,4 +1,4 @@
-// rq-prop-context1: Durable Proposal Context for adv-task
+// rq-prop-context1: Durable Proposal Context for determinus-task
 /** Shared helpers for change handlers. */
 import { ZodError } from "zod";
 import { readFile } from "fs/promises";
@@ -278,7 +278,7 @@ export async function saveRecoveredArchiveConvergence(input: {
   const releaseGateDone: GateCompletion = input.releaseGate ?? {
     status: "done",
     completed_at: archivedAt,
-    completed_by: "adv-archive",
+    completed_by: "determinus-archive",
     approval_evidence: approvalEvidence,
     recovery_audit: {
       reason: "archive_convergence_recovery",
@@ -406,8 +406,8 @@ function briefingPacketGeneratedBy(
   request?: string,
 ): string {
   const generatedBy = request
-    ? `adv_change_show:${lane}:${request}`
-    : `adv_change_show:${lane}`;
+    ? `determinus_change_show:${lane}:${request}`
+    : `determinus_change_show:${lane}`;
   return generatedBy.slice(0, BRIEFING_PACKET_SESSION_METADATA_MAX_LENGTH);
 }
 

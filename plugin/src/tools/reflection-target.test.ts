@@ -85,7 +85,7 @@ describe("reflection target_path reads", () => {
       },
     } as unknown as Store;
 
-    const output = await reflectionTools.adv_reflection_list.execute(
+    const output = await reflectionTools.determinus_reflection_list.execute(
       { target_path: "/target/project" },
       { paths: { root: "/source/project" } } as unknown as Store,
     );

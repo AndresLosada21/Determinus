@@ -73,7 +73,7 @@ const ProjectWisdomEntrySchema = z.object({
 // Constants
 // =============================================================================
 
-const ADV_DIR = ".adv";
+const determinus_DIR = ".adv";
 const WISDOM_FILE = "wisdom.jsonl";
 const DEFAULT_MAX_ENTRIES = 50;
 
@@ -92,7 +92,7 @@ export const getProjectWisdomPath = (
   projectDir: string,
   overridePath?: string,
 ): string => {
-  return overridePath ?? join(projectDir, ADV_DIR, WISDOM_FILE);
+  return overridePath ?? join(projectDir, determinus_DIR, WISDOM_FILE);
 };
 
 // =============================================================================

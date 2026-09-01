@@ -1,7 +1,7 @@
 /**
- * Typed timeout classifier for adv_change_archive.
+ * Typed timeout classifier for determinus_change_archive.
  *
- * fixArchiveTerminalProjection SC3/AC4: adv_change_archive is bundle-first
+ * fixArchiveTerminalProjection SC3/AC4: determinus_change_archive is bundle-first
  * (rq-archiveRetirement01 / rq-archiveOrdering01). When the safety-net tool
  * timeout fires AFTER the archive bundle is durable on disk, the only work
  * remaining work includes immutable spec projection proof before terminal
@@ -96,12 +96,12 @@ export async function formatArchiveTimeoutResult(
   return formatToolOutput({
     success: false,
     error:
-      `Archive interrupted: adv_change_archive exceeded its ${timeoutMs}ms ` +
+      `Archive interrupted: determinus_change_archive exceeded its ${timeoutMs}ms ` +
       `safety-net budget after the archive bundle for '${changeId}' was ` +
       "written. The bundle is durable, but accepted delta projection and " +
       "terminal state may still require immutable proof.",
     errorClass: "ToolExecutionTimeout",
-    tool: "adv_change_archive",
+    tool: "determinus_change_archive",
     changeId,
     archiveStatus: "still_finalizing",
     bundleDurable: true,
@@ -112,11 +112,11 @@ export async function formatArchiveTimeoutResult(
     retryRoute: "through_shared_projection_proof_gate",
     requirement: "rq-archiveDeltaReconciliation01",
     remediation:
-      "Re-run adv_change_archive with the same arguments. The archive " +
+      "Re-run determinus_change_archive with the same arguments. The archive " +
       "bundle is durable on disk, so the idempotent re-run reuses it, reconciles any " +
       "proven-safe missing projection in the trusted worktree, verifies the " +
       "immutable released commit, then re-drives terminal state. If the change already reads as " +
       "archived, the re-run is a bounded metadata reconcile.",
-    hint: "Re-run adv_change_archive (same changeId, worktreePath, and target_path if used). Do not start a new archive or delete the bundle.",
+    hint: "Re-run determinus_change_archive (same changeId, worktreePath, and target_path if used). Do not start a new archive or delete the bundle.",
   });
 }

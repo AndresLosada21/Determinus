@@ -1,8 +1,8 @@
 /**
- * Tests for the adv_change_archive typed timeout classifier.
+ * Tests for the determinus_change_archive typed timeout classifier.
  *
  * fixArchiveTerminalProjection SC3/AC4: when the safety-net tool timeout
- * fires AFTER the archive bundle is durable on disk, adv_change_archive
+ * fires AFTER the archive bundle is durable on disk, determinus_change_archive
  * must return a typed "still_finalizing / re-run to reconcile" result
  * instead of a bare ToolExecutionTimeout. When no bundle exists, the
  * classifier must decline (return undefined) so the generic timeout
@@ -38,7 +38,7 @@ async function writeBundle(
 }
 
 beforeEach(async () => {
-  tempDir = await mkdtemp(join(tmpdir(), "adv-archive-timeout-"));
+  tempDir = await mkdtemp(join(tmpdir(), "determinus-archive-timeout-"));
 });
 
 afterEach(async () => {
@@ -61,13 +61,13 @@ describe("formatArchiveTimeoutResult", () => {
     const parsed = JSON.parse(raw!);
     expect(parsed.success).toBe(false);
     expect(parsed.errorClass).toBe("ToolExecutionTimeout");
-    expect(parsed.tool).toBe("adv_change_archive");
+    expect(parsed.tool).toBe("determinus_change_archive");
     expect(parsed.changeId).toBe("example");
     expect(parsed.archiveStatus).toBe("still_finalizing");
     expect(parsed.bundleDurable).toBe(true);
     expect(parsed.archivePath).toBe(bundlePath);
     expect(parsed.retrySafe).toBe(true);
-    expect(parsed.remediation).toMatch(/re-run adv_change_archive/i);
+    expect(parsed.remediation).toMatch(/re-run determinus_change_archive/i);
     expect(parsed.remediation).toMatch(/idempotent/i);
   });
 

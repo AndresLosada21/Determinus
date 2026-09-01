@@ -79,7 +79,7 @@ describe("peer-session reader (T19 — live /proc source)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    tempRoot = mkdtempSync(join(tmpdir(), "adv-session-list-"));
+    tempRoot = mkdtempSync(join(tmpdir(), "determinus-session-list-"));
     projectRoot = join(tempRoot, "project-main");
     mkdirSync(projectRoot, { recursive: true });
 

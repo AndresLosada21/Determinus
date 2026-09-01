@@ -10,7 +10,7 @@
  * code path to return "compliant" — every inline-intent / logic-heavy
  * task was flagged as missing regardless of actual evidence content.
  * This produced false-positive MISSING_TDD_EVIDENCE blockers during
- * adv_change_archive even when tasks completed full red→green cycles.
+ * determinus_change_archive even when tasks completed full red→green cycles.
  *
  * Spec ref: rq-TDD004cls (Task Classifier with Metadata-First Detection)
  */
@@ -492,7 +492,7 @@ describe("validateTaskEvidenceForStage", () => {
         policy: "review",
         proof_target: "Structured review",
         rationale: "Rationale",
-        review_evidence_ref: { report_key: "c|tk-1|adv-reviewer|1" },
+        review_evidence_ref: { report_key: "c|tk-1|determinus-reviewer|1" },
         provenance: "new",
         stage: "stage-v2",
       },
@@ -503,7 +503,7 @@ describe("validateTaskEvidenceForStage", () => {
       task_id: "tk-1",
       scope: { kind: "task" as const, task_id: "tk-1" },
       attempt: 1,
-      agent: "adv-reviewer" as const,
+      agent: "determinus-reviewer" as const,
       workdir_used: "/tmp",
       phase: "review" as const,
       verdict: "READY" as const,
@@ -531,7 +531,7 @@ describe("validateTaskEvidenceForStage", () => {
         policy: "review",
         proof_target: "Structured review",
         rationale: "Rationale",
-        review_evidence_ref: { report_key: "c|tk-2|adv-reviewer|1" },
+        review_evidence_ref: { report_key: "c|tk-2|determinus-reviewer|1" },
         provenance: "new",
         stage: "stage-v2",
       },
@@ -542,7 +542,7 @@ describe("validateTaskEvidenceForStage", () => {
       task_id: "tk-2",
       scope: { kind: "task" as const, task_id: "tk-2" },
       attempt: 1,
-      agent: "adv-reviewer" as const,
+      agent: "determinus-reviewer" as const,
       workdir_used: "/tmp",
       phase: "review" as const,
       verdict: "READY" as const,

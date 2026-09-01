@@ -63,22 +63,22 @@ function deepFreeze<T>(value: T): T {
 }
 
 describe("withPhaseDirective", () => {
-  it("attaches the registered directive to an actionable adv-review plan", () => {
-    const plan = actionable("adv-review");
+  it("attaches the registered directive to an actionable determinus-review plan", () => {
+    const plan = actionable("determinus-review");
 
     const output = withPhaseDirective(plan);
 
     expect(output).not.toBe(plan);
     expect(output.kind).toBe("actionable");
     if (output.kind !== "actionable") return;
-    expect(output.directive).toEqual(PHASE_DIRECTIVES["adv-review"]);
+    expect(output.directive).toEqual(PHASE_DIRECTIVES["determinus-review"]);
     expect(output.directive?.contentHash).toBe(
-      PHASE_DIRECTIVES["adv-review"].contentHash,
+      PHASE_DIRECTIVES["determinus-review"].contentHash,
     );
     expect(PhasePlanSchema.parse(output)).toEqual(output);
   });
 
-  it.each(["adv-apply", "adv-design"])(
+  it.each(["determinus-apply", "determinus-design"])(
     "returns an actionable %s plan unchanged",
     (command) => {
       const plan = actionable(command);
@@ -128,7 +128,7 @@ describe("withPhaseDirective", () => {
   });
 
   it("does not mutate input and is deterministic across repeated calls", () => {
-    const plan = deepFreeze(actionable("adv-review"));
+    const plan = deepFreeze(actionable("determinus-review"));
     const before = JSON.stringify(plan);
 
     const first = withPhaseDirective(plan);

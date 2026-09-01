@@ -19,7 +19,7 @@ import {
 // Public `$id` values intentionally use the canonical trunk URL. Feature-branch
 // validation uses the committed local artifacts plus `schemas:check`; external
 // consumers should resolve these IDs after changes land on trunk.
-export const ADV_SCHEMA_BASE_URL =
+export const determinus_SCHEMA_BASE_URL =
   "https://raw.githubusercontent.com/AndresLosada21/Determinus/trunk/plugin/schemas/";
 
 export const JSON_SCHEMA_DIALECT = "http://json-schema.org/draft-07/schema#";
@@ -107,7 +107,7 @@ export const PUBLIC_JSON_SCHEMAS: PublicJsonSchemaEntry[] = [
 ] as const;
 
 export function schemaUrl(filename: string): string {
-  return `${ADV_SCHEMA_BASE_URL}${filename}`;
+  return `${determinus_SCHEMA_BASE_URL}${filename}`;
 }
 
 export const CHANGE_SCHEMA_URL = schemaUrl("change.schema.json");

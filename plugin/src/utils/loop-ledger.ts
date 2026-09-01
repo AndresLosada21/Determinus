@@ -297,7 +297,7 @@ function buildReportEntry(
     attempt,
   };
 
-  if (agent === "adv-reviewer") {
+  if (agent === "determinus-reviewer") {
     const kind: LoopKind =
       report.phase === "harden" ? "harden_remediation" : "review_remediation";
     const verdict = reviewerVerdict(report.verdict);
@@ -305,7 +305,7 @@ function buildReportEntry(
       id: `${kind}|${key}`,
       kind,
       producer: agent,
-      evaluator: "adv-reviewer",
+      evaluator: "determinus-reviewer",
       attemptCount: attempt,
       verdict,
       nextAction: reviewerNextAction(verdict),
@@ -320,7 +320,7 @@ function buildReportEntry(
     };
   }
 
-  if (agent === "adv-scanner-bundle") {
+  if (agent === "determinus-scanner-bundle") {
     const kind: LoopKind =
       report.phase === "harden" ? "harden_remediation" : "review_remediation";
     const hasBlocker = (report.findings ?? []).some(
@@ -335,7 +335,7 @@ function buildReportEntry(
       id: `${kind}|${key}`,
       kind,
       producer: agent,
-      evaluator: "adv-scanner-bundle",
+      evaluator: "determinus-scanner-bundle",
       attemptCount: attempt,
       verdict,
       nextAction: report.summary ?? "address scanner findings",
@@ -344,7 +344,7 @@ function buildReportEntry(
     };
   }
 
-  if (agent === "adv-verification-triage-bundle") {
+  if (agent === "determinus-verification-triage-bundle") {
     const kind: LoopKind =
       report.phase === "ci_check" ? "ci_repair" : "verification_triage";
     const verdict = triageVerdict(report.status, report.error_class);
@@ -373,7 +373,7 @@ function buildReportEntry(
       id: `${kind}|${key}`,
       kind,
       producer: agent,
-      evaluator: "adv-verification-triage-bundle",
+      evaluator: "determinus-verification-triage-bundle",
       attemptCount: attempt,
       verdict,
       errorClass: report.error_class,
@@ -388,7 +388,7 @@ function buildReportEntry(
     };
   }
 
-  // adv-engineer / adv-designer / adv-researcher / adv-tron / adv-visual-review
+  // determinus-engineer / determinus-designer / determinus-researcher / determinus-tron / determinus-visual-review
   // are not distinct loop sources in v1: engineer task work is covered by the
   // apply_retry adapter (authoritative attempts + test evidence); the others
   // are not remediation loops. Skip rather than fabricate (D4).

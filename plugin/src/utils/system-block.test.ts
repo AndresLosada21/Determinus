@@ -4,7 +4,7 @@
  *
  * T6 (tk-debf477a4ad4): objective field removed; active-change line has no suffix.
  *
- * Maps to AC1 (single ADV-controlled system entry per turn) and AC8
+ * Maps to AC1 (single determinus-controlled system entry per turn) and AC8
  * (volatile/stable sentinel placement). Per JC-2 (hardcoded 6 sections)
  * and JC-3 (strict regex internal-call detection).
  */
@@ -337,7 +337,7 @@ describe("assembleSystemBlock", () => {
       expect(block).toContain("tk-1");
       expect(block).toContain("Implement foo");
       expect(block).toContain("1 draft(s) pending review");
-      expect(block).toContain("adv_wisdom_add from_draft_id");
+      expect(block).toContain("determinus_wisdom_add from_draft_id");
       // Retired sentinel must NOT appear anymore.
       expect(block).not.toContain("[ADV:RECORD_WISDOM]");
     });
@@ -790,7 +790,7 @@ describe("trunkGuardSection", () => {
         }),
       }),
     );
-    expect(result).not.toContain("adv_worktree_create");
+    expect(result).not.toContain("determinus_worktree_create");
     expect(result).not.toContain("worktree-first");
   });
 

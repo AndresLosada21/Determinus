@@ -10,7 +10,7 @@ import { join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
 import {
-  ADV_TOOL_NAMES,
+  determinus_TOOL_NAMES,
   createDegradedToolMap,
   createFullToolMap,
   createToolMap,
@@ -53,7 +53,7 @@ describe("tool-registry functional contract", () => {
     );
     expect(src).toContain("createToolMap");
     expect(src).toContain("createDegradedToolMap");
-    expect(src).not.toContain("adv_change_show:");
+    expect(src).not.toContain("determinus_change_show:");
   });
 });
 
@@ -69,17 +69,17 @@ describe("createDegradedToolMap parity with createToolMap", () => {
     await cleanupTempDir(tempDir);
   });
 
-  test("ADV_TOOL_NAMES exactly matches the keys returned by createToolMap", async () => {
-    // Drift guard: if a new tool is added to createToolMap but ADV_TOOL_NAMES
+  test("determinus_TOOL_NAMES exactly matches the keys returned by createToolMap", async () => {
+    // Drift guard: if a new tool is added to createToolMap but determinus_TOOL_NAMES
     // is not updated, agents in degraded sessions will see "tool missing" for
-    // that tool and lose the structured ADV_PLUGIN_INIT_FAILED diagnostic path.
+    // that tool and lose the structured determinus_PLUGIN_INIT_FAILED diagnostic path.
     const store = await createDiskStore(tempDir);
     await store.init();
     try {
       const realToolNames = Object.keys(
         createFullToolMap(store, tempDir, store.paths.agenda),
       ).sort((a, b) => a.localeCompare(b));
-      const stubToolNames = [...ADV_TOOL_NAMES].sort((a, b) =>
+      const stubToolNames = [...determinus_TOOL_NAMES].sort((a, b) =>
         a.localeCompare(b),
       );
 
@@ -97,7 +97,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
     }
   });
 
-  test("createDegradedToolMap registers a stub for every name in ADV_TOOL_NAMES", () => {
+  test("createDegradedToolMap registers a stub for every name in determinus_TOOL_NAMES", () => {
     const map = createDegradedToolMap(new Error("test init failure"), "/tmp/x");
     for (const name of DIRECT_TOOL_NAMES) {
       expect(map).toHaveProperty(name);
@@ -107,7 +107,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
 
   test("degraded tool map stubs include an informational session-readiness hint (not a gate)", async () => {
     const map = createDegradedToolMap(new Error("test init failure"), "/tmp/x");
-    const tool = map.adv_change_show;
+    const tool = map.determinus_change_show;
     expect(tool).toBeDefined();
 
     const result = (await tool.execute({})) as {
@@ -118,10 +118,10 @@ describe("createDegradedToolMap parity with createToolMap", () => {
       readinessHint?: string;
     };
 
-    expect(parsed.status).toBe("ADV_PLUGIN_INIT_FAILED");
+    expect(parsed.status).toBe("determinus_PLUGIN_INIT_FAILED");
     expect(parsed.readinessHint).toEqual(expect.any(String));
     expect(parsed.readinessHint).toMatch(/session[- ]readiness/i);
-    expect(parsed.readinessHint).toMatch(/ADV_SESSION_READINESS_BYPASS/);
+    expect(parsed.readinessHint).toMatch(/determinus_SESSION_READINESS_BYPASS/);
     // The degraded stub is informational only and cannot perform per-target
     // queue gating — that authority lives in the per-mutation fireSignalAndRefresh
     // precheck (KD4). It must not introduce a second eligibility gate.
@@ -129,7 +129,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
   });
 
   test("every registered ADV tool name has a display title", () => {
-    for (const name of ADV_TOOL_NAMES) {
+    for (const name of determinus_TOOL_NAMES) {
       expect(hasExplicitAdvToolTitle(name), `explicit title for ${name}`).toBe(
         true,
       );
@@ -159,7 +159,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
     try {
       const map = createToolMap(store, tempDir, store.paths.agenda);
       const change = await store.changes.create("Session projection test");
-      const result = await map.adv_change_show.execute({
+      const result = await map.determinus_change_show.execute({
         changeId: change.changeId,
         include: { sessions: true },
       });
@@ -170,7 +170,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
           output: expect.any(String),
           metadata: expect.objectContaining({
             adv: expect.objectContaining({
-              toolName: "adv_change_show",
+              toolName: "determinus_change_show",
               title: `Show change: ${change.changeId}`,
             }),
           }),
@@ -194,7 +194,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
       const map = createToolMap(store, tempDir, store.paths.agenda);
       const change = await store.changes.create("Session metadata test");
       const metadataCalls: unknown[] = [];
-      await map.adv_change_show.execute(
+      await map.determinus_change_show.execute(
         { changeId: change.changeId, include: { sessions: true } },
         { metadata: (input: unknown) => metadataCalls.push(input) },
       );
@@ -203,7 +203,9 @@ describe("createDegradedToolMap parity with createToolMap", () => {
         expect.objectContaining({
           title: `Show change: ${change.changeId}`,
           metadata: expect.objectContaining({
-            adv: expect.objectContaining({ toolName: "adv_change_show" }),
+            adv: expect.objectContaining({
+              toolName: "determinus_change_show",
+            }),
           }),
         }),
       ]);
@@ -212,7 +214,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
     }
   });
 
-  test("registered adv_spec forwards SDK worktree context", async () => {
+  test("registered determinus_spec forwards SDK worktree context", async () => {
     const store = await createDiskStore(tempDir);
     await store.init();
     try {
@@ -229,7 +231,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
       );
 
       const map = createToolMap(store, tempDir, store.paths.agenda);
-      const result = await map.adv_spec.execute(
+      const result = await map.determinus_spec.execute(
         { action: "show", capability: SAMPLE_SPEC.name },
         {
           worktree,
@@ -250,7 +252,8 @@ describe("createDegradedToolMap parity with createToolMap", () => {
       output: JSON.stringify({ ok: true }),
       metadata: { adv: { custom: "kept", title: "Wrong title" }, other: true },
     });
-    (execute as { __advToolName?: string }).__advToolName = "adv_change_show";
+    (execute as { __advToolName?: string }).__advToolName =
+      "determinus_change_show";
     const registered = registerTool("test", { changeId: z.string() }, execute);
 
     const result = await registered.execute({ changeId: "abc" }, {} as any);
@@ -263,7 +266,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
           other: true,
           adv: expect.objectContaining({
             custom: "kept",
-            toolName: "adv_change_show",
+            toolName: "determinus_change_show",
             title: "Show change: abc",
             changeId: "abc",
           }),
@@ -278,7 +281,8 @@ describe("createDegradedToolMap parity with createToolMap", () => {
       receivedArgs = args;
       return JSON.stringify({ ok: true });
     };
-    (execute as { __advToolName?: string }).__advToolName = "adv_change_create";
+    (execute as { __advToolName?: string }).__advToolName =
+      "determinus_change_create";
     const registered = registerTool(
       "test",
       {
@@ -302,7 +306,8 @@ describe("createDegradedToolMap parity with createToolMap", () => {
       observedOperationId = getToolOperationContext()?.baseOperationId;
       return JSON.stringify({ ok: true });
     };
-    (execute as { __advToolName?: string }).__advToolName = "adv_wisdom_add";
+    (execute as { __advToolName?: string }).__advToolName =
+      "determinus_wisdom_add";
     const registered = registerTool(
       "test",
       { changeId: z.string(), type: z.string(), content: z.string() },
@@ -330,7 +335,8 @@ describe("createDegradedToolMap parity with createToolMap", () => {
 
   test("registry rejects invalid preflight args for non-create tools", async () => {
     const execute = async () => JSON.stringify({ ok: true });
-    (execute as { __advToolName?: string }).__advToolName = "adv_wisdom_add";
+    (execute as { __advToolName?: string }).__advToolName =
+      "determinus_wisdom_add";
     const registered = registerTool(
       "test",
       {
@@ -348,7 +354,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
     const output = JSON.parse((result as { output: string }).output);
 
     expect(output.code).toBe("INVALID_TOOL_ARGS");
-    expect(output.tool).toBe("adv_wisdom_add");
+    expect(output.tool).toBe("determinus_wisdom_add");
     expect(output.invalid).toContainEqual({
       field: "content",
       message: "content must be a non-blank string.",
@@ -362,7 +368,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
       return JSON.stringify({ ok: true });
     };
     (execute as { __advToolName?: string }).__advToolName =
-      "adv_subagent_report_submit";
+      "determinus_subagent_report_submit";
     const canonical = {
       report: z.object({ schema_version: z.literal("1.0") }).strict(),
     };
@@ -436,11 +442,11 @@ describe("KD-8 worktree + session tool registrations", () => {
   test("createToolMap contains all branch-aware worktree/session tool names", async () => {
     const map = createToolMap(store, tempDir, store.paths.agenda);
     const expected = [
-      "adv_worktree_create",
-      "adv_worktree_delete",
-      "adv_worktree_cleanup",
-      "adv_worktree_triage",
-      "adv_change_show",
+      "determinus_worktree_create",
+      "determinus_worktree_delete",
+      "determinus_worktree_cleanup",
+      "determinus_worktree_triage",
+      "determinus_change_show",
     ];
     for (const name of expected) {
       expect(map).toHaveProperty(name);
@@ -450,11 +456,11 @@ describe("KD-8 worktree + session tool registrations", () => {
   test("each new tool has description, args, and execute function", async () => {
     const map = createToolMap(store, tempDir, store.paths.agenda);
     const expected = [
-      "adv_worktree_create",
-      "adv_worktree_delete",
-      "adv_worktree_cleanup",
-      "adv_worktree_triage",
-      "adv_change_show",
+      "determinus_worktree_create",
+      "determinus_worktree_delete",
+      "determinus_worktree_cleanup",
+      "determinus_worktree_triage",
+      "determinus_change_show",
     ];
     for (const name of expected) {
       const tool = (map as Record<string, unknown>)[name];
@@ -470,10 +476,10 @@ describe("KD-8 worktree + session tool registrations", () => {
     }
   });
 
-  test("adv_change_show sessions include returns a privacy-safe schema without leaking host details", async () => {
+  test("determinus_change_show sessions include returns a privacy-safe schema without leaking host details", async () => {
     const map = createToolMap(store, tempDir, store.paths.agenda);
     const change = await store.changes.create("Session schema test");
-    const tool = map.adv_change_show as {
+    const tool = map.determinus_change_show as {
       execute: (args: unknown) => Promise<string | { output: string }>;
     };
     const raw = await tool.execute({
@@ -524,24 +530,24 @@ describe("KD-8 worktree + session tool registrations", () => {
   });
 
   test("degraded tool names do not include legacy worktree aliases", () => {
-    expect(ADV_TOOL_NAMES).toContain("adv_worktree_create");
-    expect(ADV_TOOL_NAMES).toContain("adv_worktree_delete");
-    expect(ADV_TOOL_NAMES).toContain("adv_worktree_cleanup");
-    expect(ADV_TOOL_NAMES).not.toContain("worktree_create");
-    expect(ADV_TOOL_NAMES).not.toContain("worktree_delete");
-    expect(ADV_TOOL_NAMES).not.toContain("worktree_cleanup");
+    expect(determinus_TOOL_NAMES).toContain("determinus_worktree_create");
+    expect(determinus_TOOL_NAMES).toContain("determinus_worktree_delete");
+    expect(determinus_TOOL_NAMES).toContain("determinus_worktree_cleanup");
+    expect(determinus_TOOL_NAMES).not.toContain("worktree_create");
+    expect(determinus_TOOL_NAMES).not.toContain("worktree_delete");
+    expect(determinus_TOOL_NAMES).not.toContain("worktree_cleanup");
   });
 });
 
 describe("retained registry registrations", () => {
-  test("registers adv_reflection_list in createToolMap and ADV_TOOL_NAMES", async () => {
+  test("registers determinus_reflection_list in createToolMap and determinus_TOOL_NAMES", async () => {
     const tempDir = await createTempDir();
     await createTestProject(tempDir);
     const store = await createDiskStore(tempDir);
     await store.init();
     const map = createToolMap(store, tempDir, store.paths.agenda);
-    expect(map.adv_reflection_list).toBeDefined();
-    expect(ADV_TOOL_NAMES).toContain("adv_reflection_list");
+    expect(map.determinus_reflection_list).toBeDefined();
+    expect(determinus_TOOL_NAMES).toContain("determinus_reflection_list");
     store.close();
     await cleanupTempDir(tempDir);
   });
@@ -553,8 +559,8 @@ describe("safeExecute timeout overrides for slow-subprocess tools", () => {
   // internally. Without a matching outer override, the safety-net wrapper
   // kills tools whose inner subprocess would have succeeded.
   //
-  // adv_run_test:        DEFAULT_TEST_TIMEOUT_MS = 30_000 (test.ts)
-  // adv_task_checkpoint: DEFAULT_TIMEOUT_MS      = 30_000 (checkpoint.ts)
+  // determinus_run_test:        DEFAULT_TEST_TIMEOUT_MS = 30_000 (test.ts)
+  // determinus_task_checkpoint: DEFAULT_TIMEOUT_MS      = 30_000 (checkpoint.ts)
   //
   // Outer wrapper must allow at least the inner budget plus modest
   // headroom so the subprocess is the authoritative timeout source.
@@ -588,9 +594,12 @@ describe("safeExecute timeout overrides for slow-subprocess tools", () => {
     return null;
   }
 
-  test("adv_run_test registers safeExecute with timeoutMs override ≥ 35s", () => {
-    const block = extractRegistrationBlock(registrySrc, "adv_run_test");
-    expect(block, "adv_run_test registration block not found").not.toBeNull();
+  test("determinus_run_test registers safeExecute with timeoutMs override ≥ 35s", () => {
+    const block = extractRegistrationBlock(registrySrc, "determinus_run_test");
+    expect(
+      block,
+      "determinus_run_test registration block not found",
+    ).not.toBeNull();
     expect(block!).toMatch(/timeoutMs:\s*\d/);
     const valueMatch = block!.match(/timeoutMs:\s*(\d[\d_]*)/);
     expect(valueMatch).toBeTruthy();
@@ -598,11 +607,14 @@ describe("safeExecute timeout overrides for slow-subprocess tools", () => {
     expect(value).toBeGreaterThanOrEqual(35_000);
   });
 
-  test("adv_task_checkpoint registers safeExecute with timeoutMs override ≥ 35s", () => {
-    const block = extractRegistrationBlock(registrySrc, "adv_task_checkpoint");
+  test("determinus_task_checkpoint registers safeExecute with timeoutMs override ≥ 35s", () => {
+    const block = extractRegistrationBlock(
+      registrySrc,
+      "determinus_task_checkpoint",
+    );
     expect(
       block,
-      "adv_task_checkpoint registration block not found",
+      "determinus_task_checkpoint registration block not found",
     ).not.toBeNull();
     expect(block!).toMatch(/timeoutMs:\s*\d/);
     const valueMatch = block!.match(/timeoutMs:\s*(\d[\d_]*)/);
@@ -612,18 +624,21 @@ describe("safeExecute timeout overrides for slow-subprocess tools", () => {
   });
 
   // fixArchiveTerminalProjection SC3/AC4 + fixTemporalTimeoutsWorker AC2:
-  // adv_change_archive must declare a heavy-tier timeoutMs override (its
+  // determinus_change_archive must declare a heavy-tier timeoutMs override (its
   // inner git push budget alone defaults to 300s) plus an onToolTimeout
   // classifier so an interruption past the durable bundle write returns a
   // typed still-finalizing/reconcile result instead of a bare
   // ToolExecutionTimeout. AC2 regression guard: the > 300s assertion also
   // covers the > 10s default-floor requirement — dropping the override
   // back to the 10s default (the #216 bug) fails this test.
-  test("adv_change_archive registers safeExecute with heavy-tier timeoutMs override + onToolTimeout classifier (AC2)", () => {
-    const block = extractRegistrationBlock(registrySrc, "adv_change_archive");
+  test("determinus_change_archive registers safeExecute with heavy-tier timeoutMs override + onToolTimeout classifier (AC2)", () => {
+    const block = extractRegistrationBlock(
+      registrySrc,
+      "determinus_change_archive",
+    );
     expect(
       block,
-      "adv_change_archive registration block not found",
+      "determinus_change_archive registration block not found",
     ).not.toBeNull();
     expect(block!).toMatch(/timeoutMs:\s*\d/);
     const valueMatch = block!.match(/timeoutMs:\s*(\d[\d_]*)/);
@@ -634,16 +649,19 @@ describe("safeExecute timeout overrides for slow-subprocess tools", () => {
     expect(block!).toContain("onToolTimeout");
   });
 
-  // fixTemporalTimeoutsWorker AC1: adv_gate_complete must declare a
+  // fixTemporalTimeoutsWorker AC1: determinus_gate_complete must declare a
   // moderate-tier timeoutMs override (Temporal signal under worker
   // contention sometimes exceeds the default 10s) plus an onToolTimeout
   // classifier so the caller sees an advisory "may have landed — verify
-  // via adv_gate_status" result instead of a bare ToolExecutionTimeout.
-  test("adv_gate_complete registers safeExecute with timeoutMs override > 10s + onToolTimeout classifier", () => {
-    const block = extractRegistrationBlock(registrySrc, "adv_gate_complete");
+  // via determinus_gate_status" result instead of a bare ToolExecutionTimeout.
+  test("determinus_gate_complete registers safeExecute with timeoutMs override > 10s + onToolTimeout classifier", () => {
+    const block = extractRegistrationBlock(
+      registrySrc,
+      "determinus_gate_complete",
+    );
     expect(
       block,
-      "adv_gate_complete registration block not found",
+      "determinus_gate_complete registration block not found",
     ).not.toBeNull();
     expect(block!).toMatch(/timeoutMs:\s*\d/);
     const valueMatch = block!.match(/timeoutMs:\s*(\d[\d_]*)/);
@@ -670,7 +688,7 @@ describe("rq-zodParseValidation01 — runtime Zod schema validation at SDK bound
   // logic directly rather than calling registerTool (which requires
   // creating a full tool map and depends on SDK mock timing).
 
-  test("every tool in ADV_TOOL_NAMES has a non-empty args object", async () => {
+  test("every tool in determinus_TOOL_NAMES has a non-empty args object", async () => {
     // Smoke test: verify every name resolves to a tool with a truthy args
     // shape. Full schema parsing is done by registerTool itself during test
     // runs — if any tool's schema is unparseable registerTool throws before
@@ -681,7 +699,7 @@ describe("rq-zodParseValidation01 — runtime Zod schema validation at SDK bound
     await store.init();
     try {
       const map = createToolMap(store, mapTempDir, store.paths.agenda);
-      for (const name of ADV_TOOL_NAMES) {
+      for (const name of determinus_TOOL_NAMES) {
         const tool = (map as Record<string, { args: unknown }>)[name];
         expect(tool, `tool "${name}" should exist`).toBeDefined();
         expect(

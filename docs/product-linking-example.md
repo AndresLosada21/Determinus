@@ -54,7 +54,7 @@ ExampleProduct backend is primary. ExampleProduct Web is secondary. Product-link
 
 - From `example-web`, ADV resolves canonical product state automatically. No manual `target_path` for product changes.
 - New linked changes default `scope_repos` to current repo. Cross-cutting changes should set backend + web entries and `merge_order`.
-- `adv_status` and `adv_change_list` default to current repo scope. Use `scope: "product"` for all product changes.
+- `determinus_status` and `determinus_change_list` default to current repo scope. Use `scope: "product"` for all product changes.
 - Wisdom/reflection entries keep `product_id`, `origin_repo_id`, `origin_repo_project_id`, and `origin_repo_path`.
 - Archive writes `multi-repo-archive.json` for scoped multi-repo changes.
 - Existing backend/web ADV state is additive legacy state. No mandatory bulk migration; old state remains readable/recoverable.

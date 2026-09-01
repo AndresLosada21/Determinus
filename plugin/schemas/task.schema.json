@@ -683,7 +683,7 @@
             "additionalProperties": false,
             "properties": {
               "agent": {
-                "const": "adv-engineer",
+                "const": "determinus-engineer",
                 "type": "string"
               },
               "apply_context": {
@@ -1103,7 +1103,7 @@
             "additionalProperties": false,
             "properties": {
               "agent": {
-                "const": "adv-reviewer",
+                "const": "determinus-reviewer",
                 "type": "string"
               },
               "attempt": {
@@ -1518,7 +1518,7 @@
             "additionalProperties": false,
             "properties": {
               "agent": {
-                "const": "adv-designer",
+                "const": "determinus-designer",
                 "type": "string"
               },
               "apply_context": {

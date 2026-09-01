@@ -12,20 +12,20 @@ Companion to ADR-0005 (`docs/adr/0005-per-session-task-queue-routing.md`) and th
 
 ## Operator-visible effects
 
-- `adv_status view:"health"` and `adv_doctor` distinguish per-queue serviceability with type labels (`session` / `project`) when a session ID is active (AC6 / KD-5).
+- `determinus_status view:"health"` and `determinus_doctor` distinguish per-queue serviceability with type labels (`session` / `project`) when a session ID is active (AC6 / KD-5).
 - Total per-project polling footprint under 3 concurrent sessions ≤ 18 (3 sessions × 2 queues × 1+1 pollers; AC7).
 - Peer-session wedge (worker process alive but not polling) no longer blocks other sessions' workflow signals (AC2).
 
 ## Incompatibilities
 
 - **`worker_singleton_enforce: true` is incompatible with per-session routing.** If you explicitly set this in `project.json`, only the host (lock-owning) session's worker spawns — peer sessions have no poller for their own session queues, defeating AC1 and AC2. Remove the explicit setting (the default `false` is correct) or set it to `false`.
-- **`ADV_FORCE_IN_PROCESS_WORKER=1`** still forces the in-process worker path; the same caps and queue list apply (KD-7 OOP+in-process parity).
+- **`determinus_FORCE_IN_PROCESS_WORKER=1`** still forces the in-process worker path; the same caps and queue list apply (KD-7 OOP+in-process parity).
 
 ## Environment variables emitted to worker child
 
-- `ADV_TEMPORAL_PROJECT_ID` (unchanged) — used by child for diagnostic identification.
-- `ADV_TEMPORAL_SESSION_ID` (NEW, KD-6) — emitted when a session ID is available; informational. Queue list is parent-computed and passed via `ADV_TEMPORAL_TASK_QUEUES`.
-- `ADV_TEMPORAL_TASK_QUEUES` (multi-queue mode) — comma-separated list the child registers; includes both session queue and project queue when sessionId is active.
+- `determinus_TEMPORAL_PROJECT_ID` (unchanged) — used by child for diagnostic identification.
+- `determinus_TEMPORAL_SESSION_ID` (NEW, KD-6) — emitted when a session ID is available; informational. Queue list is parent-computed and passed via `determinus_TEMPORAL_TASK_QUEUES`.
+- `determinus_TEMPORAL_TASK_QUEUES` (multi-queue mode) — comma-separated list the child registers; includes both session queue and project queue when sessionId is active.
 
 ## Rollback
 

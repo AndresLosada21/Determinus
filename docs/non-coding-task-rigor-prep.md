@@ -16,50 +16,50 @@ Fallback note: `lgrep_search_semantic` timed out twice during target resolution.
 ### Security
 
 - Severity: MEDIUM
-  - Evidence: `.opencode/command/adv-comp-scan.md:26-53` embeds a fallback competitive-research protocol; `skills/adv-comp-research/SKILL.md:70-76` contains the stronger confidentiality/robots constraints.
+  - Evidence: `.opencode/command/determinus-comp-scan.md:26-53` embeds a fallback competitive-research protocol; `skills/determinus-comp-research/SKILL.md:70-76` contains the stronger confidentiality/robots constraints.
   - Impact: if the skill is unavailable, the embedded fallback lacks equally explicit redaction/no-confidential-data constraints for public research.
   - Recommendation: copy minimal confidentiality/redaction constraints into the command fallback, or make a shared research-safety block mandatory for all research commands.
-  - Follow-up: `/adv-proposal add research safety fallback`
+  - Follow-up: `/determinus-proposal add research safety fallback`
 
 ### Reliability
 
 - Severity: HIGH
-  - Evidence: `.opencode/command/adv-improve.md:21-27` and `.opencode/command/adv-improve.md:90-100` explicitly avoid ADV state and persist only `docs/*-prep.md`; `README.md:217-219` says durable ADV recovery lives in Temporal-backed workflows.
+  - Evidence: `.opencode/command/determinus-improve.md:21-27` and `.opencode/command/determinus-improve.md:90-100` explicitly avoid ADV state and persist only `docs/*-prep.md`; `README.md:217-219` says durable ADV recovery lives in Temporal-backed workflows.
   - Impact: large non-coding deliverables can be rigorous in prose but still lack durable gates, task ledgers, crash-safe resume, acceptance review, and archive lifecycle.
   - Recommendation: define a tracked path for large non-coding deliverables that uses proposal → discovery/agreement → design/research plan → planning → execution → acceptance → archive, with non-code evidence policies.
-  - Follow-up: `/adv-proposal add non-coding workflow rigor`
+  - Follow-up: `/determinus-proposal add non-coding workflow rigor`
 
 ### Testing
 
 - Severity: MEDIUM
-  - Evidence: `docs/checklists/improve-checklist.md:5` says improve checklist enforcement is document-only; `plugin/src/adv-improve-assets.test.ts:4-12` verifies command shape and boundaries, not output quality or non-coding task lifecycle invariants.
+  - Evidence: `docs/checklists/improve-checklist.md:5` says improve checklist enforcement is document-only; `plugin/src/determinus-improve-assets.test.ts:4-12` verifies command shape and boundaries, not output quality or non-coding task lifecycle invariants.
   - Impact: current tests prevent shallow command drift but do not structurally guarantee non-coding work gets tracked criteria, evidence matrices, or review proof.
   - Recommendation: add asset/spec tests for non-code task routing and contract evidence policies before implementing behavior.
-  - Follow-up: `/adv-task add non-code workflow asset tests`
+  - Follow-up: `/determinus-task add non-code workflow asset tests`
 
 ### Observability
 
 - Severity: MEDIUM
-  - Evidence: `.opencode/command/adv-comp-scan.md:66-73` records only count + one-line summary in project metadata; `.opencode/command/adv-improve.md:23-25` writes a research pack but no ADV state.
+  - Evidence: `.opencode/command/determinus-comp-scan.md:66-73` records only count + one-line summary in project metadata; `.opencode/command/determinus-improve.md:23-25` writes a research pack but no ADV state.
   - Impact: research/writing outcomes are harder to inspect from ADV status, gate status, task ledgers, and acceptance matrices than coding tasks.
   - Recommendation: when work is large and deliverable-bearing, store status/evidence in change/task surfaces; keep docs packs as citeable artifacts, not the only durable record.
-  - Follow-up: `/adv-proposal make research deliverables status-visible`
+  - Follow-up: `/determinus-proposal make research deliverables status-visible`
 
 ### Developer Experience
 
 - Severity: MEDIUM
-  - Evidence: `.opencode/agents/adv.md:151-166` intent routing covers idea/problem/start change/small tracked change/status/roadmap/archive/pre-change investigation, but does not name large non-coding deliverables; `.opencode/command/adv-task.md:6-13` is explicitly a fast-track for small well-understood durable changes.
+  - Evidence: `.opencode/agents/adv.md:151-166` intent routing covers idea/problem/start change/small tracked change/status/roadmap/archive/pre-change investigation, but does not name large non-coding deliverables; `.opencode/command/determinus-task.md:6-13` is explicitly a fast-track for small well-understood durable changes.
   - Impact: agents may route large research/writing work to utility commands or ad hoc chat instead of creating tracked change state.
   - Recommendation: add routing guidance: large non-coding deliverable = tracked ADV change unless explicitly one-off/read-only.
-  - Follow-up: `/adv-proposal clarify non-coding task routing`
+  - Follow-up: `/determinus-proposal clarify non-coding task routing`
 
 ### Code Quality
 
 - Severity: MEDIUM
-  - Evidence: `plugin/src/types/tasks.ts:135-142` defines task types including `docs`, `research`, `approval`, and `verification`; `plugin/src/tools/task.ts:923-950` exposes `adv_task_add` fields but no explicit `type` argument.
+  - Evidence: `plugin/src/types/tasks.ts:135-142` defines task types including `docs`, `research`, `approval`, and `verification`; `plugin/src/tools/task.ts:923-950` exposes `determinus_task_add` fields but no explicit `type` argument.
   - Impact: model supports non-code task classes, but task creation cannot directly set them through the public tool surface; agents fall back to metadata/title/TDD intent.
   - Recommendation: either expose task type structurally or document why metadata remains authoritative; avoid relying on title heuristics for non-code correctness.
-  - Follow-up: `/adv-audit task type surface`
+  - Follow-up: `/determinus-audit task type surface`
 
 ### Dedup / Overlap
 
@@ -70,11 +70,11 @@ Fallback note: `lgrep_search_semantic` timed out twice during target resolution.
 
 | Area | Current | Reference | Classification | Correction |
 |---|---|---|---|---|
-| Durable multi-step execution | ADV core changes use seven gates and Temporal-backed state (`docs/adv-gates.md:1-19`, `README.md:217-219`); utilities like improve avoid ADV state (`.opencode/command/adv-improve.md:21-27`). | Temporal TypeScript docs expose workflow signals/queries and human-approval interruption/resume patterns (`/temporalio/sdk-typescript`, `contrib/openai-agents/README.md`). | DRIFTED | Large non-coding deliverables should enter tracked workflow state; read-only utility scans can remain docs-only. Greenfield: one `work_kind` / evidence policy axis, not separate ad hoc command families. |
-| Human checkpoints | Core ADV has proposal/agreement/design/planning/acceptance/release gates (`docs/adv-gates.md:48-88`). | Temporal approval workflow example pauses, accepts signal, resumes with saved state (`/temporalio/sdk-typescript`). | SOUND for core; DRIFTED for utility research | Reuse existing checkpoints for large non-code deliverables; do not invent a parallel approval model. |
+| Durable multi-step execution | ADV core changes use seven gates and Temporal-backed state (`docs/determinus-gates.md:1-19`, `README.md:217-219`); utilities like improve avoid ADV state (`.opencode/command/determinus-improve.md:21-27`). | Temporal TypeScript docs expose workflow signals/queries and human-approval interruption/resume patterns (`/temporalio/sdk-typescript`, `contrib/openai-agents/README.md`). | DRIFTED | Large non-coding deliverables should enter tracked workflow state; read-only utility scans can remain docs-only. Greenfield: one `work_kind` / evidence policy axis, not separate ad hoc command families. |
+| Human checkpoints | Core ADV has proposal/agreement/design/planning/acceptance/release gates (`docs/determinus-gates.md:48-88`). | Temporal approval workflow example pauses, accepts signal, resumes with saved state (`/temporalio/sdk-typescript`). | SOUND for core; DRIFTED for utility research | Reuse existing checkpoints for large non-code deliverables; do not invent a parallel approval model. |
 | Structural contracts | ADV has ChangeContract and review matrix readiness (`plugin/src/temporal/gate-readiness.ts:827-861`). Zod is used for schema validation (`plugin/package.json:35-43`). | Zod v4 supports schema-defined input/output contracts and type inference (`/websites/zod_dev_v4`). | SOUND foundation; DRIFTED surface | Add non-code evidence policy schemas: `source_citation`, `rubric_review`, `stakeholder_acceptance`, `deliverable_artifact`, `not_applicable`. |
-| Task taxonomy | Task schema includes `research` and `docs` (`plugin/src/types/tasks.ts:135-142`), but `adv_task_add` lacks `type` (`plugin/src/tools/task.ts:923-950`). | Structural correctness rule prefers typed fields over heuristics (`.opencode/agents/adv.md:115-120`). | ANTI-PATTERN | Expose/validate task type or remove dormant schema field; do not rely on task title for non-code semantics. |
-| Research pipelines | `adv-improve` has a strong research-pack schema (`docs/checklists/improve-checklist.md:98-126`) but no gates. | 2026 market-research-agent references emphasize staged pipelines, structured outputs, citations, critic/review passes, and human review. | DRIFTED | Treat major research/writing as staged deliverable workflow with acceptance criteria and review rubric, not a single report command. |
+| Task taxonomy | Task schema includes `research` and `docs` (`plugin/src/types/tasks.ts:135-142`), but `determinus_task_add` lacks `type` (`plugin/src/tools/task.ts:923-950`). | Structural correctness rule prefers typed fields over heuristics (`.opencode/agents/adv.md:115-120`). | ANTI-PATTERN | Expose/validate task type or remove dormant schema field; do not rely on task title for non-code semantics. |
+| Research pipelines | `determinus-improve` has a strong research-pack schema (`docs/checklists/improve-checklist.md:98-126`) but no gates. | 2026 market-research-agent references emphasize staged pipelines, structured outputs, citations, critic/review passes, and human review. | DRIFTED | Treat major research/writing as staged deliverable workflow with acceptance criteria and review rubric, not a single report command. |
 
 ## Competitors & Alternatives
 
@@ -107,30 +107,30 @@ Fallback note: `lgrep_search_semantic` timed out twice during target resolution.
 
 ## Applicability to This Repo
 
-- High: add routing rule in `.opencode/agents/adv.md` and `ADV_INSTRUCTIONS.md` so large non-coding work starts as a tracked change, not a utility-only scan.
-- High: extend specs around `advance-workflow`, `adv-prep`, and `tdd-contract` to define non-code evidence policies and accepted verification modes.
-- Medium: expose `TaskTypeSchema` through `adv_task_add` or replace it with validated metadata; current public tool surface does not structurally set task type.
-- Medium: keep `adv-improve` read-only; it remains useful for pre-change research packs. Its output should feed `/adv-proposal`, not become the workflow for large deliverables.
+- High: add routing rule in `.opencode/agents/adv.md` and `determinus_INSTRUCTIONS.md` so large non-coding work starts as a tracked change, not a utility-only scan.
+- High: extend specs around `advance-workflow`, `determinus-prep`, and `tdd-contract` to define non-code evidence policies and accepted verification modes.
+- Medium: expose `TaskTypeSchema` through `determinus_task_add` or replace it with validated metadata; current public tool surface does not structurally set task type.
+- Medium: keep `determinus-improve` read-only; it remains useful for pre-change research packs. Its output should feed `/determinus-proposal`, not become the workflow for large deliverables.
 - Low / reject: adopting external orchestration frameworks. ADV already uses Temporal; importing LangGraph/CrewAI/n8n would add conceptual weight without solving routing and evidence-policy gaps.
 
 ## Open Questions for Research
 
-- Should the tracked path be a new command (`/adv-work` or `/adv-deliverable`) or a routing clarification that sends large non-code work through existing `/adv-proposal`?
+- Should the tracked path be a new command (`/determinus-work` or `/determinus-deliverable`) or a routing clarification that sends large non-code work through existing `/determinus-proposal`?
 - What minimum evidence policies are needed for research/writing deliverables: citation matrix, source audit, reviewer rubric, stakeholder acceptance, or artifact diff?
-- Should `TaskTypeSchema` become an explicit `adv_task_add` argument, or should `metadata.task_type` be the stable public API?
+- Should `TaskTypeSchema` become an explicit `determinus_task_add` argument, or should `metadata.task_type` be the stable public API?
 - How should archive handle non-code outputs: specs/wisdom only, docs artifact preservation, or release-note style executive summary?
 - Which parts overlap with `tightenAdvScopeDiscipline` and should wait for that change to land first?
 
 ## Sources
 
 - `.opencode/agents/adv.md:151-166`
-- `.opencode/command/adv-apply.md:10-12`, `.opencode/command/adv-apply.md:65-76`
-- `.opencode/command/adv-comp-scan.md:26-73`
-- `.opencode/command/adv-improve.md:21-27`, `.opencode/command/adv-improve.md:90-110`
-- `.opencode/command/adv-task.md:6-13`
-- `docs/adv-gates.md:1-19`, `docs/adv-gates.md:40-44`, `docs/adv-gates.md:48-88`
+- `.opencode/command/determinus-apply.md:10-12`, `.opencode/command/determinus-apply.md:65-76`
+- `.opencode/command/determinus-comp-scan.md:26-73`
+- `.opencode/command/determinus-improve.md:21-27`, `.opencode/command/determinus-improve.md:90-110`
+- `.opencode/command/determinus-task.md:6-13`
+- `docs/determinus-gates.md:1-19`, `docs/determinus-gates.md:40-44`, `docs/determinus-gates.md:48-88`
 - `docs/checklists/improve-checklist.md:5`, `docs/checklists/improve-checklist.md:98-126`
-- `plugin/src/adv-improve-assets.test.ts:4-12`
+- `plugin/src/determinus-improve-assets.test.ts:4-12`
 - `plugin/src/temporal/gate-readiness.ts:827-861`
 - `plugin/src/tools/task.ts:923-950`
 - `plugin/src/types/tasks.ts:135-142`

@@ -11,7 +11,7 @@
  * caller-supplied argument can elevate a sub-agent session (AC7).
  */
 
-import { ADV_TOOL_NAMES } from "./tool-registry";
+import { determinus_TOOL_NAMES } from "./tool-registry";
 import {
   blockableFromSubAgentSession,
   subAgentUnionAllowlist,
@@ -46,7 +46,8 @@ function isValidToolNameArray(value: unknown): value is string[] {
     value.length > 0 &&
     new Set(value).size === value.length &&
     value.every(
-      (tool) => typeof tool === "string" && ADV_TOOL_NAMES.includes(tool),
+      (tool) =>
+        typeof tool === "string" && determinus_TOOL_NAMES.includes(tool),
     )
   );
 }
@@ -56,7 +57,9 @@ function matchesPolicyBlockableSet(blockable: readonly string[]): boolean {
   if (!isValidToolNameArray(union)) return false;
 
   const allowed = new Set(union);
-  const expected = new Set(ADV_TOOL_NAMES.filter((tool) => !allowed.has(tool)));
+  const expected = new Set(
+    determinus_TOOL_NAMES.filter((tool) => !allowed.has(tool)),
+  );
   return (
     expected.size === blockable.length &&
     blockable.every((tool) => expected.has(tool))
@@ -93,7 +96,9 @@ export function resolveBlockableSet(): {
     if (isValidToolNameArray(union)) {
       const allowed = new Set(union);
       return {
-        blockable: new Set(ADV_TOOL_NAMES.filter((tool) => !allowed.has(tool))),
+        blockable: new Set(
+          determinus_TOOL_NAMES.filter((tool) => !allowed.has(tool)),
+        ),
         usedFallback: true,
       };
     }
@@ -101,7 +106,7 @@ export function resolveBlockableSet(): {
     // fall through to last-resort fallback
   }
 
-  return { blockable: new Set(ADV_TOOL_NAMES), usedFallback: true };
+  return { blockable: new Set(determinus_TOOL_NAMES), usedFallback: true };
 }
 
 export interface RoleFirewallCheckInput {
@@ -118,7 +123,7 @@ export async function roleFirewallCheckWithSessionAncestry(input: {
   client?: import("./utils/session-principal").SessionAncestryClient;
   cache?: Map<string, string>;
 }): Promise<void> {
-  if (!input.toolName.startsWith("adv_")) return;
+  if (!input.toolName.startsWith("determinus_")) return;
 
   const blockable = resolveBlockableSet().blockable;
   if (!blockable.has(input.toolName)) return;
@@ -135,14 +140,14 @@ export async function roleFirewallCheckWithSessionAncestry(input: {
 /**
  * Fail-closed predicate for the tool.execute.before hook.
  *
- * - No-op for non-adv_* tools, union-floor tools, and confirmed root-session calls.
+ * - No-op for non-determinus_* tools, union-floor tools, and confirmed root-session calls.
  * - Throws RoleFirewallError for blockable tools when the caller is not the root
  *   session or when the root session cannot be resolved.
  */
 export function roleFirewallCheck(input: RoleFirewallCheckInput): void {
   const { toolName, callerSessionID, mainSessionId } = input;
 
-  if (!toolName.startsWith("adv_")) return;
+  if (!toolName.startsWith("determinus_")) return;
 
   const blockable = input._blockableSet ?? resolveBlockableSet().blockable;
   if (!blockable.has(toolName)) return;

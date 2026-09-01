@@ -1,7 +1,7 @@
 /**
  * Snapshot Repair Audit Store
  *
- * Purpose-specific append-only audit log for `adv_snapshot_health` repairs.
+ * Purpose-specific append-only audit log for `determinus_snapshot_health` repairs.
  * Replaces the legacy Agenda-based audit trail (see retireAgendaWorkflow
  * agreement AC4 / design "Purpose-specific repair audit").
  *
@@ -36,7 +36,7 @@ export const SNAPSHOT_REPAIR_AUDIT_FILENAME = "snapshot-repair-audit.jsonl";
  * Outcome of a snapshot repair attempt.
  *
  * Only `"success"` outcomes are appended to the audit log by
- * `adv_snapshot_health`; skipped/failed repairs are visible in
+ * `determinus_snapshot_health`; skipped/failed repairs are visible in
  * `repair_preview.details` but do not produce durable audit entries.
  */
 export type SnapshotRepairAuditOutcome = "success";
@@ -52,7 +52,7 @@ export interface SnapshotRepairAuditEntry {
   id: string;
   /** Snapshot corruption pattern detected (e.g. "stale_lock"). */
   pattern: string;
-  /** Repair action that was executed (whitelisted in adv_snapshot_health). */
+  /** Repair action that was executed (whitelisted in determinus_snapshot_health). */
   action: string;
   /** Absolute path of the artifact the repair acted on. */
   target_path: string;

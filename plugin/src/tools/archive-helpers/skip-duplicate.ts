@@ -1,5 +1,5 @@
 /**
- * Skip-duplicate detection for /adv-archive Phase 9 conflict recovery.
+ * Skip-duplicate detection for /determinus-archive Phase 9 conflict recovery.
  *
  * Determines whether a to-be-skipped commit is content-equivalent to what's
  * already on the default branch at a given file path.

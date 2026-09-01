@@ -2,18 +2,18 @@ import { describe, expect, test } from "vitest";
 import { EXPLICITLY_BOUND, PUBLIC_TOOL_ENTRIES } from "./tool-registry";
 
 const EXPECTED_EXPLICITLY_BOUND = [
-  "adv_spec",
-  "adv_wip_state",
-  "adv_change_archive",
-  "adv_task_cancel",
-  "adv_gate_complete",
-  "adv_run_test",
-  "adv_task_checkpoint",
-  "adv_worktree_create",
-  "adv_worktree_delete",
-  "adv_worktree_cleanup",
-  "adv_worktree_triage",
-  "adv_tool_invoke",
+  "determinus_spec",
+  "determinus_wip_state",
+  "determinus_change_archive",
+  "determinus_task_cancel",
+  "determinus_gate_complete",
+  "determinus_run_test",
+  "determinus_task_checkpoint",
+  "determinus_worktree_create",
+  "determinus_worktree_delete",
+  "determinus_worktree_cleanup",
+  "determinus_worktree_triage",
+  "determinus_tool_invoke",
 ] as const;
 
 describe("tool-registry bindGroup exclusions", () => {

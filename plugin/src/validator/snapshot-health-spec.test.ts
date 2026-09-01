@@ -159,7 +159,7 @@ describe("snapshot-health spec", () => {
     expect(audit?.body).toContain("after_summary");
     expect(audit?.body).toContain("outcome");
     expect(audit?.body).toContain("recorded_at");
-    expect(audit?.body).not.toContain("adv_agenda_add");
+    expect(audit?.body).not.toContain("determinus_agenda_add");
     expect(audit?.body).not.toContain("agenda");
   });
 });

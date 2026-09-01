@@ -8,11 +8,11 @@
  * consumes these types and functions to build tool descriptors without
  * coupling to the OpenCode plugin SDK.
  *
- * The actual PUBLIC_TOOL_ENTRIES / ADV_TOOL_NAMES / ADV_TOOL_METADATA data
+ * The actual PUBLIC_TOOL_ENTRIES / determinus_TOOL_NAMES / determinus_TOOL_METADATA data
  * remain in `tool-registry.ts` because they are derived from PUBLIC_TOOL_GROUPS,
  * which imports tool-group modules (./tools/*) that ARE SDK-coupled. The MCP
  * server accesses that data via dynamic import (`await import("../tool-registry.js")`)
- * — same pattern as `adv_contract_mint` (see comment at tool-registry.ts:1330-1332).
+ * — same pattern as `determinus_contract_mint` (see comment at tool-registry.ts:1330-1332).
  *
  * Boundary test: `tool-catalog-entries.test.ts` enforces the SDK-free property
  * structurally (P33 — structural correctness over heuristic inference).
@@ -145,7 +145,7 @@ export function getToolSurface(
 }
 
 // =============================================================================
-// ADV_PUBLIC_TOOL_BASELINE_COUNT
+// determinus_PUBLIC_TOOL_BASELINE_COUNT
 // =============================================================================
 
 /**
@@ -155,7 +155,7 @@ export function getToolSurface(
  * public removals land; the baseline/final exact-accounting assertion lives
  * in tool-registry.inventory.test.ts.
  */
-export const ADV_PUBLIC_TOOL_BASELINE_COUNT = 80;
+export const determinus_PUBLIC_TOOL_BASELINE_COUNT = 80;
 
 // =============================================================================
 // Descriptive visibility metadata (addAdvanceMetadata AC1/AC5/C1/C2/C5)
@@ -229,30 +229,30 @@ export interface ToolMetadataV1 {
 // =============================================================================
 
 export const REALM_OVERRIDES: Readonly<Record<string, ToolRealm>> = {
-  adv_subagent_report_submit: "report",
-  adv_run_test: "test",
-  adv_spec: "spec",
-  adv_status: "status",
-  adv_wip_state: "status",
-  adv_reflect: "reflection",
-  adv_reflection_list: "reflection",
+  determinus_subagent_report_submit: "report",
+  determinus_run_test: "test",
+  determinus_spec: "spec",
+  determinus_status: "status",
+  determinus_wip_state: "status",
+  determinus_reflect: "reflection",
+  determinus_reflection_list: "reflection",
 };
 
 export const REALM_PREFIXES: ReadonlyArray<readonly [string, ToolRealm]> = [
-  ["adv_archive_", "archive"],
-  ["adv_backlog_", "backlog"],
-  ["adv_change_", "change"],
-  ["adv_contract_", "contract"],
-  ["adv_epic_", "epic"],
-  ["adv_gate_", "gate"],
-  ["adv_ops_", "ops"],
-  ["adv_project_", "project"],
-  ["adv_session_", "session"],
-  ["adv_store_", "store"],
-  ["adv_task_", "task"],
-  ["adv_tool_", "tool"],
-  ["adv_worktree_", "worktree"],
-  ["adv_wisdom_", "wisdom"],
+  ["determinus_archive_", "archive"],
+  ["determinus_backlog_", "backlog"],
+  ["determinus_change_", "change"],
+  ["determinus_contract_", "contract"],
+  ["determinus_epic_", "epic"],
+  ["determinus_gate_", "gate"],
+  ["determinus_ops_", "ops"],
+  ["determinus_project_", "project"],
+  ["determinus_session_", "session"],
+  ["determinus_store_", "store"],
+  ["determinus_task_", "task"],
+  ["determinus_tool_", "tool"],
+  ["determinus_worktree_", "worktree"],
+  ["determinus_wisdom_", "wisdom"],
 ];
 
 export function deriveToolRealm(name: string): ToolRealm {
@@ -266,36 +266,36 @@ export function deriveToolRealm(name: string): ToolRealm {
 
 export const GROUP_OVERRIDES: Readonly<Record<string, ToolGroup>> = {
   // Repair / operator-only recovery surface
-  adv_change_workflow_terminate: "repair",
+  determinus_change_workflow_terminate: "repair",
 
   // Diagnostics / read-heavy analysis surface
-  adv_run_test: "diagnostics",
+  determinus_run_test: "diagnostics",
 
   // Metadata / submission surface
-  adv_reflect: "metadata",
-  adv_subagent_report_submit: "metadata",
+  determinus_reflect: "metadata",
+  determinus_subagent_report_submit: "metadata",
 
   // Read surface
-  adv_change_list: "read",
-  adv_change_show: "read",
-  adv_gate_status: "read",
-  adv_project_context: "read",
-  adv_reflection_list: "read",
-  adv_spec: "read",
-  adv_status: "read",
-  adv_task_list: "read",
-  adv_task_ready: "read",
-  adv_task_show: "read",
-  adv_tool_catalog: "read",
-  adv_tool_describe: "read",
-  adv_wip_state: "read",
-  adv_wisdom_list: "read",
-  adv_worktree_triage: "read",
+  determinus_change_list: "read",
+  determinus_change_show: "read",
+  determinus_gate_status: "read",
+  determinus_project_context: "read",
+  determinus_reflection_list: "read",
+  determinus_spec: "read",
+  determinus_status: "read",
+  determinus_task_list: "read",
+  determinus_task_ready: "read",
+  determinus_task_show: "read",
+  determinus_tool_catalog: "read",
+  determinus_tool_describe: "read",
+  determinus_wip_state: "read",
+  determinus_wisdom_list: "read",
+  determinus_worktree_triage: "read",
 
   // Lifecycle transitions
-  adv_change_archive: "lifecycle",
-  adv_change_reenter: "lifecycle",
-  adv_gate_complete: "lifecycle",
+  determinus_change_archive: "lifecycle",
+  determinus_change_reenter: "lifecycle",
+  determinus_gate_complete: "lifecycle",
 
   // Bulk operations
 };

@@ -2,7 +2,7 @@
  * Sub-agent Report Types
  *
  * Typed payloads submitted by ADV sub-agents through
- * `adv_subagent_report_submit`. These schemas are intentionally strict at the
+ * `determinus_subagent_report_submit`. These schemas are intentionally strict at the
  * ingest boundary: unknown fields are rejected instead of silently becoming
  * LLM-parsed prose state.
  */
@@ -99,14 +99,14 @@ export const SubagentReportRecoveryAuditSchema = GateRecoveryAuditSchema.extend(
 );
 
 export const SubagentAgentSchema = z.enum([
-  "adv-engineer",
-  "adv-reviewer",
-  "adv-designer",
-  "adv-researcher",
-  "adv-tron",
-  "adv-scanner-bundle",
-  "adv-verification-triage-bundle",
-  "adv-visual-review",
+  "determinus-engineer",
+  "determinus-reviewer",
+  "determinus-designer",
+  "determinus-researcher",
+  "determinus-tron",
+  "determinus-scanner-bundle",
+  "determinus-verification-triage-bundle",
+  "determinus-visual-review",
 ]);
 
 export type SubagentAgent = z.infer<typeof SubagentAgentSchema>;
@@ -146,7 +146,7 @@ const BaseSubagentReportSchema = z.object({
 
 const TaskScopedBaseSubagentReportSchema = BaseSubagentReportSchema.extend({
   task_id: z.string().min(1),
-  // Backward-compatible with existing adv-engineer / adv-reviewer examples and
+  // Backward-compatible with existing determinus-engineer / determinus-reviewer examples and
   // live workers that still send a prose scope string. New task-scoped reports
   // should use { kind: "task", task_id } so later consumers can rely on
   // structural scope metadata without breaking legacy report ingestion.
@@ -182,7 +182,7 @@ export const SubagentVerificationEntrySchema = z
     // Absence of both `run_id` and `test_run_id` normalizes the entry to
     // the explicit legacy variant and binds by exact command only. No
     // fuzzy normalization, no timestamp cutover. Authored reports should
-    // set `test_run_id` whenever `adv_run_test` recorded a run for the
+    // set `test_run_id` whenever `determinus_run_test` recorded a run for the
     // same task; legacy reports without either field remain readable.
     test_run_id: z.string().min(1).optional(),
     command: z.string().min(1),
@@ -299,7 +299,7 @@ export const SubagentConsumerWarningSchema = z
       // Advisory marker emitted when a designer design_dimensions concern /
       // neighboring recommendation is raised. The structural acceptance/release
       // block is owned by the gate-readiness evaluator; this warning surfaces
-      // that a typed disposition (adv_design_concern_disposition) is required.
+      // that a typed disposition (determinus_design_concern_disposition) is required.
       "design_concern_promoted",
     ]),
     message: z.string().min(1),
@@ -308,7 +308,7 @@ export const SubagentConsumerWarningSchema = z
 
 /**
  * Typed disposition of a single design-quality concern (a design_dimensions
- * `concern` verdict or a neighboring recommendation) raised by an adv-designer
+ * `concern` verdict or a neighboring recommendation) raised by an determinus-designer
  * report. Recorded via designConcernDispositionedSignal and read by the
  * gate-readiness evaluator to clear an otherwise-blocking concern.
  *
@@ -383,7 +383,7 @@ export type VerificationEvidenceDisposition = z.infer<
 
 export const EngineerSubagentReportSchema =
   TaskScopedBaseSubagentReportSchema.extend({
-    agent: z.literal("adv-engineer"),
+    agent: z.literal("determinus-engineer"),
     status: z.enum(["complete", "error"]),
     evidence_binding_version: EvidenceBindingVersionSchema.optional(),
     files_touched: z.array(z.string().min(1)),
@@ -406,7 +406,9 @@ export const EngineerSubagentReportSchema =
   })
     .strict()
     .superRefine(requireTypedRunIds)
-    .superRefine(laneFieldBoundsRefine(ENGINEER_FIELD_MAX, "adv-engineer"));
+    .superRefine(
+      laneFieldBoundsRefine(ENGINEER_FIELD_MAX, "determinus-engineer"),
+    );
 
 export const DesignerDesignDimensionSchema = z.enum(["pass", "concern", "n/a"]);
 
@@ -455,7 +457,7 @@ export const DesignerNeighboringRecommendationSchema = z
 
 export const DesignerSubagentReportSchema =
   TaskScopedBaseSubagentReportSchema.extend({
-    agent: z.literal("adv-designer"),
+    agent: z.literal("determinus-designer"),
     status: z.enum(["complete", "error"]),
     evidence_binding_version: EvidenceBindingVersionSchema.optional(),
     files_touched: z.array(z.string().min(1)),
@@ -482,7 +484,9 @@ export const DesignerSubagentReportSchema =
   })
     .strict()
     .superRefine(requireTypedRunIds)
-    .superRefine(laneFieldBoundsRefine(DESIGNER_FIELD_MAX, "adv-designer"));
+    .superRefine(
+      laneFieldBoundsRefine(DESIGNER_FIELD_MAX, "determinus-designer"),
+    );
 
 export const ReviewerFindingSchema = z
   .object({
@@ -512,7 +516,7 @@ export const ReviewerChangeMadeSchema = z
   .strict();
 
 const ReviewerReportFields = {
-  agent: z.literal("adv-reviewer"),
+  agent: z.literal("determinus-reviewer"),
   phase: z.enum(["review", "harden"]),
   verdict: z.enum(["READY", "NEEDS_WORK", "BLOCKED", "CONFLICT"]),
   blocking_findings: z.array(ReviewerFindingSchema),
@@ -543,7 +547,9 @@ const ReviewerReportFields = {
 export const ReviewerSubagentReportSchema =
   TaskScopedBaseSubagentReportSchema.extend(ReviewerReportFields)
     .strict()
-    .superRefine(laneFieldBoundsRefine(REVIEWER_FIELD_MAX, "adv-reviewer"));
+    .superRefine(
+      laneFieldBoundsRefine(REVIEWER_FIELD_MAX, "determinus-reviewer"),
+    );
 
 /**
  * Change-scoped reviewer report for independent acceptance/release summaries.
@@ -553,7 +559,9 @@ export const ReviewerSubagentReportSchema =
 export const ChangeScopedReviewerSubagentReportSchema =
   ChangeScopedBaseSubagentReportSchema.extend(ReviewerReportFields)
     .strict()
-    .superRefine(laneFieldBoundsRefine(REVIEWER_FIELD_MAX, "adv-reviewer"));
+    .superRefine(
+      laneFieldBoundsRefine(REVIEWER_FIELD_MAX, "determinus-reviewer"),
+    );
 
 export const SubagentSourceReferenceSchema = z
   .object({
@@ -619,7 +627,7 @@ export const ResearcherArchitectureJudgementSchema = z.discriminatedUnion(
 
 export const ResearcherSubagentReportSchema =
   ChangeScopedBaseSubagentReportSchema.extend({
-    agent: z.literal("adv-researcher"),
+    agent: z.literal("determinus-researcher"),
     topic: z.string().min(1),
     sources: z.array(SubagentSourceReferenceSchema).min(1),
     architecture_assessment: z.string().min(1),
@@ -657,7 +665,7 @@ export const ResearcherSubagentReportSchema =
       }
 
       // NOTE: design-validation bare-string-blocker enforcement lives at the
-      // adv_subagent_report_submit write boundary (subagent-report.ts executeSubmit).
+      // determinus_subagent_report_submit write boundary (subagent-report.ts executeSubmit).
       // rq-subagentReports24.1 names the submit tool as the canonical enforcement
       // point. Do NOT re-add schema-time rejection here — it would re-wedge
       // historical changes whose legacy reports carry string blockers (see
@@ -675,7 +683,9 @@ export const ResearcherSubagentReportSchema =
         });
       }
     })
-    .superRefine(laneFieldBoundsRefine(RESEARCHER_FIELD_MAX, "adv-researcher"));
+    .superRefine(
+      laneFieldBoundsRefine(RESEARCHER_FIELD_MAX, "determinus-researcher"),
+    );
 
 // =============================================================================
 // Tron Optimization Candidates (opt-scan integration)
@@ -788,7 +798,7 @@ function forbidStaticMeasuredClaims(
 
 export const TronSubagentReportSchema =
   ChangeScopedBaseSubagentReportSchema.extend({
-    agent: z.literal("adv-tron"),
+    agent: z.literal("determinus-tron"),
     target: z.string().min(1),
     evidence: z.array(TronEvidenceSchema).min(1),
     findings: z.array(z.string().min(1)),
@@ -820,7 +830,7 @@ export const ScannerBundleFindingSchema = z
 
 export const ScannerBundleSubagentReportSchema =
   ChangeScopedBaseSubagentReportSchema.extend({
-    agent: z.literal("adv-scanner-bundle"),
+    agent: z.literal("determinus-scanner-bundle"),
     phase: z.enum(["review", "harden"]),
     scanner_count: z.number().int().min(1),
     dimensions: z.array(z.string().min(1)).min(1),
@@ -937,7 +947,7 @@ export const VerificationTriageFailureAttributionSchema = z
 
 export const VerificationTriageBundleSubagentReportSchema =
   ChangeScopedBaseSubagentReportSchema.extend({
-    agent: z.literal("adv-verification-triage-bundle"),
+    agent: z.literal("determinus-verification-triage-bundle"),
     phase: z.enum(["local_verify", "ci_check"]),
     targets: z.array(VerificationTriageTargetSchema).min(1),
     status: z.enum(["pass", "fail", "inconclusive"]),
@@ -948,7 +958,7 @@ export const VerificationTriageBundleSubagentReportSchema =
     recommended_next_action: z.enum([
       "continue",
       "retry_narrower",
-      "route_adv_engineer",
+      "route_determinus_engineer",
       "ask_user",
       "block_environment",
       "wait_ci",
@@ -963,41 +973,43 @@ export const VerificationTriageBundleSubagentReportSchema =
   })
     .strict()
     .superRefine((report, ctx) => {
-      if (report.recommended_next_action !== "route_adv_engineer") return;
+      if (report.recommended_next_action !== "route_determinus_engineer")
+        return;
 
       if (report.error_class !== "SEMANTIC") {
         ctx.addIssue({
           code: "custom",
           path: ["error_class"],
-          message: "route_adv_engineer requires SEMANTIC error_class",
+          message: "route_determinus_engineer requires SEMANTIC error_class",
         });
       }
       if (report.scope_risk) {
         ctx.addIssue({
           code: "custom",
           path: ["scope_risk"],
-          message: "route_adv_engineer requires scope_risk false",
+          message: "route_determinus_engineer requires scope_risk false",
         });
       }
       if (report.confidence === "low") {
         ctx.addIssue({
           code: "custom",
           path: ["confidence"],
-          message: "route_adv_engineer requires high or medium confidence",
+          message:
+            "route_determinus_engineer requires high or medium confidence",
         });
       }
       if (!report.suggested_handoff) {
         ctx.addIssue({
           code: "custom",
           path: ["suggested_handoff"],
-          message: "route_adv_engineer requires suggested_handoff",
+          message: "route_determinus_engineer requires suggested_handoff",
         });
       }
     });
 
 export const VisualReviewSubagentReportSchema =
   ChangeScopedBaseSubagentReportSchema.extend({
-    agent: z.literal("adv-visual-review"),
+    agent: z.literal("determinus-visual-review"),
     image: z.string().min(1),
     description: z.string().min(1),
     text_found: z.array(z.string().min(1)),
@@ -1017,7 +1029,7 @@ export const TaskScopedSubagentReportSchema = z.discriminatedUnion("agent", [
   DesignerSubagentReportSchema,
 ]);
 
-/** Change-level report sidecars accepted by `adv_subagent_report_submit`. */
+/** Change-level report sidecars accepted by `determinus_subagent_report_submit`. */
 export const ChangeScopedSubagentReportSchema = z.discriminatedUnion("agent", [
   ChangeScopedReviewerSubagentReportSchema,
   ResearcherSubagentReportSchema,
@@ -1041,9 +1053,9 @@ export const ScopedSubagentReportSchema = z.union([
 // were introduced with the current strict shape and must not receive legacy
 // default-filling on ingest.
 const LEGACY_DEFAULT_NORMALIZED_REPORT_AGENTS = new Set<string>([
-  "adv-engineer",
-  "adv-reviewer",
-  "adv-designer",
+  "determinus-engineer",
+  "determinus-reviewer",
+  "determinus-designer",
 ]);
 
 function normalizeLegacySubagentReportRow(value: unknown): [unknown, boolean] {
@@ -1053,7 +1065,10 @@ function normalizeLegacySubagentReportRow(value: unknown): [unknown, boolean] {
 
   const row = value as Record<string, unknown>;
   const agent = row.agent;
-  if (agent === "adv-researcher" && row.architecture_judgement === undefined) {
+  if (
+    agent === "determinus-researcher" &&
+    row.architecture_judgement === undefined
+  ) {
     return [
       {
         ...row,
@@ -1061,7 +1076,7 @@ function normalizeLegacySubagentReportRow(value: unknown): [unknown, boolean] {
           applicability: "not_applicable",
           confidence: "low",
           reason:
-            "Legacy persisted adv-researcher report predates typed architecture judgement.",
+            "Legacy persisted determinus-researcher report predates typed architecture judgement.",
           recommendation:
             typeof row.recommendation === "string" && row.recommendation.trim()
               ? row.recommendation
@@ -1098,7 +1113,7 @@ function normalizeLegacySubagentReportRow(value: unknown): [unknown, boolean] {
 /**
  * Normalize legacy persisted sub-agent reports before strict whole-change
  * parsing or workflow projection. This is intentionally NOT part of the
- * adv_subagent_report_submit ingest schema: new malformed reports still fail
+ * determinus_subagent_report_submit ingest schema: new malformed reports still fail
  * strict Zod validation at the tool boundary.
  */
 export function normalizePersistedSubagentReportState(
@@ -1171,7 +1186,7 @@ export const SUBAGENT_WARN_FIRST_PACKET_ANCHORS = [
 ] as const;
 
 export const SUBAGENT_REPORT_FIELD_SOURCES = {
-  "adv-engineer": {
+  "determinus-engineer": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     task_id: "packet_anchor",
@@ -1191,7 +1206,7 @@ export const SUBAGENT_REPORT_FIELD_SOURCES = {
     context_update_for_adv: "worker_derived",
     consumer_warnings: "tool_enriched",
   },
-  "adv-reviewer": {
+  "determinus-reviewer": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     task_id: "packet_anchor",
@@ -1211,7 +1226,7 @@ export const SUBAGENT_REPORT_FIELD_SOURCES = {
     required_main_agent_actions: "worker_derived",
     consumer_warnings: "tool_enriched",
   },
-  "adv-designer": {
+  "determinus-designer": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     task_id: "packet_anchor",
@@ -1233,7 +1248,7 @@ export const SUBAGENT_REPORT_FIELD_SOURCES = {
     neighboring_recommendations: "worker_derived",
     consumer_warnings: "tool_enriched",
   },
-  "adv-researcher": {
+  "determinus-researcher": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     scope: "packet_anchor",
@@ -1249,7 +1264,7 @@ export const SUBAGENT_REPORT_FIELD_SOURCES = {
     follow_ups: "worker_derived",
     consumer_warnings: "tool_enriched",
   },
-  "adv-tron": {
+  "determinus-tron": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     scope: "packet_anchor",
@@ -1267,7 +1282,7 @@ export const SUBAGENT_REPORT_FIELD_SOURCES = {
     optimization_candidates: "worker_derived",
     consumer_warnings: "tool_enriched",
   },
-  "adv-scanner-bundle": {
+  "determinus-scanner-bundle": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     scope: "packet_anchor",
@@ -1282,7 +1297,7 @@ export const SUBAGENT_REPORT_FIELD_SOURCES = {
     follow_ups: "worker_derived",
     consumer_warnings: "tool_enriched",
   },
-  "adv-verification-triage-bundle": {
+  "determinus-verification-triage-bundle": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     scope: "packet_anchor",
@@ -1304,7 +1319,7 @@ export const SUBAGENT_REPORT_FIELD_SOURCES = {
     follow_ups: "worker_derived",
     consumer_warnings: "tool_enriched",
   },
-  "adv-visual-review": {
+  "determinus-visual-review": {
     schema_version: "worker_derived",
     change_id: "packet_anchor",
     scope: "packet_anchor",
@@ -1451,7 +1466,10 @@ export function subagentReportKey(input: {
 export function subagentReportImplementationCycleId(
   report: ScopedSubagentReport,
 ): string | undefined {
-  if (report.agent !== "adv-engineer" && report.agent !== "adv-designer") {
+  if (
+    report.agent !== "determinus-engineer" &&
+    report.agent !== "determinus-designer"
+  ) {
     return undefined;
   }
   return report.apply_context?.implementation_cycle_id;

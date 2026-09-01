@@ -45,7 +45,7 @@ const createTestEntry = (changeId: string): ReflectionEntry => ({
     friction_items: [
       {
         category: "tool_gap",
-        tool_name: "adv_reflect",
+        tool_name: "determinus_reflect",
         description: "Missing reflection tool",
         workaround: "Used manual analysis",
       },

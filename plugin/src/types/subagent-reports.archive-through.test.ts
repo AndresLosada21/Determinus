@@ -26,7 +26,7 @@ const researcherReport = {
   change_id: "fixPlaywrightSessionIsolation",
   scope: { kind: "change" as const, scope_key: "researcher:temporal-docs" },
   attempt: 1,
-  agent: "adv-researcher" as const,
+  agent: "determinus-researcher" as const,
   topic: "Temporal report persistence",
   sources: [
     {

@@ -292,7 +292,7 @@ describe("recovery writers via conditional projection commit", () => {
         change,
         authorization: {
           reason: "shipped_terminal_workflow_termination",
-          evidence: "adv_change_workflow_terminate completed",
+          evidence: "determinus_change_workflow_terminate completed",
         },
         status: "archived",
         lifecycleState: "archived",
@@ -598,7 +598,7 @@ describe("recovery writers via conditional projection commit", () => {
       task_id: "tk-1",
       scope: { kind: "task", task_id: "tk-1" },
       attempt: 1,
-      agent: "adv-engineer",
+      agent: "determinus-engineer",
       status: "complete",
       files_touched: ["src/foo.ts"],
       verification: [{ command: "pnpm test", exit_code: 0, summary: "pass" }],
@@ -633,7 +633,9 @@ describe("recovery writers via conditional projection commit", () => {
         await readFile(join(changesDir, "test-change", "change.json"), "utf-8"),
       );
       expect(disk.projection_revision).toBe(1);
-      expect(disk.tasks[0].subagent_reports[0].agent).toBe("adv-engineer");
+      expect(disk.tasks[0].subagent_reports[0].agent).toBe(
+        "determinus-engineer",
+      );
       expect(
         disk.tasks[0].subagent_reports[0].recovery_audit.persisted_via,
       ).toBe("active-projection");

@@ -9,11 +9,11 @@ const args = { changeId: "change-1", content: "same logical command" };
 
 describe("tool operation context", () => {
   it("keeps concurrent AsyncLocalStorage scopes isolated", async () => {
-    const first = createToolOperationContext("adv_wisdom_add", args, {
+    const first = createToolOperationContext("determinus_wisdom_add", args, {
       sessionID: "session-a",
       messageID: "message-a",
     });
-    const second = createToolOperationContext("adv_wisdom_add", args, {
+    const second = createToolOperationContext("determinus_wisdom_add", args, {
       sessionID: "session-b",
       messageID: "message-b",
     });
@@ -39,18 +39,26 @@ describe("tool operation context", () => {
   });
 
   it("reuses one message identity but distinguishes identical commands in new messages", () => {
-    const retry = createToolOperationContext("adv_wisdom_add", args, {
+    const retry = createToolOperationContext("determinus_wisdom_add", args, {
       sessionID: "session-a",
       messageID: "message-a",
     });
-    const sameInvocation = createToolOperationContext("adv_wisdom_add", args, {
-      sessionID: "session-a",
-      messageID: "message-a",
-    });
-    const nextMessage = createToolOperationContext("adv_wisdom_add", args, {
-      sessionID: "session-a",
-      messageID: "message-b",
-    });
+    const sameInvocation = createToolOperationContext(
+      "determinus_wisdom_add",
+      args,
+      {
+        sessionID: "session-a",
+        messageID: "message-a",
+      },
+    );
+    const nextMessage = createToolOperationContext(
+      "determinus_wisdom_add",
+      args,
+      {
+        sessionID: "session-a",
+        messageID: "message-b",
+      },
+    );
 
     expect(retry?.baseOperationId).toBe(sameInvocation?.baseOperationId);
     expect(retry?.baseOperationId).not.toBe(nextMessage?.baseOperationId);

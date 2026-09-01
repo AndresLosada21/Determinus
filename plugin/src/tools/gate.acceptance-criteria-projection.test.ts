@@ -93,18 +93,18 @@ function createMockStore(
   } as Store;
 }
 
-describe("adv_gate_status acceptance criteria projection", () => {
+describe("determinus_gate_status acceptance criteria projection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    delete process.env.ADV_PLAN_ROUTING_FAIL_CLOSED;
+    delete process.env.determinus_PLAN_ROUTING_FAIL_CLOSED;
   });
 
   test("AC2 — acceptanceCriteriaProjection is unavailable in worker-free read", async () => {
     const store = createMockStore();
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );
@@ -124,7 +124,7 @@ describe("adv_gate_status acceptance criteria projection", () => {
 
   test("AC2 — gateCriteria is unavailable in worker-free read", async () => {
     const store = createMockStore();
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );
@@ -144,7 +144,7 @@ describe("adv_gate_status acceptance criteria projection", () => {
 
   test("AC2 — reports unavailable criteria without a workflow projection", async () => {
     const store = createMockStore();
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );

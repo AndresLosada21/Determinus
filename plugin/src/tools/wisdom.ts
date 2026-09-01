@@ -5,8 +5,8 @@
  * Wisdom entries capture patterns, successes, failures, gotchas, and conventions
  * discovered during task execution for injection into subsequent task context.
  *
- * consolidateAdvToolSurface2 (tk-11d902254d63): `adv_project_wisdom_list` was
- * removed; its project-only listing lives on as `adv_wisdom_list` with
+ * consolidateAdvToolSurface2 (tk-11d902254d63): `determinus_project_wisdom_list` was
+ * removed; its project-only listing lives on as `determinus_wisdom_list` with
  * `project_only: true` and a bounded `maxEntries` limit applied AFTER type
  * and product-visibility filtering (DDC6). No alias or wrapper remains.
  */
@@ -83,7 +83,7 @@ function productContextOutput(
 // =============================================================================
 
 export const wisdomTools = {
-  adv_wisdom_add: {
+  determinus_wisdom_add: {
     description:
       "Add a wisdom entry (learning) to a change. Captures patterns, successes, failures, gotchas, or conventions discovered during task execution.",
     args: {
@@ -299,7 +299,7 @@ export const wisdomTools = {
     },
   },
 
-  adv_wisdom_list: {
+  determinus_wisdom_list: {
     description:
       "List or search wisdom entries. Optionally filter by type or search via FTS. Omit changeId to aggregate across all active changes and project-level wisdom. Set project_only to list only durable project-level learnings (promoted across changes); maxEntries bounds the project_only listing after filtering.",
     args: {
@@ -397,7 +397,7 @@ export const wisdomTools = {
 
             if (project_only) {
               // Project-wisdom branch folded in from the removed
-              // adv_project_wisdom_list. DDC6: read unbounded, then apply
+              // determinus_project_wisdom_list. DDC6: read unbounded, then apply
               // the type filter and the shared product-visibility filter
               // BEFORE the bounded limit below so the limit never starves
               // visible entries.

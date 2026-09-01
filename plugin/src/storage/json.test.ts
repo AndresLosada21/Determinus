@@ -190,10 +190,10 @@ describe("ProjectConfig", () => {
       JSON.stringify({ totally: "wrong", schema: true }),
       "utf-8",
     );
-    // Enable ADV_DEBUG so logger.warn routes to console.warn (GH #5:
-    // console output is now gated on ADV_DEBUG=1).
-    const prevDebug = process.env.ADV_DEBUG;
-    process.env.ADV_DEBUG = "1";
+    // Enable determinus_DEBUG so logger.warn routes to console.warn (GH #5:
+    // console output is now gated on determinus_DEBUG=1).
+    const prevDebug = process.env.determinus_DEBUG;
+    process.env.determinus_DEBUG = "1";
     const warnSpy = vi
       .spyOn(console, "warn")
       .mockImplementation(() => undefined);
@@ -206,9 +206,9 @@ describe("ProjectConfig", () => {
     } finally {
       warnSpy.mockRestore();
       if (prevDebug === undefined) {
-        delete process.env.ADV_DEBUG;
+        delete process.env.determinus_DEBUG;
       } else {
-        process.env.ADV_DEBUG = prevDebug;
+        process.env.determinus_DEBUG = prevDebug;
       }
     }
   });
@@ -522,7 +522,7 @@ describe("Change Operations", () => {
         change_id: "addFeature",
         task_id: raw.tasks[0].id,
         attempt: 1,
-        agent: "adv-engineer",
+        agent: "determinus-engineer",
         status: "complete",
         scope: "legacy string scope",
         workdir_used: "/repo",

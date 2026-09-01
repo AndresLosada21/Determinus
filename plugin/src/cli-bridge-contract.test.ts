@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
-import { ADV_TOOL_NAMES } from "./tool-registry";
+import { determinus_TOOL_NAMES } from "./tool-registry";
 
 const REPO_ROOT = resolve(__dirname, "../..");
 const ADVANCE_META_SPEC = join(REPO_ROOT, ".adv/specs/advance-meta/spec.json");
-const ADV_CLI = join(REPO_ROOT, "bin/adv");
-const ADV_STATUS_LIVE = join(REPO_ROOT, "bin/lib/live-status.ts");
-const ADV_EPIC_LIST = join(REPO_ROOT, "bin/lib/epic-list.ts");
+const determinus_CLI = join(REPO_ROOT, "bin/adv");
+const determinus_STATUS_LIVE = join(REPO_ROOT, "bin/lib/live-status.ts");
+const determinus_EPIC_LIST = join(REPO_ROOT, "bin/lib/epic-list.ts");
 
 function readAdvanceMetaSpec(): {
   requirements?: Array<{
@@ -28,18 +28,18 @@ interface BridgeCase {
 
 const BRIDGES: BridgeCase[] = [
   {
-    command: ".opencode/command/adv-status.md",
+    command: ".opencode/command/determinus-status.md",
     token: "!`adv status --no-color`",
     specId: "rq-statusCliBridge01",
   },
 ];
 
 const FORBIDDEN_FANOUT_TOKENS = [
-  "adv_status",
-  "adv_change_list",
-  "adv_change_show",
-  "adv_gate_status",
-  "adv_spec",
+  "determinus_status",
+  "determinus_change_list",
+  "determinus_change_show",
+  "determinus_gate_status",
+  "determinus_spec",
   "Recommendations:",
   "active_change",
 ];
@@ -106,56 +106,58 @@ describe("CLI bridge command contracts", () => {
 });
 
 describe("REGISTRY NO-REMOVAL GUARD (AC6/DONT1)", () => {
-  test("ADV_TOOL_NAMES matches frozen snapshot", () => {
+  test("determinus_TOOL_NAMES matches frozen snapshot", () => {
     // consolidateAdvToolSurface2: canonical names are now derived from the
     // typed public-group inventory (tool-registry.ts). This guard still pins
     // the exact name SET — any silent addition or removal fails — but no
     // longer couples to incidental inventory group ordering.
     const frozen: readonly string[] = [
-      "adv_spec",
-      "adv_wip_state",
-      "adv_change_list",
-      "adv_change_show",
-      "adv_change_create",
-      "adv_change_update",
-      "adv_change_close",
-      "adv_change_archive",
-      "adv_change_reenter",
-      "adv_ops_run_upsert",
-      "adv_ops_run_evidence_add",
-      "adv_task_show",
-      "adv_task_list",
-      "adv_task_ready",
-      "adv_task_update",
-      "adv_task_add",
-      "adv_task_cancel",
-      "adv_subagent_report_submit",
-      "adv_wisdom_add",
-      "adv_wisdom_list",
-      "adv_status",
-      "adv_project_context",
-      "adv_gate_status",
-      "adv_gate_complete",
-      "adv_run_test",
-      "adv_tool_catalog",
-      "adv_tool_describe",
-      "adv_tool_invoke",
-      "adv_task_checkpoint",
-      "adv_reflection_list",
-      "adv_reflect",
-      "adv_worktree_create",
-      "adv_worktree_delete",
-      "adv_worktree_cleanup",
-      "adv_worktree_triage",
+      "determinus_spec",
+      "determinus_wip_state",
+      "determinus_change_list",
+      "determinus_change_show",
+      "determinus_change_create",
+      "determinus_change_update",
+      "determinus_change_close",
+      "determinus_change_archive",
+      "determinus_change_reenter",
+      "determinus_ops_run_upsert",
+      "determinus_ops_run_evidence_add",
+      "determinus_task_show",
+      "determinus_task_list",
+      "determinus_task_ready",
+      "determinus_task_update",
+      "determinus_task_add",
+      "determinus_task_cancel",
+      "determinus_subagent_report_submit",
+      "determinus_wisdom_add",
+      "determinus_wisdom_list",
+      "determinus_status",
+      "determinus_project_context",
+      "determinus_gate_status",
+      "determinus_gate_complete",
+      "determinus_run_test",
+      "determinus_tool_catalog",
+      "determinus_tool_describe",
+      "determinus_tool_invoke",
+      "determinus_task_checkpoint",
+      "determinus_reflection_list",
+      "determinus_reflect",
+      "determinus_worktree_create",
+      "determinus_worktree_delete",
+      "determinus_worktree_cleanup",
+      "determinus_worktree_triage",
     ];
     const byName = (a: string, b: string) => a.localeCompare(b);
-    expect([...ADV_TOOL_NAMES].sort(byName)).toEqual([...frozen].sort(byName));
+    expect([...determinus_TOOL_NAMES].sort(byName)).toEqual(
+      [...frozen].sort(byName),
+    );
   });
 });
 
 describe("NO-CLI-MUTATION GUARD (AC9/DONT3)", () => {
   test("bin/adv dispatch only recognizes safe subcommands", () => {
-    const content = readFileSync(ADV_CLI, "utf8");
+    const content = readFileSync(determinus_CLI, "utf8");
 
     const allowedDispatch = ["status"];
     const allowedGlobalFlags = ["help", "version"];
@@ -197,8 +199,8 @@ describe("NO-CLI-MUTATION GUARD (AC9/DONT3)", () => {
   });
 
   test("epic CLI namespace only exposes read-only list dispatch", () => {
-    const content = readFileSync(ADV_CLI, "utf8");
-    const epicList = readFileSync(ADV_EPIC_LIST, "utf8");
+    const content = readFileSync(determinus_CLI, "utf8");
+    const epicList = readFileSync(determinus_EPIC_LIST, "utf8");
 
     expect(content).toContain("EPIC_READ_ONLY_SUBCOMMANDS");
     expect(content).toContain('"list"');
@@ -227,7 +229,7 @@ describe("NO-CLI-MUTATION GUARD (AC9/DONT3)", () => {
 
 describe("STATUS LIVE DEFAULT GUARDS (AC8/AC9/AC10)", () => {
   test("status live client does not import workflow sandbox modules", () => {
-    const content = readFileSync(ADV_STATUS_LIVE, "utf8");
+    const content = readFileSync(determinus_STATUS_LIVE, "utf8");
     const forbidden = [
       "temporal/messages",
       "temporal/workflows",
@@ -239,8 +241,8 @@ describe("STATUS LIVE DEFAULT GUARDS (AC8/AC9/AC10)", () => {
   });
 
   test("default status reads active rows from the disk projection reader", () => {
-    const cli = readFileSync(ADV_CLI, "utf8");
-    const liveStatus = readFileSync(ADV_STATUS_LIVE, "utf8");
+    const cli = readFileSync(determinus_CLI, "utf8");
+    const liveStatus = readFileSync(determinus_STATUS_LIVE, "utf8");
 
     expect(cli).toContain("loadLiveSummaries");
     expect(liveStatus).toContain("loadSummariesFromDisk");
@@ -248,8 +250,8 @@ describe("STATUS LIVE DEFAULT GUARDS (AC8/AC9/AC10)", () => {
   });
 
   test("status live implementation has no mutation authority", () => {
-    const content = `${readFileSync(ADV_CLI, "utf8")}\n${readFileSync(
-      ADV_STATUS_LIVE,
+    const content = `${readFileSync(determinus_CLI, "utf8")}\n${readFileSync(
+      determinus_STATUS_LIVE,
       "utf8",
     )}`;
     const forbidden = [

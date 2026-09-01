@@ -9,15 +9,15 @@ Run after `scripts/deploy-local.sh --fix` and after any manual provider-agent co
 - [ ] global `adv.md` contains lean runtime protocol markers such as `## Slash Command Boundary` and `### Worktree Isolation Routing`
 - [ ] global `adv.md` does **not** contain full-reference-only markers such as `### TDD Protocol (RSTC)`
 - [ ] global `adv.md` does **not** contain `<!-- PROVIDER_HINT:` markers
-- [ ] `ADV_INSTRUCTIONS.md` is absent from global `opencode.json instructions[]`
+- [ ] `determinus_INSTRUCTIONS.md` is absent from global `opencode.json instructions[]`
 
 ## Retired Provider Agents
 
-- [ ] `~/.config/opencode/agents/adv-claude.md` is absent
-- [ ] `~/.config/opencode/agents/adv-gpt.md` is absent
-- [ ] `~/.config/opencode/agents/adv-glm.md` is absent
-- [ ] `~/.config/opencode/agents/adv-kimi.md` is absent
-- [ ] `opencode.json` does not contain `agent.adv-{provider}.prompt` keys written by ADV sync
+- [ ] `~/.config/opencode/agents/determinus-claude.md` is absent
+- [ ] `~/.config/opencode/agents/determinus-gpt.md` is absent
+- [ ] `~/.config/opencode/agents/determinus-glm.md` is absent
+- [ ] `~/.config/opencode/agents/determinus-kimi.md` is absent
+- [ ] `opencode.json` does not contain `agent.determinus-{provider}.prompt` keys written by ADV sync
 - [ ] `deploy-local.sh --fix` removes stale generated provider files instead of recreating them
 
 ## Runtime Provider Hints
@@ -30,7 +30,7 @@ Run after `scripts/deploy-local.sh --fix` and after any manual provider-agent co
 
 ## Manual Migration
 
-- [ ] Remove `agent.adv-claude`, `agent.adv-gpt`, `agent.adv-glm`, and `agent.adv-kimi` from global config if present
+- [ ] Remove `agent.determinus-claude`, `agent.determinus-gpt`, `agent.determinus-glm`, and `agent.determinus-kimi` from global config if present
 - [ ] Remove `agent.adv.disable` if it only existed for retired provider-variant mode
 - [ ] Restart OpenCode after config or agent-file changes
 - [ ] Confirm only `adv` is used for ADV orchestration
@@ -39,18 +39,18 @@ Run after `scripts/deploy-local.sh --fix` and after any manual provider-agent co
 
 - [ ] OMP per-phase routing is treated as future work
 - [ ] No current smoke step requires provider-specific ADV agent names
-- [ ] Model/provider preference UX does not rely on `adv-{provider}` aliases
+- [ ] Model/provider preference UX does not rely on `determinus-{provider}` aliases
 
 ## Metrics
 
-- [ ] Provider eval reports `lean_adv_runtime_prompt`
-- [ ] Provider eval reports `adv_reference_protocol`
+- [ ] Provider eval reports `lean_determinus_runtime_prompt`
+- [ ] Provider eval reports `determinus_reference_protocol`
 - [ ] Provider eval reports `provider_hint`
-- [ ] Provider eval reports `adv_dynamic_system_block_estimate`
+- [ ] Provider eval reports `determinus_dynamic_system_block_estimate`
 - [ ] Provider eval reports `voice_contract_allowance`
 - [ ] Provider eval reports `selected_agent_runtime_prompt`
 - [ ] Provider eval reports `avoided_provider_variant_duplication` when stale retired files are measurable
-- [ ] Provider eval does not require generated `adv-{provider}.md` files as canonical prompt sources
+- [ ] Provider eval does not require generated `determinus-{provider}.md` files as canonical prompt sources
 
 ## Drift Checks
 

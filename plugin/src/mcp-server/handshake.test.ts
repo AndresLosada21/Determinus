@@ -10,6 +10,6 @@ describe("HANDSHAKE_TIER4_TOOLS", () => {
   test("handshake response uses the catalog list", () => {
     const result = handleHandshake();
     expect(result.tier4_tools).toBe(HANDSHAKE_TIER4_TOOLS);
-    expect(result.adv_contract_version).toBe(1);
+    expect(result.determinus_contract_version).toBe(1);
   });
 });

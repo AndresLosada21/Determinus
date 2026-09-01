@@ -606,7 +606,7 @@ describe("raw change.json reader boundary", () => {
   }, 120_000);
 
   it("detects imported and local aliases of an fs reader", () => {
-    const root = mkdtempSync(join(tmpdir(), "adv-change-json-reader-"));
+    const root = mkdtempSync(join(tmpdir(), "determinus-change-json-reader-"));
     const importedAliasFixture = join(root, "imported-alias.ts");
     const localAliasFixture = join(root, "local-alias.ts");
     try {

@@ -8,7 +8,7 @@
  * - Uses execGh adapter (not direct execFile) for testability.
  * - YAML frontmatter in issue body carries ADV metadata.
  * - Body truncation at MAX_BODY_SIZE with truncation notice.
- * - Label management: adv-mesh + adv-{relationship} labels.
+ * - Label management: determinus-mesh + determinus-{relationship} labels.
  */
 
 import { execGh } from "./gh-cli";
@@ -72,11 +72,11 @@ export interface ListMeshIssuesResult {
 }
 
 export interface MeshFrontmatter {
-  adv_change_id?: string;
-  adv_capability?: string;
-  adv_relationship?: string;
-  adv_source_project?: string;
-  adv_created_at?: string;
+  determinus_change_id?: string;
+  determinus_capability?: string;
+  determinus_relationship?: string;
+  determinus_source_project?: string;
+  determinus_created_at?: string;
   [key: string]: unknown;
 }
 
@@ -89,11 +89,11 @@ export interface MeshFrontmatter {
 export function buildMeshPayload(input: MeshIssueInput): string {
   const createdAt = new Date().toISOString();
   const metadata = {
-    adv_change_id: input.changeId,
-    adv_capability: input.capability,
-    adv_relationship: input.relationship,
-    adv_source_project: input.sourceProject,
-    adv_created_at: createdAt,
+    determinus_change_id: input.changeId,
+    determinus_capability: input.capability,
+    determinus_relationship: input.relationship,
+    determinus_source_project: input.sourceProject,
+    determinus_created_at: createdAt,
   };
 
   const frontmatter = Object.entries(metadata)
@@ -126,7 +126,7 @@ export async function createMeshIssue(
     body: input.body,
   });
 
-  const labels = `adv-mesh,adv-${input.relationship}`;
+  const labels = `determinus-mesh,determinus-${input.relationship}`;
 
   const result = await execGh(
     [
@@ -175,13 +175,13 @@ export async function createMeshIssue(
 }
 
 /**
- * List GH issues with adv-mesh label.
+ * List GH issues with determinus-mesh label.
  */
 export async function listMeshIssues(
   repo: string,
   additionalLabels: string[] = [],
 ): Promise<ListMeshIssuesResult> {
-  const allLabels = ["adv-mesh", ...additionalLabels];
+  const allLabels = ["determinus-mesh", ...additionalLabels];
   const labelArg = allLabels.join(",");
 
   const result = await execGh(
@@ -289,7 +289,7 @@ export function parseMeshFrontmatter(body: string): MeshFrontmatter {
     if (colonIdx === -1) continue;
     const key = line.slice(0, colonIdx).trim();
     const value = line.slice(colonIdx + 1).trim();
-    if (key.startsWith("adv_")) {
+    if (key.startsWith("determinus_")) {
       (result as Record<string, unknown>)[key] = value;
     }
   }

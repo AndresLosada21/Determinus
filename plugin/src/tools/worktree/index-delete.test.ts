@@ -1,5 +1,5 @@
 /**
- * Tests for ADV-safe worktree delete flow (T9 — KD-6b, F2, R13).
+ * Tests for determinus-safe worktree delete flow (T9 — KD-6b, F2, R13).
  *
  * Uses ephemeral git fixtures (mkdtempSync + git init + git worktree add)
  * to verify the 5 RED scenarios:
@@ -59,7 +59,7 @@ import { stableStringify } from "../../utils/digest";
 const isLinux = process.platform === "linux";
 
 function createGitRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), "adv-wt-del-"));
+  const dir = mkdtempSync(join(tmpdir(), "determinus-wt-del-"));
   execSync("git init -b main", { cwd: dir });
   execSync("git config user.email 'test@test.com'", { cwd: dir });
   execSync("git config user.name 'Test'", { cwd: dir });
@@ -92,7 +92,7 @@ function makeSquashPrFixture(
   cleanup: () => void;
 } {
   const root = createGitRepo();
-  const remote = mkdtempSync(join(tmpdir(), "adv-pr-remote-"));
+  const remote = mkdtempSync(join(tmpdir(), "determinus-pr-remote-"));
   const worktree = addWorktree(root, branch);
   git(remote, "init", "--bare", "-b", "main");
   git(root, "remote", "add", "origin", "https://github.com/owner/repo.git");
@@ -243,7 +243,7 @@ function attachChangeStatus(
   } as any;
 }
 
-describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
+describe.skipIf(!isLinux)("determinus-safe worktree delete (T9)", () => {
   let repoRoot: string;
   let dataRoot: string;
 
@@ -253,7 +253,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
     // fix as part of fixWarpSessionLookup (T1).
     vi.stubEnv("OPENCODE_EXPERIMENTAL", "");
     vi.stubEnv("OPENCODE_EXPERIMENTAL_WORKSPACES", "");
-    dataRoot = mkdtempSync(join(tmpdir(), "adv-wt-del-data-"));
+    dataRoot = mkdtempSync(join(tmpdir(), "determinus-wt-del-data-"));
     vi.stubEnv("XDG_DATA_HOME", dataRoot);
     repoRoot = createGitRepo();
     vi.clearAllMocks();
@@ -380,7 +380,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
           JSON.stringify([
             {
               id: "ws-abc",
-              type: "adv-worktree",
+              type: "determinus-worktree",
               directory: wtPath,
               extra: { directory: wtPath, branch },
             },
@@ -463,7 +463,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
           JSON.stringify([
             {
               id: "ws-gone",
-              type: "adv-worktree",
+              type: "determinus-worktree",
               directory: wtPath,
               extra: { directory: wtPath, branch },
             },
@@ -500,7 +500,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
           JSON.stringify([
             {
               id: "ws-error",
-              type: "adv-worktree",
+              type: "determinus-worktree",
               directory: wtPath,
               extra: { directory: wtPath, branch },
             },
@@ -745,7 +745,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
     writeFileSync(join(wtPath, "uncommitted.txt"), "do not lose");
 
     const deps = createMockDeps(repoRoot, wtPath);
-    // ADV-registered worktree (changeId set) — uses integrationCheck seam.
+    // determinus-registered worktree (changeId set) — uses integrationCheck seam.
     deps.registry = [{ branch, path: wtPath, changeId: "test-change" }];
     attachChangeStatus(deps, "archived");
     const result = await advWorktreeDelete(branch, { force: true }, deps);
@@ -786,7 +786,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
   });
 
   it("#38 deletes clean merged non-ADV worktree branch without archived change", async () => {
-    const branch = "feature/non-adv-clean";
+    const branch = "feature/non-determinus-clean";
     const wtPath = addWorktree(repoRoot, branch);
     const deps = createMockDeps(repoRoot, wtPath);
     deps.registry = [{ branch, path: wtPath }];
@@ -802,7 +802,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
   });
 
   it("#38 blocks dirty non-ADV worktree branch", async () => {
-    const branch = "feature/non-adv-dirty";
+    const branch = "feature/non-determinus-dirty";
     const wtPath = addWorktree(repoRoot, branch);
     writeFileSync(join(wtPath, "dirty.txt"), "dirty");
     const deps = createMockDeps(repoRoot, wtPath);
@@ -822,7 +822,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
   });
 
   it("#38 blocks unmerged non-ADV worktree branch", async () => {
-    const branch = "feature/non-adv-unmerged";
+    const branch = "feature/non-determinus-unmerged";
     const wtPath = addWorktree(repoRoot, branch);
     writeFileSync(join(wtPath, "unmerged.txt"), "unmerged");
     execSync("git add unmerged.txt", { cwd: wtPath });
@@ -946,7 +946,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
   });
 
   it("#55 follow-up deletes missing-registry CLOSED merged clean change branch without force", async () => {
-    // Closed is a terminal status produced by adv_change_close
+    // Closed is a terminal status produced by determinus_change_close
     // (cancelled, superseded, not_planned). Drift-recovery must accept it
     // alongside archived so worktrees for cancelled changes can be reclaimed
     // even when their registry entry has drifted.
@@ -1060,7 +1060,7 @@ describe.skipIf(!isLinux)("ADV-safe worktree delete (T9)", () => {
   // rq-forceUnregisteredDelete01: force:true bypasses branch_not_in_registry
   // for branches outside the worktree registry, provided they are merged
   // into the default branch. This unblocks ad-hoc worktrees created by
-  // /adv-triage and similar helper flows.
+  // /determinus-triage and similar helper flows.
   it("#55 force:true succeeds on non-registered merged branch", async () => {
     const branch = "chore/roadmap-2026-05-09";
     const wtPath = addWorktree(repoRoot, branch);
@@ -1890,7 +1890,7 @@ describe.skipIf(!isLinux)("shared pending-delete drain", () => {
       branch,
       path: pendingPath,
       reason: "workspace list request failed: 503",
-      hint: "Retry with adv_worktree_cleanup after the OpenCode server responds.",
+      hint: "Retry with determinus_worktree_cleanup after the OpenCode server responds.",
     }));
 
     const result = await drainPendingDeletes("worktree_cleanup", deps, {
@@ -2239,7 +2239,7 @@ describe.skipIf(!isLinux)("reapEmptyWorktreeParents", () => {
   let root: string;
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), "adv-wt-reap-"));
+    root = mkdtempSync(join(tmpdir(), "determinus-wt-reap-"));
   });
 
   afterEach(() => {

@@ -23,7 +23,7 @@ import {
 let tmpDir: string;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "adv-lease-test-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "determinus-lease-test-"));
 });
 
 afterEach(() => {

@@ -221,7 +221,7 @@ function formatD3Error(error: D3EnforcementError): string {
 // Fast-Follow Lineage Projection (rq-epicFastFollowLineage01)
 // =============================================================================
 //
-// Advisory-only projection rendered on adv_epic_show entries when the child
+// Advisory-only projection rendered on determinus_epic_show entries when the child
 // change carries typed fast_follow_of metadata. Bounded by Epic entry count,
 // additive (never removes or reorders fields), and classification is a
 // constant — fast_follow_of is reserved for non-operational advisory children
@@ -427,14 +427,14 @@ function memberStatusForEntry(entry: Extract<EpicEntry, { kind: "change" }>) {
       status: "stale" as const,
       last_checked_at: checkedAt,
       message:
-        "Child projection may be stale; adv_epic_show convergence reconciles it.",
+        "Child projection may be stale; determinus_epic_show convergence reconciles it.",
     };
   }
   return {
     status: "projection_missing" as const,
     last_checked_at: checkedAt,
     message:
-      "Child projection is pending or missing; adv_epic_show convergence rebuilds it.",
+      "Child projection is pending or missing; determinus_epic_show convergence rebuilds it.",
   };
 }
 
@@ -870,14 +870,14 @@ function formatChildProjectionFailureOutput(
   return formatEpicRoutingOutput(
     formatToolOutput({
       success: false,
-      error: `Owner Epic mutated but child projection failed: ${causeMessage}. The next adv_epic_show will run bounded direct convergence (rq-epicConvergence01) to reconcile; if drift persists, rerun the Epic mutation.`,
+      error: `Owner Epic mutated but child projection failed: ${causeMessage}. The next determinus_epic_show will run bounded direct convergence (rq-epicConvergence01) to reconcile; if drift persists, rerun the Epic mutation.`,
       code: EPIC_OWNER_ROUTING_ERROR_CODES.CHILD_PROJECTION_FAILED,
       owner_mutated: true,
       child_projection_failed: true,
       entry: mapEpicEntry(input.entry),
       epic_membership: input.membership,
       repair_action:
-        "adv_epic_show convergence (automatic; rq-epicConvergence01)",
+        "determinus_epic_show convergence (automatic; rq-epicConvergence01)",
     }),
     owner,
     child,
@@ -1001,7 +1001,7 @@ async function convergeEpicOnShow(
             entryId: entry.entry_id,
             membershipStatus: "linked",
             evidence:
-              "convergence: child epic_membership verified on adv_epic_show",
+              "convergence: child epic_membership verified on determinus_epic_show",
           },
         );
       } else if (
@@ -1019,7 +1019,7 @@ async function convergeEpicOnShow(
             entryId: entry.entry_id,
             membershipStatus: "terminal",
             evidence:
-              "convergence: child terminal state observed on adv_epic_show",
+              "convergence: child terminal state observed on determinus_epic_show",
           },
         );
       } else if (
@@ -1069,7 +1069,7 @@ async function convergeEpicOnShow(
 }
 
 export const epicTools = {
-  adv_epic_create: {
+  determinus_epic_create: {
     description:
       "Create a new Advance Epic. Epics are durable initiative containers that group ADV changes and lightweight shell entries. Epic order is advisory.",
     args: {
@@ -1162,7 +1162,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_show: {
+  determinus_epic_show: {
     description:
       'Show an Epic\'s current state. Default `view: "compact"` returns a bounded summary with archived/closed history and next active/future work; use `view: "full"` for complete entries.',
     args: {
@@ -1284,7 +1284,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_list: {
+  determinus_epic_list: {
     description:
       "List active Epics by default, or enumerate retirement candidates/completed Epics without mutating state.",
     args: {
@@ -1338,7 +1338,7 @@ export const epicTools = {
           const { items, pagination } = paginate(epics, {
             limit,
             offset,
-            tool: "adv_epic_list",
+            tool: "determinus_epic_list",
           });
           const output = formatToolOutput({
             success: true,
@@ -1432,7 +1432,7 @@ export const epicTools = {
         const { items: pageItems, pagination } = paginate(candidates, {
           limit,
           offset,
-          tool: "adv_epic_list",
+          tool: "determinus_epic_list",
         });
 
         const output = formatToolOutput({
@@ -1452,7 +1452,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_update: {
+  determinus_epic_update: {
     description:
       "Update an Epic's title or narrative. Requires expected_version for optimistic-concurrency control.",
     args: {
@@ -1463,7 +1463,7 @@ export const epicTools = {
         .number()
         .int()
         .min(0)
-        .describe("Current Epic version from adv_epic_show."),
+        .describe("Current Epic version from determinus_epic_show."),
       ...epicOwnerTargetPathSchema,
     },
     execute: async (
@@ -1514,7 +1514,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_add_shell: {
+  determinus_epic_add_shell: {
     description:
       "Add a lightweight shell entry to an Epic roadmap. Shells represent future work and carry a title + success hint for later promotion. When backlog_ref is provided, title and success_hint are derived from the backlog item unless explicitly supplied.",
     args: {
@@ -1719,7 +1719,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_promote_shell: {
+  determinus_epic_promote_shell: {
     description:
       "Promote an Epic shell entry into a linked ADV change. Replaces the shell row in-place with a change row carrying promotion provenance. Idempotent by shell entry + change ID.",
     args: {
@@ -1884,7 +1884,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_link_change: {
+  determinus_epic_link_change: {
     description:
       "Link an existing ADV change from the current project or a target_path project as a new Epic entry and project compact epic_membership onto the child change.",
     args: {
@@ -2328,7 +2328,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_unlink_change: {
+  determinus_epic_unlink_change: {
     description:
       "Unlink a current-project or target_path project change entry from an Epic after clearing the child epic_membership projection.",
     args: {
@@ -2454,14 +2454,14 @@ export const epicTools = {
           return formatEpicRoutingOutput(
             formatToolOutput({
               success: false,
-              error: `Child projection cleared but Epic unlink failed: ${causeMessage}. The next adv_epic_show will run bounded direct convergence (rq-epicConvergence01) to reconcile.`,
+              error: `Child projection cleared but Epic unlink failed: ${causeMessage}. The next determinus_epic_show will run bounded direct convergence (rq-epicConvergence01) to reconcile.`,
               code: EPIC_OWNER_ROUTING_ERROR_CODES.MEMBERSHIP_PARTIAL_FAILURE,
               child_projection_cleared: true,
               owner_unlink_failed: true,
               entry_id: entry.entry_id,
               change_id: finalChangeId,
               repair_action:
-                "adv_epic_show convergence (automatic; rq-epicConvergence01)",
+                "determinus_epic_show convergence (automatic; rq-epicConvergence01)",
             }),
             routing.owner,
             routing.child,
@@ -2480,7 +2480,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_move_change: {
+  determinus_epic_move_change: {
     description:
       "Move a current-project or target_path project change from one Epic to another, updating child epic_membership in between.",
     args: {
@@ -2675,7 +2675,7 @@ export const epicTools = {
           return formatEpicRoutingOutput(
             formatToolOutput({
               success: false,
-              error: `Child projection updated but source Epic unlink failed: ${causeMessage}. The next adv_epic_show will run bounded direct convergence (rq-epicConvergence01) to reconcile.`,
+              error: `Child projection updated but source Epic unlink failed: ${causeMessage}. The next determinus_epic_show will run bounded direct convergence (rq-epicConvergence01) to reconcile.`,
               code: EPIC_OWNER_ROUTING_ERROR_CODES.MEMBERSHIP_PARTIAL_FAILURE,
               owner_partially_mutated: true,
               source_unlink_failed: true,
@@ -2683,7 +2683,7 @@ export const epicTools = {
               to_entry: mapEpicEntry(destEntry),
               epic_membership: membership,
               repair_action:
-                "adv_epic_show convergence (automatic; rq-epicConvergence01)",
+                "determinus_epic_show convergence (automatic; rq-epicConvergence01)",
             }),
             routing.owner,
             routing.child,
@@ -2703,7 +2703,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_reorder: {
+  determinus_epic_reorder: {
     description:
       "Reorder Epic entries. order values become advisory display indices. Requires expected_version for optimistic-concurrency control.",
     args: {
@@ -2756,7 +2756,7 @@ export const epicTools = {
     },
   },
 
-  adv_epic_retire: {
+  determinus_epic_retire: {
     description:
       "Retire a completed Epic. Fires the terminal archive signal, persists a retired projection, and returns the retirement summary. Requires evidence and expected_version. Use dryRun to preview eligibility without mutating state.",
     args: {
@@ -2765,7 +2765,7 @@ export const epicTools = {
         .number()
         .int()
         .min(0)
-        .describe("Current Epic version from adv_epic_show."),
+        .describe("Current Epic version from determinus_epic_show."),
       evidence: z
         .string()
         .trim()

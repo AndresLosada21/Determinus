@@ -534,7 +534,7 @@ async function promoteInStore(
       link,
       error: `Child created and profile seeded, but parent link signal failed: ${err instanceof Error ? err.message : String(err)}`,
       repair_action:
-        "Re-fire opsFollowupLinkAddedSignal on the source change with the provided link payload, or retry adv_followup_promote with the same arguments.",
+        "Re-fire opsFollowupLinkAddedSignal on the source change with the provided link payload, or retry determinus_followup_promote with the same arguments.",
     });
   }
 
@@ -563,7 +563,7 @@ async function promoteInStore(
 }
 
 export const followupTools = {
-  adv_followup_promote: {
+  determinus_followup_promote: {
     description:
       "Promote an ops/enabler follow-up into a linked ADV child change with a typed ops_followup profile. " +
       "Prefers structured sources (required_follow_up from sub-agent reports, report metadata) over manual fallback. " +

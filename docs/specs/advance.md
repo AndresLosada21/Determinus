@@ -22,7 +22,7 @@ Durable cross-change learnings must be persisted in a project-level JSONL store 
 **Given:**
 - A convention-level learning discovered in a change
 
-**When:** adv_wisdom_promote is executed
+**When:** determinus_wisdom_promote is executed
 
 **Then:**
 - The entry is appended to project-level wisdom.jsonl
@@ -33,7 +33,7 @@ Durable cross-change learnings must be persisted in a project-level JSONL store 
 
 **ID:** `rq-M4n1f3s1` | **Priority:** **[MUST]**
 
-Command recommendations in adv-status must be derived from a type-safe workflow manifest to ensure consistent pathing.
+Command recommendations in determinus-status must be derived from a type-safe workflow manifest to ensure consistent pathing.
 
 #### Scenarios
 
@@ -42,10 +42,10 @@ Command recommendations in adv-status must be derived from a type-safe workflow 
 **Given:**
 - A change at implementation gate
 
-**When:** adv-status is run
+**When:** determinus-status is run
 
 **Then:**
-- It recommends adv-review or adv-harden based on manifest successors
+- It recommends determinus-review or determinus-harden based on manifest successors
 
 ---
 
@@ -53,7 +53,7 @@ Command recommendations in adv-status must be derived from a type-safe workflow 
 
 **ID:** `rq-R3v13wR1` | **Priority:** **[MUST]**
 
-/adv-review and /adv-harden must enforce a minimum findings threshold to prevent shallow 'LGTM' behavior.
+/determinus-review and /determinus-harden must enforce a minimum findings threshold to prevent shallow 'LGTM' behavior.
 
 #### Scenarios
 

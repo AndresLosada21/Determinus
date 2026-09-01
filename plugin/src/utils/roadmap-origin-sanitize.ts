@@ -1,8 +1,8 @@
 /**
  * Roadmap-Origin Issue Body Sanitizer (rq-roadmapOriginSanitize01)
  *
- * Strips ADV-emitted scoring fields from a GitHub issue body before it's
- * used to prefill a proposal's problem statement (`/adv-proposal #N`).
+ * Strips determinus-emitted scoring fields from a GitHub issue body before it's
+ * used to prefill a proposal's problem statement (`/determinus-proposal #N`).
  * Without this, scoring fields (Value, TimeCriticality, RROE, Effort,
  * WSJF) leak into the proposal/discovery/design context — priming the
  * agent to scale work depth to the score (low effort → shallow work,
@@ -12,7 +12,7 @@
  *
  * # Scope
  *
- * - Strip `<!-- adv-triage:scoring v1 ... -->` HTML-comment blocks (multiline).
+ * - Strip `<!-- determinus-triage:scoring v1 ... -->` HTML-comment blocks (multiline).
  * - Strip single-line score fields at column 0:
  *   `WSJF`, `Value`, `TimeCriticality`, `RROE`, `Effort` followed by `:` or `=`.
  * - Strip trailing scoring-summary lines: `WSJF score: ...`, `Value score: ...`.
@@ -45,7 +45,7 @@ interface SanitizeResult {
   warnings: string[];
 }
 
-// Score field names ADV currently emits via /adv-triage Phase 4
+// Score field names ADV currently emits via /determinus-triage Phase 4
 // scoring template. Lock these to the canonical set; expand only via
 // rq-roadmapOriginSanitize01 amendments.
 const KNOWN_SCORE_FIELDS = [
@@ -57,9 +57,9 @@ const KNOWN_SCORE_FIELDS = [
 ] as const;
 
 // Pattern 1: multi-line HTML-comment scoring block.
-// Matches `<!-- adv-triage:scoring v1 ... -->`, including any content
+// Matches `<!-- determinus-triage:scoring v1 ... -->`, including any content
 // (lines, blank lines, score fields) inside the block.
-const SCORING_BLOCK = /<!--\s*adv-triage:scoring\s+v\d+[\s\S]*?-->/g;
+const SCORING_BLOCK = /<!--\s*determinus-triage:scoring\s+v\d+[\s\S]*?-->/g;
 
 // Pattern 2: single-line score field at column 0.
 // Matches `^WSJF=...$`, `^Value: ...$`, etc.

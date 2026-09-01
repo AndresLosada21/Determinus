@@ -3,7 +3,7 @@
  *
  * Request-local bounded health execution primitive.
  *
- * Owns the complete lifecycle for a single `adv_status view:"health"` call:
+ * Owns the complete lifecycle for a single `determinus_status view:"health"` call:
  *   - 8,000 ms response deadline
  *   - 7,500 ms execution cutoff
  *   - 500 ms composition reserve

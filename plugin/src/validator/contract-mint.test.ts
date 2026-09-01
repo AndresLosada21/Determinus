@@ -124,9 +124,12 @@ describe("buildContractFromAgreement", () => {
   // addAcWarrantGuard — capability-warrant verification at mint
   const warrantLookup = {
     toolSurface: new Map([
-      ["adv_change_create", new Set(["summary", "target_path"])],
-      ["adv_change_archive", new Set(["changeId", "phase9", "target_path"])],
-      ["adv_task_checkpoint", new Set(["taskId", "target_path"])],
+      ["determinus_change_create", new Set(["summary", "target_path"])],
+      [
+        "determinus_change_archive",
+        new Set(["changeId", "phase9", "target_path"]),
+      ],
+      ["determinus_task_checkpoint", new Set(["taskId", "target_path"])],
     ]),
     specIds: new Set(["rq-acWarrant01"]),
   };
@@ -135,26 +138,28 @@ describe("buildContractFromAgreement", () => {
     expect(() =>
       buildContractFromAgreement({
         agreement: `## Acceptance Criteria
-- AC1: Cross-project archive routes through target. [warrant: tool:adv_change_archive#nonexistent_arg]
+- AC1: Cross-project archive routes through target. [warrant: tool:determinus_change_archive#nonexistent_arg]
 `,
         approvedAt,
         warrantLookup,
       }),
     ).toThrow(
-      /CONTRACT_UNRESOLVED_WARRANT[\s\S]*adv_change_archive#nonexistent_arg/,
+      /CONTRACT_UNRESOLVED_WARRANT[\s\S]*determinus_change_archive#nonexistent_arg/,
     );
   });
 
   test("AC2a: mint succeeds when an archive target_path warrant resolves", () => {
     const contract = buildContractFromAgreement({
       agreement: `## Acceptance Criteria
-- AC1: Cross-project archive routes through target. [warrant: tool:adv_change_archive#target_path]
+- AC1: Cross-project archive routes through target. [warrant: tool:determinus_change_archive#target_path]
 `,
       approvedAt,
       warrantLookup,
     });
     const item = contract.items.find((i) => i.id === "AC1");
-    expect(item?.warrants).toEqual(["tool:adv_change_archive#target_path"]);
+    expect(item?.warrants).toEqual([
+      "tool:determinus_change_archive#target_path",
+    ]);
     expect(item?.text).toBe("Cross-project archive routes through target.");
     expect(item?.text).not.toContain("[warrant:");
   });
@@ -162,13 +167,15 @@ describe("buildContractFromAgreement", () => {
   test("AC2b: mint succeeds when a checkpoint target_path warrant resolves", () => {
     const contract = buildContractFromAgreement({
       agreement: `## Acceptance Criteria
-- AC1: Cross-project checkpoint routes through target. [warrant: tool:adv_task_checkpoint#target_path]
+- AC1: Cross-project checkpoint routes through target. [warrant: tool:determinus_task_checkpoint#target_path]
 `,
       approvedAt,
       warrantLookup,
     });
     const item = contract.items.find((i) => i.id === "AC1");
-    expect(item?.warrants).toEqual(["tool:adv_task_checkpoint#target_path"]);
+    expect(item?.warrants).toEqual([
+      "tool:determinus_task_checkpoint#target_path",
+    ]);
   });
 
   test("AC3: behavioral criteria with no warrant tags mint unchanged (no lookup needed)", () => {
@@ -318,7 +325,7 @@ describe("buildContractFromAgreement", () => {
   test("AC4: structured behavioral criterion retains and validates bracketed warrants", () => {
     const contract = buildContractFromAgreement({
       agreement: `## Acceptance Criteria
-- AC1: Given a criterion contains a valid bracketed warrant, when it is minted, then its warrant is retained and validated through the current structural path. [warrant: tool:adv_change_archive#target_path]
+- AC1: Given a criterion contains a valid bracketed warrant, when it is minted, then its warrant is retained and validated through the current structural path. [warrant: tool:determinus_change_archive#target_path]
 `,
       approvedAt,
       warrantLookup,
@@ -326,7 +333,9 @@ describe("buildContractFromAgreement", () => {
 
     const item = contract.items.find((i) => i.id === "AC1");
     expect(item?.variant?.kind).toBe("behavioral");
-    expect(item?.warrants).toEqual(["tool:adv_change_archive#target_path"]);
+    expect(item?.warrants).toEqual([
+      "tool:determinus_change_archive#target_path",
+    ]);
     expect(item?.text).not.toContain("[warrant:");
     expect(item?.text).toContain(
       "validated through the current structural path",

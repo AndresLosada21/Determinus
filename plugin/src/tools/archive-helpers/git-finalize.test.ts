@@ -2,7 +2,7 @@
  * Phase 9 git finalization helper tests.
  *
  * These tests lock the runtime side of rq-releaseFinalization01 so the
- * release gate cannot be satisfied by prose-only /adv-archive instructions.
+ * release gate cannot be satisfied by prose-only /determinus-archive instructions.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -69,7 +69,7 @@ function git(cwd: string, args: string[]): string {
 
 async function initRepo(root: string, defaultBranch = "trunk"): Promise<void> {
   git(root, ["init", "-q", "-b", defaultBranch]);
-  git(root, ["config", "user.email", "adv-test@example.invalid"]);
+  git(root, ["config", "user.email", "determinus-test@example.invalid"]);
   git(root, ["config", "user.name", "ADV Test"]);
   await writeFile(join(root, "README.md"), "initial\n");
   git(root, ["add", "README.md"]);
@@ -80,7 +80,7 @@ describe("git-finalize helpers", () => {
   let tempRoot: string;
 
   beforeEach(async () => {
-    tempRoot = await createTempDir("adv-git-finalize-");
+    tempRoot = await createTempDir("determinus-git-finalize-");
   });
 
   afterEach(async () => {
@@ -553,7 +553,7 @@ describe("git-finalize helpers", () => {
   });
 
   it("classifyFinalizationRoute treats a local bare origin as direct", () => {
-    const bareRepo = mkdtempSync(join(tmpdir(), "adv-bare-origin-"));
+    const bareRepo = mkdtempSync(join(tmpdir(), "determinus-bare-origin-"));
     spawnSync("git", ["init", "--bare", "-q", "-b", "trunk", bareRepo]);
 
     const bareOrigin = classifyFinalizationRoute("/repo", "trunk", {
@@ -3931,10 +3931,10 @@ describe("git-finalize helpers", () => {
     git(seed, ["push", "origin", "trunk"]);
 
     git(tempRoot, ["clone", "-q", remote, main]);
-    git(main, ["config", "user.email", "adv-test@example.invalid"]);
+    git(main, ["config", "user.email", "determinus-test@example.invalid"]);
     git(main, ["config", "user.name", "ADV Test"]);
     git(tempRoot, ["clone", "-q", remote, advancer]);
-    git(advancer, ["config", "user.email", "adv-test@example.invalid"]);
+    git(advancer, ["config", "user.email", "determinus-test@example.invalid"]);
     git(advancer, ["config", "user.name", "ADV Test"]);
 
     // Advance the remote default branch from a separate clone so main's
@@ -3987,10 +3987,14 @@ describe("git-finalize helpers", () => {
     git(seed, ["remote", "add", "origin", remote]);
     git(seed, ["push", "origin", "trunk"]);
     git(tempRoot, ["clone", "-q", remote, main]);
-    git(main, ["config", "user.email", "adv-test@example.invalid"]);
+    git(main, ["config", "user.email", "determinus-test@example.invalid"]);
     git(main, ["config", "user.name", "ADV Test"]);
     git(tempRoot, ["clone", "-q", remote, mergeClone]);
-    git(mergeClone, ["config", "user.email", "adv-test@example.invalid"]);
+    git(mergeClone, [
+      "config",
+      "user.email",
+      "determinus-test@example.invalid",
+    ]);
     git(mergeClone, ["config", "user.name", "ADV Test"]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -4093,10 +4097,14 @@ describe("git-finalize helpers", () => {
     git(seed, ["remote", "add", "origin", remote]);
     git(seed, ["push", "origin", "trunk"]);
     git(tempRoot, ["clone", "-q", remote, main]);
-    git(main, ["config", "user.email", "adv-test@example.invalid"]);
+    git(main, ["config", "user.email", "determinus-test@example.invalid"]);
     git(main, ["config", "user.name", "ADV Test"]);
     git(tempRoot, ["clone", "-q", remote, mergeClone]);
-    git(mergeClone, ["config", "user.email", "adv-test@example.invalid"]);
+    git(mergeClone, [
+      "config",
+      "user.email",
+      "determinus-test@example.invalid",
+    ]);
     git(mergeClone, ["config", "user.name", "ADV Test"]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -4200,10 +4208,14 @@ describe("git-finalize helpers", () => {
     git(seed, ["remote", "add", "origin", remote]);
     git(seed, ["push", "origin", "trunk"]);
     git(tempRoot, ["clone", "-q", remote, main]);
-    git(main, ["config", "user.email", "adv-test@example.invalid"]);
+    git(main, ["config", "user.email", "determinus-test@example.invalid"]);
     git(main, ["config", "user.name", "ADV Test"]);
     git(tempRoot, ["clone", "-q", remote, mergeClone]);
-    git(mergeClone, ["config", "user.email", "adv-test@example.invalid"]);
+    git(mergeClone, [
+      "config",
+      "user.email",
+      "determinus-test@example.invalid",
+    ]);
     git(mergeClone, ["config", "user.name", "ADV Test"]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -4837,7 +4849,7 @@ describe("git-finalize helpers", () => {
       await mkdir(main);
       git(origin, ["init", "-q", "--bare", "-b", "trunk"]);
       git(main, ["init", "-q", "-b", "trunk"]);
-      git(main, ["config", "user.email", "adv-test@example.invalid"]);
+      git(main, ["config", "user.email", "determinus-test@example.invalid"]);
       git(main, ["config", "user.name", "ADV Test"]);
       git(main, ["remote", "add", "origin", origin]);
       await writeFile(join(main, "README.md"), "initial\n");
@@ -5734,13 +5746,13 @@ describe("auto-drive regression guards (rq-releaseFinalization02 / DONT1 / DONT3
 });
 
 // Regression guard for the command-side auto-drive: verify the new auto-drive
-// section in adv-archive.md does NOT route completion through redriveArchivedUnmergedBranch
+// section in determinus-archive.md does NOT route completion through redriveArchivedUnmergedBranch
 // (DONT3) — the correct completion path is verifyReleaseEvidenceFromMain.
-describe("adv-archive.md auto-drive (rq-releaseFinalization02 DONT3)", () => {
+describe("determinus-archive.md auto-drive (rq-releaseFinalization02 DONT3)", () => {
   it("does not mention redriveArchivedUnmergedBranch in the new auto-drive section", () => {
     // __dirname = <plugin>/src/tools/archive-helpers/. Repo root is 4 levels up.
     const repoRoot = join(__dirname, "..", "..", "..", "..");
-    const cmdPath = join(repoRoot, ".opencode/command/adv-archive.md");
+    const cmdPath = join(repoRoot, ".opencode/command/determinus-archive.md");
     const content = readFileSync(cmdPath, "utf8");
     // The auto-drive section lives inside the Phase 9.5 block. Use regex to
     // capture the section header (idempotent against header-text duplication
@@ -6024,7 +6036,7 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
   });
 
   it("SC1+SC2: end-to-end finalizeRelease on no-op fixture uses ≤1 fetch and ≤1 route classification", async () => {
-    const tempRoot = await createTempDir("adv-finalize-cache-");
+    const tempRoot = await createTempDir("determinus-finalize-cache-");
     try {
       const main = join(tempRoot, "main");
       const worktree = join(tempRoot, "wt");
@@ -6642,7 +6654,7 @@ describe("archive PR title policy end-to-end integration (AC1-AC5)", () => {
    *
    * Note: the git-finalize helper receives a resolved prTitleType string and does
    * not distinguish whether it came from change metadata or from the explicit
-   * adv_change_archive param. The phase9 command-level test
+   * determinus_change_archive param. The phase9 command-level test
    * "threads explicit prTitleType into finalizeRelease context" covers the
    * explicit-param wiring; metadata-sourced type resolution is not currently
    * implemented in change.ts (see ENGINEER_REPORT findings).

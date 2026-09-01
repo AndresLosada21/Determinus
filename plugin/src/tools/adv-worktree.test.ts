@@ -52,7 +52,7 @@ import {
   advWorktreeTools,
   discoveryGitBudgetForToolBudget,
   WORKTREE_TOOL_SAFE_TIMEOUT_MS,
-} from "./adv-worktree";
+} from "./determinus-worktree";
 import type { Store } from "../storage/store-types";
 import type { OpencodeClient } from "../utils/opencode-types";
 
@@ -91,7 +91,7 @@ describe("advWorktreeTools", () => {
     vi.useRealTimers();
   });
 
-  it("adv_worktree_create delegates to advWorktreeCreate", async () => {
+  it("determinus_worktree_create delegates to advWorktreeCreate", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -99,7 +99,7 @@ describe("advWorktreeTools", () => {
     stateMock.initStateDb.mockResolvedValue(database);
     worktreeMock.advWorktreeCreate.mockResolvedValue({ ok: true, path: "/wt" });
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk", force: true },
       store,
     );
@@ -115,7 +115,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"ok":true');
   });
 
-  it("adv_worktree_create warps the current OpenCode session when runtime context is available", async () => {
+  it("determinus_worktree_create warps the current OpenCode session when runtime context is available", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -138,7 +138,7 @@ describe("advWorktreeTools", () => {
     });
     workspaceWarpMock.warpSession.mockResolvedValue(undefined);
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -168,7 +168,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"workspaceID":"ws-123"');
   });
 
-  it("adv_worktree_create emits downgrade_reason: missing_server when runtime.serverUrl is absent", async () => {
+  it("determinus_worktree_create emits downgrade_reason: missing_server when runtime.serverUrl is absent", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -180,7 +180,7 @@ describe("advWorktreeTools", () => {
       path: "/wt",
     });
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x" },
       store,
       { sessionID: "ses-1", client: mockClient },
@@ -191,7 +191,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"kind":"missing_server"');
   });
 
-  it("adv_worktree_create emits downgrade_reason: missing_session when sessionID is unavailable", async () => {
+  it("determinus_worktree_create emits downgrade_reason: missing_session when sessionID is unavailable", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -204,7 +204,7 @@ describe("advWorktreeTools", () => {
       path: "/wt",
     });
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -218,7 +218,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("sessionID");
   });
 
-  it("adv_worktree_create emits downgrade_reason: missing_client when client is absent", async () => {
+  it("determinus_worktree_create emits downgrade_reason: missing_client when client is absent", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -230,7 +230,7 @@ describe("advWorktreeTools", () => {
       path: "/wt",
     });
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x" },
       store,
       {
@@ -244,7 +244,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"kind":"missing_client"');
   });
 
-  it("adv_worktree_create downgrades to terminal mode before endpoint probing when the workspace flag is off", async () => {
+  it("determinus_worktree_create downgrades to terminal mode before endpoint probing when the workspace flag is off", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -258,7 +258,7 @@ describe("advWorktreeTools", () => {
     });
     workspaceWarpMock.warpFlagEnabled.mockReturnValue(false);
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -275,7 +275,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"kind":"flag_disabled"');
   });
 
-  it("adv_worktree_create blocks already-warped sessions before endpoint probing", async () => {
+  it("determinus_worktree_create blocks already-warped sessions before endpoint probing", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -287,7 +287,7 @@ describe("advWorktreeTools", () => {
       workspaceID: "ws-current",
     });
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -305,7 +305,7 @@ describe("advWorktreeTools", () => {
     expect(out).not.toContain('"downgrade_reason"');
   });
 
-  it("adv_worktree_create emits downgrade_reason: lookup_failed when session lookup tuple is { ok: false }", async () => {
+  it("determinus_worktree_create emits downgrade_reason: lookup_failed when session lookup tuple is { ok: false }", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -323,7 +323,7 @@ describe("advWorktreeTools", () => {
       detail: "session not found",
     });
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -340,7 +340,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("session not found");
   });
 
-  it("adv_worktree_create emits downgrade_reason: lookup_failed (no status) on network error tuple", async () => {
+  it("determinus_worktree_create emits downgrade_reason: lookup_failed (no status) on network error tuple", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -357,7 +357,7 @@ describe("advWorktreeTools", () => {
       detail: "ECONNREFUSED 127.0.0.1:4096",
     });
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -373,7 +373,7 @@ describe("advWorktreeTools", () => {
     expect(out).not.toContain('"status"');
   });
 
-  it("adv_worktree_create emits downgrade_reason: endpoint_unreachable when workspace endpoint is unavailable", async () => {
+  it("determinus_worktree_create emits downgrade_reason: endpoint_unreachable when workspace endpoint is unavailable", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -391,7 +391,7 @@ describe("advWorktreeTools", () => {
     });
     workspaceWarpMock.workspaceAndWarpAvailable.mockResolvedValue(false);
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -411,7 +411,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("/experimental/workspace");
   });
 
-  it("adv_worktree_create emits downgrade_reason: warp_failed after post-create warp failure", async () => {
+  it("determinus_worktree_create emits downgrade_reason: warp_failed after post-create warp failure", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -434,7 +434,7 @@ describe("advWorktreeTools", () => {
     workspaceWarpMock.warpSession.mockRejectedValue(new Error("warp boom"));
     workspaceWarpMock.deleteAdvWorkspace.mockResolvedValue(undefined);
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x", base: "trunk" },
       store,
       {
@@ -454,7 +454,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("warp boom");
   });
 
-  it("adv_worktree_create reports cleanupFailed=true when orphan workspace cleanup also fails", async () => {
+  it("determinus_worktree_create reports cleanupFailed=true when orphan workspace cleanup also fails", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -479,7 +479,7 @@ describe("advWorktreeTools", () => {
       new Error("delete boom"),
     );
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x" },
       store,
       {
@@ -494,7 +494,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("warp boom");
   });
 
-  it("adv_worktree_create preserves legacy warning string alongside downgrade_reason", async () => {
+  it("determinus_worktree_create preserves legacy warning string alongside downgrade_reason", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -507,7 +507,7 @@ describe("advWorktreeTools", () => {
     });
     workspaceWarpMock.warpFlagEnabled.mockReturnValue(false);
 
-    const out = await advWorktreeTools.adv_worktree_create.execute(
+    const out = await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x" },
       store,
       {
@@ -521,7 +521,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"downgrade_reason"');
   });
 
-  it("adv_worktree_create constructs WarpDeps with directory and client", async () => {
+  it("determinus_worktree_create constructs WarpDeps with directory and client", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -543,7 +543,7 @@ describe("advWorktreeTools", () => {
     });
     workspaceWarpMock.warpSession.mockResolvedValue(undefined);
 
-    await advWorktreeTools.adv_worktree_create.execute(
+    await advWorktreeTools.determinus_worktree_create.execute(
       { branch: "change/x" },
       store,
       {
@@ -573,7 +573,7 @@ describe("advWorktreeTools", () => {
     );
   });
 
-  it("adv_worktree_delete delegates to advWorktreeDelete", async () => {
+  it("determinus_worktree_delete delegates to advWorktreeDelete", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -584,7 +584,7 @@ describe("advWorktreeTools", () => {
       branch: "change/x",
     });
 
-    const out = await advWorktreeTools.adv_worktree_delete.execute(
+    const out = await advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/x", force: false },
       store,
     );
@@ -606,7 +606,7 @@ describe("advWorktreeTools", () => {
   // AC6 / C6 regression guard: the cleanup-derived git budget must NOT leak
   // into the standalone delete path, which shares the same git helpers and
   // must keep their 30000ms default.
-  it("adv_worktree_delete does not receive the cleanup discovery git budget", async () => {
+  it("determinus_worktree_delete does not receive the cleanup discovery git budget", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -617,7 +617,7 @@ describe("advWorktreeTools", () => {
       branch: "change/x",
     });
 
-    await advWorktreeTools.adv_worktree_delete.execute(
+    await advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/x", force: false },
       store,
     );
@@ -626,7 +626,7 @@ describe("advWorktreeTools", () => {
     expect(deps.gitTimeoutMs).toBeUndefined();
   });
 
-  it("adv_worktree_cleanup forwards a discovery git budget below the safe tool budget", async () => {
+  it("determinus_worktree_cleanup forwards a discovery git budget below the safe tool budget", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -637,7 +637,7 @@ describe("advWorktreeTools", () => {
       retained: 0,
     });
 
-    await advWorktreeTools.adv_worktree_cleanup.execute(
+    await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "bounded discovery" },
       store,
     );
@@ -647,7 +647,7 @@ describe("advWorktreeTools", () => {
     expect(deps.gitTimeoutMs).toBeLessThan(WORKTREE_TOOL_SAFE_TIMEOUT_MS);
   });
 
-  it("adv_worktree_delete passes dryRun to advWorktreeDelete", async () => {
+  it("determinus_worktree_delete passes dryRun to advWorktreeDelete", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -660,7 +660,7 @@ describe("advWorktreeTools", () => {
       dryRun: true,
     });
 
-    const out = await advWorktreeTools.adv_worktree_delete.execute(
+    const out = await advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/x", force: false, dryRun: true },
       store,
     );
@@ -673,7 +673,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"dryRun":true');
   });
 
-  it("adv_worktree_delete routes target_path mutations through target store", async () => {
+  it("determinus_worktree_delete routes target_path mutations through target store", async () => {
     const database = {
       projectDir: "/target",
       projectId: "0a00e00000ec0000000000000000000000000000",
@@ -684,7 +684,7 @@ describe("advWorktreeTools", () => {
       branch: "change/x",
     });
 
-    await advWorktreeTools.adv_worktree_delete.execute(
+    await advWorktreeTools.determinus_worktree_delete.execute(
       {
         branch: "change/x",
         target_path: "/target",
@@ -722,7 +722,7 @@ describe("advWorktreeTools", () => {
     );
   });
 
-  it("adv_worktree_delete routes dry-run target reads through snapshot access without mutation trust", async () => {
+  it("determinus_worktree_delete routes dry-run target reads through snapshot access without mutation trust", async () => {
     const database = {
       projectDir: "/target",
       projectId: "0a00e00000ec0000000000000000000000000000",
@@ -734,7 +734,7 @@ describe("advWorktreeTools", () => {
       dryRun: true,
     });
 
-    await advWorktreeTools.adv_worktree_delete.execute(
+    await advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/x", dryRun: true, target_path: "/target" },
       store,
     );
@@ -748,7 +748,7 @@ describe("advWorktreeTools", () => {
     );
   });
 
-  it("adv_worktree_delete passes only the remaining target-routing budget to planning", async () => {
+  it("determinus_worktree_delete passes only the remaining target-routing budget to planning", async () => {
     const database = {
       projectDir: "/target",
       projectId: "0a00e00000ec0000000000000000000000000000",
@@ -775,7 +775,7 @@ describe("advWorktreeTools", () => {
       },
     );
 
-    await advWorktreeTools.adv_worktree_delete.execute(
+    await advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/x", target_path: "/target", dryRun: true },
       store,
     );
@@ -787,7 +787,7 @@ describe("advWorktreeTools", () => {
     expect(deps.operationTimeoutMs).toBeGreaterThan(1);
   });
 
-  it("adv_worktree_delete returns a typed target-resolution timeout and blocks a late callback", async () => {
+  it("determinus_worktree_delete returns a typed target-resolution timeout and blocks a late callback", async () => {
     vi.useFakeTimers();
     let releaseTarget!: () => void;
     let lateRoute!: Promise<unknown>;
@@ -812,7 +812,7 @@ describe("advWorktreeTools", () => {
       },
     );
 
-    const resultPromise = advWorktreeTools.adv_worktree_delete.execute(
+    const resultPromise = advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/x", target_path: "/target", dryRun: true },
       store,
     );
@@ -831,13 +831,13 @@ describe("advWorktreeTools", () => {
     expect(worktreeMock.advWorktreeDelete).not.toHaveBeenCalled();
   });
 
-  it("adv_worktree_delete rejects unconfirmed target mutation before deleting", async () => {
+  it("determinus_worktree_delete rejects unconfirmed target mutation before deleting", async () => {
     targetProjectMock.withTargetPathStore.mockRejectedValue(
       new Error("target confirmation required"),
     );
 
     await expect(
-      advWorktreeTools.adv_worktree_delete.execute(
+      advWorktreeTools.determinus_worktree_delete.execute(
         { branch: "change/x", target_path: "/target" },
         store,
       ),
@@ -846,7 +846,7 @@ describe("advWorktreeTools", () => {
     expect(worktreeMock.advWorktreeDelete).not.toHaveBeenCalled();
   });
 
-  it("adv_worktree_cleanup formats removed and retained branches", async () => {
+  it("determinus_worktree_cleanup formats removed and retained branches", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -857,7 +857,7 @@ describe("advWorktreeTools", () => {
       retained: ["change/live"],
     });
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "retry cleanup" },
       store,
       { serverUrl: new URL("http://127.0.0.1:4096"), client: mockClient },
@@ -880,7 +880,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("change/live");
   });
 
-  it("adv_worktree_cleanup passes dryRun to advWorktreeCleanup", async () => {
+  it("determinus_worktree_cleanup passes dryRun to advWorktreeCleanup", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -892,7 +892,7 @@ describe("advWorktreeTools", () => {
       dryRun: true,
     });
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "retry cleanup", dryRun: true },
       store,
     );
@@ -909,7 +909,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"dryRun":true');
   });
 
-  it("adv_worktree_cleanup drains queued entries without discovery when skipDiscovery is true", async () => {
+  it("determinus_worktree_cleanup drains queued entries without discovery when skipDiscovery is true", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -923,7 +923,7 @@ describe("advWorktreeTools", () => {
       },
     );
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "drain timed-out cleanup", skipDiscovery: true },
       store,
     );
@@ -936,7 +936,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"removed":1');
   });
 
-  it("adv_worktree_cleanup returns zeroes without discovery when the queue is empty", async () => {
+  it("determinus_worktree_cleanup returns zeroes without discovery when the queue is empty", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -950,7 +950,7 @@ describe("advWorktreeTools", () => {
       },
     );
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "drain empty queue", skipDiscovery: true },
       store,
     );
@@ -964,7 +964,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain('"retained":0');
   });
 
-  it("adv_worktree_cleanup routes target_path mutations through target store", async () => {
+  it("determinus_worktree_cleanup routes target_path mutations through target store", async () => {
     const database = {
       projectDir: "/target",
       projectId: "0a00e00000ec0000000000000000000000000000",
@@ -975,7 +975,7 @@ describe("advWorktreeTools", () => {
       retained: [],
     });
 
-    await advWorktreeTools.adv_worktree_cleanup.execute(
+    await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "retry target cleanup",
         dryRun: true,
@@ -1014,7 +1014,7 @@ describe("advWorktreeTools", () => {
   // cleanup tool returns a graceful timeout response when the underlying
   // cleanup hangs (e.g. workflow query on a poisoned workflow) so it
   // doesn't exceed the SDK's 10s tool-execution timeout.
-  it("adv_worktree_cleanup returns a timeout response instead of hanging", async () => {
+  it("determinus_worktree_cleanup returns a timeout response instead of hanging", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -1024,7 +1024,7 @@ describe("advWorktreeTools", () => {
       () => new Promise(() => {}),
     );
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "retry cleanup", timeoutMs: 25 },
       store,
     );
@@ -1046,7 +1046,7 @@ describe("advWorktreeTools", () => {
       () => new Promise(() => {}),
     );
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "clamped cleanup", timeoutMs: 60_000 },
       store,
     );
@@ -1054,7 +1054,9 @@ describe("advWorktreeTools", () => {
     const parsed = JSON.parse(out);
     expect(parsed.timedOut).toBe(true);
     expect(parsed.remediation).not.toContain("larger timeoutMs");
-    expect(parsed.remediation).toMatch(/skipDiscovery|adv_worktree_triage/);
+    expect(parsed.remediation).toMatch(
+      /skipDiscovery|determinus_worktree_triage/,
+    );
   }, 50_000);
 
   // AC2 — with no clamp, offering a larger timeoutMs is still reachable.
@@ -1068,7 +1070,7 @@ describe("advWorktreeTools", () => {
       () => new Promise(() => {}),
     );
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "unclamped cleanup", timeoutMs: 25 },
       store,
     );
@@ -1078,9 +1080,9 @@ describe("advWorktreeTools", () => {
     expect(parsed.remediation).toContain("larger timeoutMs");
   });
 
-  // AC3 — no poison assertion and no unconditional adv_doctor referral,
+  // AC3 — no poison assertion and no unconditional determinus_doctor referral,
   // because no poison detection runs anywhere on the cleanup path.
-  it("asserts no poisoned workflow and does not refer to adv_doctor on timeout", async () => {
+  it("asserts no poisoned workflow and does not refer to determinus_doctor on timeout", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -1091,15 +1093,15 @@ describe("advWorktreeTools", () => {
     );
 
     for (const timeoutMs of [25, 60_000]) {
-      const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+      const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
         { reason: "no poison guess", timeoutMs },
         store,
       );
       const parsed = JSON.parse(out);
       expect(parsed.error).not.toMatch(/poison/i);
-      expect(parsed.error).not.toContain("adv_doctor");
+      expect(parsed.error).not.toContain("determinus_doctor");
       expect(parsed.remediation).not.toMatch(/poison/i);
-      expect(parsed.remediation).not.toContain("adv_doctor");
+      expect(parsed.remediation).not.toContain("determinus_doctor");
     }
   }, 50_000);
 
@@ -1120,7 +1122,7 @@ describe("advWorktreeTools", () => {
       },
     );
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "discovery timeout", timeoutMs: 25 },
       store,
     );
@@ -1148,7 +1150,7 @@ describe("advWorktreeTools", () => {
       },
     );
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "drain timeout", timeoutMs: 25 },
       store,
     );
@@ -1177,13 +1179,13 @@ describe("advWorktreeTools", () => {
   });
 
   it("exports WORKTREE_TOOL_SAFE_TIMEOUT_MS = 45000", async () => {
-    // Will fail until the constant is exported from adv-worktree
-    const mod = await import("./adv-worktree");
+    // Will fail until the constant is exported from determinus-worktree
+    const mod = await import("./determinus-worktree");
     expect(mod.WORKTREE_TOOL_SAFE_TIMEOUT_MS).toBe(45_000);
   });
 
   // rq-worktreeBoundedCleanup02 AC2: oversize timeoutMs is clamped to safe budget
-  it("adv_worktree_cleanup clamps oversize timeoutMs to safe budget and reports effectiveTimeoutMs", async () => {
+  it("determinus_worktree_cleanup clamps oversize timeoutMs to safe budget and reports effectiveTimeoutMs", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -1194,7 +1196,7 @@ describe("advWorktreeTools", () => {
       retained: 0,
     });
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "test clamp", timeoutMs: 60_000 },
       store,
     );
@@ -1206,7 +1208,7 @@ describe("advWorktreeTools", () => {
   });
 
   // rq-worktreeBoundedCleanup02 AC4: default timeout is the safe budget (45000ms)
-  it("adv_worktree_cleanup uses safe budget default when no timeoutMs provided", async () => {
+  it("determinus_worktree_cleanup uses safe budget default when no timeoutMs provided", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -1217,7 +1219,7 @@ describe("advWorktreeTools", () => {
       retained: 0,
     });
 
-    const out = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const out = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "default budget" },
       store,
     );
@@ -1227,7 +1229,7 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("effectiveTimeoutMs");
   });
 
-  it("adv_worktree_cleanup passes an internal cleanup item timeout below the wrapper budget", async () => {
+  it("determinus_worktree_cleanup passes an internal cleanup item timeout below the wrapper budget", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -1238,7 +1240,7 @@ describe("advWorktreeTools", () => {
       retained: 1,
     });
 
-    await advWorktreeTools.adv_worktree_cleanup.execute(
+    await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "bounded internal cleanup" },
       store,
     );
@@ -1256,7 +1258,7 @@ describe("advWorktreeTools", () => {
   });
 
   // rq-worktreeBoundedCleanup02 AC1: delete tool also uses safe budget
-  it("adv_worktree_delete returns a timeout response instead of hanging", async () => {
+  it("determinus_worktree_delete returns a timeout response instead of hanging", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -1283,7 +1285,7 @@ describe("advWorktreeTools", () => {
 
     // The delete tool hardcodes the safe budget (45s) internally with no
     // caller override, so the timeout path genuinely waits it out.
-    const out = await advWorktreeTools.adv_worktree_delete.execute(
+    const out = await advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/test-timeout" },
       store,
     );
@@ -1293,13 +1295,13 @@ describe("advWorktreeTools", () => {
     expect(out).toContain("effectiveTimeoutMs");
   }, 50_000);
 
-  it("adv_worktree_triage delegates to triageWorktrees", async () => {
+  it("determinus_worktree_triage delegates to triageWorktrees", async () => {
     triageMock.triageWorktrees.mockResolvedValue({
       orphans: [{ class: "stale_head", branch: "change/x" }],
       total: 1,
     });
 
-    const out = await advWorktreeTools.adv_worktree_triage.execute(
+    const out = await advWorktreeTools.determinus_worktree_triage.execute(
       { projectRoot: "/override" },
       store,
     );
@@ -1328,7 +1330,10 @@ describe("advWorktreeTools", () => {
       omitted: [{ scope: "dirty_uncommitted_work", reason: "budget" }],
     });
 
-    const out = await advWorktreeTools.adv_worktree_triage.execute({}, store);
+    const out = await advWorktreeTools.determinus_worktree_triage.execute(
+      {},
+      store,
+    );
     const parsed = JSON.parse(out);
 
     expect(parsed).toMatchObject({
@@ -1346,7 +1351,7 @@ describe("advWorktreeTools", () => {
   // setTimeout sentinel, not a rejection, so there is no error object to
   // classify. rq-worktreePoisonVisibility01 forbids naming poisoned history
   // without error-class plus structured evidence.
-  it("adv_worktree_delete does not assert a poisoned workflow or refer to adv_doctor on timeout", async () => {
+  it("determinus_worktree_delete does not assert a poisoned workflow or refer to determinus_doctor on timeout", async () => {
     const database = {
       projectDir: "/repo",
       projectId: "0000000000000000000000000000000000000000",
@@ -1371,7 +1376,7 @@ describe("advWorktreeTools", () => {
         }),
     );
 
-    const out = await advWorktreeTools.adv_worktree_delete.execute(
+    const out = await advWorktreeTools.determinus_worktree_delete.execute(
       { branch: "change/x", force: false },
       store,
     );
@@ -1379,8 +1384,8 @@ describe("advWorktreeTools", () => {
     const parsed = JSON.parse(out);
     expect(parsed.timedOut).toBe(true);
     expect(parsed.error).not.toMatch(/poison/i);
-    expect(parsed.error).not.toContain("adv_doctor");
+    expect(parsed.error).not.toContain("determinus_doctor");
     expect(parsed.remediation).not.toMatch(/poison/i);
-    expect(parsed.remediation).not.toContain("adv_doctor");
+    expect(parsed.remediation).not.toContain("determinus_doctor");
   }, 50_000);
 });

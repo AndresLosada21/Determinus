@@ -49,7 +49,7 @@ describe("verifyBranchIntegration (T29)", () => {
   });
 
   it("change closed (terminal, non-archived) → ok: true", async () => {
-    // Closed is a terminal status produced by adv_change_close
+    // Closed is a terminal status produced by determinus_change_close
     // (cancelled, superseded, not_planned). The integration gate treats
     // both archived and closed as "nothing left to integrate" so worktree
     // delete can proceed when merged + clean.
@@ -160,7 +160,7 @@ describe("verifyBranchIntegration (T29)", () => {
       reason: "change_not_terminal",
       detail:
         'Change "change-abc123" has status "active" (expected "archived" or "closed").',
-      hint: "Archive or close the change via /adv-archive or /adv-cancel before deleting its worktree.",
+      hint: "Archive or close the change via /determinus-archive or /determinus-cancel before deleting its worktree.",
     });
   });
 
@@ -221,8 +221,8 @@ describe("verifyBranchIntegration (T29)", () => {
 
   it("merged branches with worktree prefix (+ ) are normalized", async () => {
     // git prefixes a branch with `+ ` when it is checked out in another
-    // worktree (the canonical case for ADV-managed worktrees at delete time).
-    // Without the `+` normalization, adv_worktree_delete falsely reports
+    // worktree (the canonical case for determinus-managed worktrees at delete time).
+    // Without the `+` normalization, determinus_worktree_delete falsely reports
     // branch_not_merged even after a verified ff-merge.
     const result = await verifyBranchIntegration(
       "feature/test",

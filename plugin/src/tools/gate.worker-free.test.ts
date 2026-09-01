@@ -1,5 +1,5 @@
 /**
- * adv_gate_status worker-free durable projection tests (AC1, AC2).
+ * determinus_gate_status worker-free durable projection tests (AC1, AC2).
  *
  * Verifies that gate status reads from the persisted change projection and
  * never issues workflow queries, while surfacing workflow-only fields as
@@ -72,7 +72,7 @@ function createMockStore(
   } as unknown as Store;
 }
 
-describe("adv_gate_status worker-free projection reads", () => {
+describe("determinus_gate_status worker-free projection reads", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -93,7 +93,7 @@ describe("adv_gate_status worker-free projection reads", () => {
     } as import("../types").Gates;
     const store = createMockStore({ gates });
 
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );
@@ -116,7 +116,7 @@ describe("adv_gate_status worker-free projection reads", () => {
     } as import("../types").Gates;
     const store = createMockStore({ gates: diskGates });
 
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );
@@ -138,7 +138,7 @@ describe("adv_gate_status worker-free projection reads", () => {
     } as import("../types").Gates;
     const store = createMockStore({ gates });
 
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );

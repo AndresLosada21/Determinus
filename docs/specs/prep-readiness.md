@@ -110,7 +110,7 @@ The validator must scan requirement titles and bodies in spec deltas for languag
 
 **ID:** `rq-PR009frontendApplicability` | **Priority:** **[MUST]**
 
-Prep readiness MUST validate frontend applicability using structured task metadata before planning completes. When a change or task has structured frontend/design applicability, each relevant non-cancelled task MUST record metadata.frontend as `"true"` for frontend/UI implementation scope or `"false"` with a non-empty metadata.frontend_rationale for non-frontend work. Filename, title, and path heuristics MAY emit warnings that suggest missing frontend metadata, but MUST NOT be the sole authority for hard-blocking planning. This check preserves adv-designer routing correctness without weakening backend boundaries.
+Prep readiness MUST validate frontend applicability using structured task metadata before planning completes. When a change or task has structured frontend/design applicability, each relevant non-cancelled task MUST record metadata.frontend as `"true"` for frontend/UI implementation scope or `"false"` with a non-empty metadata.frontend_rationale for non-frontend work. Filename, title, and path heuristics MAY emit warnings that suggest missing frontend metadata, but MUST NOT be the sole authority for hard-blocking planning. This check preserves determinus-designer routing correctness without weakening backend boundaries.
 
 **Tags:** `prep`, `frontend`, `metadata`, `routing`, `structural-correctness`
 
@@ -455,7 +455,7 @@ Tasks that have one of target_repo or target_path set but not both have incomple
 
 **ID:** `rq-PR005gat` | **Priority:** **[MUST]**
 
-The adv_gate_complete tool for the prep gate must run all prep-readiness checks before marking the gate done. Must-level failures block gate completion; warnings produce advisory output but do not block.
+The determinus_gate_complete tool for the prep gate must run all prep-readiness checks before marking the gate done. Must-level failures block gate completion; warnings produce advisory output but do not block.
 
 **Tags:** `prep`, `gate`, `enforcement`
 
@@ -467,7 +467,7 @@ The adv_gate_complete tool for the prep gate must run all prep-readiness checks 
 
 - A change with at least one prep-readiness must-failure
 
-**When:** adv_gate_complete with gateId 'planning' is called
+**When:** determinus_gate_complete with gateId 'planning' is called
 
 **Then:**
 
@@ -481,7 +481,7 @@ The adv_gate_complete tool for the prep gate must run all prep-readiness checks 
 
 - A change with no must-failures but one or more warnings
 
-**When:** adv_gate_complete with gateId 'planning' is called
+**When:** determinus_gate_complete with gateId 'planning' is called
 
 **Then:**
 
@@ -494,7 +494,7 @@ The adv_gate_complete tool for the prep gate must run all prep-readiness checks 
 
 - A change that passes all prep-readiness checks with no failures and no warnings
 
-**When:** adv_gate_complete with gateId 'planning' is called
+**When:** determinus_gate_complete with gateId 'planning' is called
 
 **Then:**
 
@@ -505,7 +505,7 @@ The adv_gate_complete tool for the prep gate must run all prep-readiness checks 
 
 **Given:**
 
-- adv_gate_complete called for proposal, discovery, design, execution, acceptance, or release
+- determinus_gate_complete called for proposal, discovery, design, execution, acceptance, or release
 
 **When:** The gate is completed
 

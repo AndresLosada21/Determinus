@@ -6,7 +6,7 @@
  *
  * Resilience contract: if createStore() or store.init() throws, the plugin
  * MUST still return a usable Hooks object. Otherwise OpenCode drops every
- * adv_* tool from the session silently and agents see "tools unavailable"
+ * determinus_* tool from the session silently and agents see "tools unavailable"
  * with no diagnostic path. Callers register a degraded tool map (via
  * createDegradedToolMap) when initError is non-null.
  */
@@ -137,7 +137,7 @@ export async function tryInitStore(
     });
 
     logger.info(
-      `Plugin init failed: ${initError.message} — adv_* tools are stubbed and will report ADV_PLUGIN_INIT_FAILED until the cause is fixed.`,
+      `Plugin init failed: ${initError.message} — determinus_* tools are stubbed and will report determinus_PLUGIN_INIT_FAILED until the cause is fixed.`,
     );
 
     return { store: null, initError };

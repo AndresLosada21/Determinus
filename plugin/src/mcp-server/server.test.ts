@@ -2,7 +2,7 @@
  * ADV MCP server end-to-end tests.
  *
  * Uses the MCP SDK Client + InMemoryTransport to verify the skeleton read
- * surface: serverInfo, tools/list, adv_handshake, project_context parity, and
+ * surface: serverInfo, tools/list, determinus_handshake, project_context parity, and
  * AC6 mutation-shaped arg rejection.
  */
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
@@ -11,7 +11,10 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { writeFile } from "fs/promises";
 import { join } from "path";
 import { startServer } from "./index.js";
-import { HANDSHAKE_TIER4_TOOLS, ADV_CONTRACT_VERSION } from "./handshake.js";
+import {
+  HANDSHAKE_TIER4_TOOLS,
+  determinus_CONTRACT_VERSION,
+} from "./handshake.js";
 import { executeTier4Tool } from "./tools/index.js";
 import { createTier4ToolMap } from "./tier4-tool-map.js";
 import { createDiskStore } from "../storage/store-disk.js";
@@ -35,7 +38,7 @@ async function connectToServer(): Promise<{
   await clientTransport.start();
   await serverTransport.start();
 
-  const client = new Client({ name: "adv-mcp-test", version: "1.0.0" });
+  const client = new Client({ name: "determinus-mcp-test", version: "1.0.0" });
   await client.connect(clientTransport);
   return { client, clientTransport, serverTransport };
 }
@@ -64,7 +67,7 @@ describe("adv mcp server", () => {
 
   beforeEach(async () => {
     originalCwd = process.cwd();
-    tempDir = await createTempDir("adv-mcp-server-");
+    tempDir = await createTempDir("determinus-mcp-server-");
     await createTestProject(tempDir, {
       withSpecs: false,
       withChanges: false,
@@ -101,7 +104,7 @@ describe("adv mcp server", () => {
     const tools = await client.listTools();
     expect(tools.tools.map((t) => t.name).sort()).toEqual(
       [
-        "adv_handshake",
+        "determinus_handshake",
         "project_context",
         "status",
         "spec",
@@ -140,19 +143,19 @@ describe("adv mcp server", () => {
     await closeClient(client, clientTransport, serverTransport);
   });
 
-  it("adv_handshake returns tier4 tool list and contract version", async () => {
+  it("determinus_handshake returns tier4 tool list and contract version", async () => {
     const { client, clientTransport, serverTransport } =
       await connectToServer();
 
     const result = await client.callTool({
-      name: "adv_handshake",
+      name: "determinus_handshake",
       arguments: {},
     });
     const text = extractText(result);
     const parsed = JSON.parse(text);
     expect(parsed).toEqual({
       tier4_tools: HANDSHAKE_TIER4_TOOLS,
-      adv_contract_version: ADV_CONTRACT_VERSION,
+      determinus_contract_version: determinus_CONTRACT_VERSION,
     });
 
     await closeClient(client, clientTransport, serverTransport);
@@ -196,10 +199,8 @@ describe("adv mcp server", () => {
 
     const store = await createDiskStore(tempDir);
     try {
-      const directResult = await projectTools.adv_project_context.execute(
-        {},
-        store,
-      );
+      const directResult =
+        await projectTools.determinus_project_context.execute({}, store);
       expect(mcpText).toBe(directResult);
     } finally {
       store.close();
@@ -268,11 +269,11 @@ describe("adv mcp server", () => {
 
     const result = await client.callTool({
       name: "tool_describe",
-      arguments: { name: "adv_project_context" },
+      arguments: { name: "determinus_project_context" },
     });
     const text = extractText(result);
     const parsed = JSON.parse(text);
-    expect(parsed.name).toBe("adv_project_context");
+    expect(parsed.name).toBe("determinus_project_context");
     expect(parsed.description).toBeDefined();
 
     await closeClient(client, clientTransport, serverTransport);
@@ -300,7 +301,7 @@ describe("executeTier4Tool project_context dispatch", () => {
 
   beforeEach(async () => {
     originalCwd = process.cwd();
-    tempDir = await createTempDir("adv-mcp-dispatch-");
+    tempDir = await createTempDir("determinus-mcp-dispatch-");
     await createTestProject(tempDir, {
       withSpecs: false,
       withChanges: false,
@@ -330,10 +331,8 @@ describe("executeTier4Tool project_context dispatch", () => {
 
     const store = await createDiskStore(tempDir);
     try {
-      const directResult = await projectTools.adv_project_context.execute(
-        {},
-        store,
-      );
+      const directResult =
+        await projectTools.determinus_project_context.execute({}, store);
       expect(text).toBe(directResult);
     } finally {
       store.close();

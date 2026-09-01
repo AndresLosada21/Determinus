@@ -19,8 +19,8 @@ import { fileURLToPath, pathToFileURL } from "url";
 import { AGENT_TOOL_POLICY } from "../src/tool-role-policy";
 
 export const ADV_TOOLS_BLOCK_START =
-  "  # >>> ADV-GENERATED adv_* tools (source: AGENT_TOOL_POLICY) >>>";
-export const ADV_TOOLS_BLOCK_END = "  # <<< ADV-GENERATED adv_* tools <<<";
+  "  # >>> determinus-GENERATED determinus_* tools (source: AGENT_TOOL_POLICY) >>>";
+export const ADV_TOOLS_BLOCK_END = "  # <<< determinus-GENERATED determinus_* tools <<<";
 
 /**
  * Append this note to the hand-owned invoke-routing paragraph that follows
@@ -29,9 +29,9 @@ export const ADV_TOOLS_BLOCK_END = "  # <<< ADV-GENERATED adv_* tools <<<";
  * manifest denies `adv_*`.
  */
 const TIER_4_INVOKE_ROUTING_NOTE =
-  " Tier-4 reads (the catalog returned by `adv_tool_catalog`) also via tools.adv.* Code Mode; invoke-only schemas are available through the invoke facade.";
+  " Tier-4 reads (the catalog returned by `determinus_tool_catalog`) also via tools.determinus.* Code Mode; invoke-only schemas are available through the invoke facade.";
 
-const ADV_TOOL_ENTRY_RE = /^\s+(adv_[A-Za-z0-9_*]+):\s*(true|false)\s*$/;
+const ADV_TOOL_ENTRY_RE = /^\s+((?:adv|determinus)_[A-Za-z0-9_*]+):\s*(true|false)\s*$/;
 
 function isAdvEntry(line: string): boolean {
   return ADV_TOOL_ENTRY_RE.test(line);
@@ -53,7 +53,7 @@ export function generateAdvToolsBlock(agent: string): string {
   const lines: string[] = [];
 
   if (policy.denyWildcard) {
-    lines.push("  adv_*: false");
+    lines.push("  determinus_*: false");
   }
 
   const allowed = sortedUnique(policy.allowed);
@@ -238,7 +238,7 @@ export function generateManifestContent(
   const last = findLastAdvEntryLine(lines);
   if (first === undefined || last === undefined) {
     throw new Error(
-      `Cannot locate adv_* entry region in manifest for "${agent}"; markers are missing and no adv_* entries were found`,
+      `Cannot locate determinus_* entry region in manifest for "${agent}"; markers are missing and no adv_* entries were found`,
     );
   }
 

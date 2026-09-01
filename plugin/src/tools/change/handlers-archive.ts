@@ -1403,7 +1403,7 @@ export const advChangeArchiveHandler = async (
             error: message,
             recoverable: false,
             remediation:
-              "Resolve the git error, then re-run adv_change_archive.",
+              "Resolve the git error, then re-run determinus_change_archive.",
           },
           ...openOpsObligationsPayload,
         });
@@ -1753,7 +1753,7 @@ export const advArchivePurgeHandler = async (
 };
 
 export const archiveChangeTools = {
-  adv_change_archive: {
+  determinus_change_archive: {
     description: "Archive a completed change",
     args: {
       changeId: z.string(),

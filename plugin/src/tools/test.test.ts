@@ -1,7 +1,7 @@
 /**
- * Test Tool — Simplified adv_run_test Tests
+ * Test Tool — Simplified determinus_run_test Tests
  *
- * Verifies that adv_run_test runs shell commands and returns results
+ * Verifies that determinus_run_test runs shell commands and returns results
  * without workflow involvement.
  */
 
@@ -13,7 +13,7 @@ import { shapeCommandOutput, testTools } from "./test";
 import type { Store } from "../storage/store";
 
 function createMockStore(): Store {
-  const changes = join(tmpdir(), "adv-run-test-changes");
+  const changes = join(tmpdir(), "determinus-run-test-changes");
   mkdirSync(join(changes, "change-a"), { recursive: true });
   writeFileSync(
     join(changes, "change-a", "change.json"),
@@ -75,7 +75,7 @@ function createMockStore(): Store {
   } as unknown as Store;
 }
 
-describe("test tools — simplified adv_run_test", () => {
+describe("test tools — simplified determinus_run_test", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -83,7 +83,7 @@ describe("test tools — simplified adv_run_test", () => {
   test("runs command and returns result with optional descriptive phase", async () => {
     const store = createMockStore();
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "echo test output",
@@ -102,7 +102,7 @@ describe("test tools — simplified adv_run_test", () => {
   });
 
   test("declares optional red/green/verify phase in the tool schema", () => {
-    const phaseSchema = testTools.adv_run_test.args.phase;
+    const phaseSchema = testTools.determinus_run_test.args.phase;
 
     expect(phaseSchema).toBeDefined();
     expect(phaseSchema?.safeParse("red").success).toBe(true);
@@ -114,7 +114,7 @@ describe("test tools — simplified adv_run_test", () => {
   test("returns typed result contract for passing command", async () => {
     const store = createMockStore();
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "printf typed-pass",
@@ -134,7 +134,7 @@ describe("test tools — simplified adv_run_test", () => {
     expect(parsed.outputTruncated).toBe(false);
     expect(parsed.executionMode).toBe("shell");
     expect(parsed.evidence).toMatchObject({
-      schema_version: "adv_run_test.v1",
+      schema_version: "determinus_run_test.v1",
       command: "printf typed-pass",
       exitCode: 0,
       passed: true,
@@ -153,7 +153,7 @@ describe("test tools — simplified adv_run_test", () => {
       changeId: "change-a",
     } as Awaited<ReturnType<Store["tasks"]["show"]>>);
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "printf recorded",
@@ -175,9 +175,9 @@ describe("test tools — simplified adv_run_test", () => {
     vi.mocked(store.tasks.show).mockResolvedValue({
       changeId: "change-a",
     } as Awaited<ReturnType<Store["tasks"]["show"]>>);
-    store.paths.changes = join(tmpdir(), "missing-adv-run-test-changes");
+    store.paths.changes = join(tmpdir(), "missing-determinus-run-test-changes");
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "printf command-still-succeeds",
@@ -199,7 +199,7 @@ describe("test tools — simplified adv_run_test", () => {
   test("returns typed result contract for non-zero command", async () => {
     const store = createMockStore();
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "printf typed-fail && exit 7",
@@ -215,7 +215,7 @@ describe("test tools — simplified adv_run_test", () => {
     expect(parsed.classification).toBe("failed");
     expect(parsed.exitCode).toBe(7);
     expect(parsed.evidence).toMatchObject({
-      schema_version: "adv_run_test.v1",
+      schema_version: "determinus_run_test.v1",
       command: "printf typed-fail && exit 7",
       exitCode: 7,
       passed: false,
@@ -226,7 +226,7 @@ describe("test tools — simplified adv_run_test", () => {
   test("reports retained-output truncation without hard output-limit failure", async () => {
     const store = createMockStore();
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "node -e \"console.log('x'.repeat(3000))\"",
@@ -245,7 +245,7 @@ describe("test tools — simplified adv_run_test", () => {
   });
 
   test("advises repo-local oc-test wrapper without rewriting command", async () => {
-    const root = mkdtempSync(join(tmpdir(), "adv-run-test-"));
+    const root = mkdtempSync(join(tmpdir(), "determinus-run-test-"));
     const workdir = join(root, "plugin");
     mkdirSync(join(root, "bin"), { recursive: true });
     mkdirSync(workdir, { recursive: true });
@@ -253,7 +253,7 @@ describe("test tools — simplified adv_run_test", () => {
 
     try {
       const store = createMockStore();
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "printf direct-command; : pnpm test",
@@ -281,7 +281,7 @@ describe("test tools — simplified adv_run_test", () => {
   });
 
   test("does not advise when caller already uses repo-local oc-test wrapper", async () => {
-    const root = mkdtempSync(join(tmpdir(), "adv-run-test-"));
+    const root = mkdtempSync(join(tmpdir(), "determinus-run-test-"));
     const workdir = join(root, "plugin");
     mkdirSync(join(root, "bin"), { recursive: true });
     mkdirSync(workdir, { recursive: true });
@@ -293,7 +293,7 @@ describe("test tools — simplified adv_run_test", () => {
 
     try {
       const store = createMockStore();
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "../bin/oc-test targeted -- --help",
@@ -309,12 +309,12 @@ describe("test tools — simplified adv_run_test", () => {
     }
   });
 
-  test("records adv_run_test substep telemetry phases", async () => {
+  test("records determinus_run_test substep telemetry phases", async () => {
     const { resetMetrics, getMetrics } = await import("../utils/metrics");
     resetMetrics();
     const store = createMockStore();
 
-    await testTools.adv_run_test.execute(
+    await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "echo telemetry sample",
@@ -324,7 +324,7 @@ describe("test tools — simplified adv_run_test", () => {
     );
 
     const phases = getMetrics().recent_phase_durations.filter(
-      (p) => p.tool === "adv_run_test",
+      (p) => p.tool === "determinus_run_test",
     );
     const names = new Set(phases.map((p) => p.phase));
     expect(names.has("taskLookup")).toBe(true);
@@ -340,7 +340,7 @@ describe("test tools — simplified adv_run_test", () => {
     resetMetrics();
     const store = createMockStore();
 
-    await testTools.adv_run_test.execute(
+    await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "exit 2",
@@ -350,7 +350,7 @@ describe("test tools — simplified adv_run_test", () => {
     );
 
     const commandPhase = getMetrics()
-      .recent_phase_durations.filter((p) => p.tool === "adv_run_test")
+      .recent_phase_durations.filter((p) => p.tool === "determinus_run_test")
       .find((p) => p.phase === "commandExecution");
     expect(commandPhase).toBeDefined();
     expect(commandPhase?.outcome).toBe("error");
@@ -359,7 +359,7 @@ describe("test tools — simplified adv_run_test", () => {
   test("returns error output when command fails", async () => {
     const store = createMockStore();
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "echo error message >&2 && exit 1",
@@ -377,7 +377,7 @@ describe("test tools — simplified adv_run_test", () => {
     const store = createMockStore();
     vi.mocked(store.tasks.get).mockResolvedValue(null);
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-missing",
         command: "echo test",
@@ -393,7 +393,7 @@ describe("test tools — simplified adv_run_test", () => {
   test("truncates long output", async () => {
     const store = createMockStore();
 
-    const result = await testTools.adv_run_test.execute(
+    const result = await testTools.determinus_run_test.execute(
       {
         taskId: "tk-abc",
         command: "node -e \"console.log('x'.repeat(3000))\"",
@@ -443,9 +443,9 @@ describe("test tools — simplified adv_run_test", () => {
     expect(shaped).toContain("... (truncated)");
   });
 
-  test("preserves adv_run_test diagnostic prefix when shaping output", () => {
+  test("preserves determinus_run_test diagnostic prefix when shaping output", () => {
     const diagnostic =
-      "[adv_run_test] Command timed out after 30000ms: pnpm test";
+      "[determinus_run_test] Command timed out after 30000ms: pnpm test";
     const noisyBody = Array.from(
       { length: 260 },
       (_, index) => `PASS src/noise-${index}.test.ts`,
@@ -469,7 +469,7 @@ describe("test tools — simplified adv_run_test", () => {
     test("preserves pipe and metacharacter semantics through shell", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "printf 'a\\nb\\nc\\n' | wc -l",
@@ -487,7 +487,7 @@ describe("test tools — simplified adv_run_test", () => {
     test("captures stdout, stderr, and redirect semantics through shell", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command:
@@ -508,7 +508,7 @@ describe("test tools — simplified adv_run_test", () => {
       const store = createMockStore();
       vi.mocked(store.tasks.get).mockResolvedValue(null);
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-missing",
           command: "node -e 'process.stdout.write(\"SHOULD_NOT_RUN\")'",
@@ -526,7 +526,7 @@ describe("test tools — simplified adv_run_test", () => {
     test("classifies SIGTERM-induced timeouts", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "sleep 5",
@@ -541,14 +541,16 @@ describe("test tools — simplified adv_run_test", () => {
       expect(parsed.passed).toBe(false);
       expect(parsed.classification).toBe("timed_out");
       expect(parsed.maxBufferExceeded).toBe(false);
-      expect(parsed.output).toContain("[adv_run_test] Command timed out");
+      expect(parsed.output).toContain(
+        "[determinus_run_test] Command timed out",
+      );
       expect(parsed.timeoutMs).toBe(500);
     });
 
     test("classifies max-buffer exceedance", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "node -e \"console.log('x'.repeat(2048))\"",
@@ -565,7 +567,7 @@ describe("test tools — simplified adv_run_test", () => {
       expect(parsed.outputBytesSeen).toBeGreaterThan(2000);
       expect(parsed.timedOut).toBe(false);
       expect(parsed.output).toContain(
-        "[adv_run_test] Command exceeded maxBuffer",
+        "[determinus_run_test] Command exceeded maxBuffer",
       );
     });
 
@@ -573,7 +575,7 @@ describe("test tools — simplified adv_run_test", () => {
       const store = createMockStore();
 
       const first = JSON.parse(
-        await testTools.adv_run_test.execute(
+        await testTools.determinus_run_test.execute(
           {
             taskId: "tk-abc",
             command: "node -e \"console.log('cache-bust-' + Date.now())\"",
@@ -587,7 +589,7 @@ describe("test tools — simplified adv_run_test", () => {
       await new Promise((r) => setTimeout(r, 5));
 
       const second = JSON.parse(
-        await testTools.adv_run_test.execute(
+        await testTools.determinus_run_test.execute(
           {
             taskId: "tk-abc",
             command: "node -e \"console.log('cache-bust-' + Date.now())\"",
@@ -604,7 +606,7 @@ describe("test tools — simplified adv_run_test", () => {
     test("non-zero exit reports exitCode without claiming timeout", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "exit 7",
@@ -625,7 +627,7 @@ describe("test tools — simplified adv_run_test", () => {
     test("classifies failing pipe stage as failed (pipefail)", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "false | true",
@@ -644,7 +646,7 @@ describe("test tools — simplified adv_run_test", () => {
     test("preserves masking semantics with pipefail and || true", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "false | true || true",
@@ -663,7 +665,7 @@ describe("test tools — simplified adv_run_test", () => {
     test("preserves quoted and semicolon command semantics through bash", async () => {
       const store = createMockStore();
 
-      const result = await testTools.adv_run_test.execute(
+      const result = await testTools.determinus_run_test.execute(
         {
           taskId: "tk-abc",
           command: "printf 'a;b\\nc'; echo done",

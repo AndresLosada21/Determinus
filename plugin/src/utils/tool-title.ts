@@ -37,63 +37,77 @@ const STATIC_TITLES: Record<
   string,
   { title: string; titleKind: AdvToolTitleKind }
 > = {
-  adv_change_list: { title: "List changes", titleKind: "read" },
-  adv_wip_state: { title: "Show WIP state", titleKind: "read" },
-  adv_status: { title: "Show ADV status", titleKind: "read" },
-  adv_project_context: { title: "Show project context", titleKind: "read" },
-  adv_task_ready: { title: "Show ready tasks", titleKind: "read" },
-  adv_worktree_triage: { title: "Triage worktrees", titleKind: "read" },
-  adv_worktree_cleanup: { title: "Clean up worktrees", titleKind: "operator" },
-  adv_tool_catalog: { title: "Catalog ADV tools", titleKind: "read" },
-  adv_tool_describe: { title: "Describe ADV tool", titleKind: "read" },
-  adv_tool_invoke: {
+  determinus_change_list: { title: "List changes", titleKind: "read" },
+  determinus_wip_state: { title: "Show WIP state", titleKind: "read" },
+  determinus_status: { title: "Show ADV status", titleKind: "read" },
+  determinus_project_context: {
+    title: "Show project context",
+    titleKind: "read",
+  },
+  determinus_task_ready: { title: "Show ready tasks", titleKind: "read" },
+  determinus_worktree_triage: { title: "Triage worktrees", titleKind: "read" },
+  determinus_worktree_cleanup: {
+    title: "Clean up worktrees",
+    titleKind: "operator",
+  },
+  determinus_tool_catalog: { title: "Catalog ADV tools", titleKind: "read" },
+  determinus_tool_describe: { title: "Describe ADV tool", titleKind: "read" },
+  determinus_tool_invoke: {
     title: "Invoke ADV tool",
     titleKind: "execute",
   },
 };
 
 const TITLE_BUILDERS: Record<string, TitleBuilder> = {
-  adv_spec: (args) =>
+  determinus_spec: (args) =>
     byAction(args, "Manage specs", {
       list: "List specs",
       show: `Show spec${suffix(args, "capability")}`,
       search: `Search specs${suffix(args, "query")}`,
     }),
-  adv_change_show: (args) => read(`Show change${suffix(args, "changeId")}`),
-  adv_change_create: (args) => write(`Create change${suffix(args, "summary")}`),
-  adv_change_update: (args) =>
+  determinus_change_show: (args) =>
+    read(`Show change${suffix(args, "changeId")}`),
+  determinus_change_create: (args) =>
+    write(`Create change${suffix(args, "summary")}`),
+  determinus_change_update: (args) =>
     write(`Update change${suffix(args, "changeId")}`),
-  adv_change_close: (args) => write(`Close change${suffix(args, "changeId")}`),
-  adv_change_archive: (args) =>
+  determinus_change_close: (args) =>
+    write(`Close change${suffix(args, "changeId")}`),
+  determinus_change_archive: (args) =>
     write(`Archive change${suffix(args, "changeId")}`),
-  adv_change_workflow_terminate: (args) =>
+  determinus_change_workflow_terminate: (args) =>
     operator(`Terminate change workflow${suffix(args, "changeId")}`),
-  adv_change_reenter: (args) =>
+  determinus_change_reenter: (args) =>
     write(`Re-enter change${suffix(args, "changeId")}`),
-  adv_ops_run_upsert: (args) =>
+  determinus_ops_run_upsert: (args) =>
     write(`Upsert ops run${suffix(args, "changeId", "runId")}`),
-  adv_ops_run_evidence_add: (args) =>
+  determinus_ops_run_evidence_add: (args) =>
     write(`Add ops run evidence${suffix(args, "changeId", "runId")}`),
-  adv_task_show: (args) => read(`Show task${suffix(args, "taskId")}`),
-  adv_task_list: (args) => read(`List tasks${suffix(args, "changeId")}`),
-  adv_task_update: (args) => write(`Update task${suffix(args, "taskId")}`),
-  adv_task_add: (args) => write(`Add task${suffix(args, "changeId")}`),
-  adv_task_cancel: () => write("Cancel tasks"),
-  adv_subagent_report_submit: () => write("Submit subagent report"),
-  adv_wisdom_add: (args) => write(`Add wisdom${suffix(args, "changeId")}`),
-  adv_wisdom_list: (args) => read(`List wisdom${suffix(args, "changeId")}`),
-  adv_gate_status: (args) =>
+  determinus_task_show: (args) => read(`Show task${suffix(args, "taskId")}`),
+  determinus_task_list: (args) => read(`List tasks${suffix(args, "changeId")}`),
+  determinus_task_update: (args) =>
+    write(`Update task${suffix(args, "taskId")}`),
+  determinus_task_add: (args) => write(`Add task${suffix(args, "changeId")}`),
+  determinus_task_cancel: () => write("Cancel tasks"),
+  determinus_subagent_report_submit: () => write("Submit subagent report"),
+  determinus_wisdom_add: (args) =>
+    write(`Add wisdom${suffix(args, "changeId")}`),
+  determinus_wisdom_list: (args) =>
+    read(`List wisdom${suffix(args, "changeId")}`),
+  determinus_gate_status: (args) =>
     read(`Show gate status${suffix(args, "changeId")}`),
-  adv_gate_complete: (args) => write(`Complete gate${suffix(args, "gateId")}`),
-  adv_run_test: (args) => execute(`Run test${suffix(args, "command")}`),
-  adv_task_checkpoint: (args) =>
+  determinus_gate_complete: (args) =>
+    write(`Complete gate${suffix(args, "gateId")}`),
+  determinus_run_test: (args) => execute(`Run test${suffix(args, "command")}`),
+  determinus_task_checkpoint: (args) =>
     execute(`Checkpoint task${suffix(args, "taskId")}`),
-  adv_reflection_list: (args) =>
+  determinus_reflection_list: (args) =>
     read(`List reflections${suffix(args, "changeId", "target_path")}`),
-  adv_reflect: (args) => write(`Reflect on change${suffix(args, "changeId")}`),
-  adv_worktree_create: (args) =>
+  determinus_reflect: (args) =>
+    write(`Reflect on change${suffix(args, "changeId")}`),
+  determinus_worktree_create: (args) =>
     operator(`Create worktree${suffix(args, "branch")}`),
-  adv_worktree_delete: (args) =>
+  determinus_worktree_delete: (args) =>
     operator(`Delete worktree${suffix(args, "branch")}`),
 };
 
@@ -248,6 +262,6 @@ function redactSensitivePatterns(value: string): string {
 }
 
 function titleizeToolName(toolName: string): string {
-  const name = toolName.replace(/^adv_/, "").replace(/_/g, " ");
+  const name = toolName.replace(/^determinus_/, "").replace(/_/g, " ");
   return name.charAt(0).toUpperCase() + name.slice(1);
 }

@@ -9,12 +9,12 @@ import { PHASE_DIRECTIVES } from "./phase-directive-content";
 import type { PhasePlan } from "./phase-plan";
 
 export function withPhaseDirective(plan: PhasePlan): PhasePlan {
-  if (plan.kind !== "actionable" || plan.command !== "adv-review") {
+  if (plan.kind !== "actionable" || plan.command !== "determinus-review") {
     return plan;
   }
 
   return {
     ...plan,
-    directive: PHASE_DIRECTIVES["adv-review"],
+    directive: PHASE_DIRECTIVES["determinus-review"],
   };
 }

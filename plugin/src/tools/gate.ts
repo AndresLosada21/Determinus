@@ -401,7 +401,7 @@ function workflowReadinessBlockedResponse(input: {
     workflowGateStatus: input.gate.status,
     stuckReason: input.gate.stuck_reason,
     readinessBlockers: input.gate.readiness_blockers ?? [],
-    hint: "Fix the workflow readiness blockers listed above, then retry adv_gate_complete.",
+    hint: "Fix the workflow readiness blockers listed above, then retry determinus_gate_complete.",
   });
 }
 
@@ -417,7 +417,7 @@ function releaseRequiresTrunkMergeResponse(input: {
     changeId: input.changeId,
     defaultBranch: input.defaultBranch,
     unmergedCommits: input.unmergedCommits,
-    remediation: `Run /adv-archive ${input.changeId} to complete Phase 9 (merge + push + verify), then retry release gate completion.`,
+    remediation: `Run /determinus-archive ${input.changeId} to complete Phase 9 (merge + push + verify), then retry release gate completion.`,
   });
 }
 
@@ -430,7 +430,7 @@ function releaseRequiresPrHandoffResponse(input: {
     code: "RELEASE_REQUIRES_PR_HANDOFF",
     requirement: "rq-releaseFinalization01",
     changeId: input.changeId,
-    remediation: `Run /adv-archive ${input.changeId} to complete Phase 9 (push change branch + PR workflow handoff), then retry release gate completion.`,
+    remediation: `Run /determinus-archive ${input.changeId} to complete Phase 9 (push change branch + PR workflow handoff), then retry release gate completion.`,
   });
 }
 
@@ -444,7 +444,7 @@ function releaseRequiresDefaultBranchPushResponse(input: {
     code: "RELEASE_REQUIRES_DEFAULT_BRANCH_PUSH",
     requirement: "rq-releaseFinalization01",
     changeId: input.changeId,
-    remediation: `Run /adv-archive ${input.changeId} to complete Phase 9 (merge + push ${input.defaultBranch} + verify), then retry release gate completion.`,
+    remediation: `Run /determinus-archive ${input.changeId} to complete Phase 9 (merge + push ${input.defaultBranch} + verify), then retry release gate completion.`,
   });
 }
 
@@ -457,7 +457,7 @@ function releaseRequiresDurableProofResponse(input: {
     code: "RELEASE_REQUIRES_DURABLE_PROOF",
     requirement: "rq-releaseFinalization01",
     changeId: input.changeId,
-    remediation: `Run /adv-archive ${input.changeId} to record durable Phase 9 reachability evidence, then retry release gate completion.`,
+    remediation: `Run /determinus-archive ${input.changeId} to record durable Phase 9 reachability evidence, then retry release gate completion.`,
   });
 }
 
@@ -918,7 +918,7 @@ async function completeGateAndBuildResponse({
   // simply omits the `Next:` line.
   const directive = deriveDirectiveSafe(
     changeToDirectiveState({
-      projectId: change.adv_project_id ?? "unknown",
+      projectId: change.determinus_project_id ?? "unknown",
       change,
       gates: completedGates,
     }),
@@ -984,7 +984,7 @@ async function handlePlanningGateCompletion({
       gateId,
       userApproved: false,
       requiredUserApproval: true,
-      hint: "Present the vision document to the user, obtain approval via question tool, then call adv_gate_complete with userApproved: true.",
+      hint: "Present the vision document to the user, obtain approval via question tool, then call determinus_gate_complete with userApproved: true.",
     });
   }
 
@@ -1002,7 +1002,7 @@ async function handlePlanningGateCompletion({
         remediation: (f.details as Record<string, unknown> | undefined)
           ?.remediation,
       })),
-      hint: "Fix all readiness failures listed above, then retry adv_gate_complete.",
+      hint: "Fix all readiness failures listed above, then retry determinus_gate_complete.",
     });
   }
 
@@ -1030,7 +1030,7 @@ async function handlePlanningGateCompletion({
     if (clarifyResult.findings.length > 0) {
       if (clarifyMode === "strict") {
         return formatToolOutput({
-          error: `Prep gate blocked: ${clarifyResult.findings.length} ambiguity finding(s) must be resolved via /adv-clarify`,
+          error: `Prep gate blocked: ${clarifyResult.findings.length} ambiguity finding(s) must be resolved via /determinus-clarify`,
           changeId,
           gateId,
           clarifyFindings: clarifyResult.findings.map((f) => ({
@@ -1039,7 +1039,7 @@ async function handlePlanningGateCompletion({
             message: f.message,
             questionCategory: f.details?.questionCategory,
           })),
-          hint: `Run /adv-clarify ${changeId} to resolve ambiguity findings, then retry adv_gate_complete.`,
+          hint: `Run /determinus-clarify ${changeId} to resolve ambiguity findings, then retry determinus_gate_complete.`,
         });
       }
 
@@ -1105,14 +1105,14 @@ async function handlePlanningGateCompletion({
 // =============================================================================
 
 export const gateTools = {
-  adv_gate_status: {
+  determinus_gate_status: {
     description:
       "Get gate status for a change. Returns all 7 gates with completion status, timestamps, and next gate to complete.",
     args: {
       changeId: z
         .string()
         .describe(
-          "Change ID — must match an existing change from `adv_change_list`. Returns the full gate map (proposal, discovery, design, planning, execution, acceptance, release) plus `nextGate` and `canArchive` flags.",
+          "Change ID — must match an existing change from `determinus_change_list`. Returns the full gate map (proposal, discovery, design, planning, execution, acceptance, release) plus `nextGate` and `canArchive` flags.",
         ),
       target_path: z
         .string()
@@ -1155,7 +1155,7 @@ export const gateTools = {
             // routing — no gate-derived next action (DONT4), typed degraded
             // diagnostics only, with no mutation or external execution (DONT5).
             const directiveState = changeToDirectiveState({
-              projectId: result.data.adv_project_id ?? "unknown",
+              projectId: result.data.determinus_project_id ?? "unknown",
               change: result.data,
               gates: normalizedGates,
             });
@@ -1258,14 +1258,14 @@ export const gateTools = {
     },
   },
 
-  adv_gate_complete: {
+  determinus_gate_complete: {
     description:
       "Mark a gate as complete for a change. Enforces sequence - prior gates must be complete first.",
     args: {
       changeId: z
         .string()
         .describe(
-          "Change ID — must match an existing change from `adv_change_list`. Sequence is strict: proposal → discovery → design → planning → execution → acceptance → release. Prior gates must all be `done`.",
+          "Change ID — must match an existing change from `determinus_change_list`. Sequence is strict: proposal → discovery → design → planning → execution → acceptance → release. Prior gates must all be `done`.",
         ),
       gateId: z
         .enum([
@@ -1278,7 +1278,7 @@ export const gateTools = {
           "release",
         ])
         .describe(
-          "Gate to mark complete. Valid values: proposal, discovery, design, planning, execution, acceptance, release. Each gate is owned by a specific `/adv-*` command — complete it only after the owning workflow has run.",
+          "Gate to mark complete. Valid values: proposal, discovery, design, planning, execution, acceptance, release. Each gate is owned by a specific `/determinus-*` command — complete it only after the owning workflow has run.",
         ),
       completedBy: z
         .string()
@@ -1682,7 +1682,7 @@ export function validateGateBoundary(
   // If no commands claim this gate, skip validation
   if (authorizedCommands.length === 0) return undefined;
 
-  // Extract command name from completedBy (may contain extra context like "adv-task LBP validation: ...")
+  // Extract command name from completedBy (may contain extra context like "determinus-task LBP validation: ...")
   const commandName = completedBy.split(/\s/)[0];
 
   // "agent" is the default — no boundary check possible.
@@ -1698,7 +1698,7 @@ export function validateGateBoundary(
   );
 
   if (!isAuthorized) {
-    return `Gate '${gateId}' is owned by [${authorizedCommands.join(", ")}] but was completed by '${completedBy}'. This may indicate a command boundary violation. See specs adv-proposal, adv-discover, adv-prep for gate ownership rules.`;
+    return `Gate '${gateId}' is owned by [${authorizedCommands.join(", ")}] but was completed by '${completedBy}'. This may indicate a command boundary violation. See specs determinus-proposal, determinus-discover, determinus-prep for gate ownership rules.`;
   }
 
   return undefined;

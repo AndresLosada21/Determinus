@@ -11,17 +11,17 @@ const manifest = {
   total_approx_tokens_4char_rule: 12,
   conversion_errors: 1,
   tools: {
-    adv_allowed: {
+    determinus_allowed: {
       status: "available" as const,
       schema_bytes: 32,
       approx_tokens_4char_rule: 8,
     },
-    adv_denied: {
+    determinus_denied: {
       status: "available" as const,
       schema_bytes: 13,
       approx_tokens_4char_rule: 4,
     },
-    adv_failed: {
+    determinus_failed: {
       status: "conversion_error" as const,
       schema_bytes: null,
       approx_tokens_4char_rule: null,
@@ -34,8 +34,8 @@ describe("tool schema projection", () => {
   it("projects only tools allowed by OpenCode's resolved permission profile", () => {
     expect(
       projectToolSchemaManifest(manifest, {
-        adv_allowed: true,
-        adv_denied: false,
+        determinus_allowed: true,
+        determinus_denied: false,
       }),
     ).toEqual({
       availability: "available",
@@ -48,8 +48,11 @@ describe("tool schema projection", () => {
 
   it("parses the debug-agent JSON after preceding plugin log lines", () => {
     const profile = parseAgentToolPermissions(
-      '{"level":"info"}\n{\n  "name": "adv-engineer",\n  "tools": { "adv_allowed": true, "adv_denied": false }\n}',
+      '{"level":"info"}\n{\n  "name": "determinus-engineer",\n  "tools": { "determinus_allowed": true, "determinus_denied": false }\n}',
     );
-    expect(profile).toEqual({ adv_allowed: true, adv_denied: false });
+    expect(profile).toEqual({
+      determinus_allowed: true,
+      determinus_denied: false,
+    });
   });
 });

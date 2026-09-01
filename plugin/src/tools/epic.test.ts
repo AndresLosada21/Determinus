@@ -226,10 +226,10 @@ function makeChangeEntry(
   };
 }
 
-describe("adv_epic_create", () => {
+describe("determinus_epic_create", () => {
   test("creates an Epic and returns formatted state", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_create.execute(
+    const output = await epicTools.determinus_epic_create.execute(
       { epic_id: "addAuthEpic", title: "Add Auth Epic", narrative: "Auth." },
       store,
     );
@@ -265,7 +265,7 @@ describe("adv_epic_create", () => {
     };
     const store = makeStore({ epic_scope: productScope });
 
-    const output = await epicTools.adv_epic_create.execute(
+    const output = await epicTools.determinus_epic_create.execute(
       {
         epic_id: "productAuthEpic",
         title: "Product Auth Epic",
@@ -290,7 +290,7 @@ describe("adv_epic_create", () => {
   });
 });
 
-describe("adv_epic_show", () => {
+describe("determinus_epic_show", () => {
   test("default compact view returns bounded history and next work", async () => {
     const now = new Date().toISOString();
     const store = makeStore({
@@ -325,7 +325,7 @@ describe("adv_epic_show", () => {
         updated_at: now,
       },
     });
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic" },
       store,
     );
@@ -355,7 +355,7 @@ describe("adv_epic_show", () => {
 
   test("full view returns complete entries", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic", view: "full" },
       store,
     );
@@ -387,10 +387,13 @@ describe("adv_epic_show", () => {
     });
 
     const compact = parseToolOutput(
-      await epicTools.adv_epic_show.execute({ epic_id: "addAuthEpic" }, store),
+      await epicTools.determinus_epic_show.execute(
+        { epic_id: "addAuthEpic" },
+        store,
+      ),
     );
     const full = parseToolOutput(
-      await epicTools.adv_epic_show.execute(
+      await epicTools.determinus_epic_show.execute(
         { epic_id: "addAuthEpic", view: "full" },
         store,
       ),
@@ -429,7 +432,10 @@ describe("adv_epic_show", () => {
     });
 
     const parsed = parseToolOutput(
-      await epicTools.adv_epic_show.execute({ epic_id: "addAuthEpic" }, store),
+      await epicTools.determinus_epic_show.execute(
+        { epic_id: "addAuthEpic" },
+        store,
+      ),
     );
 
     expect(parsed.epic.status).toBe("merged");
@@ -440,7 +446,7 @@ describe("adv_epic_show", () => {
   test("returns typed not-found error", async () => {
     const store = makeStore();
     store.epics.get = vi.fn(async () => ({ success: true, data: null }));
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "missingEpic" },
       store,
     );
@@ -481,7 +487,7 @@ describe("adv_epic_show", () => {
       data: retiredProjection,
     }));
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "retiredEpic" },
       store,
     );
@@ -524,7 +530,7 @@ describe("adv_epic_show", () => {
         updated_at: now,
       },
     });
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic" },
       store,
     );
@@ -580,7 +586,7 @@ describe("adv_epic_show", () => {
         updated_at: now,
       },
     });
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic" },
       store,
     );
@@ -630,7 +636,7 @@ describe("adv_epic_show", () => {
       },
     });
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic" },
       store,
     );
@@ -656,7 +662,7 @@ describe("adv_epic_show", () => {
   test("rq-epicDirectConvergence01: repairs stale entry status when child projection is correctly linked (issue #255 case c)", async () => {
     // Reproduction: Epic link completed correctly (child has matching
     // epic_membership), but the Epic entry's membership_status was never
-    // advanced from projection_pending. Pre-convergence, adv_epic_show
+    // advanced from projection_pending. Pre-convergence, determinus_epic_show
     // would emit projection_missing and recommend convergence.
     // Post-convergence, the entry is repaired to "linked" in-place and the
     // rendered member_status is "ok".
@@ -711,7 +717,7 @@ describe("adv_epic_show", () => {
     );
     store.epics.setEntryMembershipStatus = setEntryMembershipStatus;
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: epicId },
       store,
     );
@@ -778,7 +784,7 @@ describe("adv_epic_show", () => {
     );
     store.changes.setEpicMembership = setEpicMembership;
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: epicId },
       store,
     );
@@ -802,7 +808,7 @@ describe("adv_epic_show", () => {
   });
 });
 
-describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage01)", () => {
+describe("determinus_epic_show fast-follow lineage projection (rq-epicFastFollowLineage01)", () => {
   function makeChildChangeWithFastFollow(overrides?: {
     parentChangeId?: string;
     reportKey?: string;
@@ -822,7 +828,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
             followup_ref: {
               report_key:
                 overrides?.reportKey ??
-                "parentChange|tk-source123|adv-engineer|1",
+                "parentChange|tk-source123|determinus-engineer|1",
               kind: "follow_ups" as const,
               index: 0,
             },
@@ -870,7 +876,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
       },
     );
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic" },
       store,
     );
@@ -905,7 +911,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
       },
     );
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic", view: "full" },
       store,
     );
@@ -936,7 +942,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
           return {
             success: true,
             data: makeChildChangeWithFastFollow({
-              reportKey: "parentChange|change:scopeKey|adv-engineer|1",
+              reportKey: "parentChange|change:scopeKey|determinus-engineer|1",
             }),
           };
         }
@@ -944,7 +950,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
       },
     );
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic", view: "full" },
       store,
     );
@@ -978,7 +984,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
       },
     );
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic", view: "full" },
       store,
     );
@@ -1014,7 +1020,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
       },
     );
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic", view: "full" },
       store,
     );
@@ -1038,7 +1044,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
       async () => ({ success: false, error: "boom", type: "read_error" }),
     );
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic", view: "full" },
       store,
     );
@@ -1059,7 +1065,7 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
         },
       ],
     });
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       { epic_id: "addAuthEpic", view: "full" },
       store,
     );
@@ -1069,10 +1075,10 @@ describe("adv_epic_show fast-follow lineage projection (rq-epicFastFollowLineage
   });
 });
 
-describe("adv_epic_add_shell", () => {
+describe("determinus_epic_add_shell", () => {
   test("adds a shell entry", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -1091,7 +1097,7 @@ describe("adv_epic_add_shell", () => {
       constraints: ["Must be safe"],
     };
     const store = makeStore();
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -1111,7 +1117,7 @@ describe("adv_epic_add_shell", () => {
 
   test("rejects an invalid context_packet", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -1134,7 +1140,7 @@ describe("adv_epic_add_shell", () => {
       avoidances: Array.from({ length: 12 }, () => "w".repeat(512)),
     };
     const store = makeStore();
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -1167,7 +1173,7 @@ describe("adv_epic_add_shell", () => {
       background: "incoming".repeat(500),
       design_seed: "y".repeat(6000),
     };
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell Two",
@@ -1183,12 +1189,12 @@ describe("adv_epic_add_shell", () => {
   });
 });
 
-describe("adv_epic_promote_shell", () => {
+describe("determinus_epic_promote_shell", () => {
   test("promotes a shell with an existing change_id", async () => {
     const store = makeStore({
       entries: [makeShellEntry({ entry_id: "shell-1" })],
     });
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1", change_id: "change-1" },
       store,
     );
@@ -1208,7 +1214,7 @@ describe("adv_epic_promote_shell", () => {
     const store = makeStore({
       entries: [makeShellEntry({ entry_id: "shell-1", order: 3 })],
     });
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1" },
       store,
     );
@@ -1237,7 +1243,7 @@ describe("adv_epic_promote_shell", () => {
       throw new Error("promoteShell unavailable");
     });
 
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1" },
       store,
     );
@@ -1286,7 +1292,7 @@ describe("adv_epic_promote_shell", () => {
       changeId: "change-1",
     }));
 
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1" },
       store,
     );
@@ -1338,13 +1344,13 @@ describe("adv_epic_promote_shell", () => {
       .mockRejectedValueOnce(new Error("promoteShell unavailable"))
       .mockResolvedValueOnce({ entryId: "entry-1", changeId: "change-1" });
 
-    const firstOutput = await epicTools.adv_epic_promote_shell.execute(
+    const firstOutput = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1", change_id: "change-1" },
       store,
     );
     expect(parseToolOutput(firstOutput).code).toBe("EPIC_ERROR");
 
-    const retryOutput = await epicTools.adv_epic_promote_shell.execute(
+    const retryOutput = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1", change_id: "change-1" },
       store,
     );
@@ -1364,7 +1370,7 @@ describe("adv_epic_promote_shell", () => {
 
   test("returns typed error when shell entry is missing", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "missing-shell" },
       store,
     );
@@ -1385,7 +1391,7 @@ describe("adv_epic_promote_shell", () => {
         makeShellEntry({ entry_id: "shell-1", context_packet: packet }),
       ],
     });
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1" },
       store,
     );
@@ -1412,7 +1418,7 @@ describe("adv_epic_promote_shell", () => {
     const store = makeStore({
       entries: [makeShellEntry({ entry_id: "shell-1" })],
     });
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1" },
       store,
     );
@@ -1447,7 +1453,7 @@ describe("adv_epic_promote_shell", () => {
         }),
       ],
     });
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1" },
       store,
     );
@@ -1468,7 +1474,7 @@ describe("adv_epic_promote_shell", () => {
   });
 });
 
-describe("adv_epic_link_change", () => {
+describe("determinus_epic_link_change", () => {
   test("routes child projection through target_path while Epic remains owner-local", async () => {
     const ownerStore = makeStore();
     const targetStore = makeStore();
@@ -1501,7 +1507,7 @@ describe("adv_epic_link_change", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -1564,7 +1570,7 @@ describe("adv_epic_link_change", () => {
     const store = makeStore();
     store.epics.linkChange = vi.fn(async () => linkedEntry);
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -1614,7 +1620,7 @@ describe("adv_epic_link_change", () => {
       ],
     });
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -1662,7 +1668,7 @@ describe("adv_epic_link_change", () => {
     });
 
     const parsed = parseToolOutput(
-      await epicTools.adv_epic_link_change.execute(
+      await epicTools.determinus_epic_link_change.execute(
         {
           epic_id: "addAuthEpic",
           change_id: "change-2",
@@ -1698,7 +1704,7 @@ describe("adv_epic_link_change", () => {
       } as Change,
     }));
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -1745,7 +1751,7 @@ describe("adv_epic_link_change", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -1822,7 +1828,7 @@ describe("adv_epic_link_change", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -1890,7 +1896,7 @@ describe("adv_epic_link_change", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -1947,7 +1953,7 @@ describe("adv_epic_link_change", () => {
       } as Change,
     }));
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -2016,7 +2022,7 @@ describe("adv_epic_link_change", () => {
         }),
       );
 
-      const output = await epicTools.adv_epic_link_change.execute(
+      const output = await epicTools.determinus_epic_link_change.execute(
         {
           epic_id: "addAuthEpic",
           change_id: "change-2",
@@ -2050,7 +2056,7 @@ describe("adv_epic_link_change", () => {
   );
 });
 
-describe("adv_epic_unlink_change", () => {
+describe("determinus_epic_unlink_change", () => {
   test("clears child projection before removing Epic entry", async () => {
     const store = makeStore({
       entries: [
@@ -2058,7 +2064,7 @@ describe("adv_epic_unlink_change", () => {
       ],
     });
 
-    const output = await epicTools.adv_epic_unlink_change.execute(
+    const output = await epicTools.determinus_epic_unlink_change.execute(
       {
         epic_id: "addAuthEpic",
         entry_id: "entry-2",
@@ -2080,7 +2086,7 @@ describe("adv_epic_unlink_change", () => {
   });
 });
 
-describe("adv_epic_move_change", () => {
+describe("determinus_epic_move_change", () => {
   test("moves child membership from source Epic to destination Epic", async () => {
     const fromEpic = makeEpic({
       id: "fromEpic",
@@ -2124,7 +2130,7 @@ describe("adv_epic_move_change", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_move_change.execute(
+    const output = await epicTools.determinus_epic_move_change.execute(
       {
         from_epic_id: "fromEpic",
         to_epic_id: "toEpic",
@@ -2163,7 +2169,7 @@ describe("adv_epic_move_change", () => {
   });
 });
 
-describe("adv_epic_reorder", () => {
+describe("determinus_epic_reorder", () => {
   test("reorders entries and returns typed error on stale version", async () => {
     const store = makeStore();
     store.epics.reorder = vi.fn(async () => {
@@ -2171,7 +2177,7 @@ describe("adv_epic_reorder", () => {
       (err as { code?: string }).code = "stale_version";
       throw err;
     });
-    const output = await epicTools.adv_epic_reorder.execute(
+    const output = await epicTools.determinus_epic_reorder.execute(
       {
         epic_id: "addAuthEpic",
         entry_ids: ["a", "b"],
@@ -2184,10 +2190,10 @@ describe("adv_epic_reorder", () => {
   });
 });
 
-describe("adv_epic_retire", () => {
+describe("determinus_epic_retire", () => {
   test("dry-run returns projection summary without mutating", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_retire.execute(
+    const output = await epicTools.determinus_epic_retire.execute(
       {
         epic_id: "addAuthEpic",
         expected_version: 0,
@@ -2215,7 +2221,7 @@ describe("adv_epic_retire", () => {
 
   test("retires a completed Epic and returns a show-compatible summary", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_retire.execute(
+    const output = await epicTools.determinus_epic_retire.execute(
       {
         epic_id: "addAuthEpic",
         expected_version: 0,
@@ -2254,7 +2260,7 @@ describe("adv_epic_retire", () => {
       ];
       throw err;
     });
-    const output = await epicTools.adv_epic_retire.execute(
+    const output = await epicTools.determinus_epic_retire.execute(
       {
         epic_id: "addAuthEpic",
         expected_version: 0,
@@ -2276,7 +2282,7 @@ describe("adv_epic_retire", () => {
       (err as { code?: string }).code = "stale_version";
       throw err;
     });
-    const output = await epicTools.adv_epic_retire.execute(
+    const output = await epicTools.determinus_epic_retire.execute(
       {
         epic_id: "addAuthEpic",
         expected_version: 0,
@@ -2306,7 +2312,7 @@ describe("adv_epic_retire", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_retire.execute(
+    const output = await epicTools.determinus_epic_retire.execute(
       {
         epic_id: "addAuthEpic",
         expected_version: 0,
@@ -2332,10 +2338,10 @@ describe("adv_epic_retire", () => {
   });
 });
 
-describe("adv_epic_update", () => {
+describe("determinus_epic_update", () => {
   test("rejects update when neither title nor narrative provided", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_update.execute(
+    const output = await epicTools.determinus_epic_update.execute(
       { epic_id: "addAuthEpic", expected_version: 0 },
       store,
     );
@@ -2352,19 +2358,19 @@ describe("Epic owner routing", () => {
     expect(result.store).toBe(store);
   });
 
-  test("adv_epic_link_change exposes owner route args on the live tool surface", () => {
-    expect(epicTools.adv_epic_link_change.args).toHaveProperty(
+  test("determinus_epic_link_change exposes owner route args on the live tool surface", () => {
+    expect(epicTools.determinus_epic_link_change.args).toHaveProperty(
       "epic_owner_target_path",
     );
-    expect(epicTools.adv_epic_link_change.args).toHaveProperty(
+    expect(epicTools.determinus_epic_link_change.args).toHaveProperty(
       "epic_owner_target_confirmed",
     );
-    expect(epicTools.adv_epic_link_change.args).toHaveProperty(
+    expect(epicTools.determinus_epic_link_change.args).toHaveProperty(
       "epic_owner_confirmationEvidence",
     );
   });
 
-  test("adv_epic_link_change routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_link_change routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -2382,7 +2388,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -2407,7 +2413,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_link_change splits owner and child project contexts", async () => {
+  test("determinus_epic_link_change splits owner and child project contexts", async () => {
     const ownerStore = makeStore();
     const childStore = makeStore();
     const currentStore = makeStore();
@@ -2448,7 +2454,7 @@ describe("Epic owner routing", () => {
         }),
       );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -2487,7 +2493,7 @@ describe("Epic owner routing", () => {
     ).not.toHaveProperty("epic_project_id", "project-child");
   });
 
-  test("adv_epic_link_change fails with OWNER_ROUTING_AMBIGUOUS when child-only target_path is provided for a non-local Epic", async () => {
+  test("determinus_epic_link_change fails with OWNER_ROUTING_AMBIGUOUS when child-only target_path is provided for a non-local Epic", async () => {
     const currentStore = makeStore();
     currentStore.epics.get = vi.fn(async () => ({
       success: true,
@@ -2508,7 +2514,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "remoteEpic",
         change_id: "change-2",
@@ -2524,7 +2530,7 @@ describe("Epic owner routing", () => {
     expect(parsed.code).toBe("OWNER_ROUTING_AMBIGUOUS");
   });
 
-  test("adv_epic_link_change fails with CHILD_ROUTING_REQUIRED when owner route is remote and child change is not in owner project", async () => {
+  test("determinus_epic_link_change fails with CHILD_ROUTING_REQUIRED when owner route is remote and child change is not in owner project", async () => {
     const ownerStore = makeStore();
     ownerStore.changes.get = vi.fn(async () => ({
       success: true,
@@ -2546,7 +2552,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "missing-change",
@@ -2562,7 +2568,7 @@ describe("Epic owner routing", () => {
     expect(parsed.code).toBe("CHILD_ROUTING_REQUIRED");
   });
 
-  test("adv_epic_unlink_change routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_unlink_change routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore({
       entries: [
         makeChangeEntry({ entry_id: "entry-2", change_id: "change-2" }),
@@ -2584,7 +2590,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_unlink_change.execute(
+    const output = await epicTools.determinus_epic_unlink_change.execute(
       {
         epic_id: "addAuthEpic",
         entry_id: "entry-2",
@@ -2609,7 +2615,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_move_change routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_move_change routes owner Epic through epic_owner_target_path", async () => {
     const fromEpic = makeEpic({
       id: "fromEpic",
       entries: [
@@ -2682,7 +2688,7 @@ describe("Epic owner routing", () => {
         }),
       );
 
-    const output = await epicTools.adv_epic_move_change.execute(
+    const output = await epicTools.determinus_epic_move_change.execute(
       {
         from_epic_id: "fromEpic",
         to_epic_id: "toEpic",
@@ -2719,7 +2725,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_create routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_create routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -2737,7 +2743,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_create.execute(
+    const output = await epicTools.determinus_epic_create.execute(
       {
         epic_id: "remoteEpic",
         title: "Remote Epic",
@@ -2763,7 +2769,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_show routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_show routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -2781,7 +2787,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_show.execute(
+    const output = await epicTools.determinus_epic_show.execute(
       {
         epic_id: "addAuthEpic",
         epic_owner_target_path: "/workspace/owner",
@@ -2801,7 +2807,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_list routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_list routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -2819,7 +2825,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_list.execute(
+    const output = await epicTools.determinus_epic_list.execute(
       {
         epic_owner_target_path: "/workspace/owner",
         epic_owner_target_confirmed: true,
@@ -2838,10 +2844,10 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_list defaults to active status and passes filter to store.list", async () => {
+  test("determinus_epic_list defaults to active status and passes filter to store.list", async () => {
     const store = makeStore();
 
-    const output = await epicTools.adv_epic_list.execute({}, store);
+    const output = await epicTools.determinus_epic_list.execute({}, store);
     const parsed = parseToolOutput(output);
 
     expect(parsed.success).toBe(true);
@@ -2849,7 +2855,7 @@ describe("Epic owner routing", () => {
     expect(store.epics.list).toHaveBeenCalledWith({ status: "active" });
   });
 
-  test("adv_epic_list status=completed returns dry-run candidate report", async () => {
+  test("determinus_epic_list status=completed returns dry-run candidate report", async () => {
     const completedEpic = makeEpic({
       id: "completedEpic",
       title: "Completed Epic",
@@ -2879,7 +2885,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_list.execute(
+    const output = await epicTools.determinus_epic_list.execute(
       {
         status: "completed",
         epic_owner_target_path: "/workspace/owner",
@@ -2900,7 +2906,7 @@ describe("Epic owner routing", () => {
     );
   });
 
-  test("adv_epic_list status=completed reports blocked Epics with dry-run errors", async () => {
+  test("determinus_epic_list status=completed reports blocked Epics with dry-run errors", async () => {
     const activeEpic = makeEpic({
       id: "activeEpic",
       title: "Active Epic",
@@ -2939,7 +2945,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_list.execute(
+    const output = await epicTools.determinus_epic_list.execute(
       {
         status: "completed",
         epic_owner_target_path: "/workspace/owner",
@@ -2959,7 +2965,7 @@ describe("Epic owner routing", () => {
     ]);
   });
 
-  test("adv_epic_update routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_update routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -2977,7 +2983,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_update.execute(
+    const output = await epicTools.determinus_epic_update.execute(
       {
         epic_id: "addAuthEpic",
         title: "Updated Title",
@@ -3002,7 +3008,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_reorder routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_reorder routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -3020,7 +3026,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_reorder.execute(
+    const output = await epicTools.determinus_epic_reorder.execute(
       {
         epic_id: "addAuthEpic",
         entry_ids: ["a", "b"],
@@ -3046,7 +3052,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_add_shell routes owner Epic through epic_owner_target_path", async () => {
+  test("determinus_epic_add_shell routes owner Epic through epic_owner_target_path", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -3064,7 +3070,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -3089,7 +3095,7 @@ describe("Epic owner routing", () => {
     });
   });
 
-  test("adv_epic_promote_shell supports same-owner promotion with change_id", async () => {
+  test("determinus_epic_promote_shell supports same-owner promotion with change_id", async () => {
     const ownerStore = makeStore({
       entries: [makeShellEntry({ entry_id: "shell-1" })],
     });
@@ -3109,7 +3115,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       {
         epic_id: "addAuthEpic",
         entry_id: "shell-1",
@@ -3132,7 +3138,7 @@ describe("Epic owner routing", () => {
     expect(currentStore.changes.create).not.toHaveBeenCalled();
   });
 
-  test("adv_epic_promote_shell rejects remote-child creation without change_id", async () => {
+  test("determinus_epic_promote_shell rejects remote-child creation without change_id", async () => {
     const ownerStore = makeStore({
       entries: [makeShellEntry({ entry_id: "shell-1" })],
     });
@@ -3152,7 +3158,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       {
         epic_id: "addAuthEpic",
         entry_id: "shell-1",
@@ -3178,7 +3184,7 @@ describe("Epic owner routing", () => {
     expect(err.name).toBe("EpicOwnerRoutingError");
   });
 
-  test("adv_epic_link_change proves same-owner child by loading change from owner store", async () => {
+  test("determinus_epic_link_change proves same-owner child by loading change from owner store", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -3196,7 +3202,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -3221,7 +3227,7 @@ describe("Epic owner routing", () => {
     expect(parsed._childProjectContext).toBeUndefined();
   });
 
-  test("adv_epic_move_change requires explicit child route when same-owner proof fails", async () => {
+  test("determinus_epic_move_change requires explicit child route when same-owner proof fails", async () => {
     const fromEpic = makeEpic({
       id: "fromEpic",
       entries: [
@@ -3257,7 +3263,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_move_change.execute(
+    const output = await epicTools.determinus_epic_move_change.execute(
       {
         from_epic_id: "fromEpic",
         to_epic_id: "toEpic",
@@ -3275,7 +3281,7 @@ describe("Epic owner routing", () => {
     expect(ownerStore.epics.linkChange).not.toHaveBeenCalled();
   });
 
-  test("adv_epic_move_change proves same-owner child by loading change from owner store", async () => {
+  test("determinus_epic_move_change proves same-owner child by loading change from owner store", async () => {
     const fromEpic = makeEpic({
       id: "fromEpic",
       entries: [
@@ -3333,7 +3339,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_move_change.execute(
+    const output = await epicTools.determinus_epic_move_change.execute(
       {
         from_epic_id: "fromEpic",
         to_epic_id: "toEpic",
@@ -3359,7 +3365,7 @@ describe("Epic owner routing", () => {
     expect(parsed._childProjectContext).toBeUndefined();
   });
 
-  test("adv_epic_link_change fails before mutation when remote child lacks trust confirmation", async () => {
+  test("determinus_epic_link_change fails before mutation when remote child lacks trust confirmation", async () => {
     const ownerStore = makeStore();
     const currentStore = makeStore();
     currentStore.paths.root = "/workspace/current";
@@ -3384,7 +3390,7 @@ describe("Epic owner routing", () => {
         );
       });
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -3402,7 +3408,7 @@ describe("Epic owner routing", () => {
     expect(ownerStore.epics.linkChange).not.toHaveBeenCalled();
   });
 
-  test("adv_epic_link_change returns deterministic partial state when child projection fails after owner mutation", async () => {
+  test("determinus_epic_link_change returns deterministic partial state when child projection fails after owner mutation", async () => {
     const ownerStore = makeStore();
     const childStore = makeStore();
     childStore.changes.setEpicMembership = vi.fn(async () => {
@@ -3438,7 +3444,7 @@ describe("Epic owner routing", () => {
         }),
       );
 
-    const output = await epicTools.adv_epic_link_change.execute(
+    const output = await epicTools.determinus_epic_link_change.execute(
       {
         epic_id: "addAuthEpic",
         change_id: "change-2",
@@ -3461,7 +3467,7 @@ describe("Epic owner routing", () => {
     expect(ownerStore.epics.linkChange).toHaveBeenCalled();
   });
 
-  test("adv_epic_move_change returns deterministic partial state when source unlink fails after child projection", async () => {
+  test("determinus_epic_move_change returns deterministic partial state when source unlink fails after child projection", async () => {
     const fromEpic = makeEpic({
       id: "fromEpic",
       entries: [
@@ -3537,7 +3543,7 @@ describe("Epic owner routing", () => {
         }),
       );
 
-    const output = await epicTools.adv_epic_move_change.execute(
+    const output = await epicTools.determinus_epic_move_change.execute(
       {
         from_epic_id: "fromEpic",
         to_epic_id: "toEpic",
@@ -3563,7 +3569,7 @@ describe("Epic owner routing", () => {
     expect(ownerStore.epics.unlinkChange).toHaveBeenCalled();
   });
 
-  test("adv_epic_unlink_change returns deterministic partial state when owner unlink fails after child projection cleared", async () => {
+  test("determinus_epic_unlink_change returns deterministic partial state when owner unlink fails after child projection cleared", async () => {
     const ownerStore = makeStore({
       entries: [
         makeChangeEntry({ entry_id: "entry-2", change_id: "change-2" }),
@@ -3588,7 +3594,7 @@ describe("Epic owner routing", () => {
       }),
     );
 
-    const output = await epicTools.adv_epic_unlink_change.execute(
+    const output = await epicTools.determinus_epic_unlink_change.execute(
       {
         epic_id: "addAuthEpic",
         entry_id: "entry-2",

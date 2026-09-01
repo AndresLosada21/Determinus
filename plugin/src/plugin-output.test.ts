@@ -37,7 +37,7 @@ describe("extractTerminalSuccess", () => {
   it("unwraps a ToolResult-shaped object", () => {
     expect(
       extractTerminalSuccess({
-        title: "adv_change_close",
+        title: "determinus_change_close",
         output: JSON.stringify({ success: true, changeId: "c3" }),
       }),
     ).toEqual({ changeId: "c3" });

@@ -110,7 +110,7 @@ describe("ops runbook tools", () => {
   test("upserts a production run and defaults unclassified execute steps to approval-required", async () => {
     const store = makeStore();
     const result = parseToolOutput(
-      await opsEvidenceTools.adv_ops_run_upsert.execute(
+      await opsEvidenceTools.determinus_ops_run_upsert.execute(
         {
           changeId: "childChange",
           runId: "run-1",
@@ -140,18 +140,19 @@ describe("ops runbook tools", () => {
   });
 
   test("rejects bounded autonomous step without bounds", () => {
-    const parsed = opsEvidenceTools.adv_ops_run_upsert.args.steps.safeParse([
-      {
-        id: "step-1",
-        title: "Read-only check",
-        kind: "execute",
-        approval_policy: {
-          mode: "bounded_low_risk_autonomous",
-          rationale: "allowlisted health read",
-          bounds: [],
+    const parsed =
+      opsEvidenceTools.determinus_ops_run_upsert.args.steps.safeParse([
+        {
+          id: "step-1",
+          title: "Read-only check",
+          kind: "execute",
+          approval_policy: {
+            mode: "bounded_low_risk_autonomous",
+            rationale: "allowlisted health read",
+            bounds: [],
+          },
         },
-      },
-    ]);
+      ]);
 
     expect(parsed.success).toBe(false);
   });
@@ -191,7 +192,7 @@ describe("ops runbook tools", () => {
     );
 
     const result = parseToolOutput(
-      await opsEvidenceTools.adv_ops_run_evidence_add.execute(
+      await opsEvidenceTools.determinus_ops_run_evidence_add.execute(
         {
           changeId: "childChange",
           runId: "run-1",
@@ -250,7 +251,7 @@ describe("ops runbook tools", () => {
     );
 
     const result = parseToolOutput(
-      await opsEvidenceTools.adv_ops_run_evidence_add.execute(
+      await opsEvidenceTools.determinus_ops_run_evidence_add.execute(
         {
           changeId: "childChange",
           runId: "run-1",
@@ -278,7 +279,7 @@ describe("ops runbook tools", () => {
   test("rejects evidence summaries that look like secret material", async () => {
     const store = makeStore();
     const result = parseToolOutput(
-      await opsEvidenceTools.adv_ops_run_evidence_add.execute(
+      await opsEvidenceTools.determinus_ops_run_evidence_add.execute(
         {
           changeId: "childChange",
           runId: "run-1",
@@ -335,7 +336,7 @@ describe("ops runbook tools", () => {
     );
 
     const result = parseToolOutput(
-      await opsEvidenceTools.adv_ops_run_evidence_add.execute(
+      await opsEvidenceTools.determinus_ops_run_evidence_add.execute(
         {
           changeId: "childChange",
           runId: "run-1",

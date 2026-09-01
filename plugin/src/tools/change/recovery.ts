@@ -67,11 +67,11 @@ export async function verifyStatusRepairReadAfterWrite(input: {
   const failures: string[] = [];
   if (readback.showStatus !== "archived")
     failures.push(
-      `adv_change_show-equivalent status is ${readback.showStatus ?? "missing"}`,
+      `determinus_change_show-equivalent status is ${readback.showStatus ?? "missing"}`,
     );
   if (input.requireLifecycleState && readback.showLifecycleState !== "archived")
     failures.push(
-      `adv_change_show-equivalent lifecycleState is ${readback.showLifecycleState ?? "missing"} (expected archived)`,
+      `determinus_change_show-equivalent lifecycleState is ${readback.showLifecycleState ?? "missing"} (expected archived)`,
     );
   if (readback.inFlightCount !== 0)
     failures.push(
@@ -117,7 +117,7 @@ export async function buildReentryResult(
     const directive = deriveDirectiveSafe(
       {
         ...updated.data,
-        projectId: updated.data.adv_project_id ?? "unknown",
+        projectId: updated.data.determinus_project_id ?? "unknown",
         gates: gates ?? updated.data.gates,
       } as never,
       Date.now(),

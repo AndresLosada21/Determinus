@@ -346,7 +346,7 @@ function discoveryContractBlockers(
       message:
         "Discovery requires typed contract proof once agreement is approved.",
       remediation:
-        "Run adv_contract_mint for this change before completing discovery.",
+        "Run determinus_contract_mint for this change before completing discovery.",
     }),
   ];
 }
@@ -549,7 +549,7 @@ export function checkRequiredObligationRouting(
           contractId: item.id,
           message: `Required-critical obligation ${item.id} has no task coverage and no review matrix row.`,
           remediation:
-            "Route via adv_change_reenter or fast-follow split, or add task coverage and complete review.",
+            "Route via determinus_change_reenter or fast-follow split, or add task coverage and complete review.",
         }),
       ];
     });
@@ -557,7 +557,7 @@ export function checkRequiredObligationRouting(
 
 // rq-designQualityEvidence01: Structural design-quality blocker.
 //
-// Reads persisted adv-designer reports from change state (sandbox-safe — no
+// Reads persisted determinus-designer reports from change state (sandbox-safe — no
 // storage access) and blocks acceptance/release while the LATEST designer
 // report per task carries an undispositioned `concern` dimension or neighboring
 // recommendation. A concern clears when (a) a later all-pass report supersedes
@@ -586,7 +586,7 @@ function latestDesignerReportsByTask(
 ): Map<string, DesignerSubagentReport> {
   const latest = new Map<string, DesignerSubagentReport>();
   for (const report of state.subagent_reports ?? []) {
-    if (report.agent !== "adv-designer") continue;
+    if (report.agent !== "determinus-designer") continue;
     const designer = report as DesignerSubagentReport;
     const taskId = designerReportTaskId(designer);
     if (!taskId) continue;
@@ -624,9 +624,9 @@ export function checkUnresolvedDesignConcerns(
         makeBlocker({
           code: "DESIGN_CONCERN_UNRESOLVED",
           gateId,
-          message: `Unresolved design concern (${dim}) on task ${taskId} from adv-designer report.`,
+          message: `Unresolved design concern (${dim}) on task ${taskId} from determinus-designer report.`,
           remediation:
-            "Fix the concern and submit an updated adv-designer report, or record a typed disposition via adv_design_concern_disposition (fixed | rejected_with_evidence | split | fast_follow).",
+            "Fix the concern and submit an updated determinus-designer report, or record a typed disposition via determinus_design_concern_disposition (fixed | rejected_with_evidence | split | fast_follow).",
         }),
       );
     }
@@ -640,7 +640,7 @@ export function checkUnresolvedDesignConcerns(
           gateId,
           message: `Unresolved neighboring UI recommendation on task ${taskId}: ${rec.what}`,
           remediation:
-            "Include the fix now, or record a typed disposition via adv_design_concern_disposition (rejected_with_evidence | split | fast_follow).",
+            "Include the fix now, or record a typed disposition via determinus_design_concern_disposition (rejected_with_evidence | split | fast_follow).",
         }),
       );
     });
@@ -728,8 +728,8 @@ export function checkUnresolvedVerificationEvidence(
           (warning) => VERIFICATION_WARNING_KINDS.has(warning.kind),
         );
         if (
-          report.agent !== "adv-engineer" &&
-          report.agent !== "adv-designer"
+          report.agent !== "determinus-engineer" &&
+          report.agent !== "determinus-designer"
         ) {
           return persistedWarnings;
         }
@@ -778,7 +778,7 @@ export function checkUnresolvedVerificationEvidence(
         code: "VERIFICATION_EVIDENCE_MISSING",
         gateId,
         message: `Completed task ${task.id} (evidence_policy: ${policy}) has unresolved verification evidence: ${kinds}.`,
-        remediation: `Re-run adv_run_test and submit an updated task report so the latest report is warning-free; otherwise coordinate a recovery decision with the orchestrator (taskId: ${task.id}, concernKey: ${VERIFICATION_CONCERN_KEY}).`,
+        remediation: `Re-run determinus_run_test and submit an updated task report so the latest report is warning-free; otherwise coordinate a recovery decision with the orchestrator (taskId: ${task.id}, concernKey: ${VERIFICATION_CONCERN_KEY}).`,
       }),
     );
   }
@@ -822,7 +822,7 @@ export function checkCompletedTaskEvidencePlan(
 
 // rq-respectsEvaluation01 / AC3: a task's contract_refs.respects claim on an
 // avoidance/out_of_scope item is a positive compliance assertion that the
-// claiming agent cannot self-certify. Requires task-scoped adv-reviewer report
+// claiming agent cannot self-certify. Requires task-scoped determinus-reviewer report
 // authority (non-claiming agent). Applies to ALL done tasks at acceptance and
 // release (no grandfathering); existing recorded review evidence is accepted,
 // not re-litigated (OOS2).
@@ -861,7 +861,7 @@ export function checkRespectsEvidenceAuthority(
     const avoidanceRespects = respects.filter((id) => avoidanceOosIds.has(id));
     if (avoidanceRespects.length === 0) continue;
 
-    // Authority: a task-scoped adv-reviewer report (non-claiming agent) must
+    // Authority: a task-scoped determinus-reviewer report (non-claiming agent) must
     // exist. Its existence IS the authority — the reviewer is trusted to have
     // examined the task holistically, including its respects claims. A
     // change-scoped report does not qualify: the reviewer must have examined
@@ -869,7 +869,7 @@ export function checkRespectsEvidenceAuthority(
     // (OOS2): no date-based grandfathering, but no re-examination either.
     const hasReviewerAuthority = reports.some(
       (report) =>
-        report.agent === "adv-reviewer" &&
+        report.agent === "determinus-reviewer" &&
         verificationReportTaskId(report) === task.id,
     );
 
@@ -878,8 +878,8 @@ export function checkRespectsEvidenceAuthority(
         makeBlocker({
           code: "RESPECTS_EVIDENCE_AUTHORITY_MISSING",
           gateId,
-          message: `Completed task ${task.id} claims to respect avoidance/out_of_scope item(s) ${avoidanceRespects.join(", ")} but lacks task-scoped review authority from a non-claiming agent (adv-reviewer). Self-asserted compliance alone is insufficient (AC3).`,
-          remediation: `Submit an adv-reviewer report scoped to task ${task.id} confirming the respects claim(s), or remove the respects ref(s) if the task does not actually honor the boundary.`,
+          message: `Completed task ${task.id} claims to respect avoidance/out_of_scope item(s) ${avoidanceRespects.join(", ")} but lacks task-scoped review authority from a non-claiming agent (determinus-reviewer). Self-asserted compliance alone is insufficient (AC3).`,
+          remediation: `Submit an determinus-reviewer report scoped to task ${task.id} confirming the respects claim(s), or remove the respects ref(s) if the task does not actually honor the boundary.`,
         }),
       );
     }

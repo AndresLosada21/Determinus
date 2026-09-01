@@ -14,7 +14,7 @@ import type { Change } from "../types";
 import { CHANGE_SCHEMA_URL } from "../schema-registry";
 
 async function makeTempProject(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "adv-t03-"));
+  const dir = await mkdtemp(join(tmpdir(), "determinus-t03-"));
   await writeFile(
     join(dir, "project.json"),
     JSON.stringify({
@@ -35,7 +35,7 @@ describe("store-disk — judgment_calls removal", () => {
   // explicit true so the project starts in strict mode. Explicit false
   // remains the legacy escape hatch for projects that want to opt out.
   test("init writes explicit worktree_guard_enforce true by default", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "adv-store-init-"));
+    const dir = await mkdtemp(join(tmpdir(), "determinus-store-init-"));
     const store = await createDiskStore(dir);
 
     await store.init();

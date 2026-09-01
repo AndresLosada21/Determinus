@@ -7,7 +7,7 @@ description: Ship current work to production with quality gate and push
 
 Commit all uncommitted work, merge to default branch, run quality gate, push, and optionally deploy. Handles worktree branches natively — detects and cleans up after merge.
 
-**ADV-aware:** If an ADV change has completed its release gate, skip steps ADV already handled (commit, merge, quality, docs, push) and run only what's left (deploy + optional changelog).
+**determinus-aware:** If an ADV change has completed its release gate, skip steps ADV already handled (commit, merge, quality, docs, push) and run only what's left (deploy + optional changelog).
 
 ## Safety
 
@@ -36,7 +36,7 @@ Commit all uncommitted work, merge to default branch, run quality gate, push, an
 
 Determine whether ADV has already handled most of the pipeline.
 
-1. Call `adv_change_list status: "active"` (and check archived changes too via `adv_change_list status: "archived"`)
+1. Call `determinus_change_list status: "active"` (and check archived changes too via `determinus_change_list status: "archived"`)
 2. If ADV is available in this project:
 
 ### Scenario A: ADV release gate complete (archived change, unmerged or just merged)
@@ -54,8 +54,8 @@ ADV has already: committed per-task checkpoints, run 12-dimension review, run 6-
 ADV change exists but hasn't completed the release gate. `/ship` is the wrong tool.
 
 - Report: "ADV change `{id}` is active with incomplete gates. Use the ADV workflow instead:"
-- Show which gate is next from `adv_gate_status`
-- Suggest the appropriate `/adv-*` command
+- Show which gate is next from `determinus_gate_status`
+- Suggest the appropriate `/determinus-*` command
 - Exit unless user says `--force` (then proceed as non-ADV)
 
 ### Scenario C: No ADV change, or ADV not available

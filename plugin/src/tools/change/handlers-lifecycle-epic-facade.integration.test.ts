@@ -31,13 +31,13 @@ async function callTool(
   return parseToolOutput(output) as Record<string, any>;
 }
 
-describe("adv_change_update Epic structural facade", () => {
+describe("determinus_change_update Epic structural facade", () => {
   let projectDir: string;
   let store: Store;
   let map: ToolMap;
 
   beforeEach(async () => {
-    projectDir = await createTempDir("adv-epic-facade-");
+    projectDir = await createTempDir("determinus-epic-facade-");
     store = await createDiskStore(projectDir);
     await store.init();
     map = createToolMap(store, projectDir) as ToolMap;
@@ -63,7 +63,7 @@ describe("adv_change_update Epic structural facade", () => {
     expect(initialEpic.data?.version).toBe(0);
     expect(initialEpic.data?.entries).toHaveLength(0);
 
-    const linked = await callTool(map, "adv_change_update", {
+    const linked = await callTool(map, "determinus_change_update", {
       changeId: epicId,
       link_change: firstChange.changeId,
     });
@@ -90,7 +90,7 @@ describe("adv_change_update Epic structural facade", () => {
       source: "link_existing",
     });
 
-    const epicRead = await callTool(map, "adv_change_show", {
+    const epicRead = await callTool(map, "determinus_change_show", {
       changeId: epicId,
       include: { entries: true },
     });
@@ -107,7 +107,7 @@ describe("adv_change_update Epic structural facade", () => {
       ]),
     );
 
-    const childRead = await callTool(map, "adv_change_show", {
+    const childRead = await callTool(map, "determinus_change_show", {
       changeId: firstChange.changeId,
     });
     expect(childRead.epic_membership).toEqual(
@@ -115,7 +115,7 @@ describe("adv_change_update Epic structural facade", () => {
     );
     expect(childRead.epic_membership_verification).toBe("verified");
 
-    const unlinked = await callTool(map, "adv_change_update", {
+    const unlinked = await callTool(map, "determinus_change_update", {
       changeId: epicId,
       unlink_change: firstChange.changeId,
     });
@@ -128,11 +128,11 @@ describe("adv_change_update Epic structural facade", () => {
     expect(unlinkedChild.success && unlinkedChild.data).toBeTruthy();
     expect(unlinkedChild.data?.epic_membership).toBeUndefined();
 
-    await callTool(map, "adv_change_update", {
+    await callTool(map, "determinus_change_update", {
       changeId: epicId,
       link_change: firstChange.changeId,
     });
-    await callTool(map, "adv_change_update", {
+    await callTool(map, "determinus_change_update", {
       changeId: epicId,
       link_change: secondChange.changeId,
     });
@@ -152,7 +152,7 @@ describe("adv_change_update Epic structural facade", () => {
     const firstEntryAgain = entriesByChange.get(firstChange.changeId)!;
     const secondEntry = entriesByChange.get(secondChange.changeId)!;
 
-    const reordered = await callTool(map, "adv_change_update", {
+    const reordered = await callTool(map, "determinus_change_update", {
       changeId: epicId,
       reorder_entries: [secondEntry.entry_id, firstEntryAgain.entry_id],
     });
@@ -175,20 +175,20 @@ describe("adv_change_update Epic structural facade", () => {
     await store.epics.create(epicId, "Facade Error Epic", "Error cases");
     const change = await store.changes.create("Facade child change");
 
-    const changeAsEpic = await callTool(map, "adv_change_update", {
+    const changeAsEpic = await callTool(map, "determinus_change_update", {
       changeId: change.changeId,
       link_change: "another-change",
     });
     expect(changeAsEpic.code).toBe("EPIC_REQUIRED");
 
-    const unknownEpic = await callTool(map, "adv_change_update", {
+    const unknownEpic = await callTool(map, "determinus_change_update", {
       changeId: "missing-epic",
       link_change: change.changeId,
     });
     expect(unknownEpic.code).toBe("EPIC_REQUIRED");
     expect(unknownEpic.error).toContain("Epic not found");
 
-    const mixedOperation = await callTool(map, "adv_change_update", {
+    const mixedOperation = await callTool(map, "determinus_change_update", {
       changeId: epicId,
       proposal: "not allowed with structural operation",
       link_change: change.changeId,
@@ -198,7 +198,7 @@ describe("adv_change_update Epic structural facade", () => {
       "one operation at a time",
     );
 
-    const blankLink = await callTool(map, "adv_change_update", {
+    const blankLink = await callTool(map, "determinus_change_update", {
       changeId: epicId,
       link_change: "   ",
     });

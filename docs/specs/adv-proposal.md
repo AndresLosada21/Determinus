@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Defines the responsibilities and boundaries of /adv-proposal. The proposal command establishes WHAT and WHY — problem statement, vision/direction, high-level user outcomes (implementation-free), and constraints. Engineering acceptance criteria and success criteria are firmed downstream in /adv-discover. It produces alignment artifacts, not implementation artifacts.
+Defines the responsibilities and boundaries of /determinus-proposal. The proposal command establishes WHAT and WHY — problem statement, vision/direction, high-level user outcomes (implementation-free), and constraints. Engineering acceptance criteria and success criteria are firmed downstream in /determinus-discover. It produces alignment artifacts, not implementation artifacts.
 
 ## Requirements
 
@@ -13,7 +13,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **ID:** `rq-prop-out1` | **Priority:** **[MUST]**
 
-/adv-proposal must produce a confirmed problem statement, high-level user outcomes (implementation-free), constraints, and affected specs. It must NOT create tasks, complete gates, or make implementation decisions.
+/determinus-proposal must produce a confirmed problem statement, high-level user outcomes (implementation-free), constraints, and affected specs. It must NOT create tasks, complete gates, or make implementation decisions.
 
 **Tags:** `proposal`, `boundary`, `alignment`
 
@@ -23,28 +23,28 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **Given:**
 
-- A user invokes /adv-proposal with a summary
+- A user invokes /determinus-proposal with a summary
 
 **When:** The command completes successfully
 
 **Then:**
 
-- A change is created via adv_change_create
+- A change is created via determinus_change_create
 - proposal.md contains problem statement, user outcomes, and constraints
-- Zero calls to adv_task_add are made
+- Zero calls to determinus_task_add are made
 - The change has an empty task list
 
 **Proposal does not complete any gates** (`rq-prop-out1.2`)
 
 **Given:**
 
-- A user invokes /adv-proposal
+- A user invokes /determinus-proposal
 
 **When:** The command completes successfully
 
 **Then:**
 
-- No calls to adv_gate_complete are made
+- No calls to determinus_gate_complete are made
 - All gates remain in pending status
 
 ---
@@ -53,7 +53,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **ID:** `rq-prop-scope1` | **Priority:** **[MUST]**
 
-/adv-proposal must use a two-phase workflow: Phase 1 establishes shared understanding of the problem via inline approval voice, Phase 2 builds the full proposal with high-level, implementation-free user outcomes. Testable success criteria and engineering acceptance criteria are deferred to /adv-discover. The command must not proceed to Phase 2 without user confirmation of the problem statement.
+/determinus-proposal must use a two-phase workflow: Phase 1 establishes shared understanding of the problem via inline approval voice, Phase 2 builds the full proposal with high-level, implementation-free user outcomes. Testable success criteria and engineering acceptance criteria are deferred to /determinus-discover. The command must not proceed to Phase 2 without user confirmation of the problem statement.
 
 **Tags:** `proposal`, `boundary`, `context-agreement`
 
@@ -63,7 +63,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **Given:**
 
-- A user invokes /adv-proposal
+- A user invokes /determinus-proposal
 
 **When:** Phase 1 synthesizes a problem statement
 
@@ -85,7 +85,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 - Each outcome is stated as a user-facing need, not a mechanism or solution
 - No testable or INVEST success-criteria rigor is required at the proposal stage
-- Testable acceptance criteria are deferred to /adv-discover
+- Testable acceptance criteria are deferred to /determinus-discover
 
 ---
 
@@ -93,7 +93,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **ID:** `rq-prop-neg1` | **Priority:** **[MUST]**
 
-/adv-proposal MUST NOT create tasks (adv_task_add), complete gates (adv_gate_complete), research architectural decisions, or make implementation choices. These are the responsibilities of downstream commands (discover, design, prep).
+/determinus-proposal MUST NOT create tasks (determinus_task_add), complete gates (determinus_gate_complete), research architectural decisions, or make implementation choices. These are the responsibilities of downstream commands (discover, design, prep).
 
 **Tags:** `proposal`, `boundary`, `negative`
 
@@ -103,29 +103,29 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **Given:**
 
-- A user invokes /adv-proposal for any change type (feature, bug fix, refactor)
+- A user invokes /determinus-proposal for any change type (feature, bug fix, refactor)
 
 **When:** The command executes all phases
 
 **Then:**
 
-- adv_task_add is never called
+- determinus_task_add is never called
 - The output does not list initial tasks
-- Next steps point to /adv-discover then /adv-prep
+- Next steps point to /determinus-discover then /determinus-prep
 
 **No implementation decisions during proposal** (`rq-prop-neg1.2`)
 
 **Given:**
 
-- A user invokes /adv-proposal
+- A user invokes /determinus-proposal
 
 **When:** The proposal is being built
 
 **Then:**
 
 - The proposal does not prescribe specific libraries or patterns
-- Implementation approach is deferred to /adv-discover and /adv-design
-- Task decomposition is deferred to /adv-prep
+- Implementation approach is deferred to /determinus-discover and /determinus-design
+- Task decomposition is deferred to /determinus-prep
 
 ---
 
@@ -133,7 +133,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **ID:** `rq-prop-tax1` | **Priority:** **[MUST]**
 
-/adv-proposal MUST require a ## Scope section in proposal.md with ### In Scope, ### Out of Scope, and ### Must Not subsections. Gate completion MUST block if In Scope or Out of Scope is missing or empty. Missing Must Not produces HIGH B-boundaries finding but does NOT block gate. `"None identified"` is accepted as valid Must Not content.
+/determinus-proposal MUST require a ## Scope section in proposal.md with ### In Scope, ### Out of Scope, and ### Must Not subsections. Gate completion MUST block if In Scope or Out of Scope is missing or empty. Missing Must Not produces HIGH B-boundaries finding but does NOT block gate. `"None identified"` is accepted as valid Must Not content.
 
 **Tags:** `proposal`, `scope`, `ambiguity-taxonomy`
 
@@ -143,7 +143,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **Given:**
 
-- A user invokes /adv-proposal for a new change
+- A user invokes /determinus-proposal for a new change
 
 **When:** Phase 2 builds the full proposal
 
@@ -160,7 +160,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **Given:**
 
-- A user invokes /adv-proposal for a new change
+- A user invokes /determinus-proposal for a new change
 
 **When:** Phase 2 builds the full proposal
 
@@ -177,7 +177,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **ID:** `rq-prop-tax2` | **Priority:** **[MUST]**
 
-/adv-proposal MUST run a 3-category ambiguity scan (B=Boundaries, F=Functional Scope, S=Completion Signals) against the proposal during Phase 2.6. F=Functional Scope checks that high-level user outcomes are present and implementation-free; it does NOT require testable success criteria. CRITICAL findings MUST block proposal gate completion under clarify_enforcement: strict.
+/determinus-proposal MUST run a 3-category ambiguity scan (B=Boundaries, F=Functional Scope, S=Completion Signals) against the proposal during Phase 2.6. F=Functional Scope checks that high-level user outcomes are present and implementation-free; it does NOT require testable success criteria. CRITICAL findings MUST block proposal gate completion under clarify_enforcement: strict.
 
 **Tags:** `proposal`, `ambiguity-scan`, `boundaries`, `functional`, `completion-signals`
 
@@ -195,7 +195,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 - An F-category HIGH finding is emitted
 - Evidence field cites the exact mechanism phrase verbatim
-- Reason field states the outcome is implementation detail deferred to /adv-design
+- Reason field states the outcome is implementation detail deferred to /determinus-design
 
 **Missing Out of Scope blocks proposal gate** (`rq-prop-tax2.2`)
 
@@ -218,7 +218,7 @@ Defines the responsibilities and boundaries of /adv-proposal. The proposal comma
 
 **ID:** `rq-prop-tax3` | **Priority:** **[MUST]**
 
-Every ambiguity finding emitted by /adv-proposal MUST include either a verbatim source quote or an explicit '(no {section} section)' marker, plus a 'reason: unclear because {X}' field. Findings without evidence are malformed.
+Every ambiguity finding emitted by /determinus-proposal MUST include either a verbatim source quote or an explicit '(no {section} section)' marker, plus a 'reason: unclear because {X}' field. Findings without evidence are malformed.
 
 **Tags:** `proposal`, `anti-hallucination`, `evidence`
 
@@ -236,7 +236,7 @@ Every ambiguity finding emitted by /adv-proposal MUST include either a verbatim 
 
 - Finding contains evidence: field with verbatim quote or (no X) marker
 - Finding contains reason: field with explanation
-- Finding is well-formed per ADV_INSTRUCTIONS.md Ambiguity Taxonomy
+- Finding is well-formed per determinus_INSTRUCTIONS.md Ambiguity Taxonomy
 
 **Finding without evidence is malformed** (`rq-prop-tax3.2`)
 
@@ -254,23 +254,23 @@ Every ambiguity finding emitted by /adv-proposal MUST include either a verbatim 
 
 ---
 
-### Durable Proposal Context for adv-task
+### Durable Proposal Context for determinus-task
 
 **ID:** `rq-prop-context1` | **Priority:** **[MUST]**
 
-After Quick Contract confirmation, /adv-task must always persist contract context to change.documents.proposal as the sole live authority via the proposal parameter; proposal.md is materialized only at archive time via writeArchiveBundleFiles, and downstream workflows must tolerate missing or empty legacy proposal files via scaffold fallback warnings.
+After Quick Contract confirmation, /determinus-task must always persist contract context to change.documents.proposal as the sole live authority via the proposal parameter; proposal.md is materialized only at archive time via writeArchiveBundleFiles, and downstream workflows must tolerate missing or empty legacy proposal files via scaffold fallback warnings.
 
-**Tags:** `proposal`, `adv-task`, `context`
+**Tags:** `proposal`, `determinus-task`, `context`
 
 **Legacy IDs:** `rq-advprop01` from `advance-meta`
 
 #### Scenarios
 
-**adv-task writes proposal by default** (`rq-prop-context1.1`)
+**determinus-task writes proposal by default** (`rq-prop-context1.1`)
 
 **Given:**
 
-- A Quick Contract is confirmed in /adv-task
+- A Quick Contract is confirmed in /determinus-task
 
 **When:** The change is created
 
@@ -294,11 +294,11 @@ After Quick Contract confirmation, /adv-task must always persist contract contex
 
 ---
 
-### Problem Statement Agreement for adv-proposal
+### Problem Statement Agreement for determinus-proposal
 
 **ID:** `rq-prop-context2` | **Priority:** **[MUST]**
 
-/adv-proposal must extract prior discussion context (decisions, rejected approaches, constraints, open questions) from the conversation before synthesizing a problem statement, confirm it via inline approval voice before creating any change artifacts, and persist the confirmed text (including prior decisions and rejected approaches) as the opening section of the proposal artifact via the proposal parameter and as a standalone problem-statement artifact via the problemStatement parameter in adv_change_create. Narrative artifacts are persisted to the change's durable projection (change.documents) as the sole live authority and are materialized as .md files only in the archive bundle. The problem statement must not contradict, omit, or reinterpret any prior decision or constraint from the conversation.
+/determinus-proposal must extract prior discussion context (decisions, rejected approaches, constraints, open questions) from the conversation before synthesizing a problem statement, confirm it via inline approval voice before creating any change artifacts, and persist the confirmed text (including prior decisions and rejected approaches) as the opening section of the proposal artifact via the proposal parameter and as a standalone problem-statement artifact via the problemStatement parameter in determinus_change_create. Narrative artifacts are persisted to the change's durable projection (change.documents) as the sole live authority and are materialized as .md files only in the archive bundle. The problem statement must not contradict, omit, or reinterpret any prior decision or constraint from the conversation.
 
 **Tags:** `proposal`, `context-agreement`, `transcript-grounding`
 
@@ -310,7 +310,7 @@ After Quick Contract confirmation, /adv-task must always persist contract contex
 
 **Given:**
 
-- A user invokes /adv-proposal after a conversation containing decisions, constraints, or rejected approaches
+- A user invokes /determinus-proposal after a conversation containing decisions, constraints, or rejected approaches
 
 **When:** Phase 1 begins
 
@@ -359,7 +359,7 @@ After Quick Contract confirmation, /adv-task must always persist contract contex
 
 **Then:**
 
-- adv_change_create is called with the proposal parameter containing the confirmed text
+- determinus_change_create is called with the proposal parameter containing the confirmed text
 - The persisted proposal artifact includes the confirmed problem statement as the Why section
 - The persisted proposal artifact includes a Constraints from Discussion section with prior decisions and rejected approaches
 
@@ -387,7 +387,7 @@ After Quick Contract confirmation, /adv-task must always persist contract contex
 
 **Then:**
 
-- adv_change_create is called with the problemStatement parameter containing the confirmed problem statement text
+- determinus_change_create is called with the problemStatement parameter containing the confirmed problem statement text
 - The confirmed text is persisted to the change's durable projection (change.documents.problemStatement) as the sole live authority; no problem-statement.md is written to the active change directory
 - The persisted problem statement content exactly matches the confirmed text (no template wrapping)
 - The tool output names the projection as the artifact authority (artifactAuthority: "change.documents") rather than a problem-statement.md path

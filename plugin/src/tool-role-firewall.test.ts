@@ -154,12 +154,12 @@ function makeFakeStore(
 describe("RoleFirewallError", () => {
   it("has stable code, tool, reason, and resolution fields", () => {
     const err = new RoleFirewallError(
-      "adv_gate_complete",
+      "determinus_gate_complete",
       "blocked from sub-agent",
       "sub_agent",
     );
     expect(err.code).toBe("ROLE_FIREWALL_BLOCK");
-    expect(err.tool).toBe("adv_gate_complete");
+    expect(err.tool).toBe("determinus_gate_complete");
     expect(err.reason).toBe("blocked from sub-agent");
     expect(err.resolution).toBe("sub_agent");
     expect(err.message).toMatch(/^Role firewall:/);
@@ -175,14 +175,14 @@ describe("resolveBlockableSet", () => {
   it("returns the expected blockable complement of the union floor", () => {
     const { blockable, usedFallback } = resolveBlockableSet();
     // Representative TIER_1 (union-floor) tools must NOT be blockable.
-    expect(blockable.has("adv_change_show")).toBe(false);
-    expect(blockable.has("adv_task_list")).toBe(false);
-    expect(blockable.has("adv_gate_status")).toBe(false);
-    expect(blockable.has("adv_gate_complete")).toBe(false);
-    expect(blockable.has("adv_tool_invoke")).toBe(false);
+    expect(blockable.has("determinus_change_show")).toBe(false);
+    expect(blockable.has("determinus_task_list")).toBe(false);
+    expect(blockable.has("determinus_gate_status")).toBe(false);
+    expect(blockable.has("determinus_gate_complete")).toBe(false);
+    expect(blockable.has("determinus_tool_invoke")).toBe(false);
     // Representative Tier 2/3 tools MUST be blockable.
-    expect(blockable.has("adv_run_test")).toBe(false);
-    expect(blockable.has("adv_worktree_create")).toBe(true);
+    expect(blockable.has("determinus_run_test")).toBe(false);
+    expect(blockable.has("determinus_worktree_create")).toBe(true);
     expect(usedFallback).toBe(false);
   });
 
@@ -195,9 +195,9 @@ describe("resolveBlockableSet", () => {
     const { blockable, usedFallback } = resolveBlockableSet();
     expect(usedFallback).toBe(true);
     // TIER_1 union-floor tools remain allowed; everything else is blocked.
-    expect(blockable.has("adv_change_show")).toBe(false);
-    expect(blockable.has("adv_task_list")).toBe(false);
-    expect(blockable.has("adv_run_test")).toBe(false);
+    expect(blockable.has("determinus_change_show")).toBe(false);
+    expect(blockable.has("determinus_task_list")).toBe(false);
+    expect(blockable.has("determinus_run_test")).toBe(false);
   });
 
   it("fails closed to the union floor when blockable derivation yields empty", () => {
@@ -206,23 +206,23 @@ describe("resolveBlockableSet", () => {
     );
     const { blockable, usedFallback } = resolveBlockableSet();
     expect(usedFallback).toBe(true);
-    expect(blockable.has("adv_change_show")).toBe(false);
-    expect(blockable.has("adv_run_test")).toBe(false);
+    expect(blockable.has("determinus_change_show")).toBe(false);
+    expect(blockable.has("determinus_run_test")).toBe(false);
   });
 
   it("fails closed to the union floor when blockable derivation is incomplete", () => {
     vi.spyOn(policyModule, "blockableFromSubAgentSession").mockReturnValue(
-      Object.freeze(["adv_worktree_create"]),
+      Object.freeze(["determinus_worktree_create"]),
     );
     const { blockable, usedFallback } = resolveBlockableSet();
     expect(usedFallback).toBe(true);
-    expect(blockable.has("adv_change_show")).toBe(false);
-    expect(blockable.has("adv_run_test")).toBe(false);
+    expect(blockable.has("determinus_change_show")).toBe(false);
+    expect(blockable.has("determinus_run_test")).toBe(false);
   });
 });
 
 describe("roleFirewallCheck predicate", () => {
-  it("is a no-op for non-adv_* tools", () => {
+  it("is a no-op for non-determinus_* tools", () => {
     expect(() =>
       roleFirewallCheck({
         toolName: "write",
@@ -235,7 +235,7 @@ describe("roleFirewallCheck predicate", () => {
   it("allows union-floor tools from sub-agent sessions", () => {
     expect(() =>
       roleFirewallCheck({
-        toolName: "adv_change_show",
+        toolName: "determinus_change_show",
         callerSessionID: "sub-agent",
         mainSessionId: "main-session",
       }),
@@ -245,7 +245,7 @@ describe("roleFirewallCheck predicate", () => {
   it("allows blockable tools from the main session", () => {
     expect(() =>
       roleFirewallCheck({
-        toolName: "adv_worktree_create",
+        toolName: "determinus_worktree_create",
         callerSessionID: "main-session",
         mainSessionId: "main-session",
       }),
@@ -255,7 +255,7 @@ describe("roleFirewallCheck predicate", () => {
   it("blocks blockable tools from sub-agent sessions", () => {
     expect(() =>
       roleFirewallCheck({
-        toolName: "adv_worktree_create",
+        toolName: "determinus_worktree_create",
         callerSessionID: "sub-agent",
         mainSessionId: "main-session",
       }),
@@ -265,7 +265,7 @@ describe("roleFirewallCheck predicate", () => {
   it("blocks blockable tools when mainSessionId is unresolved", () => {
     expect(() =>
       roleFirewallCheck({
-        toolName: "adv_worktree_create",
+        toolName: "determinus_worktree_create",
         callerSessionID: "anything",
       }),
     ).toThrow(RoleFirewallError);
@@ -274,7 +274,7 @@ describe("roleFirewallCheck predicate", () => {
   it("blocks blockable tools when callerSessionID is missing", () => {
     expect(() =>
       roleFirewallCheck({
-        toolName: "adv_worktree_create",
+        toolName: "determinus_worktree_create",
         mainSessionId: "main-session",
       }),
     ).toThrow(RoleFirewallError);
@@ -386,42 +386,44 @@ describe("Runtime role firewall in tool.execute.before", () => {
     return hooks["tool.execute.before"]!(input, { args } as any);
   };
 
-  it("blocks invoke-only adv_worktree_create from a sub-agent session", async () => {
+  it("blocks invoke-only determinus_worktree_create from a sub-agent session", async () => {
     await createPlugin();
     await setMainSession("main");
     await expect(
-      callToolBefore("adv_worktree_create", "sub-agent", { changeId: "x" }),
+      callToolBefore("determinus_worktree_create", "sub-agent", {
+        changeId: "x",
+      }),
     ).rejects.toThrow(RoleFirewallError);
   });
 
-  it("allows union-floor adv_change_show from a sub-agent session", async () => {
+  it("allows union-floor determinus_change_show from a sub-agent session", async () => {
     await createPlugin();
     await setMainSession("main");
     await expect(
-      callToolBefore("adv_change_show", "sub-agent"),
+      callToolBefore("determinus_change_show", "sub-agent"),
     ).resolves.toBeUndefined();
   });
 
-  it("allows union-floor adv_task_list from a sub-agent session", async () => {
+  it("allows union-floor determinus_task_list from a sub-agent session", async () => {
     await createPlugin();
     await setMainSession("main");
     await expect(
-      callToolBefore("adv_task_list", "sub-agent"),
+      callToolBefore("determinus_task_list", "sub-agent"),
     ).resolves.toBeUndefined();
   });
 
-  it("allows blockable adv_change_create from the root session", async () => {
+  it("allows blockable determinus_change_create from the root session", async () => {
     await createPlugin();
     await setMainSession("main");
     await expect(
-      callToolBefore("adv_worktree_create", "main", { changeId: "x" }),
+      callToolBefore("determinus_worktree_create", "main", { changeId: "x" }),
     ).resolves.toBeUndefined();
   });
 
   it("allows the root orchestrator before any system transform runs", async () => {
     await createPlugin();
     await expect(
-      callToolBefore("adv_worktree_create", "main", { changeId: "x" }),
+      callToolBefore("determinus_worktree_create", "main", { changeId: "x" }),
     ).resolves.toBeUndefined();
   });
 
@@ -433,17 +435,19 @@ describe("Runtime role firewall in tool.execute.before", () => {
     );
 
     await expect(
-      callToolBefore("adv_worktree_create", "main", { changeId: "x" }),
+      callToolBefore("determinus_worktree_create", "main", { changeId: "x" }),
     ).resolves.toBeUndefined();
     await expect(
-      callToolBefore("adv_worktree_create", "sub-agent", { changeId: "x" }),
+      callToolBefore("determinus_worktree_create", "sub-agent", {
+        changeId: "x",
+      }),
     ).rejects.toThrow(RoleFirewallError);
   });
 
   it("blocks blockable tools when session ancestry cannot be resolved", async () => {
     await createPlugin();
     await expect(
-      callToolBefore("adv_worktree_create", "unknown-session", {
+      callToolBefore("determinus_worktree_create", "unknown-session", {
         changeId: "x",
       }),
     ).rejects.toThrow(RoleFirewallError);
@@ -452,7 +456,7 @@ describe("Runtime role firewall in tool.execute.before", () => {
   it("allows union-floor reads when session ancestry cannot be resolved", async () => {
     await createPlugin();
     await expect(
-      callToolBefore("adv_change_show", "unknown-session"),
+      callToolBefore("determinus_change_show", "unknown-session"),
     ).resolves.toBeUndefined();
   });
 
@@ -460,7 +464,9 @@ describe("Runtime role firewall in tool.execute.before", () => {
     await createPlugin();
     await setMainSession("main");
     await expect(
-      callToolBefore("adv_worktree_create", undefined, { changeId: "x" }),
+      callToolBefore("determinus_worktree_create", undefined, {
+        changeId: "x",
+      }),
     ).rejects.toThrow(RoleFirewallError);
   });
 
@@ -468,7 +474,7 @@ describe("Runtime role firewall in tool.execute.before", () => {
     await createPlugin();
     await setMainSession("main");
     await expect(
-      callToolBefore("adv_worktree_create", "sub-agent", {
+      callToolBefore("determinus_worktree_create", "sub-agent", {
         changeId: "x",
         role: "orchestrator",
       }),
@@ -480,7 +486,7 @@ describe("Runtime role firewall in tool.execute.before", () => {
     await setMainSession("main");
     let caught: RoleFirewallError | undefined;
     try {
-      await callToolBefore("adv_worktree_create", "sub-agent", {
+      await callToolBefore("determinus_worktree_create", "sub-agent", {
         changeId: "x",
       });
     } catch (e) {
@@ -488,7 +494,7 @@ describe("Runtime role firewall in tool.execute.before", () => {
     }
     expect(caught).toBeInstanceOf(RoleFirewallError);
     expect(caught?.code).toBe("ROLE_FIREWALL_BLOCK");
-    expect(caught?.tool).toBe("adv_worktree_create");
+    expect(caught?.tool).toBe("determinus_worktree_create");
     expect(caught?.resolution).toBe("sub_agent");
     expect(caught?.message).toMatch(/^Role firewall:/);
   });
@@ -496,9 +502,9 @@ describe("Runtime role firewall in tool.execute.before", () => {
   it("does not interfere with existing hook responsibilities (coexistence)", async () => {
     await createPlugin();
     await setMainSession("main");
-    // Change tracking via adv_change_create after-hook still works.
+    // Change tracking via determinus_change_create after-hook still works.
     await hooks["tool.execute.after"]!(
-      { tool: "adv_change_create" } as any,
+      { tool: "determinus_change_create" } as any,
       {
         args: { changeId: "coexistence" },
         output: JSON.stringify({ changeId: "coexistence" }),
@@ -509,7 +515,9 @@ describe("Runtime role firewall in tool.execute.before", () => {
     // A blockable tool from the main session is allowed and the existing
     // active-change re-point logic still resolves.
     await expect(
-      callToolBefore("adv_change_create", "main", { summary: "coexistence" }),
+      callToolBefore("determinus_change_create", "main", {
+        summary: "coexistence",
+      }),
     ).resolves.toBeUndefined();
   });
 });

@@ -9,14 +9,14 @@ import {
 const lookup: WarrantLookup = {
   toolSurface: new Map([
     [
-      "adv_change_create",
+      "determinus_change_create",
       new Set(["summary", "target_path", "target_confirmed"]),
     ],
     [
-      "adv_change_archive",
+      "determinus_change_archive",
       new Set(["changeId", "phase9", "worktreePath", "target_path"]),
     ],
-    ["adv_task_checkpoint", new Set(["taskId", "target_path"])],
+    ["determinus_task_checkpoint", new Set(["taskId", "target_path"])],
   ]),
   specIds: new Set(["rq-acWarrant01"]),
 };
@@ -31,19 +31,19 @@ describe("parseWarrantTag", () => {
 
   test("extracts and strips a single tool#arg ref", () => {
     const parsed = parseWarrantTag(
-      "Cross-project work routes through target. [warrant: tool:adv_change_create#target_path]",
+      "Cross-project work routes through target. [warrant: tool:determinus_change_create#target_path]",
     );
-    expect(parsed.refs).toEqual(["tool:adv_change_create#target_path"]);
+    expect(parsed.refs).toEqual(["tool:determinus_change_create#target_path"]);
     expect(parsed.text).toBe("Cross-project work routes through target.");
     expect(parsed.text).not.toContain("[warrant:");
   });
 
   test("parses multiple comma-separated refs", () => {
     const parsed = parseWarrantTag(
-      "Does X. [warrant: tool:adv_change_archive, spec:rq-acWarrant01]",
+      "Does X. [warrant: tool:determinus_change_archive, spec:rq-acWarrant01]",
     );
     expect(parsed.refs).toEqual([
-      "tool:adv_change_archive",
+      "tool:determinus_change_archive",
       "spec:rq-acWarrant01",
     ]);
   });
@@ -64,26 +64,28 @@ describe("parseWarrantTag", () => {
 describe("resolveWarrants", () => {
   test("ok when tool#arg exists", () => {
     expect(
-      resolveWarrants(["tool:adv_change_create#target_path"], lookup),
+      resolveWarrants(["tool:determinus_change_create#target_path"], lookup),
     ).toEqual({ ok: true, unresolved: [] });
   });
 
   test("unresolved when tool arg is absent", () => {
     const result = resolveWarrants(
-      ["tool:adv_change_archive#nonexistent_arg"],
+      ["tool:determinus_change_archive#nonexistent_arg"],
       lookup,
     );
     expect(result.ok).toBe(false);
     expect(result.unresolved).toEqual([
-      "tool:adv_change_archive#nonexistent_arg",
+      "tool:determinus_change_archive#nonexistent_arg",
     ]);
   });
 
   test("ok when tool exists (name only)", () => {
-    expect(resolveWarrants(["tool:adv_change_archive"], lookup)).toEqual({
-      ok: true,
-      unresolved: [],
-    });
+    expect(resolveWarrants(["tool:determinus_change_archive"], lookup)).toEqual(
+      {
+        ok: true,
+        unresolved: [],
+      },
+    );
   });
 
   test("unresolved when tool name absent", () => {

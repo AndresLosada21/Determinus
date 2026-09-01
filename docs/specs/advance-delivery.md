@@ -13,27 +13,27 @@ Capability: Execution-layer contract for ADV — TDD execution routing, task-run
 
 **ID:** `rq-ADVEXEC01` | **Priority:** **[MUST]**
 
-For ordinary inline TDD work, /adv-apply MUST explicitly name editing tools (edit, write, morph_edit where appropriate) as the correct path for creating or modifying test files, and MUST explicitly name adv_run_test as the primary red/green test execution path.
+For ordinary inline TDD work, /determinus-apply MUST explicitly name editing tools (edit, write, morph_edit where appropriate) as the correct path for creating or modifying test files, and MUST explicitly name determinus_run_test as the primary red/green test execution path.
 
 **Tags:** `workflow`, `execution`, `tdd`, `tool-routing`
 
 #### Scenarios
 
-**Red and green contract lines name adv_run_test** (`rq-ADVEXEC01.1`)
+**Red and green contract lines name determinus_run_test** (`rq-ADVEXEC01.1`)
 
 **Given:**
-- The /adv-apply command contract is present
+- The /determinus-apply command contract is present
 
 **When:** Its Red and Green phase guidance is inspected
 
 **Then:**
-- The Red phase line names adv_run_test with phase 'red'
-- The Green phase line names adv_run_test with phase 'green'
+- The Red phase line names determinus_run_test with phase 'red'
+- The Green phase line names determinus_run_test with phase 'green'
 
 **Apply contract names editing tools for test-file changes** (`rq-ADVEXEC01.2`)
 
 **Given:**
-- The /adv-apply command contract is present
+- The /determinus-apply command contract is present
 
 **When:** Its ordinary inline-TDD file-editing guidance is inspected
 
@@ -47,7 +47,7 @@ For ordinary inline TDD work, /adv-apply MUST explicitly name editing tools (edi
 
 **ID:** `rq-ADVEXEC02` | **Priority:** **[MUST]**
 
-The repository MUST maintain asset or regression tests that fail when canonical inline-TDD path wording is removed from /adv-apply or when shell-authored test-file content is reintroduced as normal-path guidance.
+The repository MUST maintain asset or regression tests that fail when canonical inline-TDD path wording is removed from /determinus-apply or when shell-authored test-file content is reintroduced as normal-path guidance.
 
 **Tags:** `workflow`, `execution`, `regression`, `tool-routing`
 
@@ -56,9 +56,9 @@ The repository MUST maintain asset or regression tests that fail when canonical 
 **Asset tests guard canonical path wording** (`rq-ADVEXEC02.1`)
 
 **Given:**
-- The /adv-apply contract is covered by asset tests
+- The /determinus-apply contract is covered by asset tests
 
-**When:** Canonical Red/Green adv_run_test wording is removed
+**When:** Canonical Red/Green determinus_run_test wording is removed
 
 **Then:**
 - The asset or regression suite fails
@@ -66,7 +66,7 @@ The repository MUST maintain asset or regression tests that fail when canonical 
 **Asset tests guard anti-pattern row** (`rq-ADVEXEC02.2`)
 
 **Given:**
-- The /adv-apply contract is covered by asset tests
+- The /determinus-apply contract is covered by asset tests
 
 **When:** The shell-authored test-file anti-pattern row is removed or weakened
 
@@ -79,7 +79,7 @@ The repository MUST maintain asset or regression tests that fail when canonical 
 
 **ID:** `rq-ADVEXEC03` | **Priority:** **[MUST]**
 
-During active inline-TDD work, runtime enforcement MUST treat shell-authored test-file content and direct test-runner bash differently. Shell-authored test-file content targeting test-glob paths is prohibited and MUST be blocked. Direct test-runner bash without a matching recent adv_run_test signal MUST emit an advisory but MUST NOT be blocked. These are firm defaults, not feature-flagged rollout modes.
+During active inline-TDD work, runtime enforcement MUST treat shell-authored test-file content and direct test-runner bash differently. Shell-authored test-file content targeting test-glob paths is prohibited and MUST be blocked. Direct test-runner bash without a matching recent determinus_run_test signal MUST emit an advisory but MUST NOT be blocked. These are firm defaults, not feature-flagged rollout modes.
 
 **Tags:** `workflow`, `execution`, `runtime`, `guard`, `tdd`
 
@@ -96,20 +96,20 @@ During active inline-TDD work, runtime enforcement MUST treat shell-authored tes
 
 **Then:**
 - The command is blocked
-- The error tells the agent to use editing tools and adv_run_test instead
+- The error tells the agent to use editing tools and determinus_run_test instead
 
 **Direct test-runner bash is advisory only** (`rq-ADVEXEC03.2`)
 
 **Given:**
 - A change is active
 - An inline-TDD task is in progress
-- A bash command runs a test runner without a matching recent adv_run_test signal
+- A bash command runs a test runner without a matching recent determinus_run_test signal
 
 **When:** The bash command is checked by runtime enforcement
 
 **Then:**
 - The command is not blocked
-- An advisory is emitted directing the agent to prefer adv_run_test
+- An advisory is emitted directing the agent to prefer determinus_run_test
 
 ---
 
@@ -117,23 +117,23 @@ During active inline-TDD work, runtime enforcement MUST treat shell-authored tes
 
 **ID:** `rq-ADVEXEC04` | **Priority:** **[MUST]**
 
-ADV command and instruction guidance MUST justify prescribed evidence tooling by durable user value. adv_run_test is the normal inline TDD path because it provides executable proof for the current agent run; durable task evidence is the final task verification claim recorded by the disk mutation path. Retired fallback evidence tools MUST NOT be reintroduced as ordinary inline-TDD ceremony.
+ADV command and instruction guidance MUST justify prescribed evidence tooling by durable user value. determinus_run_test is the normal inline TDD path because it provides executable proof for the current agent run; durable task evidence is the final task verification claim recorded by the disk mutation path. Retired fallback evidence tools MUST NOT be reintroduced as ordinary inline-TDD ceremony.
 
 **Tags:** `workflow`, `execution`, `tdd`, `evidence`, `value`
 
 #### Scenarios
 
-**adv_run_test prescription names value categories** (`rq-ADVEXEC04.1`)
+**determinus_run_test prescription names value categories** (`rq-ADVEXEC04.1`)
 
 **Given:**
-- /adv-apply or agent guidance prescribes adv_run_test for inline TDD
+- /determinus-apply or agent guidance prescribes determinus_run_test for inline TDD
 
 **When:** The guidance is inspected
 
 **Then:**
 - It explains executable proof value
 - It explains how durable evidence is recorded through final task completion verification
-- It does not claim adv_run_test alone persists durable workflow evidence
+- It does not claim determinus_run_test alone persists durable workflow evidence
 
 ---
 
@@ -220,7 +220,7 @@ ADV execution guidance MUST align with the normalized task evidence plan (rq-TDD
 
 **ID:** `rq-bulkClose01` | **Priority:** **[MUST]**
 
-adv_change_bulk_close must support closing multiple changes in a single approved tool call, using either an explicit ID list or filter-based selection, with fail-all semantics on invalid targets and a structured result envelope.
+determinus_change_bulk_close must support closing multiple changes in a single approved tool call, using either an explicit ID list or filter-based selection, with fail-all semantics on invalid targets and a structured result envelope.
 
 **Tags:** `workflow`, `changes`, `bulk-operations`
 
@@ -231,7 +231,7 @@ adv_change_bulk_close must support closing multiple changes in a single approved
 **Given:**
 - A list of valid active change IDs
 
-**When:** adv_change_bulk_close is called with kind: 'explicit' and those IDs
+**When:** determinus_change_bulk_close is called with kind: 'explicit' and those IDs
 
 **Then:**
 - All specified changes are closed with the provided reason
@@ -243,7 +243,7 @@ adv_change_bulk_close must support closing multiple changes in a single approved
 **Given:**
 - A repository with changes in various states
 
-**When:** adv_change_bulk_close is called with kind: 'filter'
+**When:** determinus_change_bulk_close is called with kind: 'filter'
 
 **Then:**
 - The call must supply either a status filter (draft or pending) OR a staleness filter (createdBefore or lastActivityBefore)
@@ -297,12 +297,12 @@ adv_change_bulk_close must support closing multiple changes in a single approved
 **Existing close signature unchanged** (`rq-bulkClose01.7`)
 
 **Given:**
-- The existing adv_change_close tool
+- The existing determinus_change_close tool
 
 **When:** Inspected after this change ships
 
 **Then:**
-- Its signature and behavior remain identical to before adv_change_bulk_close was added
+- Its signature and behavior remain identical to before determinus_change_bulk_close was added
 
 ---
 
@@ -354,7 +354,7 @@ Checkpoint commits MUST only represent verified task completion state. Verificat
 
 **Given:**
 - A task is in the green phase with file changes
-- The agent calls `adv_task_checkpoint` with `mode: "complete"`
+- The agent calls `determinus_task_checkpoint` with `mode: "complete"`
 
 **When:** The checkpoint tool evaluates the request
 
@@ -467,7 +467,7 @@ Checkpoint commits MUST include machine-readable metadata in the commit message 
 
 **ID:** `rq-cc04` | **Priority:** **[MUST]**
 
-The `/adv-apply` flow MUST capture a clean baseline before the Red Phase to ensure checkpoint commits represent only the task's incremental changes.
+The `/determinus-apply` flow MUST capture a clean baseline before the Red Phase to ensure checkpoint commits represent only the task's incremental changes.
 
 **Tags:** `checkpoint`, `baseline`, `apply-flow`, `dirty-tree`
 
@@ -476,7 +476,7 @@ The `/adv-apply` flow MUST capture a clean baseline before the Red Phase to ensu
 **Baseline capture before Red Phase** (`rq-cc04.1`)
 
 **Given:**
-- A task is starting in `/adv-apply`
+- A task is starting in `/determinus-apply`
 
 **When:** The agent begins the task workflow
 
@@ -492,7 +492,7 @@ The `/adv-apply` flow MUST capture a clean baseline before the Red Phase to ensu
 **When:** The agent prepares to checkpoint
 
 **Then:**
-- The agent MUST run incremental verification (tests, typecheck, lint) before calling `adv_task_checkpoint`
+- The agent MUST run incremental verification (tests, typecheck, lint) before calling `determinus_task_checkpoint`
 - Verification output is passed as the `verification` argument
 
 ---
@@ -527,7 +527,7 @@ Checkpoint commits are local rollback/audit points only. Publication, merge, and
 **When:** The user requests archive
 
 **Then:**
-- `/adv-archive` runs Phase 9 Git Finalization as the publication path
+- `/determinus-archive` runs Phase 9 Git Finalization as the publication path
 - Worktree cleanup is blocked until the branch is merged or the archive process completes
 - The user MUST explicitly approve archive sign-off
 
@@ -537,7 +537,7 @@ Checkpoint commits are local rollback/audit points only. Publication, merge, and
 
 **ID:** `rq-checkpointLedger01` | **Priority:** **[MUST]**
 
-adv_task_checkpoint MUST surface change projection completion recording failures via `checkpointRecorded: false` when the git commit (or clean-tree result) succeeds but `taskCompletedMutation` is not durably reflected in change projection state. /adv-apply MUST treat `checkpointRecorded: false` as blocking task completion: the agent runs adv_task_show, retries the checkpoint recording path, and only proceeds after `checkpointRecorded: true` is observed. Returning `checkpointRecorded: false` MUST include actionable remediation guidance and MUST NOT be silently treated as success.
+determinus_task_checkpoint MUST surface change projection completion recording failures via `checkpointRecorded: false` when the git commit (or clean-tree result) succeeds but `taskCompletedMutation` is not durably reflected in change projection state. /determinus-apply MUST treat `checkpointRecorded: false` as blocking task completion: the agent runs determinus_task_show, retries the checkpoint recording path, and only proceeds after `checkpointRecorded: true` is observed. Returning `checkpointRecorded: false` MUST include actionable remediation guidance and MUST NOT be silently treated as success.
 
 **Tags:** `checkpoint`, `ledger`, `task-run`, `apply-flow`, `recovery`
 
@@ -546,41 +546,41 @@ adv_task_checkpoint MUST surface change projection completion recording failures
 **Committed checkpoint with ledger failure surfaces checkpointRecorded:false** (`rq-checkpointLedger01.1`)
 
 **Given:**
-- An /adv-apply task has dirty tree changes that pass branch and HEAD guards
+- An /determinus-apply task has dirty tree changes that pass branch and HEAD guards
 - The git commit phase succeeds but the taskCompletedMutation completion record is not durably reflected in change projection state
 
-**When:** adv_task_checkpoint executes in mode complete or cancel
+**When:** determinus_task_checkpoint executes in mode complete or cancel
 
 **Then:**
 - The tool returns status `committed` with the new commit sha
 - The tool returns `checkpointRecorded: false` to indicate the change projection completion record was not durably reflected
-- The remediation guidance names adv_task_show and a retry path for checkpoint recording recovery
+- The remediation guidance names determinus_task_show and a retry path for checkpoint recording recovery
 - The result MUST NOT be silently treated as task completion
 
 **Clean-tree checkpoint with ledger failure surfaces checkpointRecorded:false** (`rq-checkpointLedger01.2`)
 
 **Given:**
-- An /adv-apply task has no dirty tree changes
+- An /determinus-apply task has no dirty tree changes
 - The clean-tree path executes but the taskCompletedMutation completion record is not durably reflected in change projection state
 
-**When:** adv_task_checkpoint executes in mode complete
+**When:** determinus_task_checkpoint executes in mode complete
 
 **Then:**
 - The tool returns status `clean` with no new commit
 - The tool returns `checkpointRecorded: false` to indicate the change projection completion record was not durably reflected
-- The remediation guidance names adv_task_show and a retry path for checkpoint recording recovery
+- The remediation guidance names determinus_task_show and a retry path for checkpoint recording recovery
 
 **Apply guidance treats checkpointRecorded:false as blocking task completion** (`rq-checkpointLedger01.3`)
 
 **Given:**
-- An /adv-apply task has received `checkpointRecorded: false` from adv_task_checkpoint
+- An /determinus-apply task has received `checkpointRecorded: false` from determinus_task_checkpoint
 
 **When:** The agent prepares to mark the task done
 
 **Then:**
-- The agent MUST run adv_task_show to inspect change projection task state
+- The agent MUST run determinus_task_show to inspect change projection task state
 - The agent MUST retry the checkpoint recording path before treating the task as done
-- The agent MUST NOT call adv_task_update with status done in normal apply flow
+- The agent MUST NOT call determinus_task_update with status done in normal apply flow
 - Existing doom-loop and blocker semantics apply if recovery cannot be achieved within the retry budget
 
 ---
@@ -589,7 +589,7 @@ adv_task_checkpoint MUST surface change projection completion recording failures
 
 **ID:** `rq-archiveValidate01` | **Priority:** **[MUST]**
 
-adv_change_archive MUST run validateChange before creating the archive bundle. Validation errors block the archive; warnings are included in the response but do not block. Validation runs before the idempotent bundle-existence check so that retries also validate.
+determinus_change_archive MUST run validateChange before creating the archive bundle. Validation errors block the archive; warnings are included in the response but do not block. Validation runs before the idempotent bundle-existence check so that retries also validate.
 
 **Tags:** `workflow`, `archive`, `validation`, `completeness`
 
@@ -601,7 +601,7 @@ adv_change_archive MUST run validateChange before creating the archive bundle. V
 - A change passing archive preflight (all tasks done/cancelled, all gates satisfied)
 - validateChange returns one or more errors
 
-**When:** adv_change_archive is invoked
+**When:** determinus_change_archive is invoked
 
 **Then:**
 - The archive is rejected with a structured error response
@@ -614,7 +614,7 @@ adv_change_archive MUST run validateChange before creating the archive bundle. V
 - A change passing archive preflight
 - validateChange returns warnings but no errors
 
-**When:** adv_change_archive is invoked
+**When:** determinus_change_archive is invoked
 
 **Then:**
 - Validation warnings are included in the archive response
@@ -626,7 +626,7 @@ adv_change_archive MUST run validateChange before creating the archive bundle. V
 - A previous archive attempt wrote a bundle but failed status transition
 - The bundle exists on disk
 
-**When:** adv_change_archive is invoked again
+**When:** determinus_change_archive is invoked again
 
 **Then:**
 - validateChange runs before the bundle-existence short-circuit
@@ -650,7 +650,7 @@ When a change has change.contract, archive MUST verify structural contract proof
 - A change has change.contract with required contract items
 - contract.reviewMatrix is absent
 
-**When:** adv_change_archive is invoked
+**When:** determinus_change_archive is invoked
 
 **Then:**
 - The archive is rejected with a contract proof error
@@ -664,7 +664,7 @@ When a change has change.contract, archive MUST verify structural contract proof
 **When:** The row status is fail, violated, or unknown
 
 **Then:**
-- adv_change_archive rejects the archive
+- determinus_change_archive rejects the archive
 - The response identifies contract proof errors for remediation
 
 **Passing proof writes traceability artifact** (`rq-contractArchiveProof01.3`)
@@ -672,7 +672,7 @@ When a change has change.contract, archive MUST verify structural contract proof
 **Given:**
 - All required contract items have passing, respected, or justified not_applicable proof rows
 
-**When:** adv_change_archive creates the archive bundle
+**When:** determinus_change_archive creates the archive bundle
 
 **Then:**
 - The bundle includes CONTRACT_TRACEABILITY.md
@@ -683,7 +683,7 @@ When a change has change.contract, archive MUST verify structural contract proof
 **Given:**
 - An archive bundle already exists on disk for a non-archived change
 
-**When:** adv_change_archive is retried
+**When:** determinus_change_archive is retried
 
 **Then:**
 - Contract proof validation runs before existing-bundle recovery
@@ -691,11 +691,11 @@ When a change has change.contract, archive MUST verify structural contract proof
 
 ---
 
-### adv_change_show accepts opt-in include flags
+### determinus_change_show accepts opt-in include flags
 
 **ID:** `rq-advChangeShowInclude01` | **Priority:** **[MUST]**
 
-adv_change_show must accept an optional include argument with shape { ledger?: boolean, snapshot?: boolean, readyTasks?: boolean, readyTasksLimit?: number }. When include is omitted, the response shape is unchanged (backward compatible). When include.snapshot is true, the rendered context snapshot is attached as top-level _contextSnapshot, matching the mutation-tool convention. When include.ledger is true, the in-progress task's TaskRunState (or null) is attached as _ledger. When include.readyTasks is true, the unblocked ready queue is attached as _readyTasks (top-N by priority then created_at; default 10, max 50) along with _readyTasksMeta. Cross-project target_path routing is preserved.
+determinus_change_show must accept an optional include argument with shape { ledger?: boolean, snapshot?: boolean, readyTasks?: boolean, readyTasksLimit?: number }. When include is omitted, the response shape is unchanged (backward compatible). When include.snapshot is true, the rendered context snapshot is attached as top-level _contextSnapshot, matching the mutation-tool convention. When include.ledger is true, the in-progress task's TaskRunState (or null) is attached as _ledger. When include.readyTasks is true, the unblocked ready queue is attached as _readyTasks (top-N by priority then created_at; default 10, max 50) along with _readyTasksMeta. Cross-project target_path routing is preserved.
 
 **Tags:** `delivery`, `tools`, `context-emission`
 
@@ -706,7 +706,7 @@ adv_change_show must accept an optional include argument with shape { ledger?: b
 **Given:**
 - A change exists with completed and pending tasks
 
-**When:** adv_change_show is called without include
+**When:** determinus_change_show is called without include
 
 **Then:**
 - The response does NOT contain _contextSnapshot, _ledger, or _readyTasks
@@ -717,7 +717,7 @@ adv_change_show must accept an optional include argument with shape { ledger?: b
 **Given:**
 - A change exists
 
-**When:** adv_change_show is called with include: { snapshot: true }
+**When:** determinus_change_show is called with include: { snapshot: true }
 
 **Then:**
 - The response includes top-level _contextSnapshot string
@@ -736,11 +736,11 @@ adv_change_show must accept an optional include argument with shape { ledger?: b
 
 ---
 
-### Loop ledger readback via adv_change_show include flags
+### Loop ledger readback via determinus_change_show include flags
 
 **ID:** `rq-loopLedger01` | **Priority:** **[MUST]**
 
-adv_change_show MUST expose an opt-in typed loop-ledger readback over existing ADV loop evidence. include.loopLedger:true attaches a compact summary as _loopLedger (version, summary: totalEntries, byKind, byVerdict, latestStatus, sourceTotals, retryFailureCount, inconclusiveCount). include.loopLedgerDetails:true additionally attaches bounded detailed entries; include.loopLedgerLimit bounds the detail slice and MUST accept 1-100 inclusive, default to 20, and reject or clamp values outside 1-100. The legacy include.ledger flag is unchanged: when requested it still attaches _ledger: null and MUST NOT be aliased to the loop ledger. The readback is a derived projection over authoritative sources (task attempts/error_recovery, sub-agent reports, test_runs, ci_check targets) and is evidence-only: it MUST NOT authorize, complete, or block any task, contract item, report, or gate (AC5), and MUST NOT change retry budgets or autonomy (AC7). test_runs appear only as source refs (kind test_run) and MUST NOT be used as an attempt-count source; UNKNOWN or routing-only verification triage maps to verdict inconclusive and MUST NOT increment retryFailureCount. The readback MUST work for cross-project target_path reads and for terminal changes via the disk projection without a live workflow.
+determinus_change_show MUST expose an opt-in typed loop-ledger readback over existing ADV loop evidence. include.loopLedger:true attaches a compact summary as _loopLedger (version, summary: totalEntries, byKind, byVerdict, latestStatus, sourceTotals, retryFailureCount, inconclusiveCount). include.loopLedgerDetails:true additionally attaches bounded detailed entries; include.loopLedgerLimit bounds the detail slice and MUST accept 1-100 inclusive, default to 20, and reject or clamp values outside 1-100. The legacy include.ledger flag is unchanged: when requested it still attaches _ledger: null and MUST NOT be aliased to the loop ledger. The readback is a derived projection over authoritative sources (task attempts/error_recovery, sub-agent reports, test_runs, ci_check targets) and is evidence-only: it MUST NOT authorize, complete, or block any task, contract item, report, or gate (AC5), and MUST NOT change retry budgets or autonomy (AC7). test_runs appear only as source refs (kind test_run) and MUST NOT be used as an attempt-count source; UNKNOWN or routing-only verification triage maps to verdict inconclusive and MUST NOT increment retryFailureCount. The readback MUST work for cross-project target_path reads and for terminal changes via the disk projection without a live workflow.
 
 **Tags:** `delivery`, `tools`, `context-emission`, `loop-ledger`, `projection`
 
@@ -751,7 +751,7 @@ adv_change_show MUST expose an opt-in typed loop-ledger readback over existing A
 **Given:**
 - A change has task-attempt and sub-agent-report loop evidence
 
-**When:** adv_change_show is called with include: { loopLedger: true }
+**When:** determinus_change_show is called with include: { loopLedger: true }
 
 **Then:**
 - The response includes _loopLedger with version and summary
@@ -763,7 +763,7 @@ adv_change_show MUST expose an opt-in typed loop-ledger readback over existing A
 **Given:**
 - A request includes loopLedger:true with loopLedgerDetails:true and loopLedgerLimit:N
 
-**When:** adv_change_show projects the readback
+**When:** determinus_change_show projects the readback
 
 **Then:**
 - _loopLedger.details contains at most N entries
@@ -773,7 +773,7 @@ adv_change_show MUST expose an opt-in typed loop-ledger readback over existing A
 **Legacy include.ledger is unchanged** (`rq-loopLedger01.3`)
 
 **Given:**
-- adv_change_show is called with include: { ledger: true } only
+- determinus_change_show is called with include: { ledger: true } only
 
 **When:** The response is built
 
@@ -811,7 +811,7 @@ adv_change_show MUST expose an opt-in typed loop-ledger readback over existing A
 **Given:**
 - include.loopLedger is requested for a cross-project target_path read or for an archived/closed change
 
-**When:** adv_change_show builds the response
+**When:** determinus_change_show builds the response
 
 **Then:**
 - _loopLedger is returned from the target store or terminal disk projection
@@ -819,11 +819,11 @@ adv_change_show MUST expose an opt-in typed loop-ledger readback over existing A
 
 ---
 
-### adv_status accepts optional view selector
+### determinus_status accepts optional view selector
 
 **ID:** `rq-advStatusView01` | **Priority:** **[MUST]**
 
-adv_status must accept an optional view argument of type 'summary' | 'health' | 'changes' | 'hygiene' (default: 'summary'). The summary view returns specs.count, simplified changes.recent (id+title+recency+minutesSinceActivity only), recommendations, projection-health status, and worktree_count — explicitly omitting hygiene-archaeology fields like _healthSnapshot. The health view returns full projection/runtime diagnostics and metrics counters. The changes view returns full status.changes detail. The hygiene view returns _healthSnapshot, opencode_session_debt detail, project_metadata, recommendations, and migration_status. The formatted block is preserved across all views.
+determinus_status must accept an optional view argument of type 'summary' | 'health' | 'changes' | 'hygiene' (default: 'summary'). The summary view returns specs.count, simplified changes.recent (id+title+recency+minutesSinceActivity only), recommendations, projection-health status, and worktree_count — explicitly omitting hygiene-archaeology fields like _healthSnapshot. The health view returns full projection/runtime diagnostics and metrics counters. The changes view returns full status.changes detail. The hygiene view returns _healthSnapshot, opencode_session_debt detail, project_metadata, recommendations, and migration_status. The formatted block is preserved across all views.
 
 **Tags:** `delivery`, `tools`, `context-emission`
 
@@ -832,7 +832,7 @@ adv_status must accept an optional view argument of type 'summary' | 'health' | 
 **Default view is summary** (`rq-advStatusView01.1`)
 
 **Given:**
-- adv_status is called with no view arg
+- determinus_status is called with no view arg
 
 **When:** The tool runs
 
@@ -843,7 +843,7 @@ adv_status must accept an optional view argument of type 'summary' | 'health' | 
 **Health view exposes full diagnostics** (`rq-advStatusView01.2`)
 
 **Given:**
-- adv_status is called with view:'health'
+- determinus_status is called with view:'health'
 
 **When:** The tool runs
 
@@ -857,7 +857,7 @@ adv_status must accept an optional view argument of type 'summary' | 'health' | 
 
 **ID:** `rq-advMetricsBaseline01` | **Priority:** **[MUST]**
 
-The plugin must maintain in-memory counters for the session: adv_tool_calls (total adv_* tool invocations), adv_tool_call_count_by_name (Record<string, number> breakdown), system_block_bytes (cumulative bytes appended to output.system[0]), subagent_spawns (count of `task` tool invocations from main), and wall_time_ms. Counters reset on plugin init. They are surfaced as the metrics field on adv_status view:'health'. Per JC-1, persistence across sessions is OUT of scope for this baseline.
+The plugin must maintain in-memory counters for the session: determinus_tool_calls (total determinus_* tool invocations), determinus_tool_call_count_by_name (Record<string, number> breakdown), system_block_bytes (cumulative bytes appended to output.system[0]), subagent_spawns (count of `task` tool invocations from main), and wall_time_ms. Counters reset on plugin init. They are surfaced as the metrics field on determinus_status view:'health'. Per JC-1, persistence across sessions is OUT of scope for this baseline.
 
 **Tags:** `delivery`, `metrics`, `observability`
 
@@ -872,12 +872,12 @@ The plugin must maintain in-memory counters for the session: adv_tool_calls (tot
 
 **Then:**
 - All five counters are zero
-- adv_tool_call_count_by_name is empty
+- determinus_tool_call_count_by_name is empty
 
 **Health view exposes counters** (`rq-advMetricsBaseline01.2`)
 
 **Given:**
-- adv_status is called with view:'health'
+- determinus_status is called with view:'health'
 
 **When:** The tool runs
 
@@ -943,7 +943,7 @@ When a change projection read fails because the source bytes are missing, malfor
 
 **ID:** `rq-runtimeProvenance01` | **Priority:** **[MUST]**
 
-ADV SHALL expose plugin loaded-module provenance via the adv_status health view: dist mtime/path, source mtime/path, source-vs-dist freshness verdict (one of fresh, source_ahead_of_dist, dist_ahead_of_process, unknown), plugin checkout git branch and HEAD SHA when probable, cwd-vs-plugin-root relation (match/child/outside), and a structured recovery hint when not fresh. Filesystem stat failures and git probe failures MUST degrade gracefully to null rather than throwing. The recovery hint MUST be structured as { action, commands[], paths } so callers can render verbatim or extract commands programmatically. ADV SHALL NOT perform rebuild orchestration, session restart, or workflow-cache invalidation as part of this surface — those concerns are owned by external tooling.
+ADV SHALL expose plugin loaded-module provenance via the determinus_status health view: dist mtime/path, source mtime/path, source-vs-dist freshness verdict (one of fresh, source_ahead_of_dist, dist_ahead_of_process, unknown), plugin checkout git branch and HEAD SHA when probable, cwd-vs-plugin-root relation (match/child/outside), and a structured recovery hint when not fresh. Filesystem stat failures and git probe failures MUST degrade gracefully to null rather than throwing. The recovery hint MUST be structured as { action, commands[], paths } so callers can render verbatim or extract commands programmatically. ADV SHALL NOT perform rebuild orchestration, session restart, or workflow-cache invalidation as part of this surface — those concerns are owned by external tooling.
 
 **Tags:** `diagnostics`, `runtime`, `self-update`
 
@@ -954,7 +954,7 @@ ADV SHALL expose plugin loaded-module provenance via the adv_status health view:
 **Given:**
 - source_index_mtime <= dist_mtime AND dist_mtime <= process_started_at
 
-**When:** adv_status view: health is read
+**When:** determinus_status view: health is read
 
 **Then:**
 - source_dist_freshness is 'fresh'
@@ -966,7 +966,7 @@ ADV SHALL expose plugin loaded-module provenance via the adv_status health view:
 **Given:**
 - source_index_mtime > dist_mtime
 
-**When:** adv_status view: health is read
+**When:** determinus_status view: health is read
 
 **Then:**
 - source_dist_freshness is 'source_ahead_of_dist'
@@ -979,7 +979,7 @@ ADV SHALL expose plugin loaded-module provenance via the adv_status health view:
 **Given:**
 - source_index_mtime <= dist_mtime AND dist_mtime > process_started_at
 
-**When:** adv_status view: health is read
+**When:** determinus_status view: health is read
 
 **Then:**
 - source_dist_freshness is 'dist_ahead_of_process'
@@ -991,7 +991,7 @@ ADV SHALL expose plugin loaded-module provenance via the adv_status health view:
 **Given:**
 - Filesystem stat or git probe failed for the plugin checkout
 
-**When:** adv_status view: health is read
+**When:** determinus_status view: health is read
 
 **Then:**
 - source_dist_freshness is 'unknown'
@@ -1004,7 +1004,7 @@ ADV SHALL expose plugin loaded-module provenance via the adv_status health view:
 
 **ID:** `rq-storeCleanupCoupling01` | **Priority:** **[MUST]**
 
-ADV retains `adv_store_cleanup` indefinitely as an operator-only maintenance tool for provably obsolete legacy agenda data; it is discoverable but must never become a routine autonomous agent action. Cleanup execute is manifest-before-delete: a `prepared` manifest row is persisted before any deletion, deletion proceeds only when that write succeeds, and a terminal outcome row is appended after each attempt so re-runs are idempotent. Dry-run plans stay reviewable before execution: bounded summary counts plus paged store renders, with plan_hash always computed over the full plan content — including paginated-out stores — so an approval pinned to a plan hash authorizes exactly one full plan. Cleanup never removes current change projections or archive bundles.
+ADV retains `determinus_store_cleanup` indefinitely as an operator-only maintenance tool for provably obsolete legacy agenda data; it is discoverable but must never become a routine autonomous agent action. Cleanup execute is manifest-before-delete: a `prepared` manifest row is persisted before any deletion, deletion proceeds only when that write succeeds, and a terminal outcome row is appended after each attempt so re-runs are idempotent. Dry-run plans stay reviewable before execution: bounded summary counts plus paged store renders, with plan_hash always computed over the full plan content — including paginated-out stores — so an approval pinned to a plan hash authorizes exactly one full plan. Cleanup never removes current change projections or archive bundles.
 
 **Tags:** `cleanup`, `consolidation`, `maintenance`, `operator-only`, `audit`
 
@@ -1015,7 +1015,7 @@ ADV retains `adv_store_cleanup` indefinitely as an operator-only maintenance too
 **Given:**
 - A store contains current change projections or archive bundles
 
-**When:** adv_store_cleanup evaluates the store
+**When:** determinus_store_cleanup evaluates the store
 
 **Then:**
 - The store is classified unsafe and planned as retain
@@ -1026,7 +1026,7 @@ ADV retains `adv_store_cleanup` indefinitely as an operator-only maintenance too
 **Given:**
 - A store contains a file not proven to be obsolete legacy agenda data
 
-**When:** adv_store_cleanup plans the store
+**When:** determinus_store_cleanup plans the store
 
 **Then:**
 - The store is classified unsafe and planned as retain
@@ -1065,7 +1065,7 @@ ADV retains `adv_store_cleanup` indefinitely as an operator-only maintenance too
 **When:** Operators maintain local stores over time
 
 **Then:**
-- adv_store_cleanup remains available indefinitely for removing provably obsolete legacy agenda files
+- determinus_store_cleanup remains available indefinitely for removing provably obsolete legacy agenda files
 - The tool is operator-only: discoverable, but never a routine autonomous agent action
 - Every deletion remains approval-gated with a manifest audit trail
 

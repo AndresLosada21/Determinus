@@ -10,7 +10,7 @@ describe("buildAdvWorktreeAdapter", () => {
 
   const baseInfo = () => ({
     id: "ws-123",
-    type: "adv-worktree",
+    type: "determinus-worktree",
     name: "change/fixWorktreeSessionRoot",
     branch: "change/fixWorktreeSessionRoot",
     directory: null,
@@ -25,12 +25,12 @@ describe("buildAdvWorktreeAdapter", () => {
   });
 
   beforeEach(() => {
-    worktreeRoot = mkdtempSync(join(tmpdir(), "adv-workspace-adapter-"));
+    worktreeRoot = mkdtempSync(join(tmpdir(), "determinus-workspace-adapter-"));
     vi.stubEnv("XDG_DATA_HOME", worktreeRoot);
-    vi.stubEnv("ADV_WORKTREE_HOME", "");
+    vi.stubEnv("determinus_WORKTREE_HOME", "");
     // Test mode otherwise redirects getDataHome away from the explicit XDG
     // namespace this suite is verifying.
-    vi.stubEnv("ADV_TEST_DATA_HOME", "0");
+    vi.stubEnv("determinus_TEST_DATA_HOME", "0");
   });
 
   afterEach(() => {
@@ -41,8 +41,8 @@ describe("buildAdvWorktreeAdapter", () => {
   it("identifies the custom ADV worktree adapter", () => {
     const adapter = buildAdvWorktreeAdapter();
 
-    expect(adapter.name).toBe("adv-worktree");
-    expect(adapter.description).toContain("ADV-managed git worktree");
+    expect(adapter.name).toBe("determinus-worktree");
+    expect(adapter.description).toContain("determinus-managed git worktree");
   });
 
   it("configures the workspace directory from extra.directory", async () => {
@@ -62,7 +62,9 @@ describe("buildAdvWorktreeAdapter", () => {
 
     await expect(
       adapter.configure({ ...baseInfo(), extra: { branch: "change/test" } }),
-    ).rejects.toThrow("adv-worktree adapter requires info.extra.directory");
+    ).rejects.toThrow(
+      "determinus-worktree adapter requires info.extra.directory",
+    );
   });
 
   it("rejects a non-string extra.directory", async () => {
@@ -70,7 +72,9 @@ describe("buildAdvWorktreeAdapter", () => {
 
     await expect(
       adapter.configure({ ...baseInfo(), extra: { directory: 123 } }),
-    ).rejects.toThrow("adv-worktree adapter requires info.extra.directory");
+    ).rejects.toThrow(
+      "determinus-worktree adapter requires info.extra.directory",
+    );
   });
 
   it("rejects missing or invalid branch metadata", async () => {
@@ -81,14 +85,14 @@ describe("buildAdvWorktreeAdapter", () => {
         ...baseInfo(),
         extra: { directory: baseInfo().extra.directory },
       }),
-    ).rejects.toThrow("adv-worktree adapter requires info.extra.branch");
+    ).rejects.toThrow("determinus-worktree adapter requires info.extra.branch");
 
     await expect(
       adapter.configure({
         ...baseInfo(),
         extra: { ...baseInfo().extra, branch: "../bad" },
       }),
-    ).rejects.toThrow("adv-worktree adapter branch is invalid");
+    ).rejects.toThrow("determinus-worktree adapter branch is invalid");
   });
 
   it("rejects directories that do not match the workspace project and branch", async () => {
@@ -106,7 +110,7 @@ describe("buildAdvWorktreeAdapter", () => {
         },
       }),
     ).rejects.toThrow(
-      "adv-worktree adapter directory does not match project/branch",
+      "determinus-worktree adapter directory does not match project/branch",
     );
   });
 
@@ -115,7 +119,7 @@ describe("buildAdvWorktreeAdapter", () => {
 
     await expect(
       adapter.configure({ ...baseInfo(), projectID: "" }),
-    ).rejects.toThrow("adv-worktree adapter requires info.projectID");
+    ).rejects.toThrow("determinus-worktree adapter requires info.projectID");
   });
 
   it("returns a local target rooted at the configured worktree directory", async () => {
@@ -142,7 +146,7 @@ describe("buildAdvWorktreeAdapter", () => {
         ),
       }),
     ).rejects.toThrow(
-      "adv-worktree adapter target does not match project/branch",
+      "determinus-worktree adapter target does not match project/branch",
     );
   });
 
@@ -152,12 +156,18 @@ describe("buildAdvWorktreeAdapter", () => {
     await expect(
       adapter.configure({
         ...baseInfo(),
-        extra: { directory: "/tmp/not-an-adv-worktree", branch: "change/test" },
+        extra: {
+          directory: "/tmp/not-an-determinus-worktree",
+          branch: "change/test",
+        },
       }),
     ).rejects.toThrow("outside allowed namespace");
 
     await expect(
-      adapter.target({ ...baseInfo(), directory: "/tmp/not-an-adv-worktree" }),
+      adapter.target({
+        ...baseInfo(),
+        directory: "/tmp/not-an-determinus-worktree",
+      }),
     ).rejects.toThrow("outside allowed namespace");
   });
 
@@ -165,7 +175,7 @@ describe("buildAdvWorktreeAdapter", () => {
     const adapter = buildAdvWorktreeAdapter();
 
     await expect(adapter.target(baseInfo())).rejects.toThrow(
-      "adv-worktree adapter target requires info.directory",
+      "determinus-worktree adapter target requires info.directory",
     );
   });
 

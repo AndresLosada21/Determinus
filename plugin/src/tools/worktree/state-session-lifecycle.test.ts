@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 function createGitProject(): string {
-  const projectRoot = mkdtempSync(join(tmpdir(), "adv-state-project-"));
+  const projectRoot = mkdtempSync(join(tmpdir(), "determinus-state-project-"));
   execSync("git init", { cwd: projectRoot, stdio: "ignore" });
   execSync("git config user.email test@example.com", {
     cwd: projectRoot,
@@ -45,9 +45,9 @@ function createGitProject(): string {
 
 describe("pending delete lifecycle", () => {
   it("persists, increments, and clears pending deletes under isolated state", async () => {
-    const xdg = mkdtempSync(join(tmpdir(), "adv-pending-delete-"));
+    const xdg = mkdtempSync(join(tmpdir(), "determinus-pending-delete-"));
     vi.stubEnv("XDG_DATA_HOME", xdg);
-    vi.stubEnv("ADV_TEST_DATA_HOME", "0");
+    vi.stubEnv("determinus_TEST_DATA_HOME", "0");
 
     try {
       const worktreePath = `${xdg}/opencode/worktree/test-id/change/pending-cleanup`;
@@ -87,9 +87,9 @@ describe("worktree path helpers", () => {
 
   it("uses XDG_DATA_HOME via the centralized project-id helper", async () => {
     const projectRoot = createGitProject();
-    const xdg = mkdtempSync(join(tmpdir(), "adv-state-xdg-"));
+    const xdg = mkdtempSync(join(tmpdir(), "determinus-state-xdg-"));
     vi.stubEnv("XDG_DATA_HOME", xdg);
-    vi.stubEnv("ADV_TEST_DATA_HOME", "0");
+    vi.stubEnv("determinus_TEST_DATA_HOME", "0");
     try {
       await expect(getWorktreePath(projectRoot, "change/test")).resolves.toBe(
         `${xdg}/opencode/worktree/${synthesizeTestProjectId(projectRoot)}/change/test`,

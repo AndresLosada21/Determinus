@@ -17,7 +17,7 @@ function reviewerReport(over: Record<string, unknown> = {}) {
     task_id: "tk-1",
     attempt: 1,
     workdir_used: "/wt",
-    agent: "adv-reviewer",
+    agent: "determinus-reviewer",
     scope: { kind: "task", task_id: "tk-1" },
     phase: "review",
     verdict: "NEEDS_WORK",
@@ -39,7 +39,7 @@ function scannerReport(over: Record<string, unknown> = {}) {
     change_id: "addLoopLedger",
     attempt: 1,
     workdir_used: "/wt",
-    agent: "adv-scanner-bundle",
+    agent: "determinus-scanner-bundle",
     scope: { kind: "change", scope_key: "scanner-bundle:harden" },
     phase: "harden",
     scanner_count: 2,
@@ -57,7 +57,7 @@ function triageReport(over: Record<string, unknown> = {}) {
     change_id: "addLoopLedger",
     attempt: 1,
     workdir_used: "/wt",
-    agent: "adv-verification-triage-bundle",
+    agent: "determinus-verification-triage-bundle",
     scope: { kind: "change", scope_key: "verifier:local-verify" },
     phase: "local_verify",
     targets: [{ kind: "command", command: "pnpm test", exit_code: 1 }],
@@ -287,7 +287,8 @@ describe("projectLoopLedger", () => {
     expect(readback.summary.byKind.harden_remediation).toBe(2);
     const scanner = readback.details!.find(
       (e) =>
-        e.kind === "harden_remediation" && e.producer === "adv-scanner-bundle",
+        e.kind === "harden_remediation" &&
+        e.producer === "determinus-scanner-bundle",
     )!;
     expect(scanner.verdict).toBe("fail"); // blocker finding → fail
   });

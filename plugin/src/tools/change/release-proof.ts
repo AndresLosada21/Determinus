@@ -57,7 +57,7 @@ export function releaseGateProofToCompletion(
   return {
     status: "done",
     completed_at: new Date().toISOString(),
-    completed_by: "adv-archive",
+    completed_by: "determinus-archive",
     approval_evidence: details.join("; "),
   };
 }

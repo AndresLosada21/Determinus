@@ -3,12 +3,12 @@
  * (consolidateAdvToolSurface2 — SC2/SC3/AC5/AC6, C6, DONT3, DDC8).
  *
  * Single authoritative classification of every retained public ADV tool
- * (ADV_TOOL_NAMES) into orchestrator / operator-only / dual reachability,
+ * (determinus_TOOL_NAMES) into orchestrator / operator-only / dual reachability,
  * plus the intended ADV tool allowlist for every shipped agent manifest.
  *
  * docs/tool-ownership.md remains the documented view; this module is the
  * code-owned policy that agent manifests are validated against. Dual tools
- * keep the action-level read/mutate distinction (e.g. adv_snapshot_health
+ * keep the action-level read/mutate distinction (e.g. determinus_snapshot_health
  * `scan`/`audit_history` agent-readable, `repair` operator-only) instead of
  * flattening it.
  *
@@ -16,13 +16,13 @@
  * packages/core/src/v1/config/agent.ts normalize() +
  * packages/opencode/src/permission/index.ts fromConfig/disabled/evaluate):
  * legacy `tools:` entries convert to permission rules in document order and
- * the LAST matching rule wins, so `adv_*: false` first with specific
- * `adv_x: true` entries after it yields default-deny with explicit role
+ * the LAST matching rule wins, so `determinus_*: false` first with specific
+ * `determinus_x: true` entries after it yields default-deny with explicit role
  * grants. Unspecified tools inherit the default allow posture, which is why
  * every non-orchestrator agent must carry the deny wildcard.
  */
 
-import { ADV_TOOL_NAMES } from "./tool-registry";
+import { determinus_TOOL_NAMES } from "./tool-registry";
 
 export { TIER_4_MCP_TOOLS } from "./tool-tier4-catalog.js";
 
@@ -46,7 +46,7 @@ export interface ToolRoleEntry {
 
 /**
  * Exhaustive role classification for every retained canonical ADV tool.
- * Exact-key parity with ADV_TOOL_NAMES is enforced by
+ * Exact-key parity with determinus_TOOL_NAMES is enforced by
  * tool-role-policy.test.ts — a registry change without a policy row fails CI.
  */
 export const TOOL_ROLE_POLICY: Readonly<Record<string, ToolRoleEntry>> = {
@@ -59,7 +59,7 @@ export const TOOL_ROLE_POLICY: Readonly<Record<string, ToolRoleEntry>> = {
   // Action-level distinctions mirror docs/tool-ownership.md, including the
   // action-qualified operator-only rows for snapshot_health (#repair) and
   // conformance (#override).
-  adv_status: {
+  determinus_status: {
     class: "dual",
     rationale:
       "All status views (summary/health/changes/hygiene) are agent-readable; forceRefresh health-probe cache refresh is operator-owned.",
@@ -71,7 +71,7 @@ export const TOOL_ROLE_POLICY: Readonly<Record<string, ToolRoleEntry>> = {
     ],
     operatorActions: ["forceRefresh"],
   },
-  adv_wip_state: {
+  determinus_wip_state: {
     class: "dual",
     rationale:
       "Cross-change work-in-progress aggregate read; no agent mutation surface — the worktree/session state it reports on is operator-owned.",
@@ -85,142 +85,142 @@ export const TOOL_ROLE_POLICY: Readonly<Record<string, ToolRoleEntry>> = {
   // with human checkpoints. Safety-distinct families (archive/purge/repair,
   // task checkpoint/update/cancel, projection repair, cross-project trust
   // boundaries) stay distinct — no universal router (DONT1/DONT3).
-  adv_change_archive: {
+  determinus_change_archive: {
     class: "orchestrator",
     rationale: "Release-gate archive workflow.",
   },
-  adv_change_close: {
+  determinus_change_close: {
     class: "orchestrator",
     rationale: "Approval-gated close.",
   },
-  adv_change_create: {
+  determinus_change_create: {
     class: "orchestrator",
     rationale: "Change creation.",
   },
-  adv_change_list: {
+  determinus_change_list: {
     class: "orchestrator",
     rationale: "Change inventory read.",
   },
-  adv_change_reenter: {
+  determinus_change_reenter: {
     class: "orchestrator",
     rationale: "Gate re-entry.",
   },
-  adv_change_show: {
+  determinus_change_show: {
     class: "orchestrator",
     rationale: "Change detail read.",
   },
-  adv_change_update: {
+  determinus_change_update: {
     class: "orchestrator",
     rationale: "Change update.",
   },
-  adv_gate_complete: {
+  determinus_gate_complete: {
     class: "orchestrator",
     rationale: "Gate completion with approval evidence.",
   },
-  adv_gate_status: {
+  determinus_gate_status: {
     class: "orchestrator",
     rationale: "Gate read.",
   },
-  adv_ops_run_evidence_add: {
+  determinus_ops_run_evidence_add: {
     class: "orchestrator",
     rationale: "Run-step evidence append; prod execute steps approval-gated.",
   },
-  adv_ops_run_upsert: {
+  determinus_ops_run_upsert: {
     class: "orchestrator",
     rationale: "Ops runbook run upsert.",
   },
-  adv_project_context: {
+  determinus_project_context: {
     class: "orchestrator",
     rationale: "project.md read.",
   },
-  adv_reflect: {
+  determinus_reflect: {
     class: "orchestrator",
     rationale: "Post-archive two-plane reflection.",
   },
-  adv_reflection_list: {
+  determinus_reflection_list: {
     class: "orchestrator",
     rationale: "Reflection read.",
   },
-  adv_run_test: {
+  determinus_run_test: {
     class: "orchestrator",
     rationale: "Bounded test-run evidence.",
   },
-  adv_spec: {
+  determinus_spec: {
     class: "orchestrator",
     rationale: "Spec list/show/search read.",
   },
-  adv_subagent_report_submit: {
+  determinus_subagent_report_submit: {
     class: "orchestrator",
     rationale: "Typed sub-agent report ingestion.",
   },
-  adv_task_add: {
+  determinus_task_add: {
     class: "orchestrator",
     rationale: "Task mutation.",
   },
-  adv_task_cancel: {
+  determinus_task_cancel: {
     class: "orchestrator",
     rationale: "Task cancellation.",
   },
-  adv_task_checkpoint: {
+  determinus_task_checkpoint: {
     class: "orchestrator",
     rationale: "Task checkpoint commit.",
   },
-  adv_task_list: {
+  determinus_task_list: {
     class: "orchestrator",
     rationale: "Task read.",
   },
-  adv_task_ready: {
+  determinus_task_ready: {
     class: "orchestrator",
     rationale: "Ready-queue read.",
   },
-  adv_task_show: {
+  determinus_task_show: {
     class: "orchestrator",
     rationale: "Task read.",
   },
-  adv_task_update: {
+  determinus_task_update: {
     class: "orchestrator",
     rationale: "Task mutation.",
   },
-  adv_wisdom_add: {
+  determinus_wisdom_add: {
     class: "orchestrator",
     rationale: "Wisdom capture.",
   },
-  adv_wisdom_list: {
+  determinus_wisdom_list: {
     class: "orchestrator",
     rationale: "Wisdom read (including project-only listings).",
   },
-  adv_worktree_cleanup: {
+  determinus_worktree_cleanup: {
     class: "orchestrator",
     rationale:
       "Shared planner/executor cleanup; destructive manual and archived-branch modes require dry-run candidate identity plus count-matched approval evidence.",
   },
-  adv_worktree_create: {
+  determinus_worktree_create: {
     class: "orchestrator",
     rationale: "Tool-owned worktree creation.",
   },
-  adv_worktree_delete: {
+  determinus_worktree_delete: {
     class: "orchestrator",
     rationale:
       "Shared planner/executor worktree deletion; dry-run mints the typed plan token and apply requires nonblank approval evidence.",
   },
-  adv_worktree_triage: {
+  determinus_worktree_triage: {
     class: "orchestrator",
     rationale: "Read-only worktree inventory.",
   },
-  adv_tool_catalog: {
+  determinus_tool_catalog: {
     class: "orchestrator",
     rationale:
       "Read-only bounded catalog of canonical ADV tools; descriptive visibility metadata only.",
   },
-  adv_tool_describe: {
+  determinus_tool_describe: {
     class: "orchestrator",
     rationale:
       "Read-only single-tool schema and metadata projection; no handler invocation.",
   },
-  adv_tool_invoke: {
+  determinus_tool_invoke: {
     class: "orchestrator",
     rationale:
-      "Strict in-process dispatcher through the canonical wrapped ToolDefinition.execute; preserves ToolContext, validation, authorization, approvals, recovery restrictions, and timeouts. Recursion exclusion (adv_tool_invoke, adv_tool_catalog, adv_tool_describe, execute) is enforced before any lookup or dispatch (addProviderToolSearch AC1-AC4).",
+      "Strict in-process dispatcher through the canonical wrapped ToolDefinition.execute; preserves ToolContext, validation, authorization, approvals, recovery restrictions, and timeouts. Recursion exclusion (determinus_tool_invoke, determinus_tool_catalog, determinus_tool_describe, execute) is enforced before any lookup or dispatch (addProviderToolSearch AC1-AC4).",
   },
 } as const;
 
@@ -243,7 +243,7 @@ export interface AgentToolPolicy {
   /** Agent manifest basename under .opencode/agents (no .md suffix). */
   readonly agent: string;
   /**
-   * Intended ADV allowlist: the manifest's `adv_*: true` entries must equal
+   * Intended ADV allowlist: the manifest's `determinus_*: true` entries must equal
    * this set exactly (AC6 — role-irrelevant or unregistered entries fail CI).
    */
   readonly allowed: readonly string[];
@@ -253,7 +253,7 @@ export interface AgentToolPolicy {
    */
   readonly explicitBlocked: readonly string[];
   /**
-   * When true, the manifest must carry `adv_*: false` ahead of any specific
+   * When true, the manifest must carry `determinus_*: false` ahead of any specific
    * grants (last-match-wins), closing the default-allow hole for every
    * retained and future ADV tool outside `allowed`. The orchestrator is the
    * only agent without the wildcard: it grants the full retained surface
@@ -269,33 +269,33 @@ export interface AgentToolPolicy {
  * slimMutationToolSurface: SC1/AC1/AC2/DDC1/DDC2.
  */
 const TIER_1_ALLOWLIST: readonly string[] = Object.freeze([
-  "adv_change_archive",
-  "adv_change_close",
-  "adv_change_create",
-  "adv_change_list",
-  "adv_change_show",
-  "adv_change_update",
-  "adv_gate_complete",
-  "adv_gate_status",
-  "adv_run_test",
-  "adv_subagent_report_submit",
-  "adv_task_add",
-  "adv_task_checkpoint",
-  "adv_task_list",
-  "adv_task_update",
-  "adv_tool_catalog",
-  "adv_tool_invoke",
+  "determinus_change_archive",
+  "determinus_change_close",
+  "determinus_change_create",
+  "determinus_change_list",
+  "determinus_change_show",
+  "determinus_change_update",
+  "determinus_gate_complete",
+  "determinus_gate_status",
+  "determinus_run_test",
+  "determinus_subagent_report_submit",
+  "determinus_task_add",
+  "determinus_task_checkpoint",
+  "determinus_task_list",
+  "determinus_task_update",
+  "determinus_tool_catalog",
+  "determinus_tool_invoke",
 ]);
 
 /**
  * No Tier 2 host-plugin tools remain. The full canonical tool set is
- * available through adv_tool_invoke.
+ * available through determinus_tool_invoke.
  */
 /**
  * Tier 4 — MCP read surface (13 unprefixed tools, see `TIER_4_MCP_TOOLS`).
  * These tools are additionally reachable via `tools.adv.*` under Code Mode
- * regardless of the host-plugin `adv_*: false` enforcement, because the MCP
- * surface is namespaced separately from the host manifest. The `adv_*: deny`
+ * regardless of the host-plugin `determinus_*: false` enforcement, because the MCP
+ * surface is namespaced separately from the host manifest. The `determinus_*: deny`
  * wildcard above applies to the host-plugin tool surface only; it does not
  * block the Code Mode dispatch route for these read-only tools.
  */
@@ -304,7 +304,7 @@ const TIER_1_ALLOWLIST: readonly string[] = Object.freeze([
  * Intended ADV tool surface per shipped agent manifest.
  *
  * tierToolsReduceUpfrontSurface: invoke-only tools (Tier 3) are routed
- * through adv_tool_invoke instead of appearing in any manifest. The
+ * through determinus_tool_invoke instead of appearing in any manifest. The
  * orchestrator gets Tier 1 + Tier 2 (18 entries); sub-agents get Tier 1
  * only (11 entries). Operator-only tools are invoke-only — their
  * destructive surface is protected by the tools' own approvedByUser +
@@ -312,15 +312,15 @@ const TIER_1_ALLOWLIST: readonly string[] = Object.freeze([
  */
 export const AGENT_TOOL_POLICY: readonly AgentToolPolicy[] = [
   {
-    agent: "adv",
+    agent: "determinus",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "ADV orchestrator: Tier 1 direct surface (16 entries). All other ADV tools dispatched through adv_tool_invoke.",
+      "ADV orchestrator: Tier 1 direct surface (16 entries). All other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
-    agent: "adv-ci-waiter",
+    agent: "determinus-ci-waiter",
     allowed: [],
     explicitBlocked: [],
     denyWildcard: true,
@@ -328,60 +328,60 @@ export const AGENT_TOOL_POLICY: readonly AgentToolPolicy[] = [
       "CI-only poller driving the oc-ci-wait CLI via bash; no ADV tool is part of its documented responsibility.",
   },
   {
-    agent: "adv-designer",
+    agent: "determinus-designer",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
-    agent: "adv-engineer",
+    agent: "determinus-engineer",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
-    agent: "adv-researcher",
+    agent: "determinus-researcher",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
-    agent: "adv-reviewer",
+    agent: "determinus-reviewer",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
-    agent: "adv-tron",
+    agent: "determinus-tron",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
-    agent: "adv-verifier",
+    agent: "determinus-verifier",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
-    agent: "adv-visual-review",
+    agent: "determinus-visual-review",
     allowed: [...TIER_1_ALLOWLIST],
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
     agent: "build",
@@ -389,7 +389,7 @@ export const AGENT_TOOL_POLICY: readonly AgentToolPolicy[] = [
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
   {
     agent: "plan",
@@ -397,7 +397,7 @@ export const AGENT_TOOL_POLICY: readonly AgentToolPolicy[] = [
     explicitBlocked: [],
     denyWildcard: true,
     rationale:
-      "Tier 1 surface only; all other ADV tools dispatched through adv_tool_invoke.",
+      "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke.",
   },
 ] as const;
 
@@ -407,14 +407,14 @@ export const AGENT_TOOL_POLICY: readonly AgentToolPolicy[] = [
  * and manifest generator.
  */
 export const SPAWNABLE_SUBAGENT_ROSTER: readonly string[] = Object.freeze([
-  "adv-ci-waiter",
-  "adv-designer",
-  "adv-engineer",
-  "adv-researcher",
-  "adv-reviewer",
-  "adv-tron",
-  "adv-verifier",
-  "adv-visual-review",
+  "determinus-ci-waiter",
+  "determinus-designer",
+  "determinus-engineer",
+  "determinus-researcher",
+  "determinus-reviewer",
+  "determinus-tron",
+  "determinus-verifier",
+  "determinus-visual-review",
 ]);
 
 function sortedUnique(values: readonly string[]): readonly string[] {
@@ -437,5 +437,7 @@ export function subAgentUnionAllowlist(): readonly string[] {
 /** Pure complement: ADV tools that are NOT in the sub-agent union floor. */
 export function blockableFromSubAgentSession(): readonly string[] {
   const allowed = new Set(subAgentUnionAllowlist());
-  return sortedUnique(ADV_TOOL_NAMES.filter((tool) => !allowed.has(tool)));
+  return sortedUnique(
+    determinus_TOOL_NAMES.filter((tool) => !allowed.has(tool)),
+  );
 }

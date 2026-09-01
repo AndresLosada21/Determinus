@@ -18,9 +18,9 @@
  *   - malformed durable projection (typed degraded plan, no directive)
  *
  * Orientation consumers covered by suites importing this table:
- *   - adv_gate_status (tools/gate.test.ts — AC6)
- *   - adv_change_show `_phasePlan` + `_contextSnapshot` (tools/change.test.ts)
- *   - adv_status next-gate recommendation
+ *   - determinus_gate_status (tools/gate.test.ts — AC6)
+ *   - determinus_change_show `_phasePlan` + `_contextSnapshot` (tools/change.test.ts)
+ *   - determinus_status next-gate recommendation
  *     (buildNextGateRecommendationFromDirective — utils/phase-plan-parity.test.ts)
  *   - context snapshot formatter (utils/phase-plan-parity.test.ts); the live
  *     emission, change-show snapshot, and recovery handoff all share
@@ -32,10 +32,10 @@
  * `getDirective`/`getPhasePlan` query handlers bind the same derivation
  * kernel; their binding is covered by temporal/workflows.queries.itest.ts.
  *
- * The malformed row has no `gateStatus` expectation: adv_gate_status throws
+ * The malformed row has no `gateStatus` expectation: determinus_gate_status throws
  * on a gate record with missing entries before its directive fallback
  * engages; degraded-read parity for that row is asserted by the
- * adv_change_show table and the derivation-level suites.
+ * determinus_change_show table and the derivation-level suites.
  */
 
 import type { ChangeState } from "../types/change-state";
@@ -58,13 +58,13 @@ const FRESH = "2026-05-05T11:30:00.000Z"; // 30m before PARITY_EPOCH
  * GATE_COMMAND mirror, so any single-side drift fails.
  */
 export const EXPECTED_GATE_COMMAND: Record<GateId, string> = {
-  proposal: "adv-proposal",
-  discovery: "adv-discover",
-  design: "adv-design",
-  planning: "adv-prep",
-  execution: "adv-apply",
-  acceptance: "adv-review",
-  release: "adv-archive",
+  proposal: "determinus-proposal",
+  discovery: "determinus-discover",
+  design: "determinus-design",
+  planning: "determinus-prep",
+  execution: "determinus-apply",
+  acceptance: "determinus-review",
+  release: "determinus-archive",
 };
 
 export interface ParityExpectation {
@@ -81,7 +81,7 @@ export interface ParityExpectation {
   directiveActionKind?: DirectiveActionKind;
   /** Exact snapshot `Next:` line; undefined ⇒ the line must be omitted. */
   snapshotNext?: string;
-  /** adv_gate_status projection; undefined ⇒ row not applicable to the tool. */
+  /** determinus_gate_status projection; undefined ⇒ row not applicable to the tool. */
   gateStatus?: { nextGate: GateId | null; canArchive: boolean };
   /** Status next-gate recommendation; undefined ⇒ null recommendation. */
   recommendation?: { gateId: GateId; command: string };
@@ -418,7 +418,7 @@ export const PARITY_ROWS: ParityRow[] = [
     expect: {
       planKind: "degraded",
       // No directive is derivable: snapshot omits Next, no recommendation,
-      // and the row is excluded from the adv_gate_status table.
+      // and the row is excluded from the determinus_gate_status table.
     },
   },
 ];

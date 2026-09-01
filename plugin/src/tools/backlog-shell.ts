@@ -75,7 +75,7 @@ function formatBacklogItem(item: import("../types/backlog").BacklogItem) {
 // =============================================================================
 
 export const backlogShellTools = {
-  adv_backlog_add: {
+  determinus_backlog_add: {
     description:
       "Add a new item to the repo backlog. Generates a stable id if omitted. Reactivates an archived item when the same id is reused.",
     args: {
@@ -145,7 +145,7 @@ export const backlogShellTools = {
     },
   },
 
-  adv_backlog_list: {
+  determinus_backlog_list: {
     description:
       "List repo backlog items. Default returns active items. For files larger than 1MB, only the most recent 1000 item lines are read.",
     args: {
@@ -185,7 +185,7 @@ export const backlogShellTools = {
     },
   },
 
-  adv_backlog_show: {
+  determinus_backlog_show: {
     description: "Show a single repo backlog item by id.",
     args: {
       id: z.string().min(1).describe("Backlog item id."),
@@ -221,7 +221,7 @@ export const backlogShellTools = {
     },
   },
 
-  adv_backlog_promote: {
+  determinus_backlog_promote: {
     description:
       "Promote a repo backlog item to an ADV change or Epic shell entry. Idempotent on (itemId, targetId). Refuses promotion of archived items.",
     args: {
@@ -256,7 +256,7 @@ export const backlogShellTools = {
     },
   },
 
-  adv_backlog_archive: {
+  determinus_backlog_archive: {
     description: "Soft-delete a repo backlog item by archiving it.",
     args: {
       id: z.string().min(1).describe("Backlog item id."),

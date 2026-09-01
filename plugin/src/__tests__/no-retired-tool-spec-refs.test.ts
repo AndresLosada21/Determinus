@@ -9,16 +9,16 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const RETIRED_TOOL_TOKENS = [
-  "adv_workflow_repair",
-  "adv_orphan_sweep",
-  "adv_archive_sweep_orphans",
-  "adv_migrate_cleanup",
-  "adv_change_diagnose",
-  "adv_change_import",
-  "adv_task_evidence",
-  "adv_task_run_status",
-  "adv_task_tdd",
-  "adv_change_set_release_notes",
+  "determinus_workflow_repair",
+  "determinus_orphan_sweep",
+  "determinus_archive_sweep_orphans",
+  "determinus_migrate_cleanup",
+  "determinus_change_diagnose",
+  "determinus_change_import",
+  "determinus_task_evidence",
+  "determinus_task_run_status",
+  "determinus_task_tdd",
+  "determinus_change_set_release_notes",
 ];
 
 async function* walkJsonFiles(dir: string): AsyncGenerator<string> {

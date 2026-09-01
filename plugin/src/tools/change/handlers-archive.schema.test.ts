@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { archiveChangeTools } from "./handlers-archive";
 
-describe("adv_change_archive arguments", () => {
-  const schema = z.object(archiveChangeTools.adv_change_archive.args);
+describe("determinus_change_archive arguments", () => {
+  const schema = z.object(archiveChangeTools.determinus_change_archive.args);
 
   it("accepts a string target_path used by the archive handler", () => {
     expect(

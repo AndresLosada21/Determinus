@@ -41,7 +41,7 @@ describe("buildNextGateRecommendationFromDirective", () => {
       directive: directive({
         kind: "continue",
         gateId: "design",
-        command: "adv-design",
+        command: "determinus-design",
       }),
       changeId: "change-1",
     });
@@ -50,21 +50,25 @@ describe("buildNextGateRecommendationFromDirective", () => {
     expect(item?.kind).toBe("next_gate");
     expect(item?.source).toBe("gate");
     expect(item?.gateId).toBe("design");
-    expect(item?.action).toContain("/adv-design change-1");
+    expect(item?.action).toContain("/determinus-design change-1");
     expect(item?.message).toContain("next gate is `design`");
   });
 
   it("uses the directive command for a never_started action", () => {
     const item = buildNextGateRecommendationFromDirective({
       directive: directive(
-        { kind: "never_started", gateId: "proposal", command: "adv-proposal" },
+        {
+          kind: "never_started",
+          gateId: "proposal",
+          command: "determinus-proposal",
+        },
         { phase: "proposal" },
       ),
       changeId: "change-1",
     });
 
     expect(item?.gateId).toBe("proposal");
-    expect(item?.action).toContain("/adv-proposal change-1");
+    expect(item?.action).toContain("/determinus-proposal change-1");
   });
 
   it("falls back to the manifest command when the action carries none", () => {
@@ -77,7 +81,7 @@ describe("buildNextGateRecommendationFromDirective", () => {
 
     expect(item).not.toBeNull();
     expect(item?.gateId).toBe("execution");
-    expect(item?.action).toMatch(/\/adv-apply change-1/);
+    expect(item?.action).toMatch(/\/determinus-apply change-1/);
   });
 
   it("returns null for archived directives (no forward gate)", () => {
@@ -94,7 +98,7 @@ describe("buildNextGateRecommendationFromDirective", () => {
       directive: directive({
         kind: "continue",
         gateId: "design",
-        command: "adv-design",
+        command: "determinus-design",
       }),
       changeId: "child-change",
       parentContext: "parent-change",
@@ -750,7 +754,7 @@ describe("appendResumeFreshnessRecommendation", () => {
     expect(recs[0].source).toBe("resume_freshness");
     expect(recs[0].priority).toBe("high");
     expect(recs[0].message).toContain("ADV does not auto-execute");
-    expect(recs[0].message).toContain("adv_change_close");
+    expect(recs[0].message).toContain("determinus_change_close");
     expect(recs[0].message).toContain("supersededBy: currentId");
     expect(recs[0].message).toContain("archivedDup");
   });

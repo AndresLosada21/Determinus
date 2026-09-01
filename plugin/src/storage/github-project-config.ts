@@ -34,7 +34,7 @@ export const GitHubProjectConfigSchema = z.object({
   // shared GitHub Project reads via server-side `repo:owner/name` query.
   repository_filter: z.string().min(1).optional(),
   fields: z.object({
-    adv_type: z.string(),
+    determinus_type: z.string(),
     priority: z.string(),
     value: z.string(),
     time_criticality: z.string(),
@@ -42,7 +42,7 @@ export const GitHubProjectConfigSchema = z.object({
     effort: z.string(),
     wsjf: z.string(),
   }),
-  adv_type_options: z.record(z.string(), z.string()),
+  determinus_type_options: z.record(z.string(), z.string()),
   priority_options: z.record(z.string(), z.string()),
   persisted_by: z.string().optional(),
   persisted_at: z.string().optional(),
@@ -74,7 +74,7 @@ function configPath(repoRoot: string): string {
  *
  * Returns `null` (not error) for the not-found case so callers can
  * choose whether to treat it as a hard error or a "needs bootstrap"
- * hint. `/adv-triage` Phase 0 uses the null return to surface
+ * hint. `/determinus-triage` Phase 0 uses the null return to surface
  * actionable error messages.
  */
 export async function readGitHubProjectConfig(

@@ -97,7 +97,7 @@ async function collectPassing(
 
 describe("collectProjectInventory", () => {
   test("discovers projects in canonical and oc-shard roots; skips non-project and synthetic entries", async () => {
-    const root = await tempDir("adv-inv-projects-");
+    const root = await tempDir("determinus-inv-projects-");
     const shareRoot = join(root, "home", ".local", "share");
     makeProjectState(shareRoot, "b".repeat(40));
     // oc per-project shard layout
@@ -118,7 +118,7 @@ describe("collectProjectInventory", () => {
 
 describe("validateMigrationReadiness", () => {
   test("complete when identity matches and inventory is fully proven", async () => {
-    const setup = await makePassingSetup("adv-inv-pass-");
+    const setup = await makePassingSetup("determinus-inv-pass-");
     const inv = await collectPassing(setup);
     const readiness = validateMigrationReadiness(inv);
     expect(readiness.complete).toBe(true);
@@ -126,7 +126,7 @@ describe("validateMigrationReadiness", () => {
   });
 
   test("blocks on stale deployed build identity", async () => {
-    const setup = await makePassingSetup("adv-inv-stale-build-");
+    const setup = await makePassingSetup("determinus-inv-stale-build-");
     writeFileSync(join(setup.pluginRoot, "dist", "index.js"), "/* drift */\n");
     const inv = await collectPassing(setup);
     const readiness = validateMigrationReadiness(inv);
@@ -137,7 +137,7 @@ describe("validateMigrationReadiness", () => {
   });
 
   test("blocks on missing build identity", async () => {
-    const setup = await makePassingSetup("adv-inv-noident-");
+    const setup = await makePassingSetup("determinus-inv-noident-");
     const { rmSync } = await import("node:fs");
     rmSync(join(setup.pluginRoot, "dist", BUILD_IDENTITY_FILENAME));
     const inv = await collectPassing(setup);
@@ -148,7 +148,7 @@ describe("validateMigrationReadiness", () => {
   });
 
   test("blocks on a live session whose loaded digest differs", async () => {
-    const setup = await makePassingSetup("adv-inv-sess-mismatch-");
+    const setup = await makePassingSetup("determinus-inv-sess-mismatch-");
     registerLoadedBuildSession({
       migrationRoot: setup.migrationRoot,
       projectId: "a000000000000000000000000000000000000000".repeat(40),
@@ -165,7 +165,7 @@ describe("validateMigrationReadiness", () => {
   });
 
   test("blocks on malformed session records (unknown inventory)", async () => {
-    const setup = await makePassingSetup("adv-inv-sess-malformed-");
+    const setup = await makePassingSetup("determinus-inv-sess-malformed-");
     mkdirSync(join(setup.migrationRoot, "sessions"), { recursive: true });
     writeFileSync(join(setup.migrationRoot, "sessions", "9.json"), "{ nope");
     const inv = await collectPassing(setup);
@@ -176,7 +176,7 @@ describe("validateMigrationReadiness", () => {
   });
 
   test("inventory summary counts are exposed for the receipt proof", async () => {
-    const setup = await makePassingSetup("adv-inv-summary-");
+    const setup = await makePassingSetup("determinus-inv-summary-");
     const inv: MachineInventory = await collectPassing(setup);
     expect(inv.summary).toEqual({
       projects: 1,

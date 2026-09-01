@@ -1,5 +1,5 @@
 /**
- * Unit tests for the adv_status probe helpers extracted in AC9 of
+ * Unit tests for the determinus_status probe helpers extracted in AC9 of
  * remediateSlopScanFindings (computeAutoManagedCensus, deriveOpencodeDebtCounts).
  * These lock the faithful behavior of the extracted pure functions.
  */

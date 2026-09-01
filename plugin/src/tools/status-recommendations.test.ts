@@ -14,7 +14,7 @@ describe("status recommendation grouping", () => {
     priority: "medium",
     title: "Stale change",
     detail: "last activity 3h ago",
-    action: 'adv_status view:"changes"',
+    action: 'determinus_status view:"changes"',
     source: "recency",
     ...overrides,
   });
@@ -69,8 +69,8 @@ describe("status recommendation grouping", () => {
     expect(result.total).toBe(4);
     expect(result.omitted).toBe(1);
     expect(result.drilldown).toEqual({
-      changes: 'adv_status view:"changes"',
-      hygiene: 'adv_status view:"hygiene"',
+      changes: 'determinus_status view:"changes"',
+      hygiene: 'determinus_status view:"hygiene"',
     });
   });
 });

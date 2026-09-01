@@ -137,15 +137,15 @@ describe("PSW retirement denylist", () => {
 
   it("has no retired-tool references in scripts/", () => {
     const retiredToolPatterns = [
-      "adv_workflow_repair",
-      "adv_orphan_sweep",
-      "adv_archive_sweep_orphans",
-      "adv_migrate_cleanup",
-      "adv_change_diagnose",
-      "adv_change_import",
-      "adv_task_evidence",
-      "adv_task_run_status",
-      "adv_task_tdd",
+      "determinus_workflow_repair",
+      "determinus_orphan_sweep",
+      "determinus_archive_sweep_orphans",
+      "determinus_migrate_cleanup",
+      "determinus_change_diagnose",
+      "determinus_change_import",
+      "determinus_task_evidence",
+      "determinus_task_run_status",
+      "determinus_task_tdd",
     ];
 
     let files: string[];
@@ -204,18 +204,36 @@ describe("PSW retirement denylist", () => {
         regex: /\bensureProjectWorkflowStarted\b/,
         desc: "ensureProjectWorkflowStarted",
       },
-      { regex: /\badv_workflow_repair\b/, desc: "adv_workflow_repair" },
-      { regex: /\badv_orphan_sweep\b/, desc: "adv_orphan_sweep" },
       {
-        regex: /\badv_archive_sweep_orphans\b/,
-        desc: "adv_archive_sweep_orphans",
+        regex: /\bdeterminus_workflow_repair\b/,
+        desc: "determinus_workflow_repair",
       },
-      { regex: /\badv_migrate_cleanup\b/, desc: "adv_migrate_cleanup" },
-      { regex: /\badv_change_diagnose\b/, desc: "adv_change_diagnose" },
-      { regex: /\badv_change_import\b/, desc: "adv_change_import" },
-      { regex: /\badv_task_evidence\b/, desc: "adv_task_evidence" },
-      { regex: /\badv_task_run_status\b/, desc: "adv_task_run_status" },
-      { regex: /\badv_task_tdd\b/, desc: "adv_task_tdd" },
+      { regex: /\bdeterminus_orphan_sweep\b/, desc: "determinus_orphan_sweep" },
+      {
+        regex: /\bdeterminus_archive_sweep_orphans\b/,
+        desc: "determinus_archive_sweep_orphans",
+      },
+      {
+        regex: /\bdeterminus_migrate_cleanup\b/,
+        desc: "determinus_migrate_cleanup",
+      },
+      {
+        regex: /\bdeterminus_change_diagnose\b/,
+        desc: "determinus_change_diagnose",
+      },
+      {
+        regex: /\bdeterminus_change_import\b/,
+        desc: "determinus_change_import",
+      },
+      {
+        regex: /\bdeterminus_task_evidence\b/,
+        desc: "determinus_task_evidence",
+      },
+      {
+        regex: /\bdeterminus_task_run_status\b/,
+        desc: "determinus_task_run_status",
+      },
+      { regex: /\bdeterminus_task_tdd\b/, desc: "determinus_task_tdd" },
     ];
 
     // Exclude non-current history channels.
@@ -226,7 +244,7 @@ describe("PSW retirement denylist", () => {
       "../SETUP.md",
       "../AGENTS.md",
       "../project.md",
-      "../ADV_INSTRUCTIONS.md",
+      "../determinus_INSTRUCTIONS.md",
     ];
 
     let docFiles: string[];

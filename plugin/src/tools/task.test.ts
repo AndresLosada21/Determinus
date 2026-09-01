@@ -34,7 +34,7 @@ const tasks: Task[] = [
 ];
 
 async function setup(): Promise<{ root: string; store: Store }> {
-  const root = await createTempDir("adv-task-");
+  const root = await createTempDir("determinus-task-");
   const changeDir = join(root, "changes");
   await mkdir(changeDir, { recursive: true });
   await mkdir(join(changeDir, "change-1"), { recursive: true });
@@ -65,7 +65,10 @@ describe("task tools — disk projection", () => {
     const { root, store } = await setup();
     try {
       const parsed = JSON.parse(
-        await taskTools.adv_task_list.execute({ changeId: "change-1" }, store),
+        await taskTools.determinus_task_list.execute(
+          { changeId: "change-1" },
+          store,
+        ),
       );
       expect(parsed.tasks.map((task: Task) => task.id)).toEqual([
         "tk-a",
@@ -81,7 +84,7 @@ describe("task tools — disk projection", () => {
     const { root, store } = await setup();
     try {
       const parsed = JSON.parse(
-        await taskTools.adv_task_list.execute(
+        await taskTools.determinus_task_list.execute(
           { changeId: "change-1", status: "done" },
           store,
         ),
@@ -97,7 +100,7 @@ describe("task tools — disk projection", () => {
     const { root, store } = await setup();
     try {
       const parsed = JSON.parse(
-        await taskTools.adv_task_show.execute({ taskId: "tk-a" }, store),
+        await taskTools.determinus_task_show.execute({ taskId: "tk-a" }, store),
       );
       expect(parsed.changeId).toBe("change-1");
       expect(parsed.task).toMatchObject({
@@ -114,7 +117,10 @@ describe("task tools — disk projection", () => {
     const { root, store } = await setup();
     try {
       const parsed = JSON.parse(
-        await taskTools.adv_task_show.execute({ taskId: "tk-missing" }, store),
+        await taskTools.determinus_task_show.execute(
+          { taskId: "tk-missing" },
+          store,
+        ),
       );
       expect(parsed.error).toBe("Task not found: tk-missing");
     } finally {
@@ -123,8 +129,8 @@ describe("task tools — disk projection", () => {
   });
 
   test("task add/list/show and blockedBy use canonical state despite stale flat data", async () => {
-    const root = await createTempDir("adv-task-canonical-");
-    const worktree = await createTempGitWorktree("adv-task-canonical-");
+    const root = await createTempDir("determinus-task-canonical-");
+    const worktree = await createTempGitWorktree("determinus-task-canonical-");
     const cwdSpy = vi
       .spyOn(process, "cwd")
       .mockReturnValue(worktree.worktreePath);
@@ -186,7 +192,7 @@ describe("task tools — disk projection", () => {
       } as unknown as Store;
 
       const add = JSON.parse(
-        await taskTools.adv_task_add.execute(
+        await taskTools.determinus_task_add.execute(
           {
             changeId,
             content: "Canonical dependent task",
@@ -213,11 +219,11 @@ describe("task tools — disk projection", () => {
       expect(summaryShard.task_count).toBe(2);
 
       const listed = JSON.parse(
-        await taskTools.adv_task_list.execute({ changeId }, store),
+        await taskTools.determinus_task_list.execute({ changeId }, store),
       );
       expect(listed.tasks).toHaveLength(2);
       const shown = JSON.parse(
-        await taskTools.adv_task_show.execute(
+        await taskTools.determinus_task_show.execute(
           { taskId: "tk-canonical" },
           store,
         ),

@@ -1,7 +1,7 @@
 /**
  * portfolioState tests (rq-createPortfolioLine01 / AC4).
  *
- * adv_change_create surfaces bounded portfolio state: non-terminal count +
+ * determinus_change_create surfaces bounded portfolio state: non-terminal count +
  * never-terminal share + a soft nudge above threshold. The read is
  * deadline-capped and MUST degrade to an explicit { available: false } marker
  * on failure or timeout — creation is never blocked by the portfolio read.
@@ -51,7 +51,7 @@ describe("derivePortfolioState", () => {
     );
     expect(crowded.open_count).toBe(8);
     expect(crowded.never_terminal_share).toBe(1);
-    expect(crowded.nudge).toContain("adv_backlog_add");
+    expect(crowded.nudge).toContain("determinus_backlog_add");
   });
 
   it("treats an empty portfolio as zero share with no nudge", () => {

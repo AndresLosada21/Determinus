@@ -78,8 +78,8 @@ function expectNoMarkdownArtifactPaths(output: Record<string, unknown>): void {
 }
 
 describe("change artifact response authority", () => {
-  test("adv_change_update names the durable documents projection instead of returning artifact paths", async () => {
-    const root = await createTempDir("adv-change-artifact-response-");
+  test("determinus_change_update names the durable documents projection instead of returning artifact paths", async () => {
+    const root = await createTempDir("determinus-change-artifact-response-");
     try {
       mocks.coordinateChangeMutation.mockResolvedValueOnce({
         kind: "verified",
@@ -89,7 +89,7 @@ describe("change artifact response authority", () => {
       });
 
       const parsed = parseToolOutput(
-        await changeTools.adv_change_update.execute(
+        await changeTools.determinus_change_update.execute(
           { changeId: "updateAuthority", proposal: "Updated proposal" },
           storeFor(root, change("updateAuthority")),
         ),
@@ -106,12 +106,12 @@ describe("change artifact response authority", () => {
     }
   });
 
-  test("adv_change_create names the durable documents projection instead of returning artifact paths", async () => {
-    const root = await createTempDir("adv-change-artifact-response-");
+  test("determinus_change_create names the durable documents projection instead of returning artifact paths", async () => {
+    const root = await createTempDir("determinus-change-artifact-response-");
     try {
       const created = change("createAuthority");
       const parsed = parseToolOutput(
-        await changeTools.adv_change_create.execute(
+        await changeTools.determinus_change_create.execute(
           { summary: "Add response authority", proposal: "Initial proposal" },
           storeFor(root, created),
         ),

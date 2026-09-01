@@ -12,7 +12,9 @@ import { tmpdir } from "os";
 /**
  * Create a temporary directory for test isolation
  */
-export async function createTempDir(prefix = "adv-test-"): Promise<string> {
+export async function createTempDir(
+  prefix = "determinus-test-",
+): Promise<string> {
   return mkdtemp(join(tmpdir(), prefix));
 }
 
@@ -31,7 +33,9 @@ export async function cleanupTempDir(dir: string): Promise<void> {
  * expected to reject the mutation. The returned cleanup removes the linked
  * worktree before deleting the repository fixture.
  */
-export async function createTempGitWorktree(prefix = "adv-test-git-"): Promise<{
+export async function createTempGitWorktree(
+  prefix = "determinus-test-git-",
+): Promise<{
   repoRoot: string;
   worktreePath: string;
   cleanup: () => Promise<void>;
@@ -44,16 +48,20 @@ export async function createTempGitWorktree(prefix = "adv-test-git-"): Promise<{
       cwd: repoRoot,
       stdio: "ignore",
     });
-    execFileSync("git", ["config", "user.email", "adv-test@example.invalid"], {
-      cwd: repoRoot,
-      stdio: "ignore",
-    });
+    execFileSync(
+      "git",
+      ["config", "user.email", "determinus-test@example.invalid"],
+      {
+        cwd: repoRoot,
+        stdio: "ignore",
+      },
+    );
     execFileSync("git", ["config", "user.name", "ADV Test"], {
       cwd: repoRoot,
       stdio: "ignore",
     });
-    await writeFile(join(repoRoot, ".adv-git-root"), "fixture\n");
-    execFileSync("git", ["add", ".adv-git-root"], {
+    await writeFile(join(repoRoot, ".determinus-git-root"), "fixture\n");
+    execFileSync("git", ["add", ".determinus-git-root"], {
       cwd: repoRoot,
       stdio: "ignore",
     });
@@ -104,7 +112,7 @@ export async function createTestProject(
   await mkdir(dir, { recursive: true });
 
   // P2.5: real projects are git repos — `validateCrossRepoTarget`
-  // (used by adv_change_create's cross-project flow) requires a `.git`
+  // (used by determinus_change_create's cross-project flow) requires a `.git`
   // entry. Always create one so test fixtures match production reality.
   await mkdir(join(dir, ".git"), { recursive: true });
 
@@ -328,7 +336,7 @@ async function _assertJsonFile<T>(
  * Banner format:
  * ```
  * ╔═══════════════════╗
- * ║ 📊 adv_status     ║
+ * ║ 📊 determinus_status     ║
  * ╚═══════════════════╝
  *
  * { json data }

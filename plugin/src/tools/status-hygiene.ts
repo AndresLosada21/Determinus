@@ -28,7 +28,7 @@ export interface ExternalStateHygieneReport {
   dry_run_only: true;
   deletion_requires_approval: true;
   external_root: string | null;
-  nested_adv_dir: boolean;
+  nested_determinus_dir: boolean;
   stale_db_dir: boolean;
   worker_locks_excluded: true;
   synthetic_project_dirs: number;
@@ -130,7 +130,7 @@ export async function computeExternalStateHygiene(
     recommendations.push(
       `dry-run: nested external .adv/ detected at ${externalRoot}/.adv\n` +
         `  Inspect: ls -la "${externalRoot}/.adv"\n` +
-        `  Backup:  tar -czf /tmp/adv-nested-backup-$(date +%s).tar.gz -C "${externalRoot}" .adv\n` +
+        `  Backup:  tar -czf /tmp/determinus-nested-backup-$(date +%s).tar.gz -C "${externalRoot}" .adv\n` +
         `  Remove:  rm -rf "${externalRoot}/.adv"`,
     );
   }
@@ -138,7 +138,7 @@ export async function computeExternalStateHygiene(
     recommendations.push(
       `dry-run: stale physical db/ detected at ${externalRoot}/db (legacy SQLite)\n` +
         `  Inspect: du -sh "${externalRoot}/db" && ls "${externalRoot}/db"\n` +
-        `  Backup:  tar -czf /tmp/adv-legacy-db-$(date +%s).tar.gz -C "${externalRoot}" db\n` +
+        `  Backup:  tar -czf /tmp/determinus-legacy-db-$(date +%s).tar.gz -C "${externalRoot}" db\n` +
         `  Remove:  rm -rf "${externalRoot}/db"`,
     );
   }
@@ -157,7 +157,7 @@ export async function computeExternalStateHygiene(
     recommendations.push(
       `dry-run: ${syntheticProjectDirs} synthetic test project dir(s) + ${syntheticWorktreeDirs} synthetic worktree dir(s) detected (prefix ${SYNTHETIC_TEST_PROJECT_ID_PREFIX})\n` +
         `  Inspect: ls -d ${projectsGlob} ${worktreesGlob}\n` +
-        `  Backup:  tar -czf /tmp/adv-synthetic-backup-$(date +%s).tar.gz ${projectsGlob} ${worktreesGlob} 2>/dev/null\n` +
+        `  Backup:  tar -czf /tmp/determinus-synthetic-backup-$(date +%s).tar.gz ${projectsGlob} ${worktreesGlob} 2>/dev/null\n` +
         `  Remove:  rm -rf ${projectsGlob} ${worktreesGlob}`,
     );
   }
@@ -166,7 +166,7 @@ export async function computeExternalStateHygiene(
       `dry-run: in-repo .adv/changes/ detected at ${repoRoot}/.adv/changes\n` +
         `  This may be legacy data. Specs (.adv/specs/) are always in-repo and OK.\n` +
         `  Inspect: ls -la "${repoRoot}/.adv/changes"\n` +
-        `  Backup:  tar -czf /tmp/adv-repo-changes-backup-$(date +%s).tar.gz -C "${repoRoot}/.adv" changes\n` +
+        `  Backup:  tar -czf /tmp/determinus-repo-changes-backup-$(date +%s).tar.gz -C "${repoRoot}/.adv" changes\n` +
         `  Remove:  rm -rf "${repoRoot}/.adv/changes"  # after confirming specs are preserved`,
     );
   }
@@ -175,7 +175,7 @@ export async function computeExternalStateHygiene(
     dry_run_only: true,
     deletion_requires_approval: true,
     external_root: externalRoot,
-    nested_adv_dir: nestedAdvDir,
+    nested_determinus_dir: nestedAdvDir,
     stale_db_dir: staleDbDir,
     worker_locks_excluded: true,
     synthetic_project_dirs: syntheticProjectDirs,
@@ -296,8 +296,8 @@ export async function appendArchivedBranchHygieneRecommendations(
   const count = cleanupReadyBranches.length;
   const recommendation =
     `cleanup-ready: ${count} archived-change local branch(es) safely deletable\n` +
-    `  Preview: adv_worktree_cleanup mode=archived_branches dryRun=true reason="archived branch cleanup"\n` +
-    `  Delete:  adv_worktree_cleanup mode=archived_branches reason="archived branch cleanup"`;
+    `  Preview: determinus_worktree_cleanup mode=archived_branches dryRun=true reason="archived branch cleanup"\n` +
+    `  Delete:  determinus_worktree_cleanup mode=archived_branches reason="archived branch cleanup"`;
 
   pushStatusRecommendation(status, {
     kind: "cleanup",
@@ -305,7 +305,7 @@ export async function appendArchivedBranchHygieneRecommendations(
     title: "Archived branch cleanup ready",
     detail: `${count} archived-change local branch(es) safely deletable`,
     action:
-      'adv_worktree_cleanup mode=archived_branches dryRun=true reason="archived branch cleanup"',
+      'determinus_worktree_cleanup mode=archived_branches dryRun=true reason="archived branch cleanup"',
     source: "branch_hygiene",
     message: recommendation,
   });

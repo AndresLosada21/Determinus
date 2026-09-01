@@ -1,8 +1,8 @@
 /**
  * Task Checkpoint Tool
  *
- * Provides `adv_task_checkpoint` — creates a git commit checkpoint for a task
- * before it transitions to `done` or `cancelled`. The `/adv-apply` command
+ * Provides `determinus_task_checkpoint` — creates a git commit checkpoint for a task
+ * before it transitions to `done` or `cancelled`. The `/determinus-apply` command
  * calls this at step 3c.5 between the Green Phase and task completion.
  *
  * Design decisions:
@@ -41,8 +41,8 @@ const DEFAULT_MAX_BUFFER = 10 * 1024 * 1024;
 const SUBJECT_MAX_LEN = 72;
 const CHECKPOINT_TASK_ID_RE = /^tk-[A-Za-z0-9]+$/;
 
-/** Enable verbose checkpoint diagnostics. Set ADV_DEBUG=1 in env. */
-const ADV_DEBUG = process.env.ADV_DEBUG === "1";
+/** Enable verbose checkpoint diagnostics. Set determinus_DEBUG=1 in env. */
+const determinus_DEBUG = process.env.determinus_DEBUG === "1";
 
 const GIT_ENV = {
   GIT_EDITOR: "true",
@@ -100,7 +100,7 @@ interface CheckpointRecordingResult {
 }
 
 const CHECKPOINT_RECORDING_REMEDIATION =
-  "Workflow task completion was not recorded. Retry adv_task_checkpoint before declaring the task done; if it persists, run adv_doctor and repair worker connectivity.";
+  "Workflow task completion was not recorded. Retry determinus_task_checkpoint before declaring the task done; if it persists, run determinus_doctor and repair worker connectivity.";
 
 export type RepoState =
   | "ok"
@@ -359,7 +359,7 @@ async function bridgeErrorClass(
       updatedRecovery,
     );
   } catch (err) {
-    if (ADV_DEBUG) {
+    if (determinus_DEBUG) {
       console.warn("[checkpoint] error_class bridge failed (non-fatal):", err);
     }
   }
@@ -611,7 +611,7 @@ async function fireTaskCompletedFromCheckpoint(
       drafts_auto_dismissed: draftsAutoDismissed,
     };
   } catch (err) {
-    if (ADV_DEBUG) {
+    if (determinus_DEBUG) {
       console.warn("[checkpoint] task checkpoint mutation failed:", err);
     }
     return {
@@ -625,7 +625,7 @@ async function fireTaskCompletedFromCheckpoint(
 // ─── Tool definition ────────────────────────────────────────────────────────
 
 export const checkpointTools = {
-  adv_task_checkpoint: {
+  determinus_task_checkpoint: {
     description:
       "Create a git commit checkpoint for a task before marking it done or cancelled. " +
       "Returns {status:'clean'} if nothing to commit, {status:'committed'} after creating a commit, " +

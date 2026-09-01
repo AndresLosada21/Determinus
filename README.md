@@ -188,7 +188,7 @@ For implementation tasks, Determinus records red and green phases with command, 
 
 ### Checkpoint commits
 
-Every `/adv-apply` task with file changes creates a local checkpoint through `adv_task_checkpoint` before it is marked done. Checkpoints include change ID, task ID, mode, and verification summary.
+Every `/determinus-apply` task with file changes creates a local checkpoint through `determinus_task_checkpoint` before it is marked done. Checkpoints include change ID, task ID, mode, and verification summary.
 
 ### Worktree-aware execution
 
@@ -222,7 +222,7 @@ Determinus separates workflow ownership from reusable methodology.
 - **Sub-agents** handle bounded research, validation, and implementation work when context can be safely shed.
 - **The ADV orchestrator** keeps sequencing, approvals, and state consistent.
 
-The sub-agent system still exists: `adv-engineer` implements backend/state/API work, `adv-designer` is the apply-phase frontend/component specialist (write-only, never review/harden owner), `adv-researcher` validates architecture/docs/examples, `adv-reviewer` remediates review/harden findings (with a `FRONTEND DESIGN REVIEW SKILL` anchor for design-inclusive changes), and `explore` scans code. They are context-engineering tools, not owners of the lifecycle.
+The sub-agent system still exists: `determinus-engineer` implements backend/state/API work, `determinus-designer` is the apply-phase frontend/component specialist (write-only, never review/harden owner), `determinus-researcher` validates architecture/docs/examples, `determinus-reviewer` remediates review/harden findings (with a `FRONTEND DESIGN REVIEW SKILL` anchor for design-inclusive changes), and `explore` scans code. They are context-engineering tools, not owners of the lifecycle.
 
 This also enables model comparison: run the same change on two models and compare outputs. Gates, specs, tools, and evidence stay identical; only the reasoning varies.
 
@@ -230,35 +230,35 @@ This also enables model comparison: run the same change on two models and compar
 
 | Command          | Description                                                                                          |
 | ---------------- | ---------------------------------------------------------------------------------------------------- |
-| `/adv-status`    | Show fast ADV status table                                                                           |
-| `/adv-idea`      | Explore rough ideas before drafting a proposal                                                       |
-| `/adv-problem`   | Triage defects and unintended behavior before fixing or drafting a proposal                          |
-| `/adv-epic`      | Gather Epic goals before typed creation                                                             |
-| `/adv-backlog`   | Capture future work as backlog-status changes before proposal                                              |
-| `/adv-proposal`  | Extract problem statement, user outcomes, and constraints without creating tasks                     |
-| `/adv-discover`  | Gather context, analyze current state, identify objectives, and obtain user agreement                |
-| `/adv-design`    | Validate architecture decisions, produce implementation strategy, and present design for user review |
-| `/adv-prep`      | Analyze gaps and synthesize tasks from approved agreement plus validated design                      |
-| `/adv-apply`     | Implement change with TDD, retry on failure, and final verification                                  |
-| `/adv-review`    | Review code for correctness, security, and architecture; emit REVIEW_FINDINGS                        |
-| `/adv-harden`    | Detect low-quality code, verify test coverage, clean up; block archive on open findings              |
-| `/adv-archive`   | Archive completed change: apply spec deltas and finalize git                                         |
-| `/adv-validate`  | Validate change compliance against specs; block archive on failure                                   |
-| `/adv-clarify`   | Ask clarifying questions to resolve ambiguous requirements                                           |
-| `/adv-research`  | Produce a defined, fully-researched proposed plan ready for user approval                            |
-| `/adv-task`      | Fast-track small changes: assess spec-law impact, prep, and hand off                                 |
-| `/adv-audit`     | Detect drift between specs and current implementation                                                |
-| `/adv-slop-scan` | Scan slop, deletion safety, and detector coverage                                                    |
-| `/adv-arch-scan` | Scan architecture stack packs, coverage, and heuristic fallbacks                                     |
-| `/adv-comp-scan` | Scan competitor capabilities against this project for competitive intelligence                       |
-| `/adv-refactor`  | Refresh a stale proposal or batch-refresh the oldest 30% of active changes                           |
-| `/adv-cleanup`   | Triage stale changes, drifted worktrees, merged branches, and state leaks; delete approved candidates |
-| `/adv-coordinate` | Audit project changes, Epic alignment, sequencing, and membership health; includes Epic-unlinked in-flight changes                          |
-| `/adv-triage`    | Triage sources, coalesce issue links, assign bug priority, and balance portfolio |
-| `/adv-improve`   | Analyze improvements across existing specs, implementation, and external landscape                    |
-| `/adv-tron`      | Investigate codebase structure, hotspots, risks, and suggest follow-up candidates             |
-| `/adv-optimizer` | Analyze code simplification opportunities and propose optimizer changes                              |
-| `/adv-reflect`   | Produce a structured two-plane reflection report for an archived change                              |
+| `/determinus-status`    | Show fast ADV status table                                                                           |
+| `/determinus-idea`      | Explore rough ideas before drafting a proposal                                                       |
+| `/determinus-problem`   | Triage defects and unintended behavior before fixing or drafting a proposal                          |
+| `/determinus-epic`      | Gather Epic goals before typed creation                                                             |
+| `/determinus-backlog`   | Capture future work as backlog-status changes before proposal                                              |
+| `/determinus-proposal`  | Extract problem statement, user outcomes, and constraints without creating tasks                     |
+| `/determinus-discover`  | Gather context, analyze current state, identify objectives, and obtain user agreement                |
+| `/determinus-design`    | Validate architecture decisions, produce implementation strategy, and present design for user review |
+| `/determinus-prep`      | Analyze gaps and synthesize tasks from approved agreement plus validated design                      |
+| `/determinus-apply`     | Implement change with TDD, retry on failure, and final verification                                  |
+| `/determinus-review`    | Review code for correctness, security, and architecture; emit REVIEW_FINDINGS                        |
+| `/determinus-harden`    | Detect low-quality code, verify test coverage, clean up; block archive on open findings              |
+| `/determinus-archive`   | Archive completed change: apply spec deltas and finalize git                                         |
+| `/determinus-validate`  | Validate change compliance against specs; block archive on failure                                   |
+| `/determinus-clarify`   | Ask clarifying questions to resolve ambiguous requirements                                           |
+| `/determinus-research`  | Produce a defined, fully-researched proposed plan ready for user approval                            |
+| `/determinus-task`      | Fast-track small changes: assess spec-law impact, prep, and hand off                                 |
+| `/determinus-audit`     | Detect drift between specs and current implementation                                                |
+| `/determinus-slop-scan` | Scan slop, deletion safety, and detector coverage                                                    |
+| `/determinus-arch-scan` | Scan architecture stack packs, coverage, and heuristic fallbacks                                     |
+| `/determinus-comp-scan` | Scan competitor capabilities against this project for competitive intelligence                       |
+| `/determinus-refactor`  | Refresh a stale proposal or batch-refresh the oldest 30% of active changes                           |
+| `/determinus-cleanup`   | Triage stale changes, drifted worktrees, merged branches, and state leaks; delete approved candidates |
+| `/determinus-coordinate` | Audit project changes, Epic alignment, sequencing, and membership health; includes Epic-unlinked in-flight changes                          |
+| `/determinus-triage`    | Triage sources, coalesce issue links, assign bug priority, and balance portfolio |
+| `/determinus-improve`   | Analyze improvements across existing specs, implementation, and external landscape                    |
+| `/determinus-tron`      | Investigate codebase structure, hotspots, risks, and suggest follow-up candidates             |
+| `/determinus-optimizer` | Analyze code simplification opportunities and propose optimizer changes                              |
+| `/determinus-reflect`   | Produce a structured two-plane reflection report for an archived change                              |
 
 ## Quick start
 
@@ -275,7 +275,7 @@ For pinned versions and source-checkout maintainer setup, see [`SETUP.md`](SETUP
 Then, inside an OpenCode project:
 
 ```text
-/adv-proposal add OAuth login without breaking existing session flows
+/determinus-proposal add OAuth login without breaking existing session flows
 ```
 
 Determinus will move the change through discovery, agreement, design, planning, implementation, review, hardening, and archive.
@@ -325,9 +325,9 @@ scripts/             sync, migration, maintenance, blind-test helpers
 | Document                                                 | Purpose                                                      |
 | -------------------------------------------------------- | ------------------------------------------------------------ |
 | [`SETUP.md`](SETUP.md)                                   | Installation, project setup, troubleshooting                 |
-| [`ADV_INSTRUCTIONS.md`](ADV_INSTRUCTIONS.md)             | Full ADV operating protocol                                  |
+| [`determinus_INSTRUCTIONS.md`](determinus_INSTRUCTIONS.md)             | Full ADV operating protocol                                  |
 | [`AGENTS.md`](AGENTS.md)                                 | Contributor quick-reference: architecture, commands, gotchas |
-| [`docs/adv-gates.md`](docs/adv-gates.md)                 | Gate contracts and sequencing                                |
+| [`docs/determinus-gates.md`](docs/determinus-gates.md)                 | Gate contracts and sequencing                                |
 | [`docs/checklists/`](docs/checklists/)                   | Prep, review, and harden checklists                          |
 | [`docs/specs/`](docs/specs/)                             | Generated/spec-facing documentation                          |
 

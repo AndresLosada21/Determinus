@@ -9,16 +9,16 @@
  *
  * Grammar (documented, not heuristic):
  *
- *   1. Strip the generator-owned ADV-GENERATED frontmatter region
- *      (between `# >>> ADV-GENERATED` and `# <<< ADV-GENERATED` markers).
+ *   1. Strip the generator-owned determinus-GENERATED frontmatter region
+ *      (between `# >>> determinus-GENERATED` and `# <<< determinus-GENERATED` markers).
  *      This is tool-list configuration, not call instructions (AC8).
  *   2. Strip fenced code blocks (``` delimited). These contain
  *      illustrative payload schemas, not imperative call instructions.
- *   3. In the remainder, match identifiers `adv_[a-z0-9_]+` in
+ *   3. In the remainder, match identifiers `determinus_[a-z0-9_]+` in
  *      backtick-quoted or bare prose positions.
  *   4. Each match passes if it is in the agent's `allowed` set (derived
  *      from AGENT_TOOL_POLICY at runtime — never hardcoded), OR occurs
- *      within an `adv_tool_invoke({name: "..."})` expression.
+ *      within an `determinus_tool_invoke({name: "..."})` expression.
  *      Otherwise it is a violation.
  */
 
@@ -37,19 +37,19 @@ const AGENTS_DIR = join(REPO_ROOT, ".opencode", "agents");
 // ─── Grammar primitives (documented per DONT5) ─────────────────────────────
 
 /**
- * Step 1: Strip the generator-owned ADV-GENERATED frontmatter region.
+ * Step 1: Strip the generator-owned determinus-GENERATED frontmatter region.
  *
- * Markers (verbatim from .opencode/agents/adv-*.md):
- *   # >>> ADV-GENERATED adv_* tools (source: AGENT_TOOL_POLICY) >>>
+ * Markers (verbatim from .opencode/agents/determinus-*.md):
+ *   # >>> determinus-GENERATED determinus_* tools (source: AGENT_TOOL_POLICY) >>>
  *   ...
- *   # <<< ADV-GENERATED adv_* tools <<<
+ *   # <<< determinus-GENERATED determinus_* tools <<<
  *
  * Everything between these markers (inclusive) is the generated tool list —
  * configuration, not call instructions. Generator-owned (AC8, C4).
  */
 function stripAdvGeneratedRegion(text: string): string {
   return text.replace(
-    /^# >>> ADV-GENERATED.*$[\s\S]*?^# <<< ADV-GENERATED.*$\n?/gm,
+    /^# >>> determinus-GENERATED.*$[\s\S]*?^# <<< determinus-GENERATED.*$\n?/gm,
     "",
   );
 }
@@ -75,17 +75,17 @@ interface AdvToolRef {
 }
 
 /**
- * Step 3: Find all `adv_[a-z0-9_]+` references in text.
+ * Step 3: Find all `determinus_[a-z0-9_]+` references in text.
  *
- * Matches identifiers in backtick-quoted positions (`adv_tool_name`) and
- * bare prose positions (e.g., "call adv_tool_name with..."). The `\b`
+ * Matches identifiers in backtick-quoted positions (`determinus_tool_name`) and
+ * bare prose positions (e.g., "call determinus_tool_name with..."). The `\b`
  * word boundary prevents partial matches inside longer identifiers.
  *
  * Returns 1-based line numbers relative to the input text.
  */
 function findAdvToolRefs(text: string): AdvToolRef[] {
   const refs: AdvToolRef[] = [];
-  const re = /\badv_([a-z0-9_]+)\b/g;
+  const re = /\bdeterminus_([a-z0-9_]+)\b/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
     refs.push({
@@ -99,7 +99,7 @@ function findAdvToolRefs(text: string): AdvToolRef[] {
 
 /**
  * Step 4a: Check whether a reference is wrapped in an
- * `adv_tool_invoke({name: "..."})` expression.
+ * `determinus_tool_invoke({name: "..."})` expression.
  *
  * Looks for the dispatch pattern within a 200-char window ending at the
  * reference position. The window covers the typical single-line invoke
@@ -111,7 +111,7 @@ function isInvokeWrapped(text: string, ref: AdvToolRef): boolean {
   const windowEnd = Math.min(text.length, ref.index + ref.tool.length + 30);
   const window = text.slice(windowStart, windowEnd);
   const invokePattern = new RegExp(
-    `adv_tool_invoke\\s*\\(\\s*\\{\\s*name\\s*:\\s*["']${ref.tool}["']`,
+    `determinus_tool_invoke\\s*\\(\\s*\\{\\s*name\\s*:\\s*["']${ref.tool}["']`,
   );
   return invokePattern.test(window);
 }
@@ -125,8 +125,8 @@ interface Violation {
 /**
  * Apply the full AC5 grammar and return violations.
  *
- * A violation is an `adv_*` reference in prompt prose that is neither in
- * the agent's `allowed` set nor wrapped in an `adv_tool_invoke` expression.
+ * A violation is an `determinus_*` reference in prompt prose that is neither in
+ * the agent's `allowed` set nor wrapped in an `determinus_tool_invoke` expression.
  * Allowed set is derived from AGENT_TOOL_POLICY at runtime — never
  * hardcoded (DONT5).
  */
@@ -160,23 +160,23 @@ function findPolicyViolations(
 // ─── AC6: Grammar fixtures — proven, not trusted ───────────────────────────
 
 describe("AC5 grammar fixtures (AC6)", () => {
-  // Minimal allowed set mirroring Tier 1: adv_tool_invoke is always granted.
-  // Other adv_* tools in fixtures are NOT in this set to exercise the guard.
-  const fixtureAllowed = new Set(["adv_tool_invoke"]);
+  // Minimal allowed set mirroring Tier 1: determinus_tool_invoke is always granted.
+  // Other determinus_* tools in fixtures are NOT in this set to exercise the guard.
+  const fixtureAllowed = new Set(["determinus_tool_invoke"]);
 
   test("true positive: bare imperative direct call is flagged", () => {
     const text =
-      "Call `adv_subagent_report_submit` with `{ report: ENGINEER_REPORT }`.";
+      "Call `determinus_subagent_report_submit` with `{ report: ENGINEER_REPORT }`.";
     const violations = findPolicyViolations(text, fixtureAllowed);
     expect(violations).toHaveLength(1);
-    expect(violations[0].tool).toBe("adv_subagent_report_submit");
+    expect(violations[0].tool).toBe("determinus_subagent_report_submit");
   });
 
   test("code-fence occurrence is NOT flagged (illustrative schema)", () => {
     const text = [
       "Before the call:",
       "```json",
-      '{ "test_run_id": "{same-task adv_run_test runId}" }',
+      '{ "test_run_id": "{same-task determinus_run_test runId}" }',
       "```",
       "After the call.",
     ].join("\n");
@@ -184,9 +184,9 @@ describe("AC5 grammar fixtures (AC6)", () => {
     expect(violations).toEqual([]);
   });
 
-  test("adv_tool_invoke-wrapped reference is NOT flagged", () => {
+  test("determinus_tool_invoke-wrapped reference is NOT flagged", () => {
     const text =
-      'Dispatch via `adv_tool_invoke({name: "adv_subagent_report_submit", args: { report: ENGINEER_REPORT }})`.';
+      'Dispatch via `determinus_tool_invoke({name: "determinus_subagent_report_submit", args: { report: ENGINEER_REPORT }})`.';
     const violations = findPolicyViolations(text, fixtureAllowed);
     expect(violations).toEqual([]);
   });
@@ -214,34 +214,35 @@ describe("AC7 pre-rewrite evidence (pinned fixture)", () => {
     expectedTool: string;
   }> = [
     {
-      lane: "adv-engineer",
-      source: ".opencode/agents/adv-engineer.md L162 (§ Exit Protocol)",
+      lane: "determinus-engineer",
+      source: ".opencode/agents/determinus-engineer.md L162 (§ Exit Protocol)",
       excerpt:
-        "3. **Submit ENGINEER_REPORT** — call `adv_subagent_report_submit` with the structured JSON payload below",
-      expectedTool: "adv_subagent_report_submit",
+        "3. **Submit ENGINEER_REPORT** — call `determinus_subagent_report_submit` with the structured JSON payload below",
+      expectedTool: "determinus_subagent_report_submit",
     },
     {
-      lane: "adv-engineer",
-      source: ".opencode/agents/adv-engineer.md L276 (§ Submission Rules)",
-      excerpt:
-        "Before final response, call `adv_subagent_report_submit` with `{ report: ENGINEER_REPORT }`.",
-      expectedTool: "adv_subagent_report_submit",
-    },
-    {
-      lane: "adv-verifier",
+      lane: "determinus-engineer",
       source:
-        ".opencode/agents/adv-verifier.md (§ Submission — representative)",
+        ".opencode/agents/determinus-engineer.md L276 (§ Submission Rules)",
       excerpt:
-        "Submit your findings by calling `adv_subagent_report_submit` with the Verification Triage Result.",
-      expectedTool: "adv_subagent_report_submit",
+        "Before final response, call `determinus_subagent_report_submit` with `{ report: ENGINEER_REPORT }`.",
+      expectedTool: "determinus_subagent_report_submit",
     },
     {
-      lane: "adv-reviewer",
+      lane: "determinus-verifier",
       source:
-        ".opencode/agents/adv-reviewer.md (§ Submission — representative)",
+        ".opencode/agents/determinus-verifier.md (§ Submission — representative)",
       excerpt:
-        "Record evidence via `adv_run_test` and bind the runId to your report.",
-      expectedTool: "adv_run_test",
+        "Submit your findings by calling `determinus_subagent_report_submit` with the Verification Triage Result.",
+      expectedTool: "determinus_subagent_report_submit",
+    },
+    {
+      lane: "determinus-reviewer",
+      source:
+        ".opencode/agents/determinus-reviewer.md (§ Submission — representative)",
+      excerpt:
+        "Record evidence via `determinus_run_test` and bind the runId to your report.",
+      expectedTool: "determinus_run_test",
     },
   ];
 
@@ -267,7 +268,7 @@ describe("AC5 prompt-body policy binding", () => {
   for (const agent of SPAWNABLE_SUBAGENT_ROSTER) {
     const policy = AGENT_TOOL_POLICY.find((p) => p.agent === agent);
 
-    test(`${agent}: every adv_* reference is allowed or invoke-wrapped`, () => {
+    test(`${agent}: every determinus_* reference is allowed or invoke-wrapped`, () => {
       expect(
         policy,
         `No AGENT_TOOL_POLICY entry for agent "${agent}"`,
@@ -284,7 +285,7 @@ describe("AC5 prompt-body policy binding", () => {
           .join("\n");
         throw new Error(
           `${agent}: ${violations.length} prompt-body violation(s) — ` +
-            `direct-call refs must be rewritten to adv_tool_invoke:\n${formatted}`,
+            `direct-call refs must be rewritten to determinus_tool_invoke:\n${formatted}`,
         );
       }
     });

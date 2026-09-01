@@ -45,5 +45,5 @@
 ## Scope and safety
 
 - No OpenCode sessions or background workers were created.
-- XDG_DATA_HOME and ADV_WORKTREE_HOME pointed into the temporary fixture.
+- XDG_DATA_HOME and determinus_WORKTREE_HOME pointed into the temporary fixture.
 - Temporary projections, JSONL stores, git worktrees, and archive output were removed after verification.

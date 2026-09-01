@@ -8,7 +8,7 @@
  * `source_kind: "agenda"` and `source_agenda_id` remain parseable for
  * backwards compatibility (AC8 parse-only).
  *
- * Contract refs: AC1 (no adv_agenda_* registered), AC2/AC3 (no Agenda consumer
+ * Contract refs: AC1 (no determinus_agenda_* registered), AC2/AC3 (no Agenda consumer
  * writes for follow-ups), AC4 (designer concern semantics preserved), AC8
  * (legacy parse-only), SC1 (no unowned generic queue), DONT1 (no replacement
  * generic queue), DONT6 (do not weaken design-concern/ops/release semantics).
@@ -16,7 +16,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BriefingFactOutcomeSchema, OpsFollowupSourceSchema } from "../types";
-import { ADV_TOOL_NAMES, createToolMap } from "../tool-registry";
+import { determinus_TOOL_NAMES, createToolMap } from "../tool-registry";
 import { getProjectPaths } from "../storage/json";
 import { createDiskStore } from "../storage/store";
 import {
@@ -25,17 +25,17 @@ import {
   createTestProject,
 } from "../__tests__/setup";
 
-const AGENDA_TOOL_PREFIX = "adv_agenda_";
+const AGENDA_TOOL_PREFIX = "determinus_agenda_";
 
-describe("retireAgendaWorkflow — no adv_agenda_* tools registered (AC1)", () => {
-  it("ADV_TOOL_NAMES contains no adv_agenda_* entries", () => {
-    const offenders = ADV_TOOL_NAMES.filter((name) =>
+describe("retireAgendaWorkflow — no determinus_agenda_* tools registered (AC1)", () => {
+  it("determinus_TOOL_NAMES contains no determinus_agenda_* entries", () => {
+    const offenders = determinus_TOOL_NAMES.filter((name) =>
       name.startsWith(AGENDA_TOOL_PREFIX),
     );
     expect(offenders).toEqual([]);
   });
 
-  it("createToolMap does not register any adv_agenda_* tool", async () => {
+  it("createToolMap does not register any determinus_agenda_* tool", async () => {
     const tempDir = await createTempDir();
     await createTestProject(tempDir);
     const store = await createDiskStore(tempDir);
@@ -132,7 +132,7 @@ describe("retireAgendaWorkflow — legacy OpsFollowupSource parse-only (AC8)", (
   });
 });
 
-describe("retireAgendaWorkflow — adv_followup_promote rejects agenda source (AC1)", () => {
+describe("retireAgendaWorkflow — determinus_followup_promote rejects agenda source (AC1)", () => {
   it("followup tool module does not export 'agenda' in its SOURCE_KIND_SCHEMA input enum", async () => {
     // The tool input schema must refuse new agenda promotions. We verify by
     // reading the module source: the SOURCE_KIND_SCHEMA in followup.ts should

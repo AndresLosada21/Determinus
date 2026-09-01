@@ -87,7 +87,7 @@ describe("health view bounded pressure contract", () => {
   let store: Store;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-status-health-pressure-");
+    tempDir = await createTempDir("determinus-status-health-pressure-");
     await createTestProject(tempDir);
     store = await createDiskStore(tempDir);
     mockGetWorktreeCensus.mockReset();
@@ -104,7 +104,7 @@ describe("health view bounded pressure contract", () => {
   test("passes the source-ranked candidate limit into the authoritative disk read", async () => {
     const statusSpy = vi.spyOn(store, "status");
     const parsed = parseToolOutput(
-      await statusTools.adv_status.execute({ view: "health" }, store),
+      await statusTools.determinus_status.execute({ view: "health" }, store),
     );
 
     expect(parsed.view).toBe("health");
@@ -118,7 +118,7 @@ describe("health view bounded pressure contract", () => {
 
   test("returns request-local execution metadata without Temporal providers", async () => {
     const parsed = parseToolOutput(
-      await statusTools.adv_status.execute({ view: "health" }, store),
+      await statusTools.determinus_status.execute({ view: "health" }, store),
     );
 
     expect(parsed._health_execution).toMatchObject({
@@ -137,7 +137,7 @@ describe("health view bounded pressure contract", () => {
   test("reports the bounded omission count from the disk status read", async () => {
     store.status = vi.fn().mockResolvedValue(syntheticStatus());
     const parsed = parseToolOutput(
-      await statusTools.adv_status.execute({ view: "health" }, store),
+      await statusTools.determinus_status.execute({ view: "health" }, store),
     );
 
     expect(parsed.changes.recent).toHaveLength(10);
@@ -160,7 +160,7 @@ describe("health view bounded pressure contract", () => {
       .mockResolvedValue({ total: 0, classes: {} } as never);
 
     const parsed = parseToolOutput(
-      await statusTools.adv_status.execute({ view: "health" }, store),
+      await statusTools.determinus_status.execute({ view: "health" }, store),
     );
 
     expect(parsed.worktree_census).toMatchObject({
@@ -175,7 +175,7 @@ describe("health view bounded pressure contract", () => {
       .spyOn(worktree, "advWorktreeCleanup")
       .mockResolvedValue({ total: 0, classes: {} } as never);
 
-    await statusTools.adv_status.execute({ view: "hygiene" }, store);
+    await statusTools.determinus_status.execute({ view: "hygiene" }, store);
 
     expect(cleanupSpy).toHaveBeenCalled();
   });

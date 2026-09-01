@@ -3,7 +3,7 @@
  *
  * Enforces the D3 invariant: hard activation blocking at signal time only.
  * Called as a pre-flight at every edge-writing mutation ingress
- * (adv_epic_add_shell, adv_epic_promote_shell, adv_change_create).
+ * (determinus_epic_add_shell, determinus_epic_promote_shell, determinus_change_create).
  *
  * Combines edge validation (Phase C validateEdgeAdd) with activation-time
  * nonterminal-prereq checking (D3 — refuse promotion/creation of an active
@@ -66,7 +66,7 @@ export type D3EnforcementResult =
  * Shells may be recorded before their prerequisites complete. D3 blocking is
  * deliberately deferred to promotion, when the shell becomes an active change.
  *
- * Used by adv_epic_add_shell.
+ * Used by determinus_epic_add_shell.
  */
 export function enforceD3ForShellAdd(
   sourceRef: WorkNodeRef,
@@ -96,7 +96,7 @@ export function enforceD3ForShellAdd(
  * before the shell can be promoted to a change. Does NOT re-validate edges
  * (they were validated at shell-add time; D3 invariant).
  *
- * Used by adv_epic_promote_shell.
+ * Used by determinus_epic_promote_shell.
  */
 export function enforceD3ForShellPromote(
   blockedBy: WorkNodeRef[],
@@ -123,7 +123,7 @@ export function enforceD3ForShellPromote(
  * 1. Edge validation (self/dup/unresolved/cycle) via validateEdgeAdd
  * 2. Nonterminal prereq check — ALL same_project_dependencies must be terminal
  *
- * Used by adv_change_create.
+ * Used by determinus_change_create.
  *
  * AC5 invariant: enforcement is CREATE-time only. Once a change is active,
  * it passes gates normally even if a prereq's status changes.
@@ -200,7 +200,7 @@ export async function buildD3ContextFromStore(
     const change = full.success && full.data ? full.data : null;
     if (!change) continue; // Skip changes we cannot load for validation.
     const projectId =
-      change.adv_project_id ??
+      change.determinus_project_id ??
       (inferredProjectId ? basename(inferredProjectId) : "");
     const ref: WorkNodeRef = {
       kind: "change",

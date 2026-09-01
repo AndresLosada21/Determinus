@@ -167,7 +167,7 @@ export function renderPortfolioBalance(input: PortfolioBalanceInput): string {
     const issue = item.linkedIssue
       ? `; #${item.linkedIssue.number} priority:${item.linkedIssue.priority}`
       : "";
-    return `- ${item.changeId} — ${item.title} — gate:${item.gate}; tasks:${item.tasksDone}/${item.tasksTotal}${issue}${epicLine(item.epic)}${defectHintLine(item.defectHint)}\n  → /adv-apply ${item.changeId}`;
+    return `- ${item.changeId} — ${item.title} — gate:${item.gate}; tasks:${item.tasksDone}/${item.tasksTotal}${issue}${epicLine(item.epic)}${defectHintLine(item.defectHint)}\n  → /determinus-apply ${item.changeId}`;
   });
 
   const cleanupRows = [
@@ -198,11 +198,11 @@ export function renderPortfolioBalance(input: PortfolioBalanceInput): string {
     .slice(0, CAP)
     .map(
       (issue) =>
-        `- #${issue.number} — ${issue.title} — priority:${issue.priority}${epicLine(issue.epic)}\n  → /adv-proposal #${issue.number}`,
+        `- #${issue.number} — ${issue.title} — priority:${issue.priority}${epicLine(issue.epic)}\n  → /determinus-proposal #${issue.number}`,
     );
 
   return [
-    "## /adv-triage portfolio balance",
+    "## /determinus-triage portfolio balance",
     "",
     "### Important to complete",
     ...(importantLines.length > 0 ? importantLines : ["None"]),
@@ -213,7 +213,7 @@ export function renderPortfolioBalance(input: PortfolioBalanceInput): string {
       ? cleanupRows.slice(0, CAP).map((row) => `- ${row}`)
       : ["None"]),
     ...overflowLine(cleanupRows.length),
-    "→ /adv-cleanup",
+    "→ /determinus-cleanup",
     "",
     "### Open issues worth solving",
     ...(issueLines.length > 0 ? issueLines : ["None"]),

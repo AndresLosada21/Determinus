@@ -1,7 +1,7 @@
 /**
  * Manifest ↔ Command Doc Drift Tests
  *
- * Enforces that every `.opencode/command/adv-*.md` frontmatter `description`
+ * Enforces that every `.opencode/command/determinus-*.md` frontmatter `description`
  * exactly matches the canonical description in `plugin/src/manifest.ts`.
  *
  * Manifest is the single source of truth. Update manifest first, then run
@@ -20,7 +20,10 @@ import { COMMAND_MANIFEST } from "./manifest";
 const PLUGIN_ROOT = resolve(__dirname, "../..");
 const COMMAND_DIR = join(PLUGIN_ROOT, ".opencode/command");
 const README_PATH = join(PLUGIN_ROOT, "README.md");
-const ADV_INSTRUCTIONS_PATH = join(PLUGIN_ROOT, "ADV_INSTRUCTIONS.md");
+const determinus_INSTRUCTIONS_PATH = join(
+  PLUGIN_ROOT,
+  "determinus_INSTRUCTIONS.md",
+);
 const INSTRUCTION_DIR = join(homedir(), ".config/opencode/instructions");
 const AGENT_DIR = join(PLUGIN_ROOT, ".opencode/agents");
 
@@ -87,7 +90,7 @@ function parseFrontmatterDescription(content: string): string | null {
 }
 
 /**
- * List all adv-*.md command files in the command directory.
+ * List all determinus-*.md command files in the command directory.
  *
  * Wraps readdirSync with a diagnostic error if the command directory
  * is missing, so test failures point to the root cause immediately.
@@ -108,21 +111,21 @@ function listCommandFiles(): string[] {
     throw err;
   }
   return entries
-    .filter((f) => f.startsWith("adv-") && f.endsWith(".md"))
+    .filter((f) => f.startsWith("determinus-") && f.endsWith(".md"))
     .sort((a, b) => a.localeCompare(b));
 }
 
 /**
- * Parse markdown table rows matching `| /adv-<name> ... | <description> |`
+ * Parse markdown table rows matching `| /determinus-<name> ... | <description> |`
  * into a map of command name → description.
  *
  * Handles argument suffixes like `<id>`, `<summary>`, `[path]` by stripping
- * them to extract the bare command name (e.g., "adv-apply").
+ * them to extract the bare command name (e.g., "determinus-apply").
  */
 function parseDocTableDescriptions(content: string): Map<string, string> {
   const map = new Map<string, string>();
-  // Match: | `/adv-<name>` or `/adv-<name> <args>` | <description> |
-  const re = /^\|\s*`\/(adv-[a-z-]+)(?:\s+[^`]*)?`\s*\|\s*(.*?)\s*\|$/gm;
+  // Match: | `/determinus-<name>` or `/determinus-<name> <args>` | <description> |
+  const re = /^\|\s*`\/(determinus-[a-z-]+)(?:\s+[^`]*)?`\s*\|\s*(.*?)\s*\|$/gm;
   let match: RegExpExecArray | null;
   while ((match = re.exec(content)) !== null) {
     map.set(match[1], match[2]);
@@ -223,7 +226,7 @@ describe("Manifest ↔ Command Doc Drift", () => {
 
 describe("Manifest ↔ Doc Table Drift", () => {
   /**
-   * For each doc file (README.md, ADV_INSTRUCTIONS.md), verify that every
+   * For each doc file (README.md, determinus_INSTRUCTIONS.md), verify that every
    * manifest command appears in the command table with the correct description.
    *
    * This is a semantic-presence check: the doc table description must exactly
@@ -232,7 +235,7 @@ describe("Manifest ↔ Doc Table Drift", () => {
    */
   const docFiles = [
     { name: "README.md", path: README_PATH },
-    { name: "ADV_INSTRUCTIONS.md", path: ADV_INSTRUCTIONS_PATH },
+    { name: "determinus_INSTRUCTIONS.md", path: determinus_INSTRUCTIONS_PATH },
   ];
 
   for (const { name: docName, path: docPath } of docFiles) {
@@ -301,8 +304,12 @@ describe("Prioritizer protocol docs", () => {
   });
 
   test("ADV instructions include inline-first prioritizer protocol", () => {
-    const content = readFileSync(ADV_INSTRUCTIONS_PATH, "utf8");
-    assertContainsAllSnippets(content, advSnippets, "ADV_INSTRUCTIONS.md");
+    const content = readFileSync(determinus_INSTRUCTIONS_PATH, "utf8");
+    assertContainsAllSnippets(
+      content,
+      advSnippets,
+      "determinus_INSTRUCTIONS.md",
+    );
   });
 });
 
@@ -401,11 +408,11 @@ describe("prose-load-reduction section structural caps (rq-proseReduction02)", (
 // =============================================================================
 
 const POINTER_EXPECTATIONS = [
-  { file: "rules.yaml", skill: "adv-rule-rationale" },
-  { file: "trunk-worktree-isolation.md", skill: "adv-runbook-git" },
-  { file: "git-freshness.md", skill: "adv-runbook-git" },
-  { file: "oc-ci-wait.md", skill: "adv-runbook-ci" },
-  { file: "oc-test-gate.md", skill: "adv-runbook-ci" },
+  { file: "rules.yaml", skill: "determinus-rule-rationale" },
+  { file: "trunk-worktree-isolation.md", skill: "determinus-runbook-git" },
+  { file: "git-freshness.md", skill: "determinus-runbook-git" },
+  { file: "oc-ci-wait.md", skill: "determinus-runbook-ci" },
+  { file: "oc-test-gate.md", skill: "determinus-runbook-ci" },
 ];
 
 const RUNBOOK_STUBS = [

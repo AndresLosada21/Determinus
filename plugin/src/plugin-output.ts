@@ -57,7 +57,7 @@ function parseToolOutput<T>(rawOutput: unknown): T | null {
   return null;
 }
 
-const LONG_RUNNING_TOOLS = new Set(["adv_run_test"]);
+const LONG_RUNNING_TOOLS = new Set(["determinus_run_test"]);
 
 export function isLongRunningTool(toolName: string): boolean {
   return LONG_RUNNING_TOOLS.has(toolName);

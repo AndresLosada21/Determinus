@@ -6,11 +6,11 @@
  * SQLite persistence, no cross-session aggregation. Counters reset on
  * plugin init (matches `state` lifecycle in `index.ts`).
  *
- * Surfaced via `adv_status view: "health"` so an operator can sample
+ * Surfaced via `determinus_status view: "health"` so an operator can sample
  * the per-phase volume of:
  *
- *   - adv_tool_calls           — total `adv_*` tool invocations
- *   - adv_tool_call_count_by_name — Map<toolName, count> for breakdown
+ *   - determinus_tool_calls           — total `determinus_*` tool invocations
+ *   - determinus_tool_call_count_by_name — Map<toolName, count> for breakdown
  *   - system_block_bytes       — bytes written into `output.system[0]`
  *                                across the session (cache-aware
  *                                refinement baseline)
@@ -23,21 +23,21 @@
  */
 
 export interface AdvMetricsCounters {
-  adv_tool_calls: number;
+  determinus_tool_calls: number;
   /** Map<toolName, callCount>. Object form for serializability. */
-  adv_tool_call_count_by_name: Record<string, number>;
+  determinus_tool_call_count_by_name: Record<string, number>;
   system_block_bytes: number;
   subagent_spawns: number;
   wall_time_ms: number;
   /**
-   * Per-tool duration aggregates surfaced via adv_status view:"health"
+   * Per-tool duration aggregates surfaced via determinus_status view:"health"
    * (rq-advLatencyTelemetry01). Always-on in-memory rollup. Records
    * success and error outcomes. Counters reset on plugin init.
    */
-  adv_tool_durations: Record<string, ToolDurationStat>;
+  determinus_tool_durations: Record<string, ToolDurationStat>;
   /**
-   * Recent named phase/substep durations (e.g. adv_status providers,
-   * adv_run_test substeps). Bounded ring buffer to keep memory flat.
+   * Recent named phase/substep durations (e.g. determinus_status providers,
+   * determinus_run_test substeps). Bounded ring buffer to keep memory flat.
    */
   recent_phase_durations: PhaseDurationSample[];
 }
@@ -67,12 +67,12 @@ let counters: AdvMetricsCounters = createEmptyCounters();
 
 function createEmptyCounters(): AdvMetricsCounters {
   return {
-    adv_tool_calls: 0,
-    adv_tool_call_count_by_name: {},
+    determinus_tool_calls: 0,
+    determinus_tool_call_count_by_name: {},
     system_block_bytes: 0,
     subagent_spawns: 0,
     wall_time_ms: 0,
-    adv_tool_durations: {},
+    determinus_tool_durations: {},
     recent_phase_durations: [],
   };
 }
@@ -86,40 +86,44 @@ export function resetMetrics(): void {
  *  shallow copy; callers must not mutate it. */
 export function getMetrics(): AdvMetricsCounters {
   const durations: Record<string, ToolDurationStat> = {};
-  for (const [name, stat] of Object.entries(counters.adv_tool_durations)) {
+  for (const [name, stat] of Object.entries(
+    counters.determinus_tool_durations,
+  )) {
     durations[name] = { ...stat };
   }
   return {
-    adv_tool_calls: counters.adv_tool_calls,
-    adv_tool_call_count_by_name: { ...counters.adv_tool_call_count_by_name },
+    determinus_tool_calls: counters.determinus_tool_calls,
+    determinus_tool_call_count_by_name: {
+      ...counters.determinus_tool_call_count_by_name,
+    },
     system_block_bytes: counters.system_block_bytes,
     subagent_spawns: counters.subagent_spawns,
     wall_time_ms: counters.wall_time_ms,
-    adv_tool_durations: durations,
+    determinus_tool_durations: durations,
     recent_phase_durations: counters.recent_phase_durations.map((s) => ({
       ...s,
     })),
   };
 }
 
-/** Increment the global ADV-tool-call counter and the per-name breakdown.
- *  Called from `tool.execute.after` for any `adv_*` tool. */
+/** Increment the global determinus-tool-call counter and the per-name breakdown.
+ *  Called from `tool.execute.after` for any `determinus_*` tool. */
 export function recordAdvToolCall(toolName: string): void {
-  if (!toolName.startsWith("adv_")) return;
-  counters.adv_tool_calls += 1;
-  counters.adv_tool_call_count_by_name[toolName] =
-    (counters.adv_tool_call_count_by_name[toolName] ?? 0) + 1;
+  if (!toolName.startsWith("determinus_")) return;
+  counters.determinus_tool_calls += 1;
+  counters.determinus_tool_call_count_by_name[toolName] =
+    (counters.determinus_tool_call_count_by_name[toolName] ?? 0) + 1;
 }
 
 /**
  * Add a target-tool audit breakdown for a facade dispatch without counting a
- * second tool invocation globally. The enclosing `adv_tool_invoke` call is
+ * second tool invocation globally. The enclosing `determinus_tool_invoke` call is
  * already counted by the normal `tool.execute.after` hook.
  */
 export function recordFacadedAdvToolTarget(toolName: string): void {
-  if (!toolName.startsWith("adv_")) return;
-  counters.adv_tool_call_count_by_name[toolName] =
-    (counters.adv_tool_call_count_by_name[toolName] ?? 0) + 1;
+  if (!toolName.startsWith("determinus_")) return;
+  counters.determinus_tool_call_count_by_name[toolName] =
+    (counters.determinus_tool_call_count_by_name[toolName] ?? 0) + 1;
 }
 
 /** Add bytes written to `output.system[0]` for cache-aware analysis. */
@@ -151,7 +155,7 @@ export function recordToolDuration(
   outcome: "success" | "error" = "success",
 ): void {
   if (!Number.isFinite(durationMs) || durationMs < 0) return;
-  const stat = counters.adv_tool_durations[toolName] ?? {
+  const stat = counters.determinus_tool_durations[toolName] ?? {
     count: 0,
     total_ms: 0,
     last_ms: 0,
@@ -163,13 +167,13 @@ export function recordToolDuration(
   stat.last_ms = durationMs;
   if (durationMs > stat.max_ms) stat.max_ms = durationMs;
   if (outcome === "error") stat.error_count += 1;
-  counters.adv_tool_durations[toolName] = stat;
+  counters.determinus_tool_durations[toolName] = stat;
   recordWallTimeMs(durationMs);
 }
 
 /**
- * Record a named phase/substep duration sample. Used by adv_status
- * provider plan and adv_run_test substep timing. Bounded ring buffer
+ * Record a named phase/substep duration sample. Used by determinus_status
+ * provider plan and determinus_run_test substep timing. Bounded ring buffer
  * keeps memory flat across long sessions. Tool name and phase name
  * are caller-owned; this module does not parse semantics.
  */

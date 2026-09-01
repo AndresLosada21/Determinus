@@ -36,7 +36,7 @@ const engineerReport = {
   task_id: "tk-abc123",
   scope: { kind: "task", task_id: "tk-abc123" },
   attempt: 1,
-  agent: "adv-engineer",
+  agent: "determinus-engineer",
   status: "complete",
   files_touched: ["plugin/src/types/subagent-reports.ts"],
   verification: [
@@ -65,7 +65,7 @@ const reviewerReport = {
   task_id: "tk-review123",
   scope: { kind: "task", task_id: "tk-review123" },
   attempt: 2,
-  agent: "adv-reviewer",
+  agent: "determinus-reviewer",
   phase: "review",
   verdict: "READY",
   blocking_findings: [],
@@ -103,7 +103,7 @@ const designerReport = {
   task_id: "tk-design123",
   scope: { kind: "task", task_id: "tk-design123" },
   attempt: 1,
-  agent: "adv-designer",
+  agent: "determinus-designer",
   status: "complete",
   files_touched: ["src/components/Button.tsx"],
   verification: [
@@ -127,7 +127,7 @@ const designerReport = {
   workdir_used: "/tmp/worktree",
   context_update_for_adv: {
     what_ads_needs_to_know: "Button component shipped",
-    suggested_next_action: "Run /adv-review",
+    suggested_next_action: "Run /determinus-review",
   },
   design_dimensions: {
     component_correctness: "pass",
@@ -152,7 +152,7 @@ const researcherReport = {
   change_id: "persistSubagentReports",
   scope: { kind: "change", scope_key: "researcher:temporal-docs" },
   attempt: 1,
-  agent: "adv-researcher",
+  agent: "determinus-researcher",
   topic: "Temporal report persistence",
   sources: [
     {
@@ -205,7 +205,7 @@ const tronReport = {
   change_id: "persistSubagentReports",
   scope: { kind: "change", scope_key: "tron:report-flow" },
   attempt: 1,
-  agent: "adv-tron",
+  agent: "determinus-tron",
   target: "report flow",
   evidence: [
     {
@@ -218,7 +218,7 @@ const tronReport = {
   hotspots: ["plugin/src/tools/subagent-report.ts"],
   risks: ["Taskless reports need explicit source metadata"],
   open_questions: [],
-  suggested_next_commands: ["/adv-apply addHandoffReports"],
+  suggested_next_commands: ["/determinus-apply addHandoffReports"],
   follow_ups: [],
   workdir_used: "/tmp/worktree",
 };
@@ -247,7 +247,7 @@ const tronOptimizationCandidate = {
   verification_needed:
     "Confirm the loop is hot and the boundary call is not required per iteration.",
   recommendation:
-    "Run `/adv-optimizer src/api.ts` to synthesize a simplification proposal.",
+    "Run `/determinus-optimizer src/api.ts` to synthesize a simplification proposal.",
 };
 
 const tronReportWithOptimizationCandidates = {
@@ -260,7 +260,7 @@ const scannerBundleReport = {
   change_id: "persistSubagentReports",
   scope: { kind: "change", scope_key: "scanner-bundle:review" },
   attempt: 1,
-  agent: "adv-scanner-bundle",
+  agent: "determinus-scanner-bundle",
   phase: "review",
   scanner_count: 3,
   dimensions: ["tests", "security", "contracts"],
@@ -288,7 +288,7 @@ const verificationTriageBundleReport = {
   change_id: "addVerificationTriage",
   scope: { kind: "change", scope_key: "verifier:local-verify" },
   attempt: 1,
-  agent: "adv-verification-triage-bundle",
+  agent: "determinus-verification-triage-bundle",
   workdir_used: "/tmp/worktree",
   phase: "local_verify",
   targets: [
@@ -314,17 +314,17 @@ const verificationTriageBundleReport = {
         {
           label: "test output",
           locator: "plugin/src/types/subagent-reports.test.ts",
-          summary: "Expected adv-verification-triage-bundle to parse.",
+          summary: "Expected determinus-verification-triage-bundle to parse.",
         },
       ],
     },
   ],
-  recommended_next_action: "route_adv_engineer",
+  recommended_next_action: "route_determinus_engineer",
   scope_risk: false,
   suggested_handoff: {
     summary: "Add verification triage bundle schema branch.",
     in_scope: ["plugin/src/types/subagent-reports.ts"],
-    out_of_scope: ["adv_run_test internals"],
+    out_of_scope: ["determinus_run_test internals"],
     done_when: [
       "Triage bundle schema parses and invalid route predicates reject.",
     ],
@@ -333,7 +333,7 @@ const verificationTriageBundleReport = {
     ],
   },
   required_main_agent_actions: [
-    "Validate route_adv_engineer predicates before spawning remediation.",
+    "Validate route_determinus_engineer predicates before spawning remediation.",
   ],
   follow_ups: [],
 };
@@ -349,14 +349,17 @@ const reportSchemas: Array<{
   agent: PersistedSubagentReportAgent;
   schema: z.ZodObject<z.ZodRawShape>;
 }> = [
-  { agent: "adv-engineer", schema: EngineerSubagentReportSchema },
-  { agent: "adv-reviewer", schema: ReviewerSubagentReportSchema },
-  { agent: "adv-designer", schema: DesignerSubagentReportSchema },
-  { agent: "adv-researcher", schema: ResearcherSubagentReportSchema },
-  { agent: "adv-tron", schema: TronSubagentReportSchema },
-  { agent: "adv-scanner-bundle", schema: ScannerBundleSubagentReportSchema },
+  { agent: "determinus-engineer", schema: EngineerSubagentReportSchema },
+  { agent: "determinus-reviewer", schema: ReviewerSubagentReportSchema },
+  { agent: "determinus-designer", schema: DesignerSubagentReportSchema },
+  { agent: "determinus-researcher", schema: ResearcherSubagentReportSchema },
+  { agent: "determinus-tron", schema: TronSubagentReportSchema },
   {
-    agent: "adv-verification-triage-bundle",
+    agent: "determinus-scanner-bundle",
+    schema: ScannerBundleSubagentReportSchema,
+  },
+  {
+    agent: "determinus-verification-triage-bundle",
     schema: VerificationTriageBundleSubagentReportSchema,
   },
 ];
@@ -380,7 +383,7 @@ describe("Subagent report schemas", () => {
       scope: { kind: "change", scope_key: "review:acceptance" },
     });
 
-    expect(parsed.agent).toBe("adv-reviewer");
+    expect(parsed.agent).toBe("determinus-reviewer");
     expect(parsed.scope).toEqual({
       kind: "change",
       scope_key: "review:acceptance",
@@ -390,17 +393,19 @@ describe("Subagent report schemas", () => {
 
   it("parses strict change-scoped optimized handoff reports", () => {
     expect(ResearcherSubagentReportSchema.parse(researcherReport).agent).toBe(
-      "adv-researcher",
+      "determinus-researcher",
     );
-    expect(TronSubagentReportSchema.parse(tronReport).agent).toBe("adv-tron");
+    expect(TronSubagentReportSchema.parse(tronReport).agent).toBe(
+      "determinus-tron",
+    );
     expect(
       ScannerBundleSubagentReportSchema.parse(scannerBundleReport).agent,
-    ).toBe("adv-scanner-bundle");
+    ).toBe("determinus-scanner-bundle");
     expect(
       VerificationTriageBundleSubagentReportSchema.parse(
         verificationTriageBundleReport,
       ).agent,
-    ).toBe("adv-verification-triage-bundle");
+    ).toBe("determinus-verification-triage-bundle");
   });
 
   it("parses Tron reports with static opt-scan optimization candidates", () => {
@@ -422,7 +427,7 @@ describe("Subagent report schemas", () => {
       "src/api.ts",
     );
     expect(parsed.optimization_candidates![0].recommendation).toContain(
-      "/adv-optimizer",
+      "/determinus-optimizer",
     );
   });
 
@@ -611,7 +616,7 @@ describe("Subagent report schemas", () => {
     };
     // Legacy tolerance: bare-string blockers on researcher:design-validation
     // reports are preserved verbatim on read. Enforcement lives at
-    // adv_subagent_report_submit (rq-subagentReports24.1) — see
+    // determinus_subagent_report_submit (rq-subagentReports24.1) — see
     // makeLegacyDesignValidation.
     const parsedLegacy = ResearcherSubagentReportSchema.parse(
       designValidationReport,
@@ -886,7 +891,7 @@ describe("Subagent report schemas", () => {
     ).toThrow();
   });
 
-  it("enforces route_adv_engineer predicates structurally", () => {
+  it("enforces route_determinus_engineer predicates structurally", () => {
     for (const invalid of [
       { error_class: "TRANSIENT" },
       { scope_risk: true },
@@ -1013,7 +1018,7 @@ describe("Subagent report schemas", () => {
       required_main_agent_actions: [],
     });
     expect(normalizedState.subagent_reports[1]).toMatchObject({
-      agent: "adv-researcher",
+      agent: "determinus-researcher",
       architecture_judgement: {
         applicability: "not_applicable",
         confidence: "low",
@@ -1115,14 +1120,14 @@ describe("Subagent report schemas", () => {
 
   it("keeps optimized handoff agent literals in the supported surface", () => {
     expect(SubagentAgentSchema.options).toEqual([
-      "adv-engineer",
-      "adv-reviewer",
-      "adv-designer",
-      "adv-researcher",
-      "adv-tron",
-      "adv-scanner-bundle",
-      "adv-verification-triage-bundle",
-      "adv-visual-review",
+      "determinus-engineer",
+      "determinus-reviewer",
+      "determinus-designer",
+      "determinus-researcher",
+      "determinus-tron",
+      "determinus-scanner-bundle",
+      "determinus-verification-triage-bundle",
+      "determinus-visual-review",
     ]);
   });
 
@@ -1305,7 +1310,7 @@ describe("Subagent report schemas", () => {
     }
 
     it("keeps engineer packet anchors aligned with task-scoped identity fields", () => {
-      expect(getSubagentReportPacketAnchors("adv-engineer")).toEqual([
+      expect(getSubagentReportPacketAnchors("determinus-engineer")).toEqual([
         "ATTEMPT",
         "CHANGE",
         "TASK",
@@ -1314,7 +1319,7 @@ describe("Subagent report schemas", () => {
     });
 
     it("keeps designer packet anchors aligned with task-scoped identity fields", () => {
-      expect(getSubagentReportPacketAnchors("adv-designer")).toEqual([
+      expect(getSubagentReportPacketAnchors("determinus-designer")).toEqual([
         "ATTEMPT",
         "CHANGE",
         "TASK",
@@ -1323,7 +1328,7 @@ describe("Subagent report schemas", () => {
     });
 
     it("keeps reviewer packet anchors aligned with task-scoped phase fields", () => {
-      expect(getSubagentReportPacketAnchors("adv-reviewer")).toEqual([
+      expect(getSubagentReportPacketAnchors("determinus-reviewer")).toEqual([
         "ATTEMPT",
         "CHANGE",
         "PHASE",
@@ -1333,7 +1338,10 @@ describe("Subagent report schemas", () => {
     });
 
     it("keeps researcher/tron packet anchors aligned with change-scoped identity fields", () => {
-      for (const agent of ["adv-researcher", "adv-tron"] as const) {
+      for (const agent of [
+        "determinus-researcher",
+        "determinus-tron",
+      ] as const) {
         expect(getSubagentReportPacketAnchors(agent)).toEqual([
           "ATTEMPT",
           "CHANGE",
@@ -1344,7 +1352,9 @@ describe("Subagent report schemas", () => {
     });
 
     it("keeps scanner bundle packet anchors aligned with phase and scope", () => {
-      expect(getSubagentReportPacketAnchors("adv-scanner-bundle")).toEqual([
+      expect(
+        getSubagentReportPacketAnchors("determinus-scanner-bundle"),
+      ).toEqual([
         "ATTEMPT",
         "CHANGE",
         "PHASE",
@@ -1355,7 +1365,7 @@ describe("Subagent report schemas", () => {
 
     it("keeps verification triage bundle packet anchors aligned with phase and scope", () => {
       expect(
-        getSubagentReportPacketAnchors("adv-verification-triage-bundle"),
+        getSubagentReportPacketAnchors("determinus-verification-triage-bundle"),
       ).toEqual([
         "ATTEMPT",
         "CHANGE",
@@ -1397,10 +1407,10 @@ describe("subagentReportKey", () => {
       subagentReportKey({
         changeId: "fixLoopLedgerRegressions",
         taskId: "tk-abc123",
-        agent: "adv-engineer",
+        agent: "determinus-engineer",
         attempt: 2,
       }),
-    ).toBe("fixLoopLedgerRegressions|tk-abc123|adv-engineer|2");
+    ).toBe("fixLoopLedgerRegressions|tk-abc123|determinus-engineer|2");
   });
 
   it("uses structural task scope when taskId is absent", () => {
@@ -1408,10 +1418,10 @@ describe("subagentReportKey", () => {
       subagentReportKey({
         changeId: "fixLoopLedgerRegressions",
         scope: { kind: "task", task_id: "tk-abc123" },
-        agent: "adv-reviewer",
+        agent: "determinus-reviewer",
         attempt: 1,
       }),
-    ).toBe("fixLoopLedgerRegressions|task:tk-abc123|adv-reviewer|1");
+    ).toBe("fixLoopLedgerRegressions|task:tk-abc123|determinus-reviewer|1");
   });
 
   it("uses structural change scope when taskId is absent", () => {
@@ -1419,20 +1429,22 @@ describe("subagentReportKey", () => {
       subagentReportKey({
         changeId: "fixLoopLedgerRegressions",
         scope: { kind: "change", scope_key: "review:acceptance" },
-        agent: "adv-reviewer",
+        agent: "determinus-reviewer",
         attempt: 3,
       }),
-    ).toBe("fixLoopLedgerRegressions|change:review:acceptance|adv-reviewer|3");
+    ).toBe(
+      "fixLoopLedgerRegressions|change:review:acceptance|determinus-reviewer|3",
+    );
   });
 
   it("falls back to unknown-scope when neither taskId nor scope is present", () => {
     expect(
       subagentReportKey({
         changeId: "fixLoopLedgerRegressions",
-        agent: "adv-tron",
+        agent: "determinus-tron",
         attempt: 1,
       }),
-    ).toBe("fixLoopLedgerRegressions|unknown-scope|adv-tron|1");
+    ).toBe("fixLoopLedgerRegressions|unknown-scope|determinus-tron|1");
   });
 });
 
@@ -1457,9 +1469,12 @@ describe("apply_context binding hint", () => {
 });
 
 describe("apply_context doc↔schema drift guard (DDC2/SC1)", () => {
-  it("validates the canonical adv-designer.md snippet and the binding hint example against SubagentApplyContextSchema", () => {
+  it("validates the canonical determinus-designer.md snippet and the binding hint example against SubagentApplyContextSchema", () => {
     const docPath = fileURLToPath(
-      new URL("../../../.opencode/agents/adv-designer.md", import.meta.url),
+      new URL(
+        "../../../.opencode/agents/determinus-designer.md",
+        import.meta.url,
+      ),
     );
     const doc = readFileSync(docPath, "utf8");
     const section = doc.split("## Apply Context Binding")[1];
@@ -1484,7 +1499,7 @@ describe("apply_context doc↔schema drift guard (DDC2/SC1)", () => {
 describe("per-lane size bounds (AC1/SC2 — boundSubAgentReportContract)", () => {
   const over = (n: number): string => "x".repeat(n);
 
-  it("rejects an adv-researcher report whose architecture_assessment exceeds the lane bound (12000)", () => {
+  it("rejects an determinus-researcher report whose architecture_assessment exceeds the lane bound (12000)", () => {
     const result = ResearcherSubagentReportSchema.safeParse({
       ...researcherReport,
       architecture_assessment: over(12001),
@@ -1499,7 +1514,7 @@ describe("per-lane size bounds (AC1/SC2 — boundSubAgentReportContract)", () =>
     }
   });
 
-  it("rejects an adv-engineer report whose context_update exceeds the lane bound (4000)", () => {
+  it("rejects an determinus-engineer report whose context_update exceeds the lane bound (4000)", () => {
     const result = EngineerSubagentReportSchema.safeParse({
       ...engineerReport,
       context_update_for_adv: {
@@ -1517,7 +1532,7 @@ describe("per-lane size bounds (AC1/SC2 — boundSubAgentReportContract)", () =>
     }
   });
 
-  it("rejects an adv-reviewer report whose verification.evidence exceeds the lane bound (4000)", () => {
+  it("rejects an determinus-reviewer report whose verification.evidence exceeds the lane bound (4000)", () => {
     const result = ReviewerSubagentReportSchema.safeParse({
       ...reviewerReport,
       verification: { ...reviewerReport.verification, evidence: over(4001) },
@@ -1530,7 +1545,7 @@ describe("per-lane size bounds (AC1/SC2 — boundSubAgentReportContract)", () =>
     }
   });
 
-  it("rejects an adv-designer report whose related_scan exceeds the lane bound (4000)", () => {
+  it("rejects an determinus-designer report whose related_scan exceeds the lane bound (4000)", () => {
     const result = DesignerSubagentReportSchema.safeParse({
       ...designerReport,
       related_scan: over(4001),

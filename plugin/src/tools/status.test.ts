@@ -1,7 +1,7 @@
 /**
  * Status Tool Tests
  *
- * Test adv_status lineage and recommendation behavior.
+ * Test determinus_status lineage and recommendation behavior.
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
@@ -161,14 +161,14 @@ describe("Status Tools", () => {
     });
     mockGetLaneProjections.mockReset();
     mockGetLaneProjections.mockResolvedValue({
-      "adv-ci-waiter": {
+      "determinus-ci-waiter": {
         availability: "unavailable" as const,
         enabled_tools: 0,
         schema_bytes: 0,
         approx_tokens_4char_rule: 0,
         conversion_errors: 0,
       },
-      "adv-engineer": {
+      "determinus-engineer": {
         availability: "unavailable" as const,
         enabled_tools: 0,
         schema_bytes: 0,
@@ -188,7 +188,7 @@ describe("Status Tools", () => {
     vi.useRealTimers();
   });
 
-  describe("adv_status", () => {
+  describe("determinus_status", () => {
     test("shows retained terminal cleanup blocker counts without exact paths", async () => {
       const access = await initWorktreeStateDb(tempDir);
       const retainedPath = join(tempDir, "status-retained");
@@ -214,7 +214,7 @@ describe("Status Tools", () => {
       );
 
       try {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
@@ -235,13 +235,13 @@ describe("Status Tools", () => {
     test("shows ↳ prefix for fast-follow changes in formatted output", async () => {
       // Create parent and child changes
       const { changeTools } = await import("./change");
-      const parentResult = await changeTools.adv_change_create.execute(
+      const parentResult = await changeTools.determinus_change_create.execute(
         { summary: "Parent change" },
         store,
       );
       const parentParsed = parseToolOutput(parentResult);
 
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Child follow-up",
           parent_change_id: parentParsed.changeId,
@@ -249,7 +249,7 @@ describe("Status Tools", () => {
         store,
       );
 
-      const result = await statusTools.adv_status.execute({}, store);
+      const result = await statusTools.determinus_status.execute({}, store);
       const parsed = parseToolOutput(result);
 
       expect(parsed.formatted.activeSection).toContain("↳ childFollowUp");
@@ -257,13 +257,13 @@ describe("Status Tools", () => {
 
     test("recent fast-follow change remains visibly linked in status output", async () => {
       const { changeTools } = await import("./change");
-      const parentResult = await changeTools.adv_change_create.execute(
+      const parentResult = await changeTools.determinus_change_create.execute(
         { summary: "Parent change" },
         store,
       );
       const parentParsed = parseToolOutput(parentResult);
 
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Child follow-up",
           parent_change_id: parentParsed.changeId,
@@ -271,7 +271,7 @@ describe("Status Tools", () => {
         store,
       );
 
-      const result = await statusTools.adv_status.execute({}, store);
+      const result = await statusTools.determinus_status.execute({}, store);
       const parsed = parseToolOutput(result);
 
       expect(parsed.formatted.activeSection).toContain("↳ childFollowUp");
@@ -291,7 +291,7 @@ describe("Status Tools", () => {
         changeId: "en-001-placeholder",
         title: "Add OAuth",
       });
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Epic member change",
           epic_id: "addAuthEpic",
@@ -302,7 +302,7 @@ describe("Status Tools", () => {
         store,
       );
 
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "changes" },
         store,
       );
@@ -332,7 +332,7 @@ describe("Status Tools", () => {
         gates,
       } as never);
 
-      const result = await statusTools.adv_status.execute({}, store);
+      const result = await statusTools.determinus_status.execute({}, store);
       const parsed = parseToolOutput<{ recommendations: string[] }>(result);
       const recs = parsed.recommendations.filter((r) =>
         r.includes("stalePlanningChange"),
@@ -343,7 +343,9 @@ describe("Status Tools", () => {
           expect.stringContaining("resume from listed `planning` gate action"),
         ]),
       );
-      expect(recs.join("\n")).not.toContain("/adv-apply stalePlanningChange");
+      expect(recs.join("\n")).not.toContain(
+        "/determinus-apply stalePlanningChange",
+      );
     });
 
     test("stale execution-ready change does not duplicate its gate recommendation", async () => {
@@ -370,7 +372,7 @@ describe("Status Tools", () => {
         gates,
       } as never);
 
-      const result = await statusTools.adv_status.execute({}, store);
+      const result = await statusTools.determinus_status.execute({}, store);
       const parsed = parseToolOutput<{ recommendations: string[] }>(result);
       const text = parsed.recommendations
         .filter((r) => r.includes("staleApplyChange"))
@@ -422,7 +424,7 @@ describe("Status Tools", () => {
       } as never);
 
       const repoScoped = parseToolOutput(
-        await statusTools.adv_status.execute({}, store),
+        await statusTools.determinus_status.execute({}, store),
       );
       expect(
         repoScoped.changes.recent.map((c: { id: string }) => c.id),
@@ -437,7 +439,10 @@ describe("Status Tools", () => {
       });
 
       const productWide = parseToolOutput(
-        await statusTools.adv_status.execute({ scope: "product" }, store),
+        await statusTools.determinus_status.execute(
+          { scope: "product" },
+          store,
+        ),
       );
       expect(
         productWide.changes.recent.map((c: { id: string }) => c.id),
@@ -574,7 +579,7 @@ No success criteria, no scope section.
       );
       await store.sync();
 
-      const result = await statusTools.adv_status.execute({}, store);
+      const result = await statusTools.determinus_status.execute({}, store);
       const parsed = parseToolOutput<{ recommendations: string[] }>(result);
 
       const ambiguityRec = parsed.recommendations.find((r) =>
@@ -626,7 +631,7 @@ Vague in-flight work.
       );
       await store.sync();
 
-      const result = await statusTools.adv_status.execute({}, store);
+      const result = await statusTools.determinus_status.execute({}, store);
       const parsed = parseToolOutput<{ recommendations: string[] }>(result);
 
       const ambiguityRec = parsed.recommendations.find(
@@ -634,12 +639,12 @@ Vague in-flight work.
           r.includes("ambiguity finding") && r.includes("inFlightVagueChange"),
       );
       expect(ambiguityRec).toBeDefined();
-      expect(ambiguityRec).toContain("/adv-clarify inFlightVagueChange");
+      expect(ambiguityRec).toContain("/determinus-clarify inFlightVagueChange");
     });
 
     test("recommendation annotates terminal parent", async () => {
       const { changeTools } = await import("./change");
-      const parentResult = await changeTools.adv_change_create.execute(
+      const parentResult = await changeTools.determinus_change_create.execute(
         { summary: "Parent change" },
         store,
       );
@@ -653,7 +658,7 @@ Vague in-flight work.
         approved_at: new Date().toISOString(),
       });
 
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Child follow-up",
           parent_change_id: parentParsed.changeId,
@@ -661,7 +666,7 @@ Vague in-flight work.
         store,
       );
 
-      const result = await statusTools.adv_status.execute({}, store);
+      const result = await statusTools.determinus_status.execute({}, store);
       const parsed = parseToolOutput(result);
 
       expect(parsed.formatted.activeSection).toContain("↳ childFollowUp");
@@ -697,7 +702,7 @@ Vague in-flight work.
         ignored_with_parts: [],
       });
 
-      const hygieneResult = await statusTools.adv_status.execute(
+      const hygieneResult = await statusTools.determinus_status.execute(
         { view: "hygiene" },
         store,
       );
@@ -709,7 +714,7 @@ Vague in-flight work.
         "1 orphan ghost blank assistant",
       );
 
-      const summaryResult = await statusTools.adv_status.execute(
+      const summaryResult = await statusTools.determinus_status.execute(
         { view: "summary" },
         store,
       );
@@ -732,7 +737,7 @@ Vague in-flight work.
     });
 
     test("summary view does not invoke detailed-only providers or formatted sections", async () => {
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "summary" },
         store,
       );
@@ -751,7 +756,7 @@ Vague in-flight work.
     });
 
     test("health view includes worker role and stability feature flag defaults", async () => {
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "health" },
         store,
       );
@@ -766,7 +771,7 @@ Vague in-flight work.
 
     // rq-autoManageAdvWorktrees AC2
     test("health view surfaces feature_flag_sources marking each flag default | explicit", async () => {
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "health" },
         store,
       );
@@ -795,7 +800,7 @@ Vague in-flight work.
     });
 
     test("health view surfaces auto_managed_changes census from recent changes", async () => {
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "health" },
         store,
       );
@@ -835,7 +840,7 @@ Vague in-flight work.
         ignored_with_parts: [],
       });
 
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "hygiene" },
         store,
       );
@@ -843,7 +848,7 @@ Vague in-flight work.
 
       expect(parsed.opencode_session_debt.live_in_flight).toHaveLength(1);
       expect(parsed.formatted.sessionDebtSection).toContain("1 live/in-flight");
-      const summaryResult = await statusTools.adv_status.execute(
+      const summaryResult = await statusTools.determinus_status.execute(
         { view: "summary" },
         store,
       );
@@ -857,7 +862,7 @@ Vague in-flight work.
 
     describe("plugin runtime diagnostics", () => {
       test("health view includes loaded plugin runtime diagnostic", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
@@ -873,7 +878,7 @@ Vague in-flight work.
       });
 
       test("health view includes plugin bundle generation freshness", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
@@ -971,7 +976,7 @@ Vague in-flight work.
 
         await store.sync();
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1003,7 +1008,7 @@ Vague in-flight work.
         );
         await store.sync();
 
-        const result1 = await statusTools.adv_status.execute(
+        const result1 = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1017,7 +1022,7 @@ Vague in-flight work.
         });
         await store.sync();
 
-        const result2 = await statusTools.adv_status.execute(
+        const result2 = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1046,7 +1051,7 @@ Vague in-flight work.
         }
         await store.sync();
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1058,20 +1063,20 @@ Vague in-flight work.
         );
         expect(leakRec).toBeDefined();
         expect(leakRec).toContain("ratio 6:1");
-        expect(leakRec).toContain("adv_cleanup");
+        expect(leakRec).toContain("determinus_cleanup");
       });
     });
 
     // AC5 — view enum branches
     describe("view selector (AC5)", () => {
       test("default view is 'summary' (no view arg)", async () => {
-        const result = await statusTools.adv_status.execute({}, store);
+        const result = await statusTools.determinus_status.execute({}, store);
         const parsed = parseToolOutput(result);
         expect(parsed.view).toBe("summary");
       });
 
       test("summary view returns specs, changes, and recommendations", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "summary" },
           store,
         );
@@ -1122,13 +1127,13 @@ Vague in-flight work.
             changeId: `change-${index + 1}`,
             title: `recommendation-${index + 1}`,
             detail: "high-WIP fixture",
-            action: 'adv_status view:"changes"',
+            action: 'determinus_status view:"changes"',
             source: index % 2 === 0 ? "recency" : "clarify",
           })),
         }));
         const getSpy = vi.spyOn(store.changes, "get");
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "summary" },
           store,
         );
@@ -1183,7 +1188,7 @@ Vague in-flight work.
         }));
         const getSpy = vi.spyOn(store.changes, "get");
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "changes" },
           store,
         );
@@ -1198,7 +1203,7 @@ Vague in-flight work.
       });
 
       test("health view returns diagnostics and tool-context telemetry", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
@@ -1224,10 +1229,10 @@ Vague in-flight work.
         resetToolSchemaTelemetry();
         const manifest = initializeToolSchemaTelemetry([
           [
-            "adv_status",
+            "determinus_status",
             { view: z.enum(["summary", "health", "changes", "hygiene"]) },
           ],
-          ["adv_engineer", { taskId: z.string() }],
+          ["determinus_engineer", { taskId: z.string() }],
         ]);
 
         // Seed bounded numeric cache-token samples.
@@ -1243,15 +1248,15 @@ Vague in-flight work.
 
         // Mock the two representative lane projections: one available, one unavailable.
         mockGetLaneProjections.mockResolvedValue({
-          "adv-ci-waiter": {
+          "determinus-ci-waiter": {
             availability: "available" as const,
             enabled_tools: 1,
-            schema_bytes: manifest.tools.adv_status.schema_bytes,
+            schema_bytes: manifest.tools.determinus_status.schema_bytes,
             approx_tokens_4char_rule:
-              manifest.tools.adv_status.approx_tokens_4char_rule,
+              manifest.tools.determinus_status.approx_tokens_4char_rule,
             conversion_errors: 0,
           },
-          "adv-engineer": {
+          "determinus-engineer": {
             availability: "unavailable" as const,
             enabled_tools: 0,
             schema_bytes: 0,
@@ -1260,7 +1265,7 @@ Vague in-flight work.
           },
         });
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
@@ -1277,8 +1282,8 @@ Vague in-flight work.
           parsed.tool_context_telemetry.cache_tokens.total_input_tokens,
         ).toBe(300);
         expect(parsed.tool_context_telemetry.lane_projections).toMatchObject({
-          "adv-ci-waiter": { availability: "available" },
-          "adv-engineer": { availability: "unavailable" },
+          "determinus-ci-waiter": { availability: "available" },
+          "determinus-engineer": { availability: "unavailable" },
         });
         expect(parsed.tool_context_telemetry.limitations).toEqual(
           expect.arrayContaining([
@@ -1288,7 +1293,7 @@ Vague in-flight work.
       });
 
       test("changes view: returns full active changes detail", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "changes" },
           store,
         );
@@ -1302,7 +1307,7 @@ Vague in-flight work.
       });
 
       test("hygiene view: returns _healthSnapshot + project_metadata + recommendations + session debt", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1352,7 +1357,7 @@ Vague in-flight work.
 
           extStore = await createDiskStore(tempDir, { externalRoot });
 
-          const result = await statusTools.adv_status.execute(
+          const result = await statusTools.determinus_status.execute(
             { view: "hygiene" },
             extStore,
           );
@@ -1362,7 +1367,7 @@ Vague in-flight work.
             dry_run_only: true,
             deletion_requires_approval: true,
             external_root: externalRoot,
-            nested_adv_dir: true,
+            nested_determinus_dir: true,
             stale_db_dir: true,
             worker_locks_excluded: true,
             synthetic_project_dirs: 0,
@@ -1381,26 +1386,26 @@ Vague in-flight work.
       });
 
       test("health view exposes metrics counters (AC6)", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
         const parsed = parseToolOutput(result);
         expect(parsed.metrics).toBeDefined();
-        expect(typeof parsed.metrics.adv_tool_calls).toBe("number");
+        expect(typeof parsed.metrics.determinus_tool_calls).toBe("number");
         expect(typeof parsed.metrics.system_block_bytes).toBe("number");
         expect(typeof parsed.metrics.subagent_spawns).toBe("number");
         expect(typeof parsed.metrics.wall_time_ms).toBe("number");
-        expect(parsed.metrics.adv_tool_call_count_by_name).toBeDefined();
-        expect(parsed.metrics.adv_tool_durations).toBeDefined();
+        expect(parsed.metrics.determinus_tool_call_count_by_name).toBeDefined();
+        expect(parsed.metrics.determinus_tool_durations).toBeDefined();
         expect(Array.isArray(parsed.metrics.recent_phase_durations)).toBe(true);
       });
 
-      test("health view records named adv_status phase durations", async () => {
+      test("health view records named determinus_status phase durations", async () => {
         const { resetMetrics } = await import("../utils/metrics");
         resetMetrics();
-        await statusTools.adv_status.execute({ view: "health" }, store);
-        const result = await statusTools.adv_status.execute(
+        await statusTools.determinus_status.execute({ view: "health" }, store);
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
@@ -1410,7 +1415,9 @@ Vague in-flight work.
           phase: string;
           duration_ms: number;
         }>;
-        const statusPhases = phases.filter((p) => p.tool === "adv_status");
+        const statusPhases = phases.filter(
+          (p) => p.tool === "determinus_status",
+        );
         const phaseNames = new Set(statusPhases.map((p) => p.phase));
         expect(phaseNames.has("statusLoad")).toBe(true);
         expect(phaseNames.has("recentChangeEnrichment")).toBe(true);
@@ -1422,7 +1429,7 @@ Vague in-flight work.
       });
 
       test("summary view does NOT expose metrics counters", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "summary" },
           store,
         );
@@ -1437,7 +1444,10 @@ Vague in-flight work.
           "changes",
           "hygiene",
         ] as const) {
-          const result = await statusTools.adv_status.execute({ view }, store);
+          const result = await statusTools.determinus_status.execute(
+            { view },
+            store,
+          );
           const parsed = parseToolOutput(result);
           expect(parsed.formatted).toBeDefined();
         }
@@ -1504,7 +1514,7 @@ Vague in-flight work.
           },
         ]);
 
-        const result = await statusTools.adv_status.execute({}, store);
+        const result = await statusTools.determinus_status.execute({}, store);
         const parsed = parseToolOutput(result);
 
         expect(parsed.future_work).toBeDefined();
@@ -1541,7 +1551,7 @@ Vague in-flight work.
       });
 
       test("changes view omits future_work", async () => {
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "changes" },
           store,
         );
@@ -1550,7 +1560,7 @@ Vague in-flight work.
       });
 
       test("existing status keys remain unchanged when future_work is present", async () => {
-        const result = await statusTools.adv_status.execute({}, store);
+        const result = await statusTools.determinus_status.execute({}, store);
         const parsed = parseToolOutput(result);
         expect(parsed.view).toBe("summary");
         expect(parsed.specs).toBeDefined();
@@ -1601,7 +1611,7 @@ Vague in-flight work.
           ],
         });
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "summary" },
           store,
         );
@@ -1622,7 +1632,7 @@ Vague in-flight work.
       test("summary view omits recommendation when no archived changes", async () => {
         store.changes.list = vi.fn(async () => ({ changes: [] }));
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "summary" },
           store,
         );
@@ -1677,7 +1687,7 @@ Vague in-flight work.
           ],
         });
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1736,7 +1746,7 @@ Vague in-flight work.
           worktreePaths: { "change/archived-one": "/tmp/wt/archived-one" },
         });
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1753,7 +1763,7 @@ Vague in-flight work.
       test("hygiene view short-circuits to no-op when no archived changes (performance)", async () => {
         store.changes.list = vi.fn(async () => ({ changes: [] }));
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "hygiene" },
           store,
         );
@@ -1789,7 +1799,7 @@ Vague in-flight work.
           ],
         });
 
-        const result = await statusTools.adv_status.execute(
+        const result = await statusTools.determinus_status.execute(
           { view: "health" },
           store,
         );
@@ -1805,11 +1815,11 @@ Vague in-flight work.
     });
   });
 
-  describe("adv_status bounded summary + request-local reuse (task 3, AC3/AC4)", () => {
+  describe("determinus_status bounded summary + request-local reuse (task 3, AC3/AC4)", () => {
     test("view:summary passes the recent bound into store.status before enrichment", async () => {
       const statusSpy = vi.spyOn(store, "status");
 
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "summary" },
         store,
       );
@@ -1822,7 +1832,7 @@ Vague in-flight work.
     test("view:health passes the source-ranked candidate limit into store.status", async () => {
       const statusSpy = vi.spyOn(store, "status");
 
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "health" },
         store,
       );
@@ -1837,7 +1847,7 @@ Vague in-flight work.
     test("full views call store.status without a recent bound", async () => {
       const statusSpy = vi.spyOn(store, "status");
 
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "changes" },
         store,
       );
@@ -1883,7 +1893,7 @@ Vague in-flight work.
       })) as unknown as Store["status"];
       const getSpy = vi.spyOn(store.changes, "get");
 
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "changes" },
         store,
       );
@@ -1924,7 +1934,7 @@ Vague in-flight work.
         hydrationStats: { boundedOmitted: 2 },
       })) as unknown as Store["status"];
 
-      const result = await statusTools.adv_status.execute(
+      const result = await statusTools.determinus_status.execute(
         { view: "summary" },
         store,
       );

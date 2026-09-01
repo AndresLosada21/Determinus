@@ -19,24 +19,24 @@ describe("debug-log logger", () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "adv-logger-"));
-    originalAdvDebug = process.env.ADV_DEBUG;
-    originalCacheDir = process.env.ADV_CACHE_DIR;
-    process.env.ADV_CACHE_DIR = tempDir;
+    tempDir = mkdtempSync(join(tmpdir(), "determinus-logger-"));
+    originalAdvDebug = process.env.determinus_DEBUG;
+    originalCacheDir = process.env.determinus_CACHE_DIR;
+    process.env.determinus_CACHE_DIR = tempDir;
     warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
     if (originalAdvDebug === undefined) {
-      delete process.env.ADV_DEBUG;
+      delete process.env.determinus_DEBUG;
     } else {
-      process.env.ADV_DEBUG = originalAdvDebug;
+      process.env.determinus_DEBUG = originalAdvDebug;
     }
     if (originalCacheDir === undefined) {
-      delete process.env.ADV_CACHE_DIR;
+      delete process.env.determinus_CACHE_DIR;
     } else {
-      process.env.ADV_CACHE_DIR = originalCacheDir;
+      process.env.determinus_CACHE_DIR = originalCacheDir;
     }
     warnSpy.mockRestore();
     errorSpy.mockRestore();
@@ -44,7 +44,7 @@ describe("debug-log logger", () => {
     vi.resetModules();
   });
 
-  const logFile = () => join(tempDir, "adv-debug.log");
+  const logFile = () => join(tempDir, "determinus-debug.log");
 
   describe("createLogger", () => {
     test("exports LogLevel and LogMeta types via createLogger signature", async () => {
@@ -57,24 +57,24 @@ describe("debug-log logger", () => {
       expect(typeof log.error).toBe("function");
     });
 
-    test("warn does NOT write to console.warn when ADV_DEBUG is off", async () => {
-      delete process.env.ADV_DEBUG;
+    test("warn does NOT write to console.warn when determinus_DEBUG is off", async () => {
+      delete process.env.determinus_DEBUG;
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-a");
       log.warn("something happened");
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    test("error does NOT write to console.error when ADV_DEBUG is off", async () => {
-      delete process.env.ADV_DEBUG;
+    test("error does NOT write to console.error when determinus_DEBUG is off", async () => {
+      delete process.env.determinus_DEBUG;
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-b");
       log.error("oh no");
       expect(errorSpy).not.toHaveBeenCalled();
     });
 
-    test("warn writes to console.warn when ADV_DEBUG=1", async () => {
-      process.env.ADV_DEBUG = "1";
+    test("warn writes to console.warn when determinus_DEBUG=1", async () => {
+      process.env.determinus_DEBUG = "1";
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-a-debug");
       log.warn("something happened");
@@ -83,8 +83,8 @@ describe("debug-log logger", () => {
       expect(warnSpy.mock.calls[0][0]).toContain("something happened");
     });
 
-    test("error writes to console.error when ADV_DEBUG=1", async () => {
-      process.env.ADV_DEBUG = "1";
+    test("error writes to console.error when determinus_DEBUG=1", async () => {
+      process.env.determinus_DEBUG = "1";
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-b-debug");
       log.error("oh no");
@@ -94,7 +94,7 @@ describe("debug-log logger", () => {
     });
 
     test("debug does NOT emit console output in any mode", async () => {
-      process.env.ADV_DEBUG = "1";
+      process.env.determinus_DEBUG = "1";
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-c");
       log.debug("noisy");
@@ -103,7 +103,7 @@ describe("debug-log logger", () => {
     });
 
     test("info does NOT emit console output", async () => {
-      delete process.env.ADV_DEBUG;
+      delete process.env.determinus_DEBUG;
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-d");
       log.info("stay quiet");
@@ -111,8 +111,8 @@ describe("debug-log logger", () => {
       expect(errorSpy).not.toHaveBeenCalled();
     });
 
-    test("debug writes to file sink only when ADV_DEBUG=1", async () => {
-      process.env.ADV_DEBUG = "1";
+    test("debug writes to file sink only when determinus_DEBUG=1", async () => {
+      process.env.determinus_DEBUG = "1";
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-e");
       log.debug("debug-on");
@@ -122,16 +122,16 @@ describe("debug-log logger", () => {
       expect(content).toContain("debug-on");
     });
 
-    test("debug does NOT write to file when ADV_DEBUG is off", async () => {
-      delete process.env.ADV_DEBUG;
+    test("debug does NOT write to file when determinus_DEBUG is off", async () => {
+      delete process.env.determinus_DEBUG;
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-f");
       log.debug("debug-off");
       expect(existsSync(logFile())).toBe(false);
     });
 
-    test("warn writes to file sink when ADV_DEBUG=1 in addition to console", async () => {
-      process.env.ADV_DEBUG = "1";
+    test("warn writes to file sink when determinus_DEBUG=1 in addition to console", async () => {
+      process.env.determinus_DEBUG = "1";
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-g");
       log.warn("warn-dual");
@@ -142,8 +142,8 @@ describe("debug-log logger", () => {
       expect(content).toContain("warn-dual");
     });
 
-    test("error writes to file sink when ADV_DEBUG=1 in addition to console", async () => {
-      process.env.ADV_DEBUG = "1";
+    test("error writes to file sink when determinus_DEBUG=1 in addition to console", async () => {
+      process.env.determinus_DEBUG = "1";
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-h");
       log.error("err-dual");
@@ -155,7 +155,7 @@ describe("debug-log logger", () => {
     });
 
     test("serializes structured metadata when provided", async () => {
-      process.env.ADV_DEBUG = "1";
+      process.env.determinus_DEBUG = "1";
       const { createLogger } = await import("./debug-log");
       const log = createLogger("scope-i");
       log.warn("with-meta", { userId: 42, kind: "test" });
@@ -172,8 +172,8 @@ describe("debug-log logger", () => {
       expect(typeof mod.appendDebugLog).toBe("function");
     });
 
-    test("appendDebugLog delegates to debug-level file sink when ADV_DEBUG=1", async () => {
-      process.env.ADV_DEBUG = "1";
+    test("appendDebugLog delegates to debug-level file sink when determinus_DEBUG=1", async () => {
+      process.env.determinus_DEBUG = "1";
       const { appendDebugLog } = await import("./debug-log");
       appendDebugLog("legacy", "legacy-msg");
       expect(existsSync(logFile())).toBe(true);
@@ -182,15 +182,15 @@ describe("debug-log logger", () => {
       expect(content).toContain("legacy-msg");
     });
 
-    test("appendDebugLog is silent when ADV_DEBUG is off", async () => {
-      delete process.env.ADV_DEBUG;
+    test("appendDebugLog is silent when determinus_DEBUG is off", async () => {
+      delete process.env.determinus_DEBUG;
       const { appendDebugLog } = await import("./debug-log");
       appendDebugLog("legacy", "legacy-off");
       expect(existsSync(logFile())).toBe(false);
     });
 
     test("appendDebugLog does NOT emit to console", async () => {
-      delete process.env.ADV_DEBUG;
+      delete process.env.determinus_DEBUG;
       const { appendDebugLog } = await import("./debug-log");
       appendDebugLog("legacy", "quiet");
       expect(warnSpy).not.toHaveBeenCalled();
@@ -198,11 +198,11 @@ describe("debug-log logger", () => {
     });
   });
 
-  describe("ADV_DEBUG_ENABLED constant", () => {
-    test("module exports ADV_DEBUG_ENABLED derived from env at load time", async () => {
+  describe("determinus_DEBUG_ENABLED constant", () => {
+    test("module exports determinus_DEBUG_ENABLED derived from env at load time", async () => {
       const mod = await import("./debug-log");
       // Just assert the export exists as a boolean
-      expect(typeof mod.ADV_DEBUG_ENABLED).toBe("boolean");
+      expect(typeof mod.determinus_DEBUG_ENABLED).toBe("boolean");
     });
   });
 

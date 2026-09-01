@@ -67,7 +67,7 @@ function summaryIndexPaths(paths: ProjectPaths) {
 }
 
 async function makeFixture(): Promise<Fixture> {
-  const root = await createTempDir("adv-reconcile-integration-");
+  const root = await createTempDir("determinus-reconcile-integration-");
   const state = join(root, "state");
   const store = await createStore(root, { externalRoot: state });
   const paths = getProjectPaths(root, {}, { externalRoot: state });
@@ -265,7 +265,7 @@ async function scanAndPlan(paths: ProjectPaths): Promise<{
 
 describe("store reconciliation integration", () => {
   test("backfills entry membership with dry-run and apply plan-hash parity", async () => {
-    const root = await createTempDir("adv-reconcile-backfill-");
+    const root = await createTempDir("determinus-reconcile-backfill-");
     const state = join(root, "state");
     try {
       const store = await createStore(root, { externalRoot: state });
@@ -301,7 +301,7 @@ describe("store reconciliation integration", () => {
         ),
       ).toBe(true);
       const dryRun = parseToolOutput<Record<string, unknown>>(
-        await storeReconcileTools.adv_store_reconcile.execute(
+        await storeReconcileTools.determinus_store_reconcile.execute(
           { mode: "dry_run" },
           store,
         ),
@@ -381,7 +381,7 @@ describe("store reconciliation integration", () => {
 
       // Host-tool plan/dry_run parity is exercised against the same real store.
       const dryRun = parseToolOutput<Record<string, unknown>>(
-        await storeReconcileTools.adv_store_reconcile.execute(
+        await storeReconcileTools.determinus_store_reconcile.execute(
           { mode: "dry_run" },
           fixture.store,
         ),
@@ -586,7 +586,7 @@ describe("store reconciliation integration", () => {
       expect(await stat(join(fixture.state, "worker.lock"))).toBeDefined();
 
       const dryRun = parseToolOutput<Record<string, unknown>>(
-        await storeReconcileTools.adv_store_reconcile.execute(
+        await storeReconcileTools.determinus_store_reconcile.execute(
           { mode: "dry_run" },
           fixture.store,
         ),
@@ -642,7 +642,7 @@ describe("store reconciliation integration", () => {
         });
       }
       const planOutput = parseToolOutput<Record<string, unknown>>(
-        await storeReconcileTools.adv_store_reconcile.execute(
+        await storeReconcileTools.determinus_store_reconcile.execute(
           { mode: "plan" },
           fixture.store,
         ),
@@ -652,7 +652,7 @@ describe("store reconciliation integration", () => {
       expect(typeof planHash).toBe("string");
 
       const applied = parseToolOutput<Record<string, unknown>>(
-        await storeReconcileTools.adv_store_reconcile.execute(
+        await storeReconcileTools.determinus_store_reconcile.execute(
           { mode: "apply", confirm_plan_hash: planHash as string },
           fixture.store,
         ),
@@ -676,7 +676,7 @@ describe("store reconciliation integration", () => {
         (record) => record.class !== "healthy",
       );
       const replay = parseToolOutput<Record<string, unknown>>(
-        await storeReconcileTools.adv_store_reconcile.execute(
+        await storeReconcileTools.determinus_store_reconcile.execute(
           { mode: "apply", confirm_plan_hash: replayPlan.plan.plan_hash },
           fixture.store,
         ),

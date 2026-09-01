@@ -56,7 +56,7 @@ function record(
 }
 
 async function fixture() {
-  const root = await createTempDir("adv-legacy-envelope-");
+  const root = await createTempDir("determinus-legacy-envelope-");
   const paths = getProjectPaths(root);
   const canonicalPath = join(paths.changes, changeId, "change.json");
   const legacyPath = join(paths.changes, `${changeId}.json`);

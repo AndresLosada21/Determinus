@@ -60,7 +60,7 @@ export interface GitFinalizeDeps {
    * Optional per-project worktree file-lock used by the remote-first isolated
    * archive finalization path to serialize ephemeral `git worktree add/remove`
    * operations against peer sessions. The lock callback is supplied by the caller
-   * (e.g. `adv_change_archive`) so `git-finalize.ts` does not need to import
+   * (e.g. `determinus_change_archive`) so `git-finalize.ts` does not need to import
    * worker-lock internals, preserving the runtime-bundle boundary.
    */
   ephemeralWorktreeLock?: {
@@ -103,7 +103,7 @@ export interface ReconcileResult {
   conflictFiles?: string[];
 }
 
-const EPHEMERAL_WORKTREE_PREFIX = "adv-archive-wt-";
+const EPHEMERAL_WORKTREE_PREFIX = "determinus-archive-wt-";
 const EPHEMERAL_WORKTREE_REMOVE_TIMEOUT_MS = 30_000;
 
 /**
@@ -383,7 +383,7 @@ const DEFAULT_GIT_TIMEOUT_MS = 30000;
 // budget so archive finalization does not spuriously report
 // DEFAULT_BRANCH_PUSH_FAILED on a push that would otherwise succeed.
 const DEFAULT_GIT_PUSH_TIMEOUT_MS = (() => {
-  const env = Number(process.env.ADV_GIT_PUSH_TIMEOUT_MS);
+  const env = Number(process.env.determinus_GIT_PUSH_TIMEOUT_MS);
   return Number.isFinite(env) && env > 0 ? env : 300000;
 })();
 

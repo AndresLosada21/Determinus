@@ -1,7 +1,7 @@
 /**
  * Acceptance gate reconciliation integration tests.
  *
- * Verifies that adv_gate_complete reconciles recovered design-concern and
+ * Verifies that determinus_gate_complete reconciles recovered design-concern and
  * verification-evidence dispositions into the reachable workflow before firing
  * gateCompletedSignal, and surfaces a single actionable block when
  * reconciliation fails.
@@ -176,9 +176,11 @@ function baseContract(
   } as NonNullable<Change["contract"]>;
 }
 
-describe("adv_gate_complete acceptance reconciliation", () => {
+describe("determinus_gate_complete acceptance reconciliation", () => {
   test("blocks recovery when the persisted acceptance projection cannot be read back", async () => {
-    const changesDir = await createTempDir("adv-gate-acceptance-missing-");
+    const changesDir = await createTempDir(
+      "determinus-gate-acceptance-missing-",
+    );
     const change = baseChange();
     await seedProjection(changesDir, change);
     const { resolveAcceptanceRecoveryArtifactEvidence } =
@@ -225,7 +227,9 @@ describe("adv_gate_complete acceptance reconciliation", () => {
   // the acceptance projection through the artifact-authority chain
   // (change.documents), not through active-dir .md round-trips.
   test("resolves acceptance recovery evidence from the projection when no active-dir markdown exists", async () => {
-    const changesDir = await createTempDir("adv-gate-acceptance-projection-");
+    const changesDir = await createTempDir(
+      "determinus-gate-acceptance-projection-",
+    );
     const executiveSummaryText = "# Executive Summary\n\nDelivered outcome.\n";
     const change = baseChange({
       documents: { executiveSummary: executiveSummaryText },
@@ -280,7 +284,7 @@ describe("adv_gate_complete acceptance reconciliation", () => {
   });
 
   test("clears recovered design-concern and verification-evidence markers before completing acceptance", async () => {
-    const changesDir = await createTempDir("adv-gate-reconciliation-");
+    const changesDir = await createTempDir("determinus-gate-reconciliation-");
     const change = baseChange({
       design_concern_dispositions: [
         { ...disposition("design"), recovery_audit: recoveryAudit() },
@@ -290,7 +294,7 @@ describe("adv_gate_complete acceptance reconciliation", () => {
       ],
     });
     await seedProjection(changesDir, change);
-    const result = await gateTools.adv_gate_complete.execute(
+    const result = await gateTools.determinus_gate_complete.execute(
       {
         changeId: "test-change",
         gateId: "acceptance",
@@ -313,14 +317,14 @@ describe("adv_gate_complete acceptance reconciliation", () => {
   });
 
   test("clears a recovered contract review matrix before completing acceptance", async () => {
-    const changesDir = await createTempDir("adv-gate-reconciliation-");
+    const changesDir = await createTempDir("determinus-gate-reconciliation-");
     const change = baseChange({
       contract: baseContract({
         reviewMatrix: { ...reviewMatrix(), recovery_audit: recoveryAudit() },
       }),
     });
     await seedProjection(changesDir, change);
-    const result = await gateTools.adv_gate_complete.execute(
+    const result = await gateTools.determinus_gate_complete.execute(
       {
         changeId: "test-change",
         gateId: "acceptance",
@@ -338,13 +342,13 @@ describe("adv_gate_complete acceptance reconciliation", () => {
   });
 
   test("skips reconciliation and completes acceptance when no recovery markers exist", async () => {
-    const changesDir = await createTempDir("adv-gate-reconciliation-");
+    const changesDir = await createTempDir("determinus-gate-reconciliation-");
     const change = baseChange({
       design_concern_dispositions: [disposition("design")],
     });
     await seedProjection(changesDir, change);
 
-    const result = await gateTools.adv_gate_complete.execute(
+    const result = await gateTools.determinus_gate_complete.execute(
       {
         changeId: "test-change",
         gateId: "acceptance",

@@ -20,7 +20,7 @@ export async function withArchiveProjectionLock<T>(
       : join(worktree, ".adv");
   await mkdir(commonDir, { recursive: true });
   const release = await acquireFileLock(
-    join(commonDir, "adv-archive-projection"),
+    join(commonDir, "determinus-archive-projection"),
     10_000,
   );
   try {

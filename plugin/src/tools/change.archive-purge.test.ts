@@ -65,7 +65,7 @@ async function pathExists(path: string): Promise<boolean> {
   }
 }
 
-describe("adv_archive_purge", () => {
+describe("determinus_archive_purge", () => {
   let tempDir: string;
   let archiveDir: string;
   let changesDir: string;
@@ -189,7 +189,7 @@ describe("adv_archive_purge", () => {
     expect(parsed.changeId).toBe(change.id);
     expect(parsed.bundleRemoved).toBe(false);
     expect(parsed.archivedPath).toBe(bundleDir);
-    // rq-archivePurge01.1: disk bundle preserved — adv_change_show keeps
+    // rq-archivePurge01.1: disk bundle preserved — determinus_change_show keeps
     // returning content from the on-disk projection.
     expect(await pathExists(join(bundleDir, "change.json"))).toBe(true);
   });
@@ -223,7 +223,7 @@ describe("adv_archive_purge", () => {
     expect(parsed.bundleRemoved).toBe(true);
     expect(parsed.archivedPath).toBe(bundleDir);
     // rq-archivePurge01.2: archive/<id>/ recursively removed; subsequent
-    // adv_change_show hits the not-found path (no bundle, no disk
+    // determinus_change_show hits the not-found path (no bundle, no disk
     // projection, no live workflow, nothing to re-seed from).
     expect(await pathExists(bundleDir)).toBe(false);
     expect(await pathExists(legacyDir)).toBe(false);

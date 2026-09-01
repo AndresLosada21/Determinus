@@ -1,5 +1,5 @@
 /**
- * adv_resume_projection tool adapter tests.
+ * determinus_resume_projection tool adapter tests.
  *
  * Pins: pure-read behavior, active-first loading without broad history scans,
  * bounded parallel hydration of non-terminal changes, bounded resolution of
@@ -124,14 +124,14 @@ async function execute(
   store: Store,
   args: { epic_ids?: string[]; include_diagnostics?: boolean } = {},
 ) {
-  const raw = await resumeProjectionTools.adv_resume_projection.execute(
+  const raw = await resumeProjectionTools.determinus_resume_projection.execute(
     args,
     store,
   );
   return JSON.parse(raw as string);
 }
 
-describe("adv_resume_projection tool", () => {
+describe("determinus_resume_projection tool", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

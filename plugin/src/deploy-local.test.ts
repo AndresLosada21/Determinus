@@ -9,18 +9,18 @@ const DEPLOY_SCRIPT_PATH = join(REPO_ROOT, "scripts/deploy-local.sh");
 const POST_COMMIT_HOOK_PATH = join(REPO_ROOT, ".githooks/post-commit");
 const PRE_PUSH_HOOK_PATH = join(REPO_ROOT, ".githooks/pre-push");
 const PROVIDER_EVAL_PATH = join(REPO_ROOT, "scripts/provider-eval.ts");
-const ADV_AGENT_PATH = join(REPO_ROOT, ".opencode/agents/adv.md");
+const determinus_AGENT_PATH = join(REPO_ROOT, ".opencode/agents/adv.md");
 const PROVIDER_ASSEMBLY_DOC_PATH = join(
   REPO_ROOT,
   "docs/provider-agent-assembly.md",
 );
 const PROVIDER_SMOKE_DOC_PATH = join(
   REPO_ROOT,
-  "docs/provider-adv-smoke-checklist.md",
+  "docs/provider-determinus-smoke-checklist.md",
 );
 const RUNTIME_PROTOCOL_COVERAGE_PATH = join(
   REPO_ROOT,
-  "docs/adv-runtime-protocol-coverage.md",
+  "docs/determinus-runtime-protocol-coverage.md",
 );
 const ADVANCE_META_SPEC_PATH = join(
   REPO_ROOT,
@@ -113,26 +113,28 @@ describe("deploy-local.sh", () => {
   // Asset sync (existing behavior preserved)
   // -----------------------------------------------------------------------
   describe("asset sync", () => {
-    test("syncs adv-*.md commands to global", () => {
-      expect(content).toContain('for src in "$REPO_COMMANDS"/adv-*.md; do');
+    test("syncs determinus-*.md commands to global", () => {
+      expect(content).toContain(
+        'for src in "$REPO_COMMANDS"/determinus-*.md; do',
+      );
       expect(content).toContain('dest="$GLOBAL_COMMANDS/$(basename "$src")"');
     });
 
     test("manages local adv CLI install through stable deployed bin tree", () => {
-      expect(content).toContain('ADV_SOURCE_BIN_PATH="$ASSET_ROOT/bin"');
+      expect(content).toContain('determinus_SOURCE_BIN_PATH="$ASSET_ROOT/bin"');
       expect(content).toContain(
-        'ADV_RUNTIME_BIN_PATH="$LOCAL_DEPLOY_ROOT/bin"',
+        'determinus_RUNTIME_BIN_PATH="$LOCAL_DEPLOY_ROOT/bin"',
       );
       expect(content).toContain(
-        'ADV_CLI_TARGET="${ADV_BIN_LINK:-$HOME/.local/bin/adv}"',
+        'determinus_CLI_TARGET="${determinus_BIN_LINK:-$HOME/.local/bin/adv}"',
       );
       expect(content).toContain(
-        'rsync -a --delete "$ADV_SOURCE_BIN_PATH/" "$ADV_RUNTIME_BIN_PATH/"',
+        'rsync -a --delete "$determinus_SOURCE_BIN_PATH/" "$determinus_RUNTIME_BIN_PATH/"',
       );
       expect(content).toContain(
-        'ln -s "$ADV_RUNTIME_BIN_PATH/adv" "$ADV_CLI_TARGET"',
+        'ln -s "$determinus_RUNTIME_BIN_PATH/adv" "$determinus_CLI_TARGET"',
       );
-      expect(content).toContain("is_recognized_adv_cli_target");
+      expect(content).toContain("is_recognized_determinus_cli_target");
       expect(content).toContain("PATH shadow");
       // rq-advCliLocalInstall01: structural, root-scoped assertion. The previous
       // whole-document grep for `"schema_version": 1` was defeated by
@@ -151,7 +153,7 @@ describe("deploy-local.sh", () => {
 
     test("removes stale adv commands from global", () => {
       expect(content).toContain(
-        'for global_cmd in "$GLOBAL_COMMANDS"/adv-*.md; do',
+        'for global_cmd in "$GLOBAL_COMMANDS"/determinus-*.md; do',
       );
       expect(content).toContain("removed stale:");
     });
@@ -161,19 +163,19 @@ describe("deploy-local.sh", () => {
       expect(content).toContain("copied agent:");
     });
 
-    test("adv-researcher is synced globally (not repo-local)", () => {
-      // adv-researcher was promoted from repo-local to bundled global specialist
-      expect(content).toContain('REPO_LOCAL_ONLY="adv-tron.md"');
-      expect(content).not.toMatch(/REPO_LOCAL_ONLY=.*adv-researcher/);
+    test("determinus-researcher is synced globally (not repo-local)", () => {
+      // determinus-researcher was promoted from repo-local to bundled global specialist
+      expect(content).toContain('REPO_LOCAL_ONLY="determinus-tron.md"');
+      expect(content).not.toMatch(/REPO_LOCAL_ONLY=.*determinus-researcher/);
       // After KD16 rename, the bare "tron.md" must not appear as the REPO_LOCAL_ONLY value
       expect(content).not.toMatch(/REPO_LOCAL_ONLY="tron\.md"/);
     });
 
-    test("adv-engineer.md is NOT in SHARED_OVERLAY_ONLY", () => {
+    test("determinus-engineer.md is NOT in SHARED_OVERLAY_ONLY", () => {
       expect(content).not.toMatch(/SHARED_OVERLAY_ONLY=.*engineer/);
     });
 
-    test("adv-engineer.md is NOT in REPO_LOCAL_ONLY", () => {
+    test("determinus-engineer.md is NOT in REPO_LOCAL_ONLY", () => {
       expect(content).not.toMatch(/REPO_LOCAL_ONLY=.*engineer/);
     });
 
@@ -186,25 +188,27 @@ describe("deploy-local.sh", () => {
       expect(content).toContain("engineer.md");
     });
 
-    test("stale cleanup uses adv-* glob for current names", () => {
+    test("stale cleanup uses determinus-* glob for current names", () => {
       expect(content).toContain(
-        'for global_agent in "$GLOBAL_AGENTS"/adv-*.md; do',
+        'for global_agent in "$GLOBAL_AGENTS"/determinus-*.md; do',
       );
       expect(content).toContain("remove_stale_agent_if_needed");
     });
 
-    test("generic stale cleanup owns removed adv-atc command and agent cleanup", () => {
+    test("generic stale cleanup owns removed determinus-atc command and agent cleanup", () => {
       expect(content).toContain(
-        'for global_cmd in "$GLOBAL_COMMANDS"/adv-*.md; do',
+        'for global_cmd in "$GLOBAL_COMMANDS"/determinus-*.md; do',
       );
       expect(content).toContain(
-        'for global_agent in "$GLOBAL_AGENTS"/adv-*.md; do',
+        'for global_agent in "$GLOBAL_AGENTS"/determinus-*.md; do',
       );
-      expect(content).not.toContain("REPO_AGENTS/adv-atc.md");
-      expect(content).not.toContain("adv-autopilot files replaced by adv-atc");
+      expect(content).not.toContain("REPO_AGENTS/determinus-atc.md");
+      expect(content).not.toContain(
+        "determinus-autopilot files replaced by determinus-atc",
+      );
     });
 
-    test("legacy bare names remain for upgrade cleanup while adv-* names are handled by glob", () => {
+    test("legacy bare names remain for upgrade cleanup while determinus-* names are handled by glob", () => {
       expect(content).toContain(
         'for legacy_name in "${LEGACY_STALE_AGENT_FILES[@]}"; do',
       );
@@ -223,18 +227,22 @@ describe("deploy-local.sh", () => {
       // ADR-002: whole-directory sync preserves SKILL.md + sibling reference docs
       // (CONTEXT-FORMAT.md, LOGIC.md, UI.md, REPORT_SCHEMA.md, etc.) + subdirectories
       // (e.g. scripts/). Backward-compatible: single-file skills sync identically.
-      expect(content).toContain('for skill_dir in "$REPO_SKILLS"/adv-*/; do');
+      expect(content).toContain(
+        'for skill_dir in "$REPO_SKILLS"/determinus-*/; do',
+      );
       expect(content).toContain('(cd "$skill_dir" && cp -R . "$dest_dir/")');
       expect(content).toContain("ADR-002");
     });
 
     test("deploys runtime plugin to stable .local share path", () => {
       expect(content).toContain(
-        'LOCAL_DEPLOY_ROOT="${ADV_LOCAL_DEPLOY_ROOT:-$HOME/.local/share/Advance}"',
+        'LOCAL_DEPLOY_ROOT="${determinus_LOCAL_DEPLOY_ROOT:-$HOME/.local/share/Advance}"',
       );
-      expect(content).toContain('ADV_SOURCE_PLUGIN_PATH="$ASSET_ROOT/plugin"');
       expect(content).toContain(
-        'ADV_RUNTIME_PLUGIN_PATH="$LOCAL_DEPLOY_ROOT/plugin"',
+        'determinus_SOURCE_PLUGIN_PATH="$ASSET_ROOT/plugin"',
+      );
+      expect(content).toContain(
+        'determinus_RUNTIME_PLUGIN_PATH="$LOCAL_DEPLOY_ROOT/plugin"',
       );
       expect(content).toContain("check_rsync");
       expect(content).toContain("command -v rsync");
@@ -242,7 +250,7 @@ describe("deploy-local.sh", () => {
         'rsync -a --delete --exclude="dist/$PLUGIN_BUNDLE_MANIFEST_BASENAME"',
       );
       expect(content).toContain(
-        '"$ADV_SOURCE_PLUGIN_PATH/" "$ADV_RUNTIME_PLUGIN_PATH/"',
+        '"$determinus_SOURCE_PLUGIN_PATH/" "$determinus_RUNTIME_PLUGIN_PATH/"',
       );
     });
 
@@ -267,10 +275,10 @@ describe("deploy-local.sh", () => {
       expect(content).toContain("for stale in openprompt.md; do");
     });
 
-    test("removes stale global ADV_INSTRUCTIONS.md copy", () => {
+    test("removes stale global determinus_INSTRUCTIONS.md copy", () => {
       expect(content).toContain("STALE_GLOBAL_INSTR=");
-      expect(content).toContain("instructions/ADV_INSTRUCTIONS.md");
-      expect(content).toContain("canonical is $ADV_INSTRUCTION_PATH");
+      expect(content).toContain("instructions/determinus_INSTRUCTIONS.md");
+      expect(content).toContain("canonical is $determinus_INSTRUCTION_PATH");
     });
   });
 
@@ -294,7 +302,7 @@ describe("deploy-local.sh", () => {
     });
 
     test("checks for ADV plugin in .plugin array", () => {
-      expect(content).toContain("ADV_PLUGIN_PATH=");
+      expect(content).toContain("determinus_PLUGIN_PATH=");
       expect(content).toContain("plugin: ADV plugin registered");
       expect(content).toContain("plugin: ADV plugin path missing");
     });
@@ -302,19 +310,19 @@ describe("deploy-local.sh", () => {
     // rq-scopedAdvInstructions01: sync must scope ADV protocol body to the
     // ADV runtime agent and remove legacy global instruction registration.
     test("rejects ADV instruction in global .instructions array", () => {
-      expect(content).toContain("ADV_INSTRUCTION_PATH=");
+      expect(content).toContain("determinus_INSTRUCTION_PATH=");
       expect(content).toContain(
-        "instructions: ADV_INSTRUCTIONS.md should not be globally registered",
+        "instructions: determinus_INSTRUCTIONS.md should not be globally registered",
       );
       expect(content).toContain(
-        "instructions: ADV_INSTRUCTIONS.md scoped to ADV runtime agent",
+        "instructions: determinus_INSTRUCTIONS.md scoped to ADV runtime agent",
       );
       expect(content).not.toContain(
-        "instructions: ADV_INSTRUCTIONS.md missing from .instructions array",
+        "instructions: determinus_INSTRUCTIONS.md missing from .instructions array",
       );
     });
 
-    test("warns about stale duplicate ADV_INSTRUCTIONS.md in global instructions", () => {
+    test("warns about stale duplicate determinus_INSTRUCTIONS.md in global instructions", () => {
       expect(content).toContain("stale duplicate found");
       expect(content).toContain("wastes ~17K tokens");
     });
@@ -327,7 +335,7 @@ describe("deploy-local.sh", () => {
 
     test("primary ADV agent frontmatter has no duplicate mapping keys", () => {
       expect(
-        duplicateFrontmatterKeys(readFileSync(ADV_AGENT_PATH, "utf8")),
+        duplicateFrontmatterKeys(readFileSync(determinus_AGENT_PATH, "utf8")),
       ).toEqual([]);
     });
 
@@ -373,12 +381,12 @@ describe("deploy-local.sh", () => {
       expect(content).toContain('if type == "array" then . else [.] end');
     });
 
-    test("removes canonical and stale global ADV_INSTRUCTIONS.md from instructions array", () => {
+    test("removes canonical and stale global determinus_INSTRUCTIONS.md from instructions array", () => {
       expect(content).toContain(
-        "remove globally-registered ADV_INSTRUCTIONS.md",
+        "remove globally-registered determinus_INSTRUCTIONS.md",
       );
       expect(content).toContain("remove stale instruction:");
-      expect(content).toContain("instructions/ADV_INSTRUCTIONS.md");
+      expect(content).toContain("instructions/determinus_INSTRUCTIONS.md");
     });
 
     test("does not create config backup when no patches needed", () => {
@@ -412,10 +420,14 @@ describe("deploy-local.sh", () => {
     });
 
     test("derives ADV runtime plugin path from stable local deploy root", () => {
-      expect(content).not.toContain('ADV_PLUGIN_PATH="$REPO_ROOT/plugin"');
-      expect(content).toContain('ADV_PLUGIN_PATH="$ADV_RUNTIME_PLUGIN_PATH"');
+      expect(content).not.toContain(
+        'determinus_PLUGIN_PATH="$REPO_ROOT/plugin"',
+      );
       expect(content).toContain(
-        'ADV_INSTRUCTION_PATH="$REPO_ROOT/ADV_INSTRUCTIONS.md"',
+        'determinus_PLUGIN_PATH="$determinus_RUNTIME_PLUGIN_PATH"',
+      );
+      expect(content).toContain(
+        'determinus_INSTRUCTION_PATH="$REPO_ROOT/determinus_INSTRUCTIONS.md"',
       );
     });
   });
@@ -425,7 +437,7 @@ describe("deploy-local.sh", () => {
   // -----------------------------------------------------------------------
   describe("single ADV runtime agent sync", () => {
     test("sync script assembles one complete ADV runtime agent", () => {
-      expect(content).toContain("sync_adv_runtime_agent");
+      expect(content).toContain("sync_determinus_runtime_agent");
       expect(content).toContain("runtime_text");
       expect(content).not.toContain("instructions_text");
       expect(content).not.toContain("canonical_text +");
@@ -452,17 +464,19 @@ describe("deploy-local.sh", () => {
 
     test("provider eval reports single-agent prompt-size planes", () => {
       expect(providerEval).toContain("collectPromptSizeMetrics");
-      expect(providerEval).toContain("lean_adv_runtime_prompt");
-      expect(providerEval).toContain("adv_reference_protocol");
+      expect(providerEval).toContain("lean_determinus_runtime_prompt");
+      expect(providerEval).toContain("determinus_reference_protocol");
       expect(providerEval).toContain("provider_hint");
-      expect(providerEval).toContain("adv_dynamic_system_block_estimate");
+      expect(providerEval).toContain(
+        "determinus_dynamic_system_block_estimate",
+      );
       expect(providerEval).toContain("voice_contract_allowance");
       expect(providerEval).toContain("selected_agent_runtime_prompt");
       expect(providerEval).toContain("avoided_provider_variant_duplication");
       expect(providerEval).toContain("Lean ADV runtime prompt");
       expect(providerEval).toContain("ADV reference protocol");
       expect(providerEval).toContain("Selected runtime prompt");
-      expect(providerEval).not.toContain("adv_protocol_instructions");
+      expect(providerEval).not.toContain("determinus_protocol_instructions");
     });
 
     test("provider eval does not use generated provider variants as canonical prompt source", () => {
@@ -493,15 +507,17 @@ describe("deploy-local.sh", () => {
         runtimePrompt,
         retiredGeneratedProviderPath: join(
           REPO_ROOT,
-          "does-not-exist/adv-gpt.md",
+          "does-not-exist/determinus-gpt.md",
         ),
       });
 
       expect(runtimePrompt).toBe(
         "ADV body\nline 2\n\n<!-- PROVIDER_HINT:gpt -->\nHint",
       );
-      expect(metrics.lean_adv_runtime_prompt).toMatchObject({ lines: 2 });
-      expect(metrics.adv_reference_protocol).toMatchObject({ lines: 2 });
+      expect(metrics.lean_determinus_runtime_prompt).toMatchObject({
+        lines: 2,
+      });
+      expect(metrics.determinus_reference_protocol).toMatchObject({ lines: 2 });
       expect(metrics.provider_hint).toMatchObject({ lines: 2 });
       expect(metrics.selected_agent_runtime_prompt).toMatchObject({ lines: 5 });
       expect(metrics.avoided_provider_variant_duplication).toBeNull();
@@ -527,11 +543,11 @@ describe("deploy-local.sh", () => {
         "Runtime Hint Mapping",
         "output.system[0]",
         "Manual One-Time Migration",
-        "agent.adv-{provider}.prompt",
-        "lean_adv_runtime_prompt",
-        "adv_reference_protocol",
+        "agent.determinus-{provider}.prompt",
+        "lean_determinus_runtime_prompt",
+        "determinus_reference_protocol",
         "provider_hint",
-        "adv_dynamic_system_block_estimate",
+        "determinus_dynamic_system_block_estimate",
         "voice_contract_allowance",
         "selected_agent_runtime_prompt",
       ]) {
@@ -539,7 +555,7 @@ describe("deploy-local.sh", () => {
       }
       expect(assemblyDoc).toContain("lean canonical runtime prompt");
       expect(assemblyDoc).not.toContain(
-        "global adv.md = canonical ADV body + ADV_INSTRUCTIONS.md",
+        "global adv.md = canonical ADV body + determinus_INSTRUCTIONS.md",
       );
     });
 
@@ -580,24 +596,24 @@ describe("deploy-local.sh", () => {
       expect(specDoc).toContain("$HOME/.local/share/Advance/bin");
     });
 
-    test("advance-meta spec no longer requires full ADV_INSTRUCTIONS runtime append", () => {
+    test("advance-meta spec no longer requires full determinus_INSTRUCTIONS runtime append", () => {
       const specText = readFileSync(ADVANCE_META_SPEC_PATH, "utf8");
 
       expect(specText).toContain("lean ADV runtime prompt");
       expect(specText).toContain("runtime protocol coverage inventory");
-      expect(specText).toContain("adv_reference_protocol");
+      expect(specText).toContain("determinus_reference_protocol");
       expect(specText).toContain("voice_contract_allowance");
       expect(specText).not.toContain(
-        "Global adv.md contains the canonical ADV body and ADV_INSTRUCTIONS.md protocol content",
+        "Global adv.md contains the canonical ADV body and determinus_INSTRUCTIONS.md protocol content",
       );
       expect(specText).not.toContain(
-        "The effective static prompt order is canonical ADV body, then ADV_INSTRUCTIONS.md body",
+        "The effective static prompt order is canonical ADV body, then determinus_INSTRUCTIONS.md body",
       );
     });
 
     test("runtime protocol coverage inventory preserves critical ADV invariants", () => {
       const coverageDoc = readFileSync(RUNTIME_PROTOCOL_COVERAGE_PATH, "utf8");
-      const advAgent = readFileSync(ADV_AGENT_PATH, "utf8");
+      const advAgent = readFileSync(determinus_AGENT_PATH, "utf8");
 
       for (const required of [
         "slash-command boundary",
@@ -777,7 +793,7 @@ describe("deploy-local.sh", () => {
   });
 
   describe("canonical ADV prompt compression", () => {
-    const advAgent = readFileSync(ADV_AGENT_PATH, "utf8");
+    const advAgent = readFileSync(determinus_AGENT_PATH, "utf8");
 
     test("canonical ADV prompt stays under the safe compression ceiling", () => {
       const lines = advAgent.split(/\r?\n/).length;
@@ -787,18 +803,18 @@ describe("deploy-local.sh", () => {
       // Ceiling raised from 368 → 371 after documenting the change-lifecycle
       // state invariant in the canonical ADV prompt.
       // Ceiling raised from 362 → 363 after adding the release-stage
-      // adv-reviewer phase mapping needed for typed worker packets.
+      // determinus-reviewer phase mapping needed for typed worker packets.
       // Ceiling raised from 361 → 362 after adding explicit typed worker
-      // packet phase mapping for adv-reviewer acceptance/release use.
+      // packet phase mapping for determinus-reviewer acceptance/release use.
       // Ceiling raised from 360 → 361 after the signal-driven workflow
-      // refactor exposed `adv_worktree_resume` and we added it to the
+      // refactor exposed `determinus_worktree_resume` and we added it to the
       // canonical allowlist to satisfy generate:manifests:check.
       // Ceiling raised from 368 → 371 to match trunk (branch base was stale;
       // adv.md is identical to trunk, which already accepts 371).
       // Ceiling raised from 371 → 372 after addDesignQualityGates shipped
-      // adv_design_concern_disposition and we added it to the allowlists.
-      // Ceiling raised from 411 → 412 after trunk added adv_tool_invoke,
-      // adv_archive_purge, adv_contract_mint, and adv_snapshot_health to the
+      // determinus_design_concern_disposition and we added it to the allowlists.
+      // Ceiling raised from 411 → 412 after trunk added determinus_tool_invoke,
+      // determinus_archive_purge, determinus_contract_mint, and determinus_snapshot_health to the
       // canonical ADV agent allowlist.
       // Re-ratchet here once the prompt has been audited for excess.
       expect(lines).toBeLessThanOrEqual(416);
@@ -822,18 +838,18 @@ describe("deploy-local.sh", () => {
   });
 
   // -----------------------------------------------------------------------
-  // Skills sync (T33/T34 — adv-* skills are repo-owned)
+  // Skills sync (T33/T34 — determinus-* skills are repo-owned)
   // -----------------------------------------------------------------------
   describe("skills sync", () => {
-    test("deploy-local.sh covers skills/adv-* glob", () => {
-      // Pattern must match the adv-* prefix so adv-<name> skills are
+    test("deploy-local.sh covers skills/determinus-* glob", () => {
+      // Pattern must match the determinus-* prefix so determinus-<name> skills are
       // picked up by the sync loop.
-      expect(content).toMatch(/skills.*adv-/);
-      expect(content).toContain('"$REPO_SKILLS"/adv-*/');
+      expect(content).toMatch(/skills.*determinus-/);
+      expect(content).toContain('"$REPO_SKILLS"/determinus-*/');
     });
 
-    test("deploy-local.sh removes stale adv-* skills from global", () => {
-      expect(content).toContain('"$GLOBAL_SKILLS"/adv-*/');
+    test("deploy-local.sh removes stale determinus-* skills from global", () => {
+      expect(content).toContain('"$GLOBAL_SKILLS"/determinus-*/');
       expect(content).toMatch(/removed stale skill|stale skill\(s\) removed/);
     });
   });

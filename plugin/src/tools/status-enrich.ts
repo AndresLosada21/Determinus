@@ -219,7 +219,7 @@ export async function enrichRecentChangeStatus(
   };
 
   // Resume Freshness (D9b): compute resolver result ONLY for primary candidates
-  // to bound cost (DDC8: at most once per adv_status call). Non-primary path
+  // to bound cost (DDC8: at most once per determinus_status call). Non-primary path
   // uses ticker which never invokes resolver.
   let resumeFreshnessInput:
     | {
@@ -327,14 +327,14 @@ export function appendClarifyRecommendation(
   const clarifyResult = runClarifyReadinessChecks(change, proposalText);
   if (clarifyResult.findings.length === 0) return;
 
-  const message = `⚠️ Change \`${resolvedChangeId}\` has ${clarifyResult.findings.length} ambiguity finding(s) — run \`/adv-clarify ${resolvedChangeId}\` to resolve`;
+  const message = `⚠️ Change \`${resolvedChangeId}\` has ${clarifyResult.findings.length} ambiguity finding(s) — run \`/determinus-clarify ${resolvedChangeId}\` to resolve`;
   pushStatusRecommendation(recommendations, {
     kind: "clarify",
     priority: "high",
     changeId: resolvedChangeId,
     title: `Change \`${resolvedChangeId}\` has ambiguity finding(s)`,
     detail: `${clarifyResult.findings.length} finding(s)`,
-    action: `run \`/adv-clarify ${resolvedChangeId}\``,
+    action: `run \`/determinus-clarify ${resolvedChangeId}\``,
     source: "clarify",
     message,
   });
@@ -401,7 +401,7 @@ export function appendRecencyRecommendation(
  * duplicate. Implements AC11 + D8 (clarified wording: "one-command accept,
  * copy-paste and run"; NEVER "one-click" or implying button-click).
  *
- * Read-only — never calls adv_change_close. The user must run the snippet
+ * Read-only — never calls determinus_change_close. The user must run the snippet
  * themselves with their own approval evidence.
  *
  * Emits nothing when: zero HIGH-confidence findings, multiple HIGH-confidence
@@ -435,7 +435,7 @@ export function appendResumeFreshnessRecommendation(
   const archivedDupId = finding.evidenceChangeIds?.[0];
   if (!archivedDupId) return;
 
-  const snippet = `adv_change_close changeId: ${archivedDupId} reason: "superseded" supersededBy: ${changeId} approvedByUser: true approvalEvidence: "resume:archived_duplicate HIGH-confidence overlap detected"`;
+  const snippet = `determinus_change_close changeId: ${archivedDupId} reason: "superseded" supersededBy: ${changeId} approvedByUser: true approvalEvidence: "resume:archived_duplicate HIGH-confidence overlap detected"`;
 
   // D8 wording guard: NEVER use "one-click" or imply button-click auto-execution.
   // Always: "one-command accept (copy-paste and run)" + explicit

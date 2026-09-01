@@ -9,7 +9,7 @@ import {
 
 describe("reconcile audit", () => {
   test("appends valid JSONL events without rewriting prior rows", async () => {
-    const root = await createTempDir("adv-reconcile-audit-");
+    const root = await createTempDir("determinus-reconcile-audit-");
     try {
       const first = {
         event: "store_reconcile" as const,
@@ -40,7 +40,7 @@ describe("reconcile audit", () => {
   });
 
   test("reports an audit write failure instead of throwing", async () => {
-    const root = await createTempDir("adv-reconcile-audit-failure-");
+    const root = await createTempDir("determinus-reconcile-audit-failure-");
     try {
       const path = `${root}/audit.jsonl`;
       await mkdir(path);

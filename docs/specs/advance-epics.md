@@ -104,7 +104,7 @@ An Epic's ordered entries MUST support exactly two kinds: `change` entries that 
 
 **ID:** `rq-epicCreateCommand01` | **Priority:** **[MUST]**
 
-The `/adv-epic` command MUST guide users through creating or updating Epics with an explicit ultimate goal before mutation. Before creating a new Epic, the command MUST scan related open work through typed Epic/change/backlog reads and surface plausible overlap neutrally. If plausible overlap exists, the command MUST ask the user to choose update/clarify existing, create new, or stop before calling `adv_epic_create`. Initial shell or change entries MUST remain optional and any Epic mutation MUST use typed Epic tools rather than direct ADV state edits.
+The `/determinus-epic` command MUST guide users through creating or updating Epics with an explicit ultimate goal before mutation. Before creating a new Epic, the command MUST scan related open work through typed Epic/change/backlog reads and surface plausible overlap neutrally. If plausible overlap exists, the command MUST ask the user to choose update/clarify existing, create new, or stop before calling `determinus_epic_create`. Initial shell or change entries MUST remain optional and any Epic mutation MUST use typed Epic tools rather than direct ADV state edits.
 
 **Tags:** `epics`, `command`, `goal`, `overlap`
 
@@ -113,7 +113,7 @@ The `/adv-epic` command MUST guide users through creating or updating Epics with
 **Command requires ultimate goal before creation** (`rq-epicCreateCommand01.1`)
 
 **Given:**
-- A user invokes `/adv-epic` to create a new Epic
+- A user invokes `/determinus-epic` to create a new Epic
 
 **When:** The command prepares an Epic creation plan
 
@@ -132,7 +132,7 @@ The `/adv-epic` command MUST guide users through creating or updating Epics with
 **Then:**
 - The evidence is presented neutrally
 - The user is asked to choose update/clarify existing, create new, or stop
-- The command does not call `adv_epic_create` for a plausible duplicate until the user chooses create new
+- The command does not call `determinus_epic_create` for a plausible duplicate until the user chooses create new
 
 **Initial entries remain optional** (`rq-epicCreateCommand01.3`)
 
@@ -151,7 +151,7 @@ The `/adv-epic` command MUST guide users through creating or updating Epics with
 
 **ID:** `rq-epicCoordinateCommand01` | **Priority:** **[MUST]**
 
-The `/adv-coordinate` command MUST inventory active Epics through typed reads before proposing intent-bearing durable mutations. It MUST report ownership-boundary, narrative accuracy, cross-Epic dependency, advisory sequencing, capstone placement, and membership-health findings while distinguishing evidence-backed facts from judgment calls. Epic order findings MUST remain advisory and MUST NOT block gates, tasks, promotion, or change progress. Narrative updates, reorders, retargeting, removal, and competing-authority resolution MUST use typed Epic tools and require explicit user approval. Missing or stale matching derived membership MUST converge directly under rq-epicMembershipConvergence01 and MUST NOT require separate operator approval or repair-tool selection. The command MUST NOT introduce mandatory Epic membership, auto-enrollment, Jira-like planning primitives, direct ADV state edits, or CLI mutation verbs.
+The `/determinus-coordinate` command MUST inventory active Epics through typed reads before proposing intent-bearing durable mutations. It MUST report ownership-boundary, narrative accuracy, cross-Epic dependency, advisory sequencing, capstone placement, and membership-health findings while distinguishing evidence-backed facts from judgment calls. Epic order findings MUST remain advisory and MUST NOT block gates, tasks, promotion, or change progress. Narrative updates, reorders, retargeting, removal, and competing-authority resolution MUST use typed Epic tools and require explicit user approval. Missing or stale matching derived membership MUST converge directly under rq-epicMembershipConvergence01 and MUST NOT require separate operator approval or repair-tool selection. The command MUST NOT introduce mandatory Epic membership, auto-enrollment, Jira-like planning primitives, direct ADV state edits, or CLI mutation verbs.
 
 **Tags:** `epics`, `command`, `coordination`, `approval`
 
@@ -162,7 +162,7 @@ The `/adv-coordinate` command MUST inventory active Epics through typed reads be
 **Given:**
 - One or more active Epics exist
 
-**When:** `/adv-coordinate` prepares a coordination report
+**When:** `/determinus-coordinate` prepares a coordination report
 
 **Then:**
 - Epics are inventoried through typed Epic reads before intent-bearing mutation is proposed
@@ -195,7 +195,7 @@ The `/adv-coordinate` command MUST inventory active Epics through typed reads be
 **Coordination adds no new planning primitive** (`rq-epicCoordinateCommand01.4`)
 
 **Given:**
-- The `/adv-coordinate` command is implemented
+- The `/determinus-coordinate` command is implemented
 
 **When:** Command assets and CLI surfaces are inspected
 
@@ -211,7 +211,7 @@ The `/adv-coordinate` command MUST inventory active Epics through typed reads be
 
 **ID:** `rq-epicCoordinateRepoFreshness01` | **Priority:** **[MUST]**
 
-The `/adv-coordinate` command MUST establish and report repository freshness before making alignment, sequencing, overlap, cancellation, supersession, narrative, reorder, retarget, or no-action conclusions that depend on current repository state. The command MUST collect bounded repository evidence such as current branch, HEAD SHA, default branch/upstream relation, remote freshness, ahead/behind state, dirty or uncommitted work risk, and recent commit or diff evidence when available. A bounded remote-ref refresh such as `git fetch --prune` MAY be used for freshness discovery, but the command MUST NOT merge, rebase, checkout, reset, clean, stash, or mutate product code. When repository freshness cannot be established, findings MUST be marked `freshness_limited` and the report MUST avoid evidence-backed conclusions that depend on missing repo state. The coordination report MUST compare Epic entries and linked change artifacts against current repository evidence before proposing durable actions, and MUST classify findings as `repo_backed_fact`, `adv_backed_fact`, `judgment_call`, or `freshness_limited`. Heuristics MAY rank likely overlap, but MUST NOT authorize mutation; approved durable actions still require typed ADV/Epic tools and explicit user approval.
+The `/determinus-coordinate` command MUST establish and report repository freshness before making alignment, sequencing, overlap, cancellation, supersession, narrative, reorder, retarget, or no-action conclusions that depend on current repository state. The command MUST collect bounded repository evidence such as current branch, HEAD SHA, default branch/upstream relation, remote freshness, ahead/behind state, dirty or uncommitted work risk, and recent commit or diff evidence when available. A bounded remote-ref refresh such as `git fetch --prune` MAY be used for freshness discovery, but the command MUST NOT merge, rebase, checkout, reset, clean, stash, or mutate product code. When repository freshness cannot be established, findings MUST be marked `freshness_limited` and the report MUST avoid evidence-backed conclusions that depend on missing repo state. The coordination report MUST compare Epic entries and linked change artifacts against current repository evidence before proposing durable actions, and MUST classify findings as `repo_backed_fact`, `determinus_backed_fact`, `judgment_call`, or `freshness_limited`. Heuristics MAY rank likely overlap, but MUST NOT authorize mutation; approved durable actions still require typed ADV/Epic tools and explicit user approval.
 
 **Tags:** `epics`, `command`, `coordination`, `repository`, `freshness`
 
@@ -222,7 +222,7 @@ The `/adv-coordinate` command MUST establish and report repository freshness bef
 **Given:**
 - One or more active Epics exist
 
-**When:** `/adv-coordinate` prepares alignment, sequencing, or overlap findings
+**When:** `/determinus-coordinate` prepares alignment, sequencing, or overlap findings
 
 **Then:**
 - The report includes current repository freshness evidence before those findings
@@ -234,7 +234,7 @@ The `/adv-coordinate` command MUST establish and report repository freshness bef
 **Given:**
 - Remote freshness, default branch relation, or local repository evidence cannot be established
 
-**When:** `/adv-coordinate` prepares its report
+**When:** `/determinus-coordinate` prepares its report
 
 **Then:**
 - Affected findings are marked `freshness_limited`
@@ -246,17 +246,17 @@ The `/adv-coordinate` command MUST establish and report repository freshness bef
 **Given:**
 - Active Epic entries or linked changes may overlap recent repository changes
 
-**When:** `/adv-coordinate` recommends cancel, supersede, narrative update, reorder, retarget, or no-action outcomes
+**When:** `/determinus-coordinate` recommends cancel, supersede, narrative update, reorder, retarget, or no-action outcomes
 
 **Then:**
 - The recommendation cites typed ADV evidence, current repository evidence, or both
-- The finding is classified as `repo_backed_fact`, `adv_backed_fact`, `judgment_call`, or `freshness_limited`
+- The finding is classified as `repo_backed_fact`, `determinus_backed_fact`, `judgment_call`, or `freshness_limited`
 - Heuristic overlap is presented as a judgment call and does not authorize mutation
 
 **Repository freshness discovery does not mutate product code or bypass approval** (`rq-epicCoordinateRepoFreshness01.4`)
 
 **Given:**
-- `/adv-coordinate` attempts to establish current repository evidence
+- `/determinus-coordinate` attempts to establish current repository evidence
 
 **When:** Repository freshness discovery runs
 
@@ -271,7 +271,7 @@ The `/adv-coordinate` command MUST establish and report repository freshness bef
 
 **ID:** `rq-epicCoordinateProjectInventory01` | **Priority:** **[MUST]**
 
-The `/adv-coordinate` command MUST inventory every participating project's in-flight changes using typed `adv_change_list` with complete pagination before Epic-dependent alignment. The command MUST describe typed `scope: "product"` and explicit `target_path` for cross-project reads and MUST NOT infer target paths. When expected product context is unavailable, cross-project conclusions MUST be classified as `freshness_limited` or `judgment_call`, never `adv_backed_fact`. The no-active-Epics condition MUST follow complete project-change reporting, and the coordination report MUST include Projects scanned, Changes by project, Epics scanned, and entries scanned. Optional Epic membership, advisory Epic order, existing approval-gated mutations, and repository freshness requirements MUST be preserved.
+The `/determinus-coordinate` command MUST inventory every participating project's in-flight changes using typed `determinus_change_list` with complete pagination before Epic-dependent alignment. The command MUST describe typed `scope: "product"` and explicit `target_path` for cross-project reads and MUST NOT infer target paths. When expected product context is unavailable, cross-project conclusions MUST be classified as `freshness_limited` or `judgment_call`, never `determinus_backed_fact`. The no-active-Epics condition MUST follow complete project-change reporting, and the coordination report MUST include Projects scanned, Changes by project, Epics scanned, and entries scanned. Optional Epic membership, advisory Epic order, existing approval-gated mutations, and repository freshness requirements MUST be preserved.
 
 **Tags:** `epics`, `command`, `coordination`, `project-inventory`, `cross-project`
 
@@ -282,10 +282,10 @@ The `/adv-coordinate` command MUST inventory every participating project's in-fl
 **Given:**
 - One or more participating projects contain in-flight changes
 
-**When:** `/adv-coordinate` prepares alignment, sequencing, or overlap findings
+**When:** `/determinus-coordinate` prepares alignment, sequencing, or overlap findings
 
 **Then:**
-- Every participating project's in-flight changes are inventoried via typed adv_change_list with complete pagination
+- Every participating project's in-flight changes are inventoried via typed determinus_change_list with complete pagination
 - Project inventory completes before Epic-dependent alignment is analyzed
 - The report includes Projects scanned and Changes by project
 
@@ -294,7 +294,7 @@ The `/adv-coordinate` command MUST inventory every participating project's in-fl
 **Given:**
 - The coordination report needs cross-project evidence
 
-**When:** `/adv-coordinate` reads changes or Epics outside the current project
+**When:** `/determinus-coordinate` reads changes or Epics outside the current project
 
 **Then:**
 - Typed scope: "product" and explicit target_path are described
@@ -306,7 +306,7 @@ The `/adv-coordinate` command MUST inventory every participating project's in-fl
 **Given:**
 - Project inventory completes with zero active Epics
 
-**When:** `/adv-coordinate` reports its findings
+**When:** `/determinus-coordinate` reports its findings
 
 **Then:**
 - The report includes Projects scanned, Changes by project, Epics scanned, and entries scanned
@@ -316,14 +316,14 @@ The `/adv-coordinate` command MUST inventory every participating project's in-fl
 **Project inventory preserves existing coordination constraints** (`rq-epicCoordinateProjectInventory01.4`)
 
 **Given:**
-- The `/adv-coordinate` command is implemented
+- The `/determinus-coordinate` command is implemented
 
 **When:** Command assets and behavior are inspected
 
 **Then:**
 - Epic membership remains optional and order remains advisory
 - Existing approval-gated mutations and repository freshness requirements are preserved
-- No new runtime tool, CLI mutation verb, or direct ADV-state filesystem access is introduced
+- No new runtime tool, CLI mutation verb, or direct determinus-state filesystem access is introduced
 
 ---
 
@@ -331,7 +331,7 @@ The `/adv-coordinate` command MUST inventory every participating project's in-fl
 
 **ID:** `rq-epicCoordinateChangeCoverage01` | **Priority:** **[MUST]**
 
-The `/adv-coordinate` command MUST analyze every nonterminal in-flight change from its project inventory regardless of Epic membership. Change-scoped analysis — including repository-overlap comparison, advisory sequencing, and refactor-coverage classification — MUST NOT be gated on the presence of active Epics. Epic-dependent phases MAY still short-circuit when no active Epics exist, but that short-circuit MUST NOT suppress change-scoped analysis. Inventory reads MUST follow `hasMore` and `resumeHint` until the in-flight population is exhausted; a single `adv_change_list` call MUST NOT be treated as complete. Existing coordination boundaries MUST be preserved: no task creation, no gate completion, no Epic auto-enrollment, advisory Epic order, approval-gated durable Epic actions, and change closure remaining routed to `/adv-cleanup`.
+The `/determinus-coordinate` command MUST analyze every nonterminal in-flight change from its project inventory regardless of Epic membership. Change-scoped analysis — including repository-overlap comparison, advisory sequencing, and refactor-coverage classification — MUST NOT be gated on the presence of active Epics. Epic-dependent phases MAY still short-circuit when no active Epics exist, but that short-circuit MUST NOT suppress change-scoped analysis. Inventory reads MUST follow `hasMore` and `resumeHint` until the in-flight population is exhausted; a single `determinus_change_list` call MUST NOT be treated as complete. Existing coordination boundaries MUST be preserved: no task creation, no gate completion, no Epic auto-enrollment, advisory Epic order, approval-gated durable Epic actions, and change closure remaining routed to `/determinus-cleanup`.
 
 **Tags:** `epics`, `command`, `coordination`, `change-coverage`, `p33`
 
@@ -343,7 +343,7 @@ The `/adv-coordinate` command MUST analyze every nonterminal in-flight change fr
 - A project has nonterminal in-flight changes
 - The project has zero active Epics
 
-**When:** `/adv-coordinate` runs
+**When:** `/determinus-coordinate` runs
 
 **Then:**
 - The refactor coverage audit executes
@@ -359,7 +359,7 @@ The `/adv-coordinate` command MUST analyze every nonterminal in-flight change fr
 
 **Then:**
 - Epic-unlinked changes are compared against current repository evidence on the same terms as linked changes
-- Findings carry the same repo_backed_fact, adv_backed_fact, judgment_call, or freshness_limited labels
+- Findings carry the same repo_backed_fact, determinus_backed_fact, judgment_call, or freshness_limited labels
 
 **Existing boundaries preserved** (`rq-epicCoordinateChangeCoverage01.3`)
 
@@ -371,7 +371,7 @@ The `/adv-coordinate` command MUST analyze every nonterminal in-flight change fr
 **Then:**
 - No task is created and no gate is completed
 - No change is auto-enrolled into an Epic
-- Change closure remains routed to /adv-cleanup
+- Change closure remains routed to /determinus-cleanup
 
 **Inventory pagination is honoured** (`rq-epicCoordinateChangeCoverage01.4`)
 
@@ -382,7 +382,7 @@ The `/adv-coordinate` command MUST analyze every nonterminal in-flight change fr
 
 **Then:**
 - hasMore and resumeHint are followed until the population is exhausted
-- A single adv_change_list call is not treated as complete
+- A single determinus_change_list call is not treated as complete
 
 ---
 
@@ -543,7 +543,7 @@ When a change belongs to an Epic, change show/status/resume surfaces MUST surfac
 
 **ID:** `rq-epicFastFollowLineage01` | **Priority:** **[MUST]**
 
-When an Epic entry references a child change that carries typed `fast_follow_of` metadata, `adv_epic_show` MUST render a bounded, additive `fast_follow_lineage` projection on that entry containing the source change ID, the source task ID when known (derived from `followup_ref.report_key` task scope, else null), a `non_blocking_advisory` classification, and the fast-follow `linked_at` timestamp. The projection MUST be advisory-only: it MUST NOT create Epic task ownership, MUST NOT introduce a dependency enum, MUST NOT change task readiness behavior, MUST NOT alter Epic order, and MUST NOT affect release or gate eligibility. Shell entries and entries whose child change has no `fast_follow_of` (or cannot be loaded) MUST render without the lineage field. The projection MUST be bounded by the number of change entries in the rendered Epic view and MUST cache per-child-change reads within a single render call. Operational work continues to flow through typed `ops_followup_links`; this projection is reserved for non-operational advisory fast-follow children.
+When an Epic entry references a child change that carries typed `fast_follow_of` metadata, `determinus_epic_show` MUST render a bounded, additive `fast_follow_lineage` projection on that entry containing the source change ID, the source task ID when known (derived from `followup_ref.report_key` task scope, else null), a `non_blocking_advisory` classification, and the fast-follow `linked_at` timestamp. The projection MUST be advisory-only: it MUST NOT create Epic task ownership, MUST NOT introduce a dependency enum, MUST NOT change task readiness behavior, MUST NOT alter Epic order, and MUST NOT affect release or gate eligibility. Shell entries and entries whose child change has no `fast_follow_of` (or cannot be loaded) MUST render without the lineage field. The projection MUST be bounded by the number of change entries in the rendered Epic view and MUST cache per-child-change reads within a single render call. Operational work continues to flow through typed `ops_followup_links`; this projection is reserved for non-operational advisory fast-follow children.
 
 **Tags:** `epics`, `fast-follow`, `lineage`, `projection`, `advisory`
 
@@ -555,7 +555,7 @@ When an Epic entry references a child change that carries typed `fast_follow_of`
 - An Epic entry references a child change with typed fast_follow_of metadata
 - The fast_follow_of carries parent_change_id, linked_at, and an optional followup_ref
 
-**When:** adv_epic_show renders the Epic
+**When:** determinus_epic_show renders the Epic
 
 **Then:**
 - The entry includes fast_follow_lineage with source_change_id equal to parent_change_id
@@ -569,19 +569,19 @@ When an Epic entry references a child change that carries typed `fast_follow_of`
 - An Epic entry references a child change without fast_follow_of
 - Or the child change fails to load
 
-**When:** adv_epic_show renders the Epic
+**When:** determinus_epic_show renders the Epic
 
 **Then:**
 - The entry renders without a fast_follow_lineage field
 - Existing entry fields, order, and member_status are unchanged
-- adv_epic_show still returns success
+- determinus_epic_show still returns success
 
 **Lineage projection is bounded and additive** (`rq-epicFastFollowLineage01.3`)
 
 **Given:**
 - An Epic has both shell and change entries, with at least one fast-follow child
 
-**When:** adv_epic_show renders the Epic
+**When:** determinus_epic_show renders the Epic
 
 **Then:**
 - Shell entries never receive a fast_follow_lineage field
@@ -913,7 +913,7 @@ Active duplicate Epics MAY be merged into one survivor Epic through a typed, aud
 
 **ID:** `rq-epicArchiveSync01` | **Priority:** **[MUST]**
 
-When an ADV change with `epic_membership` is archived, the archive/release flow MUST load the parent Epic, project the child change's terminal state onto the linked Epic entry after release proof, verify the terminal Epic entry/projection state, and surface Epic evidence in the archive report. Already-archived child changes whose Epic entries remain active MUST be repairable/backfillable from canonical child/archive state through `adv_epic_show`, which performs automatic bounded direct convergence (rq-epicMembershipConvergence01); direct ADV state edits are forbidden. Changes without Epic membership MUST continue through the normal archive flow. Epic order MUST remain advisory and MUST NOT block archive solely because earlier entries are incomplete.
+When an ADV change with `epic_membership` is archived, the archive/release flow MUST load the parent Epic, project the child change's terminal state onto the linked Epic entry after release proof, verify the terminal Epic entry/projection state, and surface Epic evidence in the archive report. Already-archived child changes whose Epic entries remain active MUST be repairable/backfillable from canonical child/archive state through `determinus_epic_show`, which performs automatic bounded direct convergence (rq-epicMembershipConvergence01); direct ADV state edits are forbidden. Changes without Epic membership MUST continue through the normal archive flow. Epic order MUST remain advisory and MUST NOT block archive solely because earlier entries are incomplete.
 
 **Tags:** `epics`, `archive`, `release`, `membership`
 
@@ -940,7 +940,7 @@ When an ADV change with `epic_membership` is archived, the archive/release flow 
 **When:** Archive verification inspects the parent Epic
 
 **Then:**
-- The flow uses `adv_epic_show` to trigger automatic bounded direct convergence
+- The flow uses `determinus_epic_show` to trigger automatic bounded direct convergence
 - No direct ADV state files are read or edited
 - Unresolved repair status is surfaced in archive evidence
 
@@ -949,7 +949,7 @@ When an ADV change with `epic_membership` is archived, the archive/release flow 
 **Given:**
 - An Epic entry remains active even though the linked child change is already `archived` or `closed`
 
-**When:** `adv_epic_show` runs with canonical child/archive evidence and performs automatic convergence
+**When:** `determinus_epic_show` runs with canonical child/archive evidence and performs automatic convergence
 
 **Then:**
 - The existing Epic entry receives terminal summary state
@@ -1021,7 +1021,7 @@ An Epic MAY be scoped to a single repo or to a product spanning multiple reposit
 
 **ID:** `rq-epicOwnerRouting01` | **Priority:** **[MUST]**
 
-Epic membership mutation tools (adv_epic_link_change, adv_epic_unlink_change, adv_epic_move_change) MUST support explicit owner project routing separate from the child change target_path. The owner Epic MUST be resolved through an epic_owner_target_path parameter or the current project when omitted, and the child change MUST be resolved through target_path or the owner project when omitted. The supported routing matrix is: owner local + child local; owner local + child remote; owner remote + child same remote; owner remote + child different remote. Ambiguous or partial shapes—such as supplying only a child target_path when the Epic is not in the current project, or supplying an owner route without a distinct child route when the child is not in the owner project—MUST fail before durable mutation with typed OWNER_ROUTING_AMBIGUOUS or OWNER_ROUTING_REQUIRED errors. Existing child-only target_path behavior MUST remain valid when the Epic owner is the current project.
+Epic membership mutation tools (determinus_epic_link_change, determinus_epic_unlink_change, determinus_epic_move_change) MUST support explicit owner project routing separate from the child change target_path. The owner Epic MUST be resolved through an epic_owner_target_path parameter or the current project when omitted, and the child change MUST be resolved through target_path or the owner project when omitted. The supported routing matrix is: owner local + child local; owner local + child remote; owner remote + child same remote; owner remote + child different remote. Ambiguous or partial shapes—such as supplying only a child target_path when the Epic is not in the current project, or supplying an owner route without a distinct child route when the child is not in the owner project—MUST fail before durable mutation with typed OWNER_ROUTING_AMBIGUOUS or OWNER_ROUTING_REQUIRED errors. Existing child-only target_path behavior MUST remain valid when the Epic owner is the current project.
 
 **Tags:** `epics`, `routing`, `cross-project`, `target_path`
 
@@ -1224,7 +1224,7 @@ The `adv epic list --json` CLI command MUST return live disk-backed Epic entries
 
 **ID:** `rq-epicRetirement01` | **Priority:** **[MUST]**
 
-Completed Epics MUST be retired through a typed `adv_epic_retire` lifecycle path. Retirement MUST require `expected_version`, non-blank audit evidence, and a retiring actor, and MUST support `dryRun` without mutation. The retirement preflight MUST prove the Epic progress status is completed and every entry is terminal before any durable mutation. If active or future work remains, retirement MUST fail before mutation and MUST identify the blocking entries.
+Completed Epics MUST be retired through a typed `determinus_epic_retire` lifecycle path. Retirement MUST require `expected_version`, non-blank audit evidence, and a retiring actor, and MUST support `dryRun` without mutation. The retirement preflight MUST prove the Epic progress status is completed and every entry is terminal before any durable mutation. If active or future work remains, retirement MUST fail before mutation and MUST identify the blocking entries.
 
 **Tags:** `epics`, `retirement`, `lifecycle`, `audit`
 
@@ -1236,7 +1236,7 @@ Completed Epics MUST be retired through a typed `adv_epic_retire` lifecycle path
 - An Epic has completed progress
 - Every Epic entry is terminal
 
-**When:** A caller invokes adv_epic_retire with expected_version and audit evidence
+**When:** A caller invokes determinus_epic_retire with expected_version and audit evidence
 
 **Then:**
 - The version guard is checked before mutation
@@ -1272,7 +1272,7 @@ Completed Epics MUST be retired through a typed `adv_epic_retire` lifecycle path
 
 **ID:** `rq-epicRetiredListing01` | **Priority:** **[MUST]**
 
-Default Epic listing surfaces MUST represent active Epics only and MUST exclude retired, merged, and completed-candidate Epics structurally, not by consumer-side inference. The `adv_epic_list` default and `adv epic list --json` MUST enumerate current disk-backed Epic projections scoped to the project and active status. Completed-but-unretired Epics MUST remain available through explicit operator candidate/dry-run surfaces, not default next-work lists. Missing or malformed status in a reachable legacy projection is machine-resolvable state: direct Epic access MUST normalize and verify the current typed status without requiring a dedicated repair mode. Conflicting or unreadable state MUST fail closed through the doctor/operator boundary. Default listing remains read-only and MUST NOT perform per-Epic mutation fan-out.
+Default Epic listing surfaces MUST represent active Epics only and MUST exclude retired, merged, and completed-candidate Epics structurally, not by consumer-side inference. The `determinus_epic_list` default and `adv epic list --json` MUST enumerate current disk-backed Epic projections scoped to the project and active status. Completed-but-unretired Epics MUST remain available through explicit operator candidate/dry-run surfaces, not default next-work lists. Missing or malformed status in a reachable legacy projection is machine-resolvable state: direct Epic access MUST normalize and verify the current typed status without requiring a dedicated repair mode. Conflicting or unreadable state MUST fail closed through the doctor/operator boundary. Default listing remains read-only and MUST NOT perform per-Epic mutation fan-out.
 
 **Tags:** `epics`, `listing`, `cli`, `visibility`, `retirement`
 
@@ -1283,7 +1283,7 @@ Default Epic listing surfaces MUST represent active Epics only and MUST exclude 
 **Given:**
 - The disk projection contains active and retired Epic entries
 
-**When:** adv_epic_list runs with default arguments
+**When:** determinus_epic_list runs with default arguments
 
 **Then:**
 - Only active Epic entries are listed
@@ -1340,7 +1340,7 @@ Default Epic listing surfaces MUST represent active Epics only and MUST exclude 
 
 **ID:** `rq-epicRetiredHistory01` | **Priority:** **[MUST]**
 
-Retirement MUST preserve typed history access to retired Epics. The retirement path MUST persist a durable retired projection before the archive/completion signal is fired. `adv_epic_show` MUST first try the live workflow and then fall back to the retired projection when the workflow is completed or unavailable. The retained view MUST include title, narrative, entries, terminal summaries, source version, and retirement metadata, and MUST return deterministic typed errors when neither live state nor retired projection can be read.
+Retirement MUST preserve typed history access to retired Epics. The retirement path MUST persist a durable retired projection before the archive/completion signal is fired. `determinus_epic_show` MUST first try the live workflow and then fall back to the retired projection when the workflow is completed or unavailable. The retained view MUST include title, narrative, entries, terminal summaries, source version, and retirement metadata, and MUST return deterministic typed errors when neither live state nor retired projection can be read.
 
 **Tags:** `epics`, `retirement`, `history`, `projection`
 
@@ -1362,7 +1362,7 @@ Retirement MUST preserve typed history access to retired Epics. The retirement p
 **Given:**
 - An Epic has been retired and its workflow is no longer queryable
 
-**When:** A caller invokes adv_epic_show for that Epic ID
+**When:** A caller invokes determinus_epic_show for that Epic ID
 
 **Then:**
 - The response is loaded from the retired projection
@@ -1373,7 +1373,7 @@ Retirement MUST preserve typed history access to retired Epics. The retirement p
 **Given:**
 - No live Epic workflow or retired projection exists for an Epic ID
 
-**When:** A caller invokes adv_epic_show
+**When:** A caller invokes determinus_epic_show
 
 **Then:**
 - A typed not-found error is returned
@@ -1408,7 +1408,7 @@ The child-change projection lookup used for Epic lookup MUST use one bounded sca
 
 **ID:** `rq-epicTerminalChildProjection01` | **Priority:** **[MUST]**
 
-adv_epic_link_change MUST project the terminal state of an archived or closed child change onto the linked Epic entry in the same operation. When the child change is already terminal, the Epic entry MUST receive a `terminal_summary` with `status` and `completed_at`, the entry's `membership_status` MUST reflect `terminal`, and later `adv_epic_show` MUST display the entry in compact history without `repair-needed` or `projection-missing` status. Changes without Epic membership or non-terminal changes MUST follow normal link semantics.
+determinus_epic_link_change MUST project the terminal state of an archived or closed child change onto the linked Epic entry in the same operation. When the child change is already terminal, the Epic entry MUST receive a `terminal_summary` with `status` and `completed_at`, the entry's `membership_status` MUST reflect `terminal`, and later `determinus_epic_show` MUST display the entry in compact history without `repair-needed` or `projection-missing` status. Changes without Epic membership or non-terminal changes MUST follow normal link semantics.
 
 **Tags:** `epics`, `link`, `terminal`, `projection`
 
@@ -1420,7 +1420,7 @@ adv_epic_link_change MUST project the terminal state of an archived or closed ch
 - An ADV change has status archived
 - The change is not yet linked to an Epic
 
-**When:** adv_epic_link_change links the change to an Epic
+**When:** determinus_epic_link_change links the change to an Epic
 
 **Then:**
 - The Epic entry receives a terminal_summary with status archived and a completed_at timestamp
@@ -1432,7 +1432,7 @@ adv_epic_link_change MUST project the terminal state of an archived or closed ch
 **Given:**
 - An ADV change has status closed
 
-**When:** adv_epic_link_change links the change to an Epic
+**When:** determinus_epic_link_change links the change to an Epic
 
 **Then:**
 - The Epic entry receives a terminal_summary with status closed and a completed_at timestamp
@@ -1443,7 +1443,7 @@ adv_epic_link_change MUST project the terminal state of an archived or closed ch
 **Given:**
 - A terminal child change has been linked to an Epic
 
-**When:** adv_epic_show renders the Epic
+**When:** determinus_epic_show renders the Epic
 
 **Then:**
 - The entry appears in compact terminal history
@@ -1491,7 +1491,7 @@ When an ADV change has Epic membership, briefing packets MAY include a compact E
 
 **ID:** `rq-epicOpsPlanning01` | **Priority:** **[MUST]**
 
-Epic creation and planning MUST include an explicit operational-work assessment that considers first deployment, migration/backfill, deployment configuration, monitoring, cleanup, and teardown. The assessment is contextual: an Epic with no operational need MUST record no follow-up, and operational need MUST NOT be inferred from Epic metadata alone. When required operational work is identified, planning MUST direct it to a typed, linked ops follow-up associated with the relevant delivery change through the existing `adv_followup_promote` / `ops_followup_links` path (`rq-opsFollowTrace01`); free-text agenda items, generic shell entries, or undocumented assumptions MUST NOT be the authoritative record for required operational work. Release-safety-critical operational work MUST use the `blocks` relationship so the existing release gate prevents release until the linked child work completes (`rq-opsFollowRelease01`, `rq-opsRunReleaseReadiness01`); release-first work such as post-release monitoring or cleanup MUST use an existing non-blocking relationship only with the surviving-obligation handoff semantics already defined for linked ops follow-ups (`rq-opsFollowRelease01`). This requirement adds planning traceability only: Epic order remains advisory and MUST NOT gate release, promotion, or tasks by itself; ADV records and governs operational state and MUST NOT perform deployment execution as an Epic gate; and this requirement MUST NOT introduce a new data model, validator, relationship enum, or gate-readiness rule beyond the ops-follow-up semantics it cites.
+Epic creation and planning MUST include an explicit operational-work assessment that considers first deployment, migration/backfill, deployment configuration, monitoring, cleanup, and teardown. The assessment is contextual: an Epic with no operational need MUST record no follow-up, and operational need MUST NOT be inferred from Epic metadata alone. When required operational work is identified, planning MUST direct it to a typed, linked ops follow-up associated with the relevant delivery change through the existing `determinus_followup_promote` / `ops_followup_links` path (`rq-opsFollowTrace01`); free-text agenda items, generic shell entries, or undocumented assumptions MUST NOT be the authoritative record for required operational work. Release-safety-critical operational work MUST use the `blocks` relationship so the existing release gate prevents release until the linked child work completes (`rq-opsFollowRelease01`, `rq-opsRunReleaseReadiness01`); release-first work such as post-release monitoring or cleanup MUST use an existing non-blocking relationship only with the surviving-obligation handoff semantics already defined for linked ops follow-ups (`rq-opsFollowRelease01`). This requirement adds planning traceability only: Epic order remains advisory and MUST NOT gate release, promotion, or tasks by itself; ADV records and governs operational state and MUST NOT perform deployment execution as an Epic gate; and this requirement MUST NOT introduce a new data model, validator, relationship enum, or gate-readiness rule beyond the ops-follow-up semantics it cites.
 
 **Tags:** `epics`, `ops-follow-up`, `planning`, `release`, `traceability`
 
@@ -1505,7 +1505,7 @@ Epic creation and planning MUST include an explicit operational-work assessment 
 **When:** Epic planning performs the operational-work assessment
 
 **Then:**
-- Planning directs creation of a typed linked ops follow-up tied to the relevant delivery change via `adv_followup_promote`
+- Planning directs creation of a typed linked ops follow-up tied to the relevant delivery change via `determinus_followup_promote`
 - The follow-up uses the `blocks` relationship when release safety requires completion
 - Authoritative provenance is recorded per `rq-opsFollowTrace01`, not as a generic shell entry or free-text agenda item
 

@@ -165,7 +165,7 @@ export function getArchiveGatePreflightError(
     ...(gateState.liveQueryError
       ? { liveQueryError: gateState.liveQueryError }
       : {}),
-    hint: `Run /adv-gate-status ${changeId} to see gate details`,
+    hint: `Run /determinus-gate-status ${changeId} to see gate details`,
   });
 }
 
@@ -886,7 +886,7 @@ async function completeArchivedBundleRelease(input: {
     const completion: GateCompletion = {
       status: "done",
       completed_at: completedAt,
-      completed_by: "adv-archive",
+      completed_by: "determinus-archive",
       approval_evidence: evidence,
     };
     const payload = {
@@ -1121,7 +1121,7 @@ export async function completeReleaseGateAfterFinalization(input: {
   const completion: GateCompletion = {
     status: "done",
     completed_at: new Date().toISOString(),
-    completed_by: "adv-archive",
+    completed_by: "determinus-archive",
     approval_evidence: evidence,
   };
   const outcome = await coordinateChangeMutation<Change>({

@@ -4,7 +4,7 @@
  * Shared projection logic for list/WIP surfaces that need to expose linked
  * ops follow-up state without pulling full artifact hydration or agenda text
  * search. The full ops_followup profile remains the source of truth and is
- * served directly by adv_change_show.
+ * served directly by determinus_change_show.
  */
 import type { OpsFollowupLink, OpsFollowupProfile, OpsRun } from "../types";
 

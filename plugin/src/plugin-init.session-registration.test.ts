@@ -16,7 +16,7 @@ import { synthesizeTestProjectId } from "./utils/project-id";
 const mocks = vi.hoisted(() => ({
   registerPluginSession: vi.fn(() => ({ registered: true })),
   unregisterLoadedBuildSession: vi.fn(),
-  resolveMigrationRoot: vi.fn(() => "/tmp/adv-test-migration-root"),
+  resolveMigrationRoot: vi.fn(() => "/tmp/determinus-test-migration-root"),
   resolveOwnBuildIdentity: vi.fn(() => ({
     schemaVersion: 1 as const,
     digest: "sha256:" + "a".repeat(64),
@@ -63,7 +63,7 @@ describe("plugin-init loaded-build session registration (AC9/DDC5)", () => {
 
   test("tryInitStore registers the session's loaded-build identity before disk startup", async () => {
     // Isolate any external-state side effects from the real machine shard.
-    const xdg = await createTempDir("adv-initreg-xdg-");
+    const xdg = await createTempDir("determinus-initreg-xdg-");
     tempDirs.push(xdg);
     process.env.XDG_DATA_HOME = xdg;
 
@@ -78,7 +78,9 @@ describe("plugin-init loaded-build session registration (AC9/DDC5)", () => {
       sessionId: string;
     };
     expect(registerCall.projectId).toBe(synthesizeTestProjectId(process.cwd()));
-    expect(registerCall.migrationRoot).toBe("/tmp/adv-test-migration-root");
+    expect(registerCall.migrationRoot).toBe(
+      "/tmp/determinus-test-migration-root",
+    );
     expect(registerCall.identity).toEqual(
       expect.objectContaining({
         digest: "sha256:" + "a".repeat(64),
@@ -93,7 +95,7 @@ describe("plugin-init loaded-build session registration (AC9/DDC5)", () => {
 
   test("subsequent tryInitStore calls reuse the same session ID", async () => {
     // Isolate any external-state side effects from the real machine shard.
-    const xdg = await createTempDir("adv-initreg-xdg-");
+    const xdg = await createTempDir("determinus-initreg-xdg-");
     tempDirs.push(xdg);
     process.env.XDG_DATA_HOME = xdg;
 
@@ -117,7 +119,7 @@ describe("plugin-init loaded-build session registration (AC9/DDC5)", () => {
     const handlers = registerShutdownHandlers(null);
     handlers.handleExit();
     expect(mocks.unregisterLoadedBuildSession).toHaveBeenCalledWith({
-      migrationRoot: "/tmp/adv-test-migration-root",
+      migrationRoot: "/tmp/determinus-test-migration-root",
     });
   });
 });

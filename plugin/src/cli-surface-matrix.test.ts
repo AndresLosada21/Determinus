@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { join, resolve } from "path";
-import { ADV_TOOL_NAMES } from "./tool-registry";
+import { determinus_TOOL_NAMES } from "./tool-registry";
 
 const REPO_ROOT = resolve(__dirname, "../..");
 const MATRIX_DOC = join(REPO_ROOT, "docs/cli-surface-matrix.md");
@@ -20,9 +20,9 @@ const COMMAND_DISPOSITIONS = [
 ];
 
 const TIER_4_READ_DOCS = [
-  "docs/runbooks/adv-mcp-code-mode.md",
+  "docs/runbooks/determinus-mcp-code-mode.md",
   "docs/tool-ownership.md",
-  "skills/adv-triage/BOOTSTRAP.md",
+  "skills/determinus-triage/BOOTSTRAP.md",
   "docs/checklists/improve-checklist.md",
 ];
 
@@ -30,9 +30,9 @@ describe("cli-surface-matrix coverage (AC1/AC2)", () => {
   const matrixContent = readFileSync(MATRIX_DOC, "utf8");
   const lines = matrixContent.split("\n");
 
-  test("every ADV_TOOL_NAMES entry has a matrix row with a disposition", () => {
+  test("every determinus_TOOL_NAMES entry has a matrix row with a disposition", () => {
     const missing: string[] = [];
-    for (const tool of ADV_TOOL_NAMES) {
+    for (const tool of determinus_TOOL_NAMES) {
       const found = lines.some(
         (line) =>
           line.includes(tool) &&
@@ -46,9 +46,9 @@ describe("cli-surface-matrix coverage (AC1/AC2)", () => {
     ).toEqual([]);
   });
 
-  test("every .opencode/command/adv-*.md command has a matrix row with a disposition", () => {
+  test("every .opencode/command/determinus-*.md command has a matrix row with a disposition", () => {
     const commandFiles = readdirSync(COMMAND_DIR).filter(
-      (f) => f.startsWith("adv-") && f.endsWith(".md"),
+      (f) => f.startsWith("determinus-") && f.endsWith(".md"),
     );
     const missing: string[] = [];
     for (const file of commandFiles) {
@@ -76,10 +76,10 @@ describe("cli-surface-matrix coverage (AC1/AC2)", () => {
     // name retired tools to document their retirement; its own stricter,
     // registry-derived rule lives in tool-role-policy.test.ts.
     const retiredHostTools = [
-      "`adv_epic_list`",
-      "`adv_epic_show`",
-      "`adv_backlog_list`",
-      "`adv_backlog_show`",
+      "`determinus_epic_list`",
+      "`determinus_epic_show`",
+      "`determinus_backlog_list`",
+      "`determinus_backlog_show`",
     ];
     const operationalDocs = TIER_4_READ_DOCS.filter(
       (doc) => doc !== "docs/tool-ownership.md",

@@ -24,7 +24,7 @@
     {
       "rowId": "codemode-spawned-researcher",
       "status": "pass",
-      "command": "oc run --agent adv-researcher --model kimi-for-coding/k2p7 --auto --format json",
+      "command": "oc run --agent determinus-researcher --model kimi-for-coding/k2p7 --auto --format json",
       "observedInvocation": "tools.context7[\"resolve-library-id\"]",
       "evidenceExcerpt": "return await tools.context7[\"resolve-library-id\"]({ libraryName: \"zod\", query: \"resolve zod library id\" }); | catalog toolCalls: context7.resolve-library-id",
       "ranAt": "2026-07-15T14:51:23.766Z",
@@ -33,7 +33,7 @@
     {
       "rowId": "exact-path-forms",
       "status": "pass",
-      "command": "oc run --agent adv-researcher --model kimi-for-coding/k2p7 --auto --format json",
+      "command": "oc run --agent determinus-researcher --model kimi-for-coding/k2p7 --auto --format json",
       "observedInvocation": "tools.lgrep.search_semantic",
       "evidenceExcerpt": "return await tools.lgrep.search_semantic({ path: \"/home/jon/toolbox\", query: \"codemode\" }); | catalog toolCalls: lgrep.search_semantic",
       "ranAt": "2026-07-15T14:51:23.766Z",
@@ -60,7 +60,7 @@
     {
       "rowId": "codemode-no-mcp",
       "status": "pass",
-      "command": "XDG_CONFIG_HOME=/tmp/opencode/adv-mcp-probe-276502/codemode-no-mcp/xdg OPENCODE_EXPERIMENTAL_CODE_MODE=true opencode run --dir /tmp/opencode/adv-mcp-probe-276502/codemode-no-mcp/project --agent adv --model kimi-for-coding/k2p7 --auto --format json",
+      "command": "XDG_CONFIG_HOME=/tmp/opencode/determinus-mcp-probe-276502/codemode-no-mcp/xdg OPENCODE_EXPERIMENTAL_CODE_MODE=true opencode run --dir /tmp/opencode/determinus-mcp-probe-276502/codemode-no-mcp/project --agent adv --model kimi-for-coding/k2p7 --auto --format json",
       "observedInvocation": null,
       "evidenceExcerpt": "Context7 is not available — no `context7_*` callable exists in the active tool surface for this session. Per the MCP Tool Name Contract, I won't infer or fabricate the capability.",
       "ranAt": "2026-07-15T14:52:35.280Z",

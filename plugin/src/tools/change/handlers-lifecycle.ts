@@ -137,7 +137,7 @@ export const advChangeCreateHandler = async (
 ) => {
   if (kind === "epic") {
     return dispatchEpicTool(
-      "adv_epic_create",
+      "determinus_epic_create",
       {
         epic_id: summary,
         title: summary,
@@ -154,7 +154,7 @@ export const advChangeCreateHandler = async (
       });
     }
     return dispatchEpicTool(
-      "adv_epic_add_shell",
+      "determinus_epic_add_shell",
       {
         epic_id: parent_epic_id,
         title: summary,
@@ -291,7 +291,7 @@ export const advChangeCreateHandler = async (
         issue_number: issueNumberForClaim,
         existing_change_id: first.changeId,
         existing_change_status: first.status,
-        hint: `Resume that change with /adv-apply ${first.changeId}, or omit origin_issue_number to create an unlinked change.`,
+        hint: `Resume that change with /determinus-apply ${first.changeId}, or omit origin_issue_number to create an unlinked change.`,
       });
     }
   }
@@ -446,7 +446,7 @@ export const advChangeCreateHandler = async (
     const createdDirective = deriveDirectiveSafe(
       {
         ...createdChangeResult.data,
-        projectId: createdChangeResult.data.adv_project_id ?? "unknown",
+        projectId: createdChangeResult.data.determinus_project_id ?? "unknown",
         gates: createdGates,
       } as never,
       Date.now(),
@@ -498,7 +498,7 @@ export const advChangeCreateHandler = async (
   }
   if (parent_epic_id) {
     const created = await dispatchEpicTool(
-      "adv_epic_link_change",
+      "determinus_epic_link_change",
       {
         epic_id: parent_epic_id,
         change_id: result.changeId,
@@ -565,7 +565,7 @@ export const advChangeUpdateHandler = async (
     const evidence = priorApprovalEvidence ?? "change facade Epic operation";
     if (link_change) {
       return dispatchEpicTool(
-        "adv_epic_link_change",
+        "determinus_epic_link_change",
         {
           epic_id: changeId,
           change_id: link_change,
@@ -576,7 +576,7 @@ export const advChangeUpdateHandler = async (
     }
     if (unlink_change) {
       return dispatchEpicTool(
-        "adv_epic_unlink_change",
+        "determinus_epic_unlink_change",
         {
           epic_id: changeId,
           change_id: unlink_change,
@@ -586,7 +586,7 @@ export const advChangeUpdateHandler = async (
       );
     }
     return dispatchEpicTool(
-      "adv_epic_reorder",
+      "determinus_epic_reorder",
       {
         epic_id: changeId,
         entry_ids: reorder_entries,
@@ -667,12 +667,12 @@ export const advChangeUpdateHandler = async (
         return formatToolOutput({
           error: `'${changeId}' is an Epic, not a change. Epics do not carry change artifacts.`,
           code: "EPIC_ARTIFACTS_UNSUPPORTED",
-          hint: "Epics carry a narrative rather than proposal/problemStatement/agreement/design/executiveSummary. In Code Mode, read it with 'tools.adv.epic_show' and edit Epic entries through 'adv_change_update link_change / unlink_change / reorder_entries'.",
+          hint: "Epics carry a narrative rather than proposal/problemStatement/agreement/design/executiveSummary. In Code Mode, read it with 'tools.adv.epic_show' and edit Epic entries through 'determinus_change_update link_change / unlink_change / reorder_entries'.",
         });
       }
       return formatToolOutput({
         error: `Change '${changeId}' not found.`,
-        hint: "Fetch valid change IDs with 'adv_change_list' or confirm the target with 'adv_change_show changeId: <id>' before retrying.",
+        hint: "Fetch valid change IDs with 'determinus_change_list' or confirm the target with 'determinus_change_show changeId: <id>' before retrying.",
       });
     }
     const artifactUpdates = {
@@ -784,7 +784,7 @@ export const advChangeCloseHandler = async (
       return formatToolOutput({
         error: "approvalEvidence is required for change close",
         changeId,
-        hint: "Obtain user approval via question tool, then call adv_change_close with approvalEvidence.",
+        hint: "Obtain user approval via question tool, then call determinus_change_close with approvalEvidence.",
       });
     }
     const epic = activeStore.epics
@@ -792,7 +792,7 @@ export const advChangeCloseHandler = async (
       : undefined;
     if (epic?.success && epic.data) {
       return dispatchEpicTool(
-        "adv_epic_retire",
+        "determinus_epic_retire",
         {
           epic_id: changeId,
           expected_version: epic.data.version,
@@ -922,7 +922,7 @@ export const advChangeCloseHandler = async (
   return runClose(store);
 };
 export const lifecycleChangeTools = {
-  adv_change_create: {
+  determinus_change_create: {
     description: "Create a new change proposal",
     args: {
       summary: z
@@ -1060,7 +1060,7 @@ export const lifecycleChangeTools = {
         "Origin provenance kind. " +
           "'roadmap' = READABLE LEGACY ONLY — retired for new writes by reshapeTriagePortfolioBalance; archived changes still carry this kind. Use 'triage' for new issue-linked changes. " +
           "'discovery' = surfaced mid-session (bug found, drive-by improvement). " +
-          "'triage' = promoted by /adv-triage from wisdom/notes (origin_source_artifact recommended). " +
+          "'triage' = promoted by /determinus-triage from wisdom/notes (origin_source_artifact recommended). " +
           "'adhoc' = explicit, no upstream artifact. " +
           "Omit to leave origin unset (legacy/backward-compatible).",
       ),
@@ -1095,14 +1095,14 @@ export const lifecycleChangeTools = {
     },
     execute: advChangeCreateHandler,
   },
-  adv_change_update: {
+  determinus_change_update: {
     description:
-      "Update narrative artifacts (proposal.md, problem-statement.md, agreement.md, design.md, executive-summary.md) for an existing change. Does NOT create a new change or modify change.json metadata (status, tasks, deltas). Use this instead of calling adv_change_create again when refining a proposal or persisting the post-acceptance executive summary. Only provided fields are written — omitted fields are left unchanged.",
+      "Update narrative artifacts (proposal.md, problem-statement.md, agreement.md, design.md, executive-summary.md) for an existing change. Does NOT create a new change or modify change.json metadata (status, tasks, deltas). Use this instead of calling determinus_change_create again when refining a proposal or persisting the post-acceptance executive summary. Only provided fields are written — omitted fields are left unchanged.",
     args: {
       changeId: z
         .string()
         .describe(
-          "Change ID to update — must match an existing change from `adv_change_list`. Unknown IDs are rejected with a hint. This tool writes artifact files only; it does NOT modify change.json metadata (status, tasks, deltas).",
+          "Change ID to update — must match an existing change from `determinus_change_list`. Unknown IDs are rejected with a hint. This tool writes artifact files only; it does NOT modify change.json metadata (status, tasks, deltas).",
         ),
       proposal: z
         .string()
@@ -1164,7 +1164,7 @@ export const lifecycleChangeTools = {
     },
     execute: advChangeUpdateHandler,
   },
-  adv_change_close: {
+  determinus_change_close: {
     description:
       "Close an active change with required user approval and audit metadata",
     args: {

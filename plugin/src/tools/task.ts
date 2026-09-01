@@ -490,7 +490,7 @@ async function resolveChangeId(
 // =============================================================================
 
 const taskToolDefinitions = {
-  adv_task_show: {
+  determinus_task_show: {
     description:
       "Get full details of a single task by ID, including its parent change ID. Use when you have a task ID but need the complete task object.",
     args: {
@@ -585,13 +585,13 @@ const taskToolDefinitions = {
     },
   },
 
-  adv_task_list: {
+  determinus_task_list: {
     description: "List tasks for a change with optional status filter",
     args: {
       changeId: z
         .string()
         .describe(
-          "Change ID — must match an existing change from `adv_change_list`. Returns tasks ordered by priority with metadata, TDD state, and dependencies.",
+          "Change ID — must match an existing change from `determinus_change_list`. Returns tasks ordered by priority with metadata, TDD state, and dependencies.",
         ),
       status: z
         .enum(["pending", "in_progress", "done", "cancelled"])
@@ -624,7 +624,7 @@ const taskToolDefinitions = {
         .enum(["compact", "pretty"])
         .optional()
         .describe(
-          "Output mode: compact (default) or pretty. Overrides ADV_TOOL_OUTPUT_MODE env var for this call.",
+          "Output mode: compact (default) or pretty. Overrides determinus_TOOL_OUTPUT_MODE env var for this call.",
         ),
     },
     execute: async (
@@ -670,7 +670,7 @@ const taskToolDefinitions = {
           const paged = paginate(tasks, {
             limit,
             offset,
-            tool: "adv_task_list",
+            tool: "determinus_task_list",
             args: `changeId: "${changeId}"${status ? `, status: "${status}"` : ""}${filter ? `, filter: "${filter}"` : ""}`,
           });
           return formatToolOutput(
@@ -686,13 +686,13 @@ const taskToolDefinitions = {
     },
   },
 
-  adv_task_ready: {
+  determinus_task_ready: {
     description: "Get unblocked pending tasks ready for work",
     args: {
       changeId: z
         .string()
         .describe(
-          "Change ID — must match an existing change from `adv_change_list`. Returns ready (unblocked) tasks plus the blocked list with their blockedBy references.",
+          "Change ID — must match an existing change from `determinus_change_list`. Returns ready (unblocked) tasks plus the blocked list with their blockedBy references.",
         ),
       target_path: z
         .string()
@@ -774,9 +774,9 @@ const taskToolDefinitions = {
     },
   },
 
-  adv_task_update: {
+  determinus_task_update: {
     description:
-      "Update task status. NOTE: To cancel a task, use adv_task_cancel instead — direct cancellation via this tool is not allowed. To mark a task done in normal apply flow, use adv_task_checkpoint so git checkpoint metadata is recorded.",
+      "Update task status. NOTE: To cancel a task, use determinus_task_cancel instead — direct cancellation via this tool is not allowed. To mark a task done in normal apply flow, use determinus_task_checkpoint so git checkpoint metadata is recorded.",
     args: {
       taskId: z.string().describe("Task ID"),
       status: z
@@ -953,8 +953,8 @@ const taskToolDefinitions = {
         if (args.status === "cancelled") {
           return formatToolOutput({
             error:
-              "Direct task cancellation is not allowed. Use adv_task_cancel instead, which requires presenting cancellation reasons to the user and obtaining explicit approval.",
-            hint: "Call adv_task_cancel with taskIds, reasons (per task), and user approval evidence.",
+              "Direct task cancellation is not allowed. Use determinus_task_cancel instead, which requires presenting cancellation reasons to the user and obtaining explicit approval.",
+            hint: "Call determinus_task_cancel with taskIds, reasons (per task), and user approval evidence.",
           });
         }
 
@@ -1042,7 +1042,7 @@ const taskToolDefinitions = {
           const gatesForRepair = await activeStore.gates.get(changeId);
           if (gatesForRepair && gatesForRepair.planning.status === "done") {
             return formatToolOutput({
-              error: `Cannot repair evidence plan after planning gate is complete. Submit an adv-reviewer report to provide reviewer-owned evidence, or use adv_change_reenter to reopen the planning gate for scope expansion.`,
+              error: `Cannot repair evidence plan after planning gate is complete. Submit an determinus-reviewer report to provide reviewer-owned evidence, or use determinus_change_reenter to reopen the planning gate for scope expansion.`,
               code: "EVIDENCE_PLAN_REPAIR_AFTER_PLANNING",
               changeId,
               taskId: args.taskId,
@@ -1128,9 +1128,9 @@ const taskToolDefinitions = {
         if (args.status === "done" && !shouldPatchExistingDoneTask) {
           return formatToolOutput({
             error:
-              "Normal task completion must go through adv_task_checkpoint so git checkpoint metadata, touched files, and verification are recorded before the task is marked done.",
+              "Normal task completion must go through determinus_task_checkpoint so git checkpoint metadata, touched files, and verification are recorded before the task is marked done.",
             code: "TASK_DONE_REQUIRES_CHECKPOINT",
-            hint: "Run adv_task_checkpoint with mode:'complete'. Use adv_task_update status:'done' only to patch an already-done task's metadata/contract refs.",
+            hint: "Run determinus_task_checkpoint with mode:'complete'. Use determinus_task_update status:'done' only to patch an already-done task's metadata/contract refs.",
             changeId,
             taskId: args.taskId,
           });
@@ -1188,7 +1188,7 @@ const taskToolDefinitions = {
             patch.verification =
               args.notes ??
               args.implementation_summary ??
-              "Task marked done via adv_task_update";
+              "Task marked done via determinus_task_update";
           }
           return { ...task, ...patch } as Task;
         };
@@ -1290,13 +1290,13 @@ const taskToolDefinitions = {
     },
   },
 
-  adv_task_add: {
+  determinus_task_add: {
     description: "Add a new task to a change",
     args: {
       changeId: z
         .string()
         .describe(
-          "Change ID to add the task to. Must match an existing change from `adv_change_list` — fetch the list first if unsure. Tasks are rejected after the planning gate is complete.",
+          "Change ID to add the task to. Must match an existing change from `determinus_change_list` — fetch the list first if unsure. Tasks are rejected after the planning gate is complete.",
         ),
       content: z
         .string()
@@ -1335,7 +1335,7 @@ const taskToolDefinitions = {
         .array(z.string())
         .optional()
         .describe(
-          "Task IDs that block this task. Each ID MUST exist in the same change — fetch current task IDs with `adv_task_list changeId: <id>` before calling. Unknown IDs are rejected with the list of valid IDs in the response.",
+          "Task IDs that block this task. Each ID MUST exist in the same change — fetch current task IDs with `determinus_task_list changeId: <id>` before calling. Unknown IDs are rejected with the list of valid IDs in the response.",
         ),
       section: z
         .string()
@@ -1432,7 +1432,7 @@ const taskToolDefinitions = {
         const gates = await activeStore.gates.get(changeId);
         if (gates && gates.planning.status === "done") {
           return formatToolOutput({
-            error: `Cannot add tasks after planning gate is complete. Use adv_task_reclassify_tdd to modify existing task TDD intent, or use adv_change_reenter to reopen the planning gate for scope expansion.`,
+            error: `Cannot add tasks after planning gate is complete. Use determinus_task_reclassify_tdd to modify existing task TDD intent, or use determinus_change_reenter to reopen the planning gate for scope expansion.`,
           });
         }
 
@@ -1460,8 +1460,8 @@ const taskToolDefinitions = {
                   ? `Unknown task ID in blockedBy: '${unknown[0]}' does not exist in change '${changeId}'.`
                   : `Unknown task IDs in blockedBy: ${unknown.map((id) => `'${id}'`).join(", ")} do not exist in change '${changeId}'.`,
               hint: projected.data
-                ? `Read canonical task IDs from 'adv_task_list changeId: ${changeId}' and copy exact IDs into blockedBy.`
-                : `Canonical change.json task reads are unavailable for '${changeId}'. Run adv_doctor and stop; do not retry in a loop while projection health is degraded.`,
+                ? `Read canonical task IDs from 'determinus_task_list changeId: ${changeId}' and copy exact IDs into blockedBy.`
+                : `Canonical change.json task reads are unavailable for '${changeId}'. Run determinus_doctor and stop; do not retry in a loop while projection health is degraded.`,
               unknownTaskIds: unknown,
               validTaskIds: Array.from(validIdSet),
             });
@@ -1598,7 +1598,7 @@ const taskToolDefinitions = {
     },
   },
 
-  adv_task_cancel: {
+  determinus_task_cancel: {
     description:
       "Cancel one or more tasks with required user approval. " +
       "Before calling this tool, the agent MUST present all proposed cancellations " +
@@ -1608,7 +1608,7 @@ const taskToolDefinitions = {
       taskIds: z
         .array(z.string())
         .describe(
-          "Task IDs to cancel (batch supported). All IDs must exist in the same change — fetch with `adv_task_list` first. Cancellations are atomic: if any ID is unknown, NO task is cancelled.",
+          "Task IDs to cancel (batch supported). All IDs must exist in the same change — fetch with `determinus_task_list` first. Cancellations are atomic: if any ID is unknown, NO task is cancelled.",
         ),
       reasons: z
         .record(z.string(), z.string())
@@ -1710,7 +1710,7 @@ const taskToolDefinitions = {
               unknownTaskIds.length === 1
                 ? `Task ID not found: '${unknownTaskIds[0]}'. No tasks were cancelled.`
                 : `Task IDs not found: ${unknownTaskIds.map((id) => `'${id}'`).join(", ")}. No tasks were cancelled.`,
-            hint: "Confirm each task ID with 'adv_task_list changeId: <id>' before retrying. Cancellations are atomic — all IDs must be valid or none are cancelled.",
+            hint: "Confirm each task ID with 'determinus_task_list changeId: <id>' before retrying. Cancellations are atomic — all IDs must be valid or none are cancelled.",
             unknownTaskIds,
           });
         }
@@ -1826,7 +1826,7 @@ const taskToolDefinitions = {
     },
   },
 
-  adv_task_reclassify_tdd: {
+  determinus_task_reclassify_tdd: {
     description:
       "Set or reclassify a task's TDD intent (tdd_intent metadata) with required user approval. " +
       "Use to assign initial tdd_intent when missing, or change it after the prep gate is complete. " +
@@ -1991,7 +1991,7 @@ const taskToolDefinitions = {
 };
 
 const {
-  adv_task_reclassify_tdd: _advTaskReclassifyTddDefinition,
+  determinus_task_reclassify_tdd: _advTaskReclassifyTddDefinition,
   ...taskTools
 } = taskToolDefinitions;
 

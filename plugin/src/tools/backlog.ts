@@ -2,16 +2,16 @@
  * Backlog Coordination Tools (rq-backlogCoord04, rq-wipPoisonIsolation01).
  *
  * One tool:
- *   - `adv_wip_state` (rq-backlogCoord04) — single-call WIP aggregator over
+ *   - `determinus_wip_state` (rq-backlogCoord04) — single-call WIP aggregator over
  *     active changes via store, worktrees via `listWorktreesAcrossChanges`,
  *     and peer sessions
  *     (privacy-defensive projection via `listPeerSessions`).
  *
- * consolidateAdvToolSurface2 (tk-f022bfadbd81): `adv_backlog_state` was
+ * consolidateAdvToolSurface2 (tk-f022bfadbd81): `determinus_backlog_state` was
  * removed completely; its TTL-bounded freshness and O(1) Visibility
  * annotation behavior moved into the sole backlog reader at the time.
  * reshapeTriagePortfolioBalance later retired the portfolio reader tool itself;
- * portfolio-balance output now lives in `/adv-triage`.
+ * portfolio-balance output now lives in `/determinus-triage`.
  *
  * Snapshot invariant: all scoring fields may be null; this tool is read-only
  * on snapshot. GH Project remains canonical for any remaining numeric data.
@@ -214,7 +214,7 @@ export interface WipStateProviders {
 }
 
 /**
- * Caller-visible safety-net timeout for `adv_wip_state`.
+ * Caller-visible safety-net timeout for `determinus_wip_state`.
  *
  * The worktree inventory fans out to every change workflow; on large projects
  * it can exceed the default 10s tool safety net. The inner collector stops at
@@ -226,10 +226,10 @@ export const WIP_CALLER_TIMEOUT_MS = 60_000;
 
 const MAX_ORPHAN_WARNINGS = 50;
 const ORPHAN_RECOVERY =
-  "Reassign the task via adv_task_update or resume the owning session; no automatic status mutation occurred.";
+  "Reassign the task via determinus_task_update or resume the owning session; no automatic status mutation occurred.";
 
 /**
- * Production execution context for `adv_wip_state`. Tests may still pass a bare
+ * Production execution context for `determinus_wip_state`. Tests may still pass a bare
  * `Store` as the second argument for backward compatibility.
  */
 export interface WipStateExecuteContext {
@@ -594,7 +594,7 @@ function buildClaimInventory(
 }
 
 export const backlogTools = {
-  adv_wip_state: {
+  determinus_wip_state: {
     description:
       "Single-call aggregator: returns active changes, worktrees, and peer sessions in one tool response. Read-only. Source failures isolate per-section with warnings instead of failing the whole call (rq-backlogCoord04).",
     args: {

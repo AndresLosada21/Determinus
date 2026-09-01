@@ -24,12 +24,12 @@ const PLAN_HASH = /^[a-f0-9]{64}$/;
 const StoreReconcileModeSchema = z.enum(["plan", "dry_run", "apply"]);
 
 const storeReconcileToolDefinitions = {
-  adv_store_reconcile: {
+  determinus_store_reconcile: {
     description:
       "Reconcile disk-backed ADV store migration residue. The default plan " +
       "mode is read-only and emits the complete plan plus plan_hash; apply " +
       "requires that plan_hash as explicit approval and re-verifies it before mutation. " +
-      "This is an operator-only surface; adv_doctor diagnostics are unchanged.",
+      "This is an operator-only surface; determinus_doctor diagnostics are unchanged.",
     args: {
       mode: StoreReconcileModeSchema.default("plan").describe(
         "plan/dry_run = read-only plan with plan_hash; apply = execute the approved plan",
@@ -126,7 +126,7 @@ const storeReconcileToolDefinitions = {
               zero_mutations: true,
               ...(followUpRuns && { follow_up_runs_required: followUpRuns }),
             },
-            { tool: "adv_store_reconcile" },
+            { tool: "determinus_store_reconcile" },
           );
         }
 
@@ -142,7 +142,7 @@ const storeReconcileToolDefinitions = {
               plan_hash: plan.plan_hash,
               zero_mutations: true,
             },
-            { tool: "adv_store_reconcile" },
+            { tool: "determinus_store_reconcile" },
           );
         }
 
@@ -179,7 +179,7 @@ const storeReconcileToolDefinitions = {
             report,
             exit_code: reconcileExitCode(report),
           },
-          { tool: "adv_store_reconcile" },
+          { tool: "determinus_store_reconcile" },
         );
       };
 
@@ -235,14 +235,14 @@ const storeReconcileToolDefinitions = {
               refusal.report === undefined ||
               refusal.report.counters.mutated === 0,
           },
-          { tool: "adv_store_reconcile" },
+          { tool: "determinus_store_reconcile" },
         );
       }
     },
   },
 } as const;
 
-const { adv_store_reconcile: storeReconcileDefinition } =
+const { determinus_store_reconcile: storeReconcileDefinition } =
   storeReconcileToolDefinitions;
 
 /** Internal CLI handler retained for bin/adv reconcile. */

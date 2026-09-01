@@ -18,7 +18,7 @@ const logger = createLogger("launcher-projection");
 const launcherProjectionToolDefinitions = {
   // rq-launcherProjectionTruth01 — producer-owned rebuild trigger regenerates
   // the durable active-launcher-state aggregate from on-disk per-change projections.
-  adv_launcher_projection_rebuild: {
+  determinus_launcher_projection_rebuild: {
     description:
       "Rebuild the aggregate launcher projection (active-launcher-state.json) from " +
       "the on-disk per-change projection set. Producer-only MCP tool; does not touch " +

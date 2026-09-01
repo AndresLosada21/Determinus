@@ -24,7 +24,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  delete process.env.ADV_PLAN_ROUTING_FAIL_CLOSED;
+  delete process.env.determinus_PLAN_ROUTING_FAIL_CLOSED;
   if (tempDir) await cleanupTempDir(tempDir);
   tempDir = undefined;
 });

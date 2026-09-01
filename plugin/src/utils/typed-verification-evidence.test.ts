@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveTypedVerificationWarnings } from "./typed-verification-evidence";
 
 describe("resolveTypedVerificationWarnings", () => {
-  it("resolves the exact run ID returned by adv_run_test", () => {
+  it("resolves the exact run ID returned by determinus_run_test", () => {
     expect(
       resolveTypedVerificationWarnings(
         [{ test_run_id: "tr_recorded", exit_code: 0 }],
@@ -27,7 +27,7 @@ describe("resolveTypedVerificationWarnings", () => {
       {
         kind: "verification_missing",
         message:
-          "No durable adv_run_test evidence found for run_id: tr_missing",
+          "No durable determinus_run_test evidence found for run_id: tr_missing",
       },
     ]);
   });

@@ -404,7 +404,7 @@ function buildEpicContextSection(
   if (input.epic_membership_verification) {
     content.verification = input.epic_membership_verification;
     if (input.epic_membership_verification === "entry_missing") {
-      content.reconcile = "adv-store-reconcile";
+      content.reconcile = "determinus-store-reconcile";
     }
   }
   return section("epic_context", "epic.membership", content);

@@ -72,7 +72,7 @@ export interface SpecToolContext {
 }
 
 export const specTools = {
-  adv_spec: {
+  determinus_spec: {
     description: "Manage and query specifications (list, show, search)",
     args: {
       action: z
@@ -158,7 +158,7 @@ export const specTools = {
           const paged = paginate(spec.requirements, {
             limit: args.limit,
             offset: args.offset,
-            tool: "adv_spec",
+            tool: "determinus_spec",
             args: `action: "show", capability: "${args.capability}"`,
           });
           return formatToolOutput({

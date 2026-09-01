@@ -1,5 +1,5 @@
 /**
- * adv_resume_projection — MCP tool adapter for the resume projection kernel.
+ * determinus_resume_projection — MCP tool adapter for the resume projection kernel.
  *
  * ADV tool `class: orchestrator` (pure-read, no mutation surface). Loads
  * changes + epics from the store, maps to kernel input types, calls
@@ -29,7 +29,7 @@ import {
 const RESUME_PROJECTION_GET_CONCURRENCY = 8;
 
 const resumeProjectionToolDefinitions = {
-  adv_resume_projection: {
+  determinus_resume_projection: {
     description:
       "Generate a dependency-aware resume projection: what to work on next, " +
       "what's blocked, what's active, and cross-Epic redirects. Pure read — no " +

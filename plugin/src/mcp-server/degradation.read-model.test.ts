@@ -28,10 +28,10 @@ afterEach(() => {
 
 function mockFactory(): CreateToolMapFn {
   return vi.fn(() => ({
-    adv_epic_list: {
+    determinus_epic_list: {
       execute: vi.fn(async () => "epic_list result"),
     },
-    adv_tool_catalog: {
+    determinus_tool_catalog: {
       execute: vi.fn(async () => JSON.stringify({ ok: true })),
     },
   })) as unknown as CreateToolMapFn;

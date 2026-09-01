@@ -27,7 +27,7 @@ const SAMPLE_CONFIG: GitHubProjectConfig = {
   project_id: "PVT_test_id",
   title: "ADV: Test",
   fields: {
-    adv_type: "PVTSSF_advtype",
+    determinus_type: "PVTSSF_advtype",
     priority: "PVTSSF_priority",
     value: "PVTF_value",
     time_criticality: "PVTF_tc",
@@ -35,7 +35,7 @@ const SAMPLE_CONFIG: GitHubProjectConfig = {
     effort: "PVTF_effort",
     wsjf: "PVTF_wsjf",
   },
-  adv_type_options: { bug: "opt_bug", feature: "opt_feature" },
+  determinus_type_options: { bug: "opt_bug", feature: "opt_feature" },
   priority_options: {
     critical: "opt_c",
     high: "opt_h",
@@ -51,8 +51,8 @@ describe("github-project-config", () => {
   let externalDir: string;
 
   beforeEach(async () => {
-    dir = await createTempDir("adv-gh-cfg-");
-    externalDir = await createTempDir("adv-gh-cfg-ext-");
+    dir = await createTempDir("determinus-gh-cfg-");
+    externalDir = await createTempDir("determinus-gh-cfg-ext-");
     await mkdir(join(dir, ".adv"), { recursive: true });
   });
 
@@ -221,7 +221,7 @@ describe("github-project-config", () => {
     });
 
     test("creates .adv/ directory if missing", async () => {
-      const freshDir = await createTempDir("adv-gh-cfg-fresh-");
+      const freshDir = await createTempDir("determinus-gh-cfg-fresh-");
       try {
         // .adv does NOT exist yet
         expect(existsSync(join(freshDir, ".adv"))).toBe(false);

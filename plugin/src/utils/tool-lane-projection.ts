@@ -22,7 +22,10 @@ function execFileAsync(
   });
 }
 
-const REPRESENTATIVE_LANES = ["adv-ci-waiter", "adv-engineer"] as const;
+const REPRESENTATIVE_LANES = [
+  "determinus-ci-waiter",
+  "determinus-engineer",
+] as const;
 
 const LANE_PERMISSION_CACHE_TTL_MS = 60_000;
 

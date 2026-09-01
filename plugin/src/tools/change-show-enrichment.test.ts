@@ -1,5 +1,5 @@
 /**
- * adv_change_show enrichment output-shape and best-effort integration.
+ * determinus_change_show enrichment output-shape and best-effort integration.
  *
  * Verifies that degraded/best-effort clarify and external-dependency enrichment
  * preserves the core disk-authoritative change output shape and never issues
@@ -155,7 +155,7 @@ function assertNoWorkflowCalls(store: Store) {
   expect(store.changes.save).not.toHaveBeenCalled();
 }
 
-describe("adv_change_show enrichment best-effort integration", () => {
+describe("determinus_change_show enrichment best-effort integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.runClarifyReadinessChecks.mockReturnValue({ findings: [] });
@@ -174,7 +174,7 @@ describe("adv_change_show enrichment best-effort integration", () => {
       ],
     });
 
-    const result = await changeTools.adv_change_show.execute(
+    const result = await changeTools.determinus_change_show.execute(
       { changeId: "test-change" },
       store,
     );
@@ -211,7 +211,7 @@ describe("adv_change_show enrichment best-effort integration", () => {
     });
 
     const store = createMockStore();
-    const result = await changeTools.adv_change_show.execute(
+    const result = await changeTools.determinus_change_show.execute(
       { changeId: "test-change" },
       store,
     );
@@ -241,7 +241,7 @@ describe("adv_change_show enrichment best-effort integration", () => {
       documents: { problemStatement: "Confirmed problem statement text." },
     } as Partial<Change>);
 
-    const result = await changeTools.adv_change_show.execute(
+    const result = await changeTools.determinus_change_show.execute(
       { changeId: "test-change" },
       store,
     );
@@ -255,7 +255,7 @@ describe("adv_change_show enrichment best-effort integration", () => {
   test("reports problem-statement absence when no source carries content", async () => {
     const store = createMockStore();
 
-    const result = await changeTools.adv_change_show.execute(
+    const result = await changeTools.determinus_change_show.execute(
       { changeId: "test-change" },
       store,
     );
@@ -289,7 +289,7 @@ describe("adv_change_show enrichment best-effort integration", () => {
       },
     });
 
-    const result = await changeTools.adv_change_show.execute(
+    const result = await changeTools.determinus_change_show.execute(
       {
         changeId: "test-change",
         include: { snapshot: true, briefingPacket: true },
@@ -306,7 +306,7 @@ describe("adv_change_show enrichment best-effort integration", () => {
     expect(parsed._contextSnapshot).toMatch(/reconcile/i);
     expect(epicSection.content).toMatchObject({
       verification: "entry_missing",
-      reconcile: "adv-store-reconcile",
+      reconcile: "determinus-store-reconcile",
     });
     assertNoWorkflowCalls(store);
   });

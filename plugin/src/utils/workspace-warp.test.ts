@@ -158,7 +158,7 @@ describe("workspace-warp", () => {
       headers: { "content-type": "application/json" },
     });
     expect(JSON.parse(String(init.body))).toEqual({
-      type: "adv-worktree",
+      type: "determinus-worktree",
       branch: "change/test",
       extra: { directory: "/tmp/wt", branch: "change/test" },
     });
@@ -411,13 +411,13 @@ describe("workspace-warp", () => {
         jsonResponse([
           {
             id: "ws-other",
-            type: "adv-worktree",
+            type: "determinus-worktree",
             directory: "/tmp/other",
             extra: { directory: "/tmp/other", branch: "change/other" },
           },
           {
             id: "ws-match",
-            type: "adv-worktree",
+            type: "determinus-worktree",
             directory: "/tmp/wt",
             extra: { directory: "/tmp/wt", branch: "change/test" },
           },
@@ -442,7 +442,7 @@ describe("workspace-warp", () => {
         jsonResponse([
           {
             id: "ws-match",
-            type: "adv-worktree",
+            type: "determinus-worktree",
             directory: null,
             extra: { directory: "/tmp/wt", branch: "change/test" },
           },
@@ -470,13 +470,13 @@ describe("workspace-warp", () => {
           },
           {
             id: "ws-wrong-extra",
-            type: "adv-worktree",
+            type: "determinus-worktree",
             directory: "/tmp/wt",
             extra: { directory: "/tmp/other", branch: "change/test" },
           },
           {
             id: "ws-wrong-branch",
-            type: "adv-worktree",
+            type: "determinus-worktree",
             directory: "/tmp/wt",
             extra: { directory: "/tmp/wt", branch: "change/other" },
           },
@@ -560,7 +560,7 @@ describe("workspace-warp", () => {
         jsonResponse([
           {
             id: "ws-match",
-            type: "adv-worktree",
+            type: "determinus-worktree",
             directory: "/tmp/wt",
             extra: { directory: "/tmp/wt", branch: "change/test" },
           },
@@ -594,7 +594,7 @@ describe("workspace-warp", () => {
         jsonResponse([
           {
             id: "",
-            type: "adv-worktree",
+            type: "determinus-worktree",
             directory: "/tmp/wt",
             extra: { directory: "/tmp/wt", branch: "change/test" },
           },

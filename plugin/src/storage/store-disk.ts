@@ -11,7 +11,7 @@
  *     root + config to changes/specs/wisdom directories.
  *   - **Disk projection writes**: changes.create and changes.save persist
  *     change.json and its projection documents.
- *   - **Cross-repo target init**: when adv_change_create is called with
+ *   - **Cross-repo target init**: when determinus_change_create is called with
  *     `target_path`, the cross-project flow needs to scaffold a change in
  *     the target repo's filesystem before any other state exists.
  *   - **Cold-start fallbacks**: when Visibility API isn't available

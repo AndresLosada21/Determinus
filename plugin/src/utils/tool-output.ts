@@ -12,8 +12,8 @@
 // Configuration
 // =============================================================================
 
-const ENV_MAX_CHARS = parseInt(process.env.ADV_TOOL_MAX_CHARS || "", 10);
-const ENV_OUTPUT_MODE = process.env.ADV_TOOL_OUTPUT_MODE;
+const ENV_MAX_CHARS = parseInt(process.env.determinus_TOOL_MAX_CHARS || "", 10);
+const ENV_OUTPUT_MODE = process.env.determinus_TOOL_OUTPUT_MODE;
 
 /** Hard character cap. Approximate ~6k tokens at 3.5 chars/token. */
 export const DEFAULT_MAX_CHARS = 5000;
@@ -31,7 +31,7 @@ const MAX_CHARS =
  * Resolve output mode with explicit precedence: caller arg > env > "compact".
  *
  * The naive `{ pretty: args.outputMode === "pretty" }` wiring fails when the
- * caller passes `outputMode: "compact"` while `ADV_TOOL_OUTPUT_MODE=pretty`
+ * caller passes `outputMode: "compact"` while `determinus_TOOL_OUTPUT_MODE=pretty`
  * because `formatToolOutput` uses OR-semantics (`pretty || env === "pretty"`).
  * This resolver makes the precedence explicit and testable.
  *

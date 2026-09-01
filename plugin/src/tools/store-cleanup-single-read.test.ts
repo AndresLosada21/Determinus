@@ -38,7 +38,7 @@ let base: string;
 let dataHomeRoot: string;
 
 beforeAll(async () => {
-  base = await mkdtemp(join(tmpdir(), "adv-store-cleanup-single-read-"));
+  base = await mkdtemp(join(tmpdir(), "determinus-store-cleanup-single-read-"));
   dataHomeRoot = join(base, "xdg");
   for (const id of projectIds) {
     const dir = join(

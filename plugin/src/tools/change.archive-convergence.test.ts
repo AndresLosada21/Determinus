@@ -81,7 +81,7 @@ describe("saveRecoveredArchiveConvergence", () => {
   let archiveDir: string;
 
   beforeEach(async () => {
-    tempRoot = await mkdtemp(join(tmpdir(), "adv-archive-convergence-"));
+    tempRoot = await mkdtemp(join(tmpdir(), "determinus-archive-convergence-"));
     changesDir = join(tempRoot, "changes");
     archiveDir = join(tempRoot, "archive");
     await mkdir(changesDir, { recursive: true });

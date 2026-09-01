@@ -9,7 +9,7 @@ import * as fs from "fs";
 import { execSync, execFileSync } from "child_process";
 import type { StatusMarker } from "../types";
 import {
-  ADV_DEBUG_ENABLED,
+  determinus_DEBUG_ENABLED,
   appendDebugLog,
   createLogger,
 } from "../utils/debug-log";
@@ -18,7 +18,7 @@ import {
 // Debug Logging
 // =============================================================================
 
-const DEBUG = ADV_DEBUG_ENABLED;
+const DEBUG = determinus_DEBUG_ENABLED;
 const logger = createLogger("terminal");
 
 /**
@@ -29,7 +29,7 @@ const logToFile = (msg: string): void => {
 };
 
 /**
- * Log debug message to both file and stderr when ADV_DEBUG=1.
+ * Log debug message to both file and stderr when determinus_DEBUG=1.
  *
  * Uses `logger.error` so the same structured logger carries terminal
  * debug output; the DEBUG gate keeps output quiet in normal runs.

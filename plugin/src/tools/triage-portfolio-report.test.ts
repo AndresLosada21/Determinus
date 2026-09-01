@@ -37,9 +37,9 @@ describe("renderPortfolioBalance", () => {
     expect(output).toContain("### Important to complete");
     expect(output).toContain("Epic commerce — Commerce launch — order 2");
     expect(output).toContain("### Cleanup needed");
-    expect(output).toContain("→ /adv-cleanup");
+    expect(output).toContain("→ /determinus-cleanup");
     expect(output).toContain("### Open issues worth solving");
-    expect(output).toContain("→ /adv-proposal #12");
+    expect(output).toContain("→ /determinus-proposal #12");
   });
 
   test("sorts changes by issue priority then gate proximity", () => {

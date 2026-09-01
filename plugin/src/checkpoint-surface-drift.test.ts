@@ -35,39 +35,39 @@ interface CheckpointCommand {
  */
 const checkpointCommands: CheckpointCommand[] = [
   {
-    file: "adv-proposal.md",
+    file: "determinus-proposal.md",
     anchorPhrase: "Reply `continue` to proceed, or reply with what to adjust.",
     oldPattern: /Step 9.*via\s+`question`\s+tool/s,
   },
   {
-    file: "adv-discover.md",
+    file: "determinus-discover.md",
     anchorPhrase: "Reply `continue` to proceed, or reply with what to adjust.",
     oldPattern:
       /Phase 4\.6.*Ask\s+for\s+explicit\s+user\s+confirmation\s+or\s+edits\s+using\s+the\s+`question`\s+tool/s,
   },
   {
-    file: "adv-design.md",
+    file: "determinus-design.md",
     anchorPhrase: "Reply `continue` to proceed, or reply with what to adjust.",
     oldPattern: /Recommended options.*Looks good — proceed/s,
   },
   {
-    file: "adv-prep.md",
+    file: "determinus-prep.md",
     anchorPhrase: "Reply `continue` to proceed, or reply with what to adjust.",
     oldPattern: /Phase 5\.2.*via\s+`question`\s+tool/s,
   },
   {
-    file: "adv-review.md",
+    file: "determinus-review.md",
     anchorPhrase: "Reply `continue` to proceed, or reply with what to adjust.",
     oldPattern:
       /Use the `question` tool to ask whether the delivered work satisfies/i,
   },
   {
-    file: "adv-archive.md",
+    file: "determinus-archive.md",
     anchorPhrase: "Reply `sign off`",
     oldPattern: /Ask via `question`: ?"Archive/i,
   },
   {
-    file: "adv-apply.md",
+    file: "determinus-apply.md",
     anchorPhrase: "approve all",
     oldPattern: /present via `question` tool \(Approve all/i,
   },
@@ -95,37 +95,40 @@ describe("checkpoint surface drift", () => {
 
   test("non-checkpoint question-tool uses are preserved", () => {
     // Smoke test: change-id selection and AC clarification rounds in
-    // adv-apply.md still use the question tool legitimately. This
+    // determinus-apply.md still use the question tool legitimately. This
     // ensures the conversion didn't accidentally migrate non-checkpoint
     // uses.
-    const apply = readFileSync(join(COMMANDS_DIR, "adv-apply.md"), "utf8");
+    const apply = readFileSync(
+      join(COMMANDS_DIR, "determinus-apply.md"),
+      "utf8",
+    );
 
     // Change-id selection (target resolution) — non-checkpoint use
     expect(
       apply,
-      "adv-apply.md must still reference question tool for change-id selection (non-checkpoint use)",
-    ).toMatch(/adv_change_list.*question/i);
+      "determinus-apply.md must still reference question tool for change-id selection (non-checkpoint use)",
+    ).toMatch(/determinus_change_list.*question/i);
 
     // Non-checkpoint question-tool uses remain available for change-id
     // selection and other structured choice flows.
   });
 
-  test("adv-discover.md preserves question tool for clarification rounds (Phase 4.5)", () => {
+  test("determinus-discover.md preserves question tool for clarification rounds (Phase 4.5)", () => {
     // Phase 4.5 (Open Question Resolution Loop) is NOT a checkpoint —
     // it's a multi-round clarification flow that legitimately uses
     // the question tool with structured options.
     const discover = readFileSync(
-      join(COMMANDS_DIR, "adv-discover.md"),
+      join(COMMANDS_DIR, "determinus-discover.md"),
       "utf8",
     );
 
     expect(
       discover,
-      "adv-discover.md Phase 4.5 must still use question tool for clarification rounds",
+      "determinus-discover.md Phase 4.5 must still use question tool for clarification rounds",
     ).toMatch(/Phase 4\.5.*Open Question Resolution/s);
     expect(
       discover,
-      "adv-discover.md must still mention question tool for clarification rounds (non-checkpoint)",
+      "determinus-discover.md must still mention question tool for clarification rounds (non-checkpoint)",
     ).toMatch(/up to 5 questions per round via the `question` tool/i);
   });
 

@@ -1,6 +1,6 @@
 # OpenCode Session Doctor and Worktree Cleanup
 
-ADV reports stale OpenCode blank assistant messages and stale `running`/`pending` tool parts in `adv_status` as a `[doctor]` recommendation.
+ADV reports stale OpenCode blank assistant messages and stale `running`/`pending` tool parts in `determinus_status` as a `[doctor]` recommendation.
 
 ## Dry Run
 
@@ -44,4 +44,4 @@ Parent assistant messages are marked complete only when all child parts are term
 
 ## Worktree Cleanup
 
-Use ADV-native `adv_worktree_cleanup` after closing shells/processes that had a worktree as CWD. The tool retries queued deletes and skips worktrees still used by a live process.
+Use determinus-native `determinus_worktree_cleanup` after closing shells/processes that had a worktree as CWD. The tool retries queued deletes and skips worktrees still used by a live process.

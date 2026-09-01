@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { mkdtemp, mkdir, rm } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
-import { advWorktreeTools } from "./adv-worktree";
+import { advWorktreeTools } from "./determinus-worktree";
 import type { Change } from "../types";
 import type { Store } from "../storage/store-types";
 
@@ -129,7 +129,9 @@ async function withArchiveDirs<T>(
   ids: string[],
   fn: (archiveDir: string) => Promise<T>,
 ): Promise<T> {
-  const archiveDir = await mkdtemp(join(tmpdir(), "adv-archived-branches-"));
+  const archiveDir = await mkdtemp(
+    join(tmpdir(), "determinus-archived-branches-"),
+  );
   await Promise.all(
     ids.map((id) => mkdir(join(archiveDir, id), { recursive: true })),
   );
@@ -143,7 +145,9 @@ async function withArchiveDirs<T>(
 async function withMissingArchiveDir<T>(
   fn: (archiveDir: string) => Promise<T>,
 ): Promise<T> {
-  const archiveDir = await mkdtemp(join(tmpdir(), "adv-archived-branches-"));
+  const archiveDir = await mkdtemp(
+    join(tmpdir(), "determinus-archived-branches-"),
+  );
   await rm(archiveDir, { recursive: true, force: true });
   return fn(archiveDir);
 }
@@ -153,7 +157,7 @@ function createMockStore(
     archivedChange("archived-one"),
     archivedChange("already-merged"),
   ],
-  archiveDir = "/tmp/missing-adv-archive",
+  archiveDir = "/tmp/missing-determinus-archive",
 ): Store {
   const byId = new Map(changes.map((c) => [c.id, c]));
   return {
@@ -175,7 +179,7 @@ function createMockStore(
   } as unknown as Store;
 }
 
-describe("adv_worktree_cleanup mode=archived_branches", () => {
+describe("determinus_worktree_cleanup mode=archived_branches", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.resolveRepoRoot.mockReturnValue("/tmp/main");
@@ -235,7 +239,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       ],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -315,7 +319,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       worktreePaths: { "change/checked-out": "/tmp/wt/checked-out" },
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -356,7 +360,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       ],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -394,7 +398,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       ],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "archived branch cleanup", mode: "archived_branches" },
       store,
     );
@@ -455,7 +459,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       })
       .mockReturnValueOnce({ localDeleted: true, remoteDeleted: true });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "archived branch cleanup", mode: "archived_branches" },
       store,
     );
@@ -491,7 +495,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -540,7 +544,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       error: "Remote branch deletion failed: remote ref not found",
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "archived branch cleanup", mode: "archived_branches" },
       store,
     );
@@ -568,7 +572,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -598,7 +602,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
   test("rejects changeId that is not archived", async () => {
     const store = createMockStore([archivedChange("X")]);
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -622,7 +626,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       details: { stderr: "fatal" },
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -645,7 +649,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       details: ["fatal: not a git repository"],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -667,7 +671,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       retained: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "retry queued cleanup" },
       store,
     );
@@ -685,7 +689,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "target archived branch cleanup",
         mode: "archived_branches",
@@ -733,7 +737,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    await advWorktreeTools.adv_worktree_cleanup.execute(
+    await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -773,7 +777,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       },
     );
 
-    await advWorktreeTools.adv_worktree_cleanup.execute(
+    await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -807,7 +811,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
         ],
       });
 
-      const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+      const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
         {
           reason: "archived branch cleanup",
           mode: "archived_branches",
@@ -836,7 +840,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
         branches: [],
       });
 
-      const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+      const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
         {
           reason: "archived branch cleanup",
           mode: "archived_branches",
@@ -878,7 +882,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
         branches: [],
       });
 
-      const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+      const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
         {
           reason: "archived branch cleanup",
           mode: "archived_branches",
@@ -920,7 +924,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
         ],
       });
 
-      const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+      const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
         {
           reason: "archived branch cleanup",
           mode: "archived_branches",
@@ -957,7 +961,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -992,7 +996,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -1028,7 +1032,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -1063,7 +1067,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       ],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       { reason: "archived branch cleanup", mode: "archived_branches" },
       store,
     );
@@ -1083,7 +1087,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -1113,7 +1117,7 @@ describe("adv_worktree_cleanup mode=archived_branches", () => {
       branches: [],
     });
 
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",

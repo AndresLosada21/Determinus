@@ -213,7 +213,11 @@ describe("formatContextSnapshot", () => {
     const input: ContextSnapshotInput = {
       ...baseInput,
       directive: {
-        action: { kind: "continue", gateId: "design", command: "adv-design" },
+        action: {
+          kind: "continue",
+          gateId: "design",
+          command: "determinus-design",
+        },
       } as ContextSnapshotInput["directive"],
       currentTask: { id: "tk-abc123", title: "Implement feature X" },
       wisdomCount: 3,
@@ -412,7 +416,11 @@ describe("buildChangeContextSnapshot", () => {
         changeId: "addWorkflowDirectives",
         phase: "design",
         gateStatus: {} as never,
-        action: { kind: "continue", gateId: "design", command: "adv-design" },
+        action: {
+          kind: "continue",
+          gateId: "design",
+          command: "determinus-design",
+        },
         approvalPending: false,
         blockers: [],
         canArchive: false,
@@ -423,7 +431,7 @@ describe("buildChangeContextSnapshot", () => {
 
     expect(output).toContain("Next:");
     expect(output).toContain("design");
-    expect(output).toContain("/adv-design");
+    expect(output).toContain("/determinus-design");
   });
 
   test("omits the Next: line when no directive is provided", () => {
@@ -440,7 +448,7 @@ describe("buildChangeContextSnapshot", () => {
     expect(output).not.toContain("Next:");
   });
 
-  test("renders acceptance as /adv-review when the directive names acceptance", () => {
+  test("renders acceptance as /determinus-review when the directive names acceptance", () => {
     const output = buildChangeContextSnapshot({
       change: { id: "acceptReview", title: "accept review", tasks: [] },
       gates: {
@@ -458,7 +466,7 @@ describe("buildChangeContextSnapshot", () => {
         action: {
           kind: "continue",
           gateId: "acceptance",
-          command: "adv-review",
+          command: "determinus-review",
         },
         approvalPending: false,
         blockers: [],
@@ -467,7 +475,7 @@ describe("buildChangeContextSnapshot", () => {
       },
       workdir: "/tmp/worktree",
     });
-    expect(output).toContain("Next: acceptance → /adv-review");
+    expect(output).toContain("Next: acceptance → /determinus-review");
   });
 
   test("renders a blocked Next: line when an actionable directive lacks a command", () => {
@@ -497,7 +505,7 @@ describe("buildChangeContextSnapshot", () => {
       workdir: "/tmp/worktree",
     });
     expect(output).toContain("Next: blocked · execution");
-    expect(output).not.toMatch(/Next:[^\n]*\/adv-/);
+    expect(output).not.toMatch(/Next:[^\n]*\/determinus-/);
   });
 
   test("renders a blocked Next: line when an actionable directive names an unregistered route", () => {
@@ -511,7 +519,7 @@ describe("buildChangeContextSnapshot", () => {
         action: {
           kind: "continue",
           gateId: "execution",
-          command: "adv-unregistered",
+          command: "determinus-unregistered",
         },
         approvalPending: false,
         blockers: [],
@@ -521,7 +529,7 @@ describe("buildChangeContextSnapshot", () => {
       workdir: "/tmp/worktree",
     });
     expect(output).toContain("Next: blocked · execution");
-    expect(output).not.toMatch(/Next:[^\n]*\/adv-/);
+    expect(output).not.toMatch(/Next:[^\n]*\/determinus-/);
   });
 });
 

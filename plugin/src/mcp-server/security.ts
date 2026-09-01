@@ -4,7 +4,7 @@
  * Rejects args that smell like cross-project mutation, approval bypass,
  * recovery override, signal-style mutation, or lifecycle mutation on the
  * ADV MCP read surface. The full contract below is enforced by the security
- * wrapper around every Tier-4 tool and `adv_handshake`.
+ * wrapper around every Tier-4 tool and `determinus_handshake`.
  */
 
 /** Exact arg names that must never be accepted by the MCP read surface. */

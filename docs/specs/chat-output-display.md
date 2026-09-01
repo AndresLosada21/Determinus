@@ -61,7 +61,7 @@ The Context Snapshot (full box) MUST display: change ID and title, user outcome 
 
 **ID:** `rq-ctxsnap2` | **Priority:** **[MUST]**
 
-The Context Snapshot (full box) MUST be emitted only when the caller passes `include.snapshot:true` by tools that represent major state transitions: adv_change_create, adv_gate_complete, adv_change_reenter. When `include.snapshot` is omitted (default), no snapshot is emitted. adv_status primary-change snapshot follows rq-ctxticker2.5 (unchanged — advisory multi-change display, MCP-contract-bound). adv_change_show provides structured JSON for direct LLM consumption and does NOT emit a snapshot.
+The Context Snapshot (full box) MUST be emitted only when the caller passes `include.snapshot:true` by tools that represent major state transitions: determinus_change_create, determinus_gate_complete, determinus_change_reenter. When `include.snapshot` is omitted (default), no snapshot is emitted. determinus_status primary-change snapshot follows rq-ctxticker2.5 (unchanged — advisory multi-change display, MCP-contract-bound). determinus_change_show provides structured JSON for direct LLM consumption and does NOT emit a snapshot.
 
 **Tags:** `chat-output-display`, `snapshot`, `triggers`
 
@@ -70,7 +70,7 @@ The Context Snapshot (full box) MUST be emitted only when the caller passes `inc
 **Snapshot emitted on change creation (opt-in)** (`rq-ctxsnap2.1`)
 
 **Given:**
-- An agent creates a new change via adv_change_create with include.snapshot:true
+- An agent creates a new change via determinus_change_create with include.snapshot:true
 
 **When:** The change data is created
 
@@ -80,7 +80,7 @@ The Context Snapshot (full box) MUST be emitted only when the caller passes `inc
 **Snapshot emitted on gate transition (opt-in)** (`rq-ctxsnap2.2`)
 
 **Given:**
-- A gate is marked complete via adv_gate_complete with include.snapshot:true
+- A gate is marked complete via determinus_gate_complete with include.snapshot:true
 
 **When:** The gate status changes
 
@@ -90,9 +90,9 @@ The Context Snapshot (full box) MUST be emitted only when the caller passes `inc
 **Snapshot emitted on gate re-entry (opt-in)** (`rq-ctxsnap2.6`)
 
 **Given:**
-- A change with completed gates, adv_change_reenter called with include.snapshot:true
+- A change with completed gates, determinus_change_reenter called with include.snapshot:true
 
-**When:** adv_change_reenter reopens gates from a specified point
+**When:** determinus_change_reenter reopens gates from a specified point
 
 **Then:**
 - The tool output includes an updated _contextSnapshot (full box)
@@ -150,39 +150,39 @@ The Context Ticker MUST be a single-line, ≤80-column compact summary with thre
 
 **ID:** `rq-ctxticker2` | **Priority:** **[MUST]**
 
-The Context Ticker MUST be emitted only when the caller passes `include.snapshot:true` (instead of the full snapshot) by transient task-state tools: adv_task_update transitioning to in_progress or done, adv_task_ready, adv_task_add, and adv_task_cancel. When `include.snapshot` is omitted (default), no ticker is emitted. Other emission sites (adv_change_create, adv_gate_complete, adv_change_reenter) follow rq-ctxsnap2 (also default-OFF, opt-in). adv_status recommendation-list snapshots follow rq-ctxticker2.5 (unchanged).
+The Context Ticker MUST be emitted only when the caller passes `include.snapshot:true` (instead of the full snapshot) by transient task-state tools: determinus_task_update transitioning to in_progress or done, determinus_task_ready, determinus_task_add, and determinus_task_cancel. When `include.snapshot` is omitted (default), no ticker is emitted. Other emission sites (determinus_change_create, determinus_gate_complete, determinus_change_reenter) follow rq-ctxsnap2 (also default-OFF, opt-in). determinus_status recommendation-list snapshots follow rq-ctxticker2.5 (unchanged).
 
 **Tags:** `chat-output-display`, `ticker`, `triggers`
 
 #### Scenarios
 
-**Ticker emitted by adv_task_update on in_progress / done transitions (opt-in)** (`rq-ctxticker2.1`)
+**Ticker emitted by determinus_task_update on in_progress / done transitions (opt-in)** (`rq-ctxticker2.1`)
 
 **Given:**
-- An active change with a pending task, adv_task_update called with include.snapshot:true
+- An active change with a pending task, determinus_task_update called with include.snapshot:true
 
-**When:** adv_task_update transitions the task to in_progress or done
+**When:** determinus_task_update transitions the task to in_progress or done
 
 **Then:**
 - The tool output includes a single-line context ticker as _contextSnapshot
 - The output is not a multi-line full-box snapshot
 
-**Ticker emitted by adv_task_ready (opt-in)** (`rq-ctxticker2.2`)
+**Ticker emitted by determinus_task_ready (opt-in)** (`rq-ctxticker2.2`)
 
 **Given:**
-- An active change, adv_task_ready called with include.snapshot:true
+- An active change, determinus_task_ready called with include.snapshot:true
 
-**When:** adv_task_ready is invoked
+**When:** determinus_task_ready is invoked
 
 **Then:**
 - The tool output includes a single-line context ticker as _contextSnapshot
 
-**Ticker emitted by adv_task_add and adv_task_cancel (opt-in)** (`rq-ctxticker2.3`)
+**Ticker emitted by determinus_task_add and determinus_task_cancel (opt-in)** (`rq-ctxticker2.3`)
 
 **Given:**
-- An active change, adv_task_add or adv_task_cancel called with include.snapshot:true
+- An active change, determinus_task_add or determinus_task_cancel called with include.snapshot:true
 
-**When:** adv_task_add successfully creates a task or adv_task_cancel cancels one or more tasks
+**When:** determinus_task_add successfully creates a task or determinus_task_cancel cancels one or more tasks
 
 **Then:**
 - The tool output includes a single-line context ticker as _contextSnapshot
@@ -190,19 +190,19 @@ The Context Ticker MUST be emitted only when the caller passes `include.snapshot
 **Full-box snapshot emitted by gate / change tools (opt-in per rq-ctxsnap2)** (`rq-ctxticker2.4`)
 
 **Given:**
-- An active change, adv_change_create/adv_gate_complete/adv_change_reenter called with include.snapshot:true
+- An active change, determinus_change_create/determinus_gate_complete/determinus_change_reenter called with include.snapshot:true
 
-**When:** adv_change_create, adv_gate_complete, or adv_change_reenter is invoked
+**When:** determinus_change_create, determinus_gate_complete, or determinus_change_reenter is invoked
 
 **Then:**
 - The tool output includes a multi-line context snapshot (full box) as _contextSnapshot
 
-**adv_status emits full-box for primary change, ticker for non-primary (unchanged — advisory multi-change display)** (`rq-ctxticker2.5`)
+**determinus_status emits full-box for primary change, ticker for non-primary (unchanged — advisory multi-change display)** (`rq-ctxticker2.5`)
 
 **Given:**
-- adv_status with multiple active/draft/pending changes in recentChanges
+- determinus_status with multiple active/draft/pending changes in recentChanges
 
-**When:** adv_status is invoked
+**When:** determinus_status is invoked
 
 **Then:**
 - The first active/draft/pending change (primary) includes a multi-line full-box _contextSnapshot
@@ -316,7 +316,7 @@ ADV status transitions MUST NOT emit BEL (U+0007 / `\x07`) or any replacement te
 
 **Then:**
 - ADV emits no BEL byte
-- No pending ADV-owned bell timer exists or is armed
+- No pending determinus-owned bell timer exists or is armed
 
 **Host notifications are advisory only** (`rq-idleMarker03.3`)
 
@@ -335,7 +335,7 @@ ADV status transitions MUST NOT emit BEL (U+0007 / `\x07`) or any replacement te
 
 **ID:** `rq-titleBell01` | **Priority:** **[MUST]**
 
-Terminal status/title paths MUST NOT emit BEL (U+0007 / `\x07`). OSC title sequences MUST terminate with ST (`ESC \\`) rather than BEL, and title payloads MUST normalize C0/C1 control bytes to display-safe spacing before emission. ADV MUST NOT replace removed BEL usage with OSC 9, OSC 777, or another ADV-owned terminal notification protocol.
+Terminal status/title paths MUST NOT emit BEL (U+0007 / `\x07`). OSC title sequences MUST terminate with ST (`ESC \\`) rather than BEL, and title payloads MUST normalize C0/C1 control bytes to display-safe spacing before emission. ADV MUST NOT replace removed BEL usage with OSC 9, OSC 777, or another determinus-owned terminal notification protocol.
 
 **Tags:** `chat-output-display`, `terminal-title`, `notification`
 

@@ -1,16 +1,16 @@
 # Improve Checklist
 
-Referenced by `/adv-improve`. Enforces rigor to prevent shallow analysis passes that skip mandatory phases, fabricate evidence, or omit external landscape research.
+Referenced by `/determinus-improve`. Enforces rigor to prevent shallow analysis passes that skip mandatory phases, fabricate evidence, or omit external landscape research.
 
-> **Document-Only Enforcement**: All items are checked by the agent following `/adv-improve` command instructions. No machine-enforced validators exist for this checklist in the current version.
+> **Document-Only Enforcement**: All items are checked by the agent following `/determinus-improve` command instructions. No machine-enforced validators exist for this checklist in the current version.
 
 ---
 
 ## Protocol Steps
 
-Every `/adv-improve` invocation MUST execute each step and report results. Mark `[x]` when completed (even if no findings):
+Every `/determinus-improve` invocation MUST execute each step and report results. Mark `[x]` when completed (even if no findings):
 
-- [ ] **Context Loading (Phase 0)** — Load `adv_project_context`, `adv_change_list`, and `adv_spec`. Use the MCP Tier-4 reads `tools.adv.epic_list`, `tools.adv.epic_show`, `tools.adv.backlog_list`, and `tools.adv.backlog_show`, bridged by `plugin/src/mcp-server/tier4-tool-map.ts` and reachable under Code Mode, not host `adv_*` tools. Detect worktree and tech stack. Verify source files exist before proceeding.
+- [ ] **Context Loading (Phase 0)** — Load `determinus_project_context`, `determinus_change_list`, and `determinus_spec`. Use the MCP Tier-4 reads `tools.adv.epic_list`, `tools.adv.epic_show`, `tools.adv.backlog_list`, and `tools.adv.backlog_show`, bridged by `plugin/src/mcp-server/tier4-tool-map.ts` and reachable under Code Mode, not host `determinus_*` tools. Detect worktree and tech stack. Verify source files exist before proceeding.
 - [ ] **Source Verification** — Confirm at least one source directory (`src/`, `lib/`, `app/`, `packages/`) or source file exists. Stop cleanly if none.
 - [ ] **Current-State Scan (Phase 1)** — Analyze all 6 categories (security, reliability, testing, observability, DX, code quality). Cap at 5 findings per category. Every finding has evidence.
 - [ ] **LBP / Reference Comparison (Phase 2)** — Context7 lookup for canonical architecture. Build deviation table. Document corrections for DRIFTED/ANTI-PATTERN. Include greenfield perspective.
@@ -18,7 +18,7 @@ Every `/adv-improve` invocation MUST execute each step and report results. Mark 
 - [ ] **Evidence Validation** — Reject any finding that lacks a file path, searched path, or source citation before synthesis.
 - [ ] **Conflict / Dedup Scan** — Cross-reference findings against active changes and Epic context from Phase 0. Annotate overlapping items; do not suppress them.
 - [ ] **Synthesis (Phase 4)** — Sort by severity, emit report, suggest next commands.
-- [ ] **Research Pack Persistence (Phase 5)** — Write or update a repo-local research pack at `docs/{target-slug}-prep.md` (or `docs/repo-improve-prep.md` for broad mode). Mirror Current State, LBP comparison, Competitors & Alternatives, Emerging Patterns, Applicability, Open Questions, and Sources so `/adv-discover` and related research phases can cite it.
+- [ ] **Research Pack Persistence (Phase 5)** — Write or update a repo-local research pack at `docs/{target-slug}-prep.md` (or `docs/repo-improve-prep.md` for broad mode). Mirror Current State, LBP comparison, Competitors & Alternatives, Emerging Patterns, Applicability, Open Questions, and Sources so `/determinus-discover` and related research phases can cite it.
 
 **Minimum**: All 9 steps must be executed. Skipping a step requires explicit justification.
 
@@ -97,7 +97,7 @@ Every finding MUST include evidence. Findings without evidence are rejected befo
 
 ## Research Pack Artifact Contract
 
-The research pack written to `docs/*-prep.md` is a durable, repo-local artifact consumed by `/adv-discover`, `/adv-proposal` knowledge-gap analysis, and other research-phase commands. It MUST conform to this schema.
+The research pack written to `docs/*-prep.md` is a durable, repo-local artifact consumed by `/determinus-discover`, `/determinus-proposal` knowledge-gap analysis, and other research-phase commands. It MUST conform to this schema.
 
 ### Path rules
 
@@ -116,16 +116,16 @@ The research pack written to `docs/*-prep.md` is a durable, repo-local artifact 
 5. **Competitors & Alternatives** — up to 3 entries (name, what they do differently, relevance, source URL). Unavailability recorded explicitly, never fabricated.
 6. **Emerging Patterns** — up to 2 entries (name, maturity signal, source URL, why noteworthy).
 7. **Applicability to This Repo** — bullets mapping each competitor / alternative / emerging pattern to local code paths; call out which would materially apply and which would not.
-8. **Open Questions for Research** — questions that `/adv-discover` or a future proposal should answer before adopting any external direction.
+8. **Open Questions for Research** — questions that `/determinus-discover` or a future proposal should answer before adopting any external direction.
 9. **Sources** — flat list of every URL or Context7 library reference cited above.
 
 ### Write boundary
 
 - Only files matching `docs/*-prep.md` may be written.
 - × No writes to `.adv/**`, `plugin/**`, `src/**`, or any other path.
-- × No calls to `adv_change_create`, `adv_task_add`, `adv_gate_complete`, or any other ADV-state-mutating tool.
+- × No calls to `determinus_change_create`, `determinus_task_add`, `determinus_gate_complete`, or any other determinus-state-mutating tool.
 
 ### Reuse expectation
 
-- `/adv-discover` already scans `docs/*-prep.md` during its Prior Research Extension step — packs written here are picked up automatically.
-- When re-running `/adv-improve` against the same target, refresh the existing pack in place (bump `Updated:`) rather than creating a sibling file.
+- `/determinus-discover` already scans `docs/*-prep.md` during its Prior Research Extension step — packs written here are picked up automatically.
+- When re-running `/determinus-improve` against the same target, refresh the existing pack in place (bump `Updated:`) rather than creating a sibling file.

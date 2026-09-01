@@ -15,17 +15,17 @@
  */
 
 /**
- * Taxonomy label inherited verbatim from `/adv-coordinate` Phase 2-3
- * (`.opencode/command/adv-coordinate.md:101-108`). No new label space.
+ * Taxonomy label inherited verbatim from `/determinus-coordinate` Phase 2-3
+ * (`.opencode/command/determinus-coordinate.md:101-108`). No new label space.
  *
  * - `repo_backed_fact`   — HIGH-confidence finding backed by repo evidence (commits, file overlap)
- * - `adv_backed_fact`    — HIGH-confidence finding backed by ADV state (active/archived changes)
+ * - `determinus_backed_fact`    — HIGH-confidence finding backed by ADV state (active/archived changes)
  * - `judgment_call`      — MEDIUM-confidence finding; overlap exists but evidence is partial
  * - `freshness_limited`  — could not reach a conclusion; missing/stale evidence or budget exceeded
  */
 export type ResumeFreshnessLabel =
   | "repo_backed_fact"
-  | "adv_backed_fact"
+  | "determinus_backed_fact"
   | "judgment_call"
   | "freshness_limited";
 
@@ -61,7 +61,7 @@ export interface ResumeFreshnessFinding {
 
 /**
  * Resolver input. `lastActivityAgeMinutes` is already computed by
- * `plugin/src/tools/change.ts:831-849` for `adv_change_list` output —
+ * `plugin/src/tools/change.ts:831-849` for `determinus_change_list` output —
  * resolver reuses, never recomputes.
  */
 export interface ResumeFreshnessInput {

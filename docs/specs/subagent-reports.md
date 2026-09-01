@@ -13,7 +13,7 @@ Typed, durable ADV sub-agent report ingestion and readback. Replaces ADV worker 
 
 **ID:** `rq-subagentReports01` | **Priority:** **[MUST]**
 
-ADV worker reports MUST be submitted through adv_subagent_report_submit using strict Zod-validated payloads. Version 1 supports adv-engineer, adv-reviewer, adv-designer, adv-researcher, adv-tron, adv-scanner-bundle, and orchestrator-submitted adv-verification-triage-bundle payload variants, and rejects malformed or unsupported payloads before persistence. adv-researcher payloads additionally include an Architecture Judgement object per rq-subagentReports20 with status consistency against validation.status.
+ADV worker reports MUST be submitted through determinus_subagent_report_submit using strict Zod-validated payloads. Version 1 supports determinus-engineer, determinus-reviewer, determinus-designer, determinus-researcher, determinus-tron, determinus-scanner-bundle, and orchestrator-submitted determinus-verification-triage-bundle payload variants, and rejects malformed or unsupported payloads before persistence. determinus-researcher payloads additionally include an Architecture Judgement object per rq-subagentReports20 with status consistency against validation.status.
 
 **Tags:** `subagents`, `reports`, `zod`, `ingest`
 
@@ -24,7 +24,7 @@ ADV worker reports MUST be submitted through adv_subagent_report_submit using st
 **Given:**
 - A caller submits a report missing required fields
 
-**When:** adv_subagent_report_submit validates the payload
+**When:** determinus_subagent_report_submit validates the payload
 
 **Then:**
 - The tool returns INVALID_REPORT
@@ -34,21 +34,21 @@ ADV worker reports MUST be submitted through adv_subagent_report_submit using st
 **Known optimized handoff agents validate structurally** (`rq-subagentReports01.2`)
 
 **Given:**
-- A report uses agent adv-researcher, adv-tron, adv-scanner-bundle, or adv-verification-triage-bundle with its required fields
+- A report uses agent determinus-researcher, determinus-tron, determinus-scanner-bundle, or determinus-verification-triage-bundle with its required fields
 
-**When:** adv_subagent_report_submit runs in v1
+**When:** determinus_subagent_report_submit runs in v1
 
 **Then:**
 - The strict payload schema validates the agent-specific object
 - The report carries explicit source metadata
 - The disk mutation is fired only after schema validation succeeds
 
-**adv-designer report variant validates structurally** (`rq-subagentReports01.3`)
+**determinus-designer report variant validates structurally** (`rq-subagentReports01.3`)
 
 **Given:**
-- A report uses agent adv-designer with task-scoped identity anchors and design_dimensions plus neighboring_recommendations
+- A report uses agent determinus-designer with task-scoped identity anchors and design_dimensions plus neighboring_recommendations
 
-**When:** adv_subagent_report_submit validates the payload in v1
+**When:** determinus_subagent_report_submit validates the payload in v1
 
 **Then:**
 - The strict DESIGNER_REPORT schema accepts only the typed payload
@@ -58,10 +58,10 @@ ADV worker reports MUST be submitted through adv_subagent_report_submit using st
 **Verification triage bundle validates structurally** (`rq-subagentReports01.4`)
 
 **Given:**
-- The orchestrator submits agent adv-verification-triage-bundle with scope_key verifier:<slug>
+- The orchestrator submits agent determinus-verification-triage-bundle with scope_key verifier:<slug>
 - The payload names phase local_verify or ci_check and includes targets, status, error_class, confidence, evidence_basis, findings, recommended_next_action, scope_risk, required_main_agent_actions, and follow_ups
 
-**When:** adv_subagent_report_submit validates the payload in v1
+**When:** determinus_subagent_report_submit validates the payload in v1
 
 **Then:**
 - The strict verification triage bundle schema accepts only the typed payload
@@ -74,7 +74,7 @@ ADV worker reports MUST be submitted through adv_subagent_report_submit using st
 
 **ID:** `rq-subagentReports02` | **Priority:** **[MUST]**
 
-Accepted reports MUST persist via subagentReportSubmittedMutation into a change-level sidecar report store. Task-scoped adv-engineer and adv-reviewer reports keep legacy task.subagent_reports[] read compatibility, but new canonical persistence MUST be scope-aware sidecar storage. The change projection MUST dedupe repeated submissions by (change_id, scope, agent, attempt) using deterministic change projection state, and MUST map task-scoped report blockers into task error_recovery without deprecated runtime update handler-based mutations. Blocker-to-error_recovery mapping MUST NOT write a record that violates the retry-budget invariant enforced on read (ErrorRecoverySchema rejects attempts.length > max_retries): retry_count MUST be clamped to max_retries, and attempts[] MUST be bounded to at most max_retries entries retaining the most recent, with each retained entry preserving its true monotonic attempt_number. The budget MUST resolve from a single shared constant so writer and reader cannot diverge. Because change projection state is re-derived by readbacking history through this reducer, a clamped reducer also restores changes whose recorded history already exceeded the budget; the clamp MUST therefore live in the reducer, not only at a tool boundary or in a schema normalizer.
+Accepted reports MUST persist via subagentReportSubmittedMutation into a change-level sidecar report store. Task-scoped determinus-engineer and determinus-reviewer reports keep legacy task.subagent_reports[] read compatibility, but new canonical persistence MUST be scope-aware sidecar storage. The change projection MUST dedupe repeated submissions by (change_id, scope, agent, attempt) using deterministic change projection state, and MUST map task-scoped report blockers into task error_recovery without deprecated runtime update handler-based mutations. Blocker-to-error_recovery mapping MUST NOT write a record that violates the retry-budget invariant enforced on read (ErrorRecoverySchema rejects attempts.length > max_retries): retry_count MUST be clamped to max_retries, and attempts[] MUST be bounded to at most max_retries entries retaining the most recent, with each retained entry preserving its true monotonic attempt_number. The budget MUST resolve from a single shared constant so writer and reader cannot diverge. Because change projection state is re-derived by readbacking history through this reducer, a clamped reducer also restores changes whose recorded history already exceeded the budget; the clamp MUST therefore live in the reducer, not only at a tool boundary or in a schema normalizer.
 
 **Tags:** `disk`, `mutations`, `dedupe`, `tasks`
 
@@ -136,7 +136,7 @@ Accepted reports MUST persist via subagentReportSubmittedMutation into a change-
 
 **ID:** `rq-subagentReports03` | **Priority:** **[MUST]**
 
-adv_change_show include.subagentReports MUST return persisted sidecar report data with explicit source metadata. Legacy reports that still live on task.subagent_reports[] MUST remain readable through the same opt-in readback. Tool-layer consumers MUST retain follow_ups[] as bounded, source-attributed report metadata and surface verification cross-check warnings without rolling back an already persisted report. Follow-ups are promoted only through the typed adv_followup_promote path into an ops/enabler child change, not by consumer-side queue writes.
+determinus_change_show include.subagentReports MUST return persisted sidecar report data with explicit source metadata. Legacy reports that still live on task.subagent_reports[] MUST remain readable through the same opt-in readback. Tool-layer consumers MUST retain follow_ups[] as bounded, source-attributed report metadata and surface verification cross-check warnings without rolling back an already persisted report. Follow-ups are promoted only through the typed determinus_followup_promote path into an ops/enabler child change, not by consumer-side queue writes.
 
 **Tags:** `read-surface`, `verification`, `consumers`
 
@@ -147,7 +147,7 @@ adv_change_show include.subagentReports MUST return persisted sidecar report dat
 **Given:**
 - A change has one or more persisted sidecar or legacy sub-agent reports
 
-**When:** adv_change_show is called with include.subagentReports true
+**When:** determinus_change_show is called with include.subagentReports true
 
 **Then:**
 - The response includes _subagentReports
@@ -159,7 +159,7 @@ adv_change_show include.subagentReports MUST return persisted sidecar report dat
 **Given:**
 - An engineer report contains follow_ups
 
-**When:** adv_subagent_report_submit succeeds
+**When:** determinus_subagent_report_submit succeeds
 
 **Then:**
 - The report signal is fired before any consumer runs
@@ -172,7 +172,7 @@ adv_change_show include.subagentReports MUST return persisted sidecar report dat
 
 **ID:** `rq-subagentReports04` | **Priority:** **[MUST]**
 
-ADV worker contracts MUST instruct persisted worker lanes to call adv_subagent_report_submit before exit. Apply, review, and harden context packets MUST include ATTEMPT so the report key is stable. Legacy TaskStructuredOutput extraction remains available for non-ADV callers but MUST short-circuit for tasks that already have persisted sub-agent reports.
+ADV worker contracts MUST instruct persisted worker lanes to call determinus_subagent_report_submit before exit. Apply, review, and harden context packets MUST include ATTEMPT so the report key is stable. Legacy TaskStructuredOutput extraction remains available for non-ADV callers but MUST short-circuit for tasks that already have persisted sub-agent reports.
 
 **Tags:** `agents`, `contracts`, `legacy`, `attempt`
 
@@ -181,13 +181,13 @@ ADV worker contracts MUST instruct persisted worker lanes to call adv_subagent_r
 **Worker contracts use tool-call transport** (`rq-subagentReports04.1`)
 
 **Given:**
-- adv-engineer or adv-reviewer is spawned by ADV
+- determinus-engineer or determinus-reviewer is spawned by ADV
 
 **When:** The worker completes its scope
 
 **Then:**
 - The worker builds a schema-specific report object
-- The worker calls adv_subagent_report_submit with that object
+- The worker calls determinus_subagent_report_submit with that object
 - The worker does not rely on final-message fenced JSON as the ADV report transport
 
 **Legacy extraction skips persisted report tasks** (`rq-subagentReports04.2`)
@@ -195,7 +195,7 @@ ADV worker contracts MUST instruct persisted worker lanes to call adv_subagent_r
 **Given:**
 - A task already has task.subagent_reports[]
 
-**When:** adv_task_checkpoint or compatible task completion sees legacy adv-output text
+**When:** determinus_task_checkpoint or compatible task completion sees legacy determinus-output text
 
 **Then:**
 - The completion signal omits structured_output extracted from the legacy text
@@ -207,7 +207,7 @@ ADV worker contracts MUST instruct persisted worker lanes to call adv_subagent_r
 
 **ID:** `rq-subagentReports05` | **Priority:** **[MUST]**
 
-ADV typed worker context packets MUST align with the strict report schemas that adv_subagent_report_submit validates. Task-scoped adv-engineer worker packets MUST include WORKING DIRECTORY, CHANGE, TASK, and ATTEMPT identity anchors. Task-scoped adv-reviewer worker packets MUST include WORKING DIRECTORY, CHANGE, TASK, PHASE, and ATTEMPT identity anchors. Task-scoped adv-designer worker packets MUST include WORKING DIRECTORY, CHANGE, TASK, and ATTEMPT identity anchors. Change-scoped adv-researcher and adv-tron worker packets MUST include WORKING DIRECTORY, CHANGE, SCOPE KEY, and ATTEMPT identity anchors. Orchestrator-submitted scanner bundle packets MUST include WORKING DIRECTORY, CHANGE, SCOPE KEY, PHASE, and ATTEMPT identity anchors. Missing schema-derived identity anchors produce malformed reports and MUST remain INVALID_REPORT. Newly-added non-identity packet anchors are warn-first during rollout: TASK_SCOPE, IN_SCOPE, OUT_OF_SCOPE, DONE_WHEN, STOP_WHEN, and VERIFICATION. These anchors define explicit scope boundaries, completion conditions, stop conditions, and verification expectations. Out-of-scope findings use finish owned scope if safe, then report; workers stop immediately only for contract/security/release blockers. Verification commands are required when possible and workers may add relevant additional checks. Individual scanner lanes are separate non-persisted analysis workers and MUST NOT claim worker report transport or call adv_subagent_report_submit.
+ADV typed worker context packets MUST align with the strict report schemas that determinus_subagent_report_submit validates. Task-scoped determinus-engineer worker packets MUST include WORKING DIRECTORY, CHANGE, TASK, and ATTEMPT identity anchors. Task-scoped determinus-reviewer worker packets MUST include WORKING DIRECTORY, CHANGE, TASK, PHASE, and ATTEMPT identity anchors. Task-scoped determinus-designer worker packets MUST include WORKING DIRECTORY, CHANGE, TASK, and ATTEMPT identity anchors. Change-scoped determinus-researcher and determinus-tron worker packets MUST include WORKING DIRECTORY, CHANGE, SCOPE KEY, and ATTEMPT identity anchors. Orchestrator-submitted scanner bundle packets MUST include WORKING DIRECTORY, CHANGE, SCOPE KEY, PHASE, and ATTEMPT identity anchors. Missing schema-derived identity anchors produce malformed reports and MUST remain INVALID_REPORT. Newly-added non-identity packet anchors are warn-first during rollout: TASK_SCOPE, IN_SCOPE, OUT_OF_SCOPE, DONE_WHEN, STOP_WHEN, and VERIFICATION. These anchors define explicit scope boundaries, completion conditions, stop conditions, and verification expectations. Out-of-scope findings use finish owned scope if safe, then report; workers stop immediately only for contract/security/release blockers. Verification commands are required when possible and workers may add relevant additional checks. Individual scanner lanes are separate non-persisted analysis workers and MUST NOT claim worker report transport or call determinus_subagent_report_submit.
 
 **Tags:** `subagents`, `packets`, `schema`, `scanners`
 
@@ -216,9 +216,9 @@ ADV typed worker context packets MUST align with the strict report schemas that 
 **Typed worker packets provide schema-derived identity** (`rq-subagentReports05.1`)
 
 **Given:**
-- ADV spawns adv-engineer, adv-reviewer, or adv-designer for implementation or remediation work
+- ADV spawns determinus-engineer, determinus-reviewer, or determinus-designer for implementation or remediation work
 
-**When:** The worker builds ENGINEER_REPORT, REVIEWER_REPORT, or DESIGNER_REPORT for adv_subagent_report_submit
+**When:** The worker builds ENGINEER_REPORT, REVIEWER_REPORT, or DESIGNER_REPORT for determinus_subagent_report_submit
 
 **Then:**
 - task-scoped packets provide strict identity anchors WORKING DIRECTORY, CHANGE, TASK, and ATTEMPT
@@ -235,7 +235,7 @@ ADV typed worker context packets MUST align with the strict report schemas that 
 
 **Then:**
 - The scanner packet is classified as scanner, not worker
-- The scanner is not instructed to call adv_subagent_report_submit
+- The scanner is not instructed to call determinus_subagent_report_submit
 - The scanner result is consumed by the orchestrator and is not persisted directly
 
 **Scope and stop semantics are explicit** (`rq-subagentReports05.3`)
@@ -258,7 +258,7 @@ ADV typed worker context packets MUST align with the strict report schemas that 
 
 **ID:** `rq-subagentReports06` | **Priority:** **[MUST]**
 
-Persisted reports MUST carry structural scope metadata. Task evidence reports use scope.kind task with task_id. Optimized handoff reports use scope.kind change with a structural scope_key. The schema MUST enforce agent/scope pairing: adv-engineer and adv-designer are task-scoped only; adv-reviewer is task-scoped for remediation and change-scoped for independent review and harden summaries; adv-researcher, adv-tron, adv-scanner-bundle, and adv-verification-triage-bundle are change-scoped. Verification triage bundles use scope_key verifier:<slug>.
+Persisted reports MUST carry structural scope metadata. Task evidence reports use scope.kind task with task_id. Optimized handoff reports use scope.kind change with a structural scope_key. The schema MUST enforce agent/scope pairing: determinus-engineer and determinus-designer are task-scoped only; determinus-reviewer is task-scoped for remediation and change-scoped for independent review and harden summaries; determinus-researcher, determinus-tron, determinus-scanner-bundle, and determinus-verification-triage-bundle are change-scoped. Verification triage bundles use scope_key verifier:<slug>.
 
 **Tags:** `schema`, `scope`, `structural-correctness`
 
@@ -267,27 +267,27 @@ Persisted reports MUST carry structural scope metadata. Task evidence reports us
 **Invalid agent scope pair rejected** (`rq-subagentReports06.1`)
 
 **Given:**
-- A report pairs adv-researcher with scope.kind task, adv-engineer with scope.kind change, or adv-designer with scope.kind change
+- A report pairs determinus-researcher with scope.kind task, determinus-engineer with scope.kind change, or determinus-designer with scope.kind change
 
-**When:** adv_subagent_report_submit validates the payload
+**When:** determinus_subagent_report_submit validates the payload
 
 **Then:**
 - The schema rejects the report as INVALID_REPORT
 - No tool-layer heuristic repairs the scope
 - No workflow signal is fired
-- The only adv-reviewer change-scoped reports accepted are independent review or harden summaries
+- The only determinus-reviewer change-scoped reports accepted are independent review or harden summaries
 
 **Independent reviewer reports are change-scoped** (`rq-subagentReports06.3`)
 
 **Given:**
 - ADV performs independent review or harden at the change level
 
-**When:** An adv-reviewer report is submitted for acceptance review or release hardening
+**When:** An determinus-reviewer report is submitted for acceptance review or release hardening
 
 **Then:**
 - The report uses scope.kind change with a structural scope_key
 - The report does not require task_id
-- Task-scoped adv-reviewer reports remain valid only for remediation tied to existing tasks
+- Task-scoped determinus-reviewer reports remain valid only for remediation tied to existing tasks
 
 **Source metadata preserved** (`rq-subagentReports06.2`)
 
@@ -307,7 +307,7 @@ Persisted reports MUST carry structural scope metadata. Task evidence reports us
 
 **ID:** `rq-subagentReports07` | **Priority:** **[MUST]**
 
-adv-researcher and adv-tron reports MUST persist compact optimized handoff fields instead of raw transcripts. adv-scanner-bundle reports MUST be orchestrator-submitted scanner bundle summaries; individual scanners keep no ADV tool access and cannot submit reports directly. adv-verification-triage-bundle reports MUST persist orchestrator-submitted verification triage bundle evidence for local_verify and ci_check phases; verification workers keep no ADV tool access and cannot submit reports directly.
+determinus-researcher and determinus-tron reports MUST persist compact optimized handoff fields instead of raw transcripts. determinus-scanner-bundle reports MUST be orchestrator-submitted scanner bundle summaries; individual scanners keep no ADV tool access and cannot submit reports directly. determinus-verification-triage-bundle reports MUST persist orchestrator-submitted verification triage bundle evidence for local_verify and ci_check phases; verification workers keep no ADV tool access and cannot submit reports directly.
 
 **Tags:** `research`, `recon`, `scanner`, `handoff`, `verification`, `triage`
 
@@ -343,7 +343,7 @@ adv-researcher and adv-tron reports MUST persist compact optimized handoff field
 
 **ID:** `rq-subagentReports08` | **Priority:** **[MUST]**
 
-Persisted report follow_ups[] MUST be retained as bounded, source-attributed report metadata. Harden MUST inspect report follow-ups and fix those that are safe, adjacent, and campsite/touched-scope applicable; non-applicable follow-ups MUST get rationale instead of silent ignore. Promotion to a durable ops/enabler child change happens only through the typed adv_followup_promote path.
+Persisted report follow_ups[] MUST be retained as bounded, source-attributed report metadata. Harden MUST inspect report follow-ups and fix those that are safe, adjacent, and campsite/touched-scope applicable; non-applicable follow-ups MUST get rationale instead of silent ignore. Promotion to a durable ops/enabler child change happens only through the typed determinus_followup_promote path.
 
 **Tags:** `follow-ups`, `harden`, `campsite`
 
@@ -379,7 +379,7 @@ Persisted report follow_ups[] MUST be retained as bounded, source-attributed rep
 
 **ID:** `rq-subagentReports09` | **Priority:** **[MUST]**
 
-Sub-agent report persistence MUST preserve disk readback safety. Key-shape changes from legacy task_id keys to scope-aware sidecar keys MUST be versioned or compatibility-preserved. Existing adv-engineer and adv-reviewer behavior remains backward-compatible, including task/checkpoint consumers that detect legacy task.subagent_reports[].
+Sub-agent report persistence MUST preserve disk readback safety. Key-shape changes from legacy task_id keys to scope-aware sidecar keys MUST be versioned or compatibility-preserved. Existing determinus-engineer and determinus-reviewer behavior remains backward-compatible, including task/checkpoint consumers that detect legacy task.subagent_reports[].
 
 **Tags:** `disk`, `readback`, `compatibility`, `legacy`
 
@@ -406,7 +406,7 @@ Sub-agent report persistence MUST preserve disk readback safety. Key-shape chang
 
 **Then:**
 - The consumer recognizes persisted report evidence from both sources
-- Existing adv-engineer and adv-reviewer report behavior stays backward-compatible
+- Existing determinus-engineer and determinus-reviewer report behavior stays backward-compatible
 - No duplicate legacy structured_output is extracted for already-reported tasks
 
 ---
@@ -415,7 +415,7 @@ Sub-agent report persistence MUST preserve disk readback safety. Key-shape chang
 
 **ID:** `rq-subagentReports10` | **Priority:** **[MUST]**
 
-Persisted legacy task and sidecar sub-agent reports missing fields added after initial rollout MUST be deterministically normalized at readback, projection seed, and projection boundaries before strict whole-change parsing. Missing task-scoped scope_drift defaults to null, and missing required_main_agent_actions defaults to an empty array. New adv_subagent_report_submit payload validation remains strict and MUST NOT accept those omissions as valid new ingest.
+Persisted legacy task and sidecar sub-agent reports missing fields added after initial rollout MUST be deterministically normalized at readback, projection seed, and projection boundaries before strict whole-change parsing. Missing task-scoped scope_drift defaults to null, and missing required_main_agent_actions defaults to an empty array. New determinus_subagent_report_submit payload validation remains strict and MUST NOT accept those omissions as valid new ingest.
 
 **Tags:** `legacy`, `normalization`, `readback`, `zod`
 
@@ -438,7 +438,7 @@ Persisted legacy task and sidecar sub-agent reports missing fields added after i
 **Given:**
 - A new worker report submission omits scope_drift or required_main_agent_actions
 
-**When:** adv_subagent_report_submit validates the payload
+**When:** determinus_subagent_report_submit validates the payload
 
 **Then:**
 - The strict report schema rejects the payload as INVALID_REPORT
@@ -451,7 +451,7 @@ Persisted legacy task and sidecar sub-agent reports missing fields added after i
 
 **ID:** `rq-subagentReports11` | **Priority:** **[MUST]**
 
-Independent adv-reviewer reports for acceptance review and release hardening MUST use a supported change-scoped structural anchor, never synthetic task IDs. Acceptance review uses scope.kind change with scope_key review:acceptance. Release hardening uses scope.kind change with scope_key harden:release. Remediation reviewer reports tied to a task remain task-scoped and MUST reference an existing ADV task ID.
+Independent determinus-reviewer reports for acceptance review and release hardening MUST use a supported change-scoped structural anchor, never synthetic task IDs. Acceptance review uses scope.kind change with scope_key review:acceptance. Release hardening uses scope.kind change with scope_key harden:release. Remediation reviewer reports tied to a task remain task-scoped and MUST reference an existing ADV task ID.
 
 **Tags:** `review`, `harden`, `scope`, `anchors`
 
@@ -498,7 +498,7 @@ Task-scoped sub-agent report submissions that reference a task outside the chang
 **Given:**
 - A task-scoped worker report references a missing task ID
 
-**When:** adv_subagent_report_submit validates task anchoring
+**When:** determinus_subagent_report_submit validates task anchoring
 
 **Then:**
 - The tool returns INVALID_TASK_ANCHOR
@@ -581,12 +581,12 @@ ADV worker prompts and command packets MUST instruct sub-agents to access ADV ar
 **Design validator uses inline or tool-provided artifacts** (`rq-subagentArtifactAccess01.1`)
 
 **Given:**
-- An adv-researcher design-validation packet needs design or agreement context
+- An determinus-researcher design-validation packet needs design or agreement context
 
 **When:** The worker receives the packet and needs artifact content
 
 **Then:**
-- The packet or agent instructions direct it to inline content or adv_change_show include flags
+- The packet or agent instructions direct it to inline content or determinus_change_show include flags
 - The worker is not instructed to dereference artifacts.*.path under external ADV state
 
 **Direct read failure recovers through ADV tools** (`rq-subagentArtifactAccess01.2`)
@@ -703,17 +703,17 @@ ADV review and scanner worker packets MUST surface task type and evidence policy
 
 DESIGNER_REPORT.design_dimensions MUST remain a strict six-dimension typed object using pass, concern, or n/a for component_correctness, semantic_html_a11y, responsive_behavior, visual_polish, site_design_consistency, and finer_details. When any dimension is concern or n/a, the report MUST include non-empty notes that explain the non-pass or non-applicable dimension. All-pass reports MAY omit notes for backward-compatible compactness. This rationale requirement MUST be enforced by schema validation before report persistence.
 
-**Tags:** `subagents`, `adv-designer`, `reports`, `design-quality`, `zod`
+**Tags:** `subagents`, `determinus-designer`, `reports`, `design-quality`, `zod`
 
 #### Scenarios
 
 **Concern without notes is rejected** (`rq-subagentReports18.1`)
 
 **Given:**
-- An adv-designer report has design_dimensions.visual_polish set to concern
+- An determinus-designer report has design_dimensions.visual_polish set to concern
 - The design_dimensions object omits notes or provides blank notes
 
-**When:** adv_subagent_report_submit validates the report
+**When:** determinus_subagent_report_submit validates the report
 
 **Then:**
 - The report is rejected as INVALID_REPORT
@@ -723,10 +723,10 @@ DESIGNER_REPORT.design_dimensions MUST remain a strict six-dimension typed objec
 **N/A without notes is rejected** (`rq-subagentReports18.2`)
 
 **Given:**
-- An adv-designer report has design_dimensions.responsive_behavior set to n/a
+- An determinus-designer report has design_dimensions.responsive_behavior set to n/a
 - The design_dimensions object omits notes or provides blank notes
 
-**When:** adv_subagent_report_submit validates the report
+**When:** determinus_subagent_report_submit validates the report
 
 **Then:**
 - The report is rejected as INVALID_REPORT
@@ -735,9 +735,9 @@ DESIGNER_REPORT.design_dimensions MUST remain a strict six-dimension typed objec
 **All-pass report remains compact** (`rq-subagentReports18.3`)
 
 **Given:**
-- An adv-designer report marks all six design dimensions pass
+- An determinus-designer report marks all six design dimensions pass
 
-**When:** adv_subagent_report_submit validates the report
+**When:** determinus_subagent_report_submit validates the report
 
 **Then:**
 - The report is accepted even when notes is omitted
@@ -749,7 +749,7 @@ DESIGNER_REPORT.design_dimensions MUST remain a strict six-dimension typed objec
 
 **ID:** `rq-subagentReports19` | **Priority:** **[MUST]**
 
-adv-verification-triage-bundle MUST be an orchestrator-submitted verification triage bundle for local verification bursts and CI/check-run failures. It MUST use scope.kind change with scope_key verifier:<slug>, phase local_verify or ci_check, targets with command or ci_check identity, status pass|fail|inconclusive, error_class SEMANTIC|TRANSIENT|ENVIRONMENTAL|FATAL|UNKNOWN, confidence, evidence_basis, findings, recommended_next_action, scope_risk, optional suggested_handoff, required_main_agent_actions, optional consumer_warnings, and follow_ups. UNKNOWN is routing-only and must not write task error_recovery. route_adv_engineer is valid only when error_class is SEMANTIC, scope_risk is false, confidence is high or medium, and suggested_handoff is populated. The bundle is evidence, not authority: it MUST NOT complete gates, mutate tasks, change scope, edit code, publish final user-facing conclusions, or spawn remediation workers.
+determinus-verification-triage-bundle MUST be an orchestrator-submitted verification triage bundle for local verification bursts and CI/check-run failures. It MUST use scope.kind change with scope_key verifier:<slug>, phase local_verify or ci_check, targets with command or ci_check identity, status pass|fail|inconclusive, error_class SEMANTIC|TRANSIENT|ENVIRONMENTAL|FATAL|UNKNOWN, confidence, evidence_basis, findings, recommended_next_action, scope_risk, optional suggested_handoff, required_main_agent_actions, optional consumer_warnings, and follow_ups. UNKNOWN is routing-only and must not write task error_recovery. route_determinus_engineer is valid only when error_class is SEMANTIC, scope_risk is false, confidence is high or medium, and suggested_handoff is populated. The bundle is evidence, not authority: it MUST NOT complete gates, mutate tasks, change scope, edit code, publish final user-facing conclusions, or spawn remediation workers.
 
 **Tags:** `subagents`, `verification`, `triage`, `ci`, `reports`, `zod`
 
@@ -784,7 +784,7 @@ adv-verification-triage-bundle MUST be an orchestrator-submitted verification tr
 **Engineer handoff remains main-ADV owned** (`rq-subagentReports19.3`)
 
 **Given:**
-- A triage bundle recommends route_adv_engineer
+- A triage bundle recommends route_determinus_engineer
 
 **When:** The schema and orchestrator evaluate routing predicates
 
@@ -793,7 +793,7 @@ adv-verification-triage-bundle MUST be an orchestrator-submitted verification tr
 - scope_risk is false
 - confidence is high or medium
 - suggested_handoff is present
-- Main ADV independently validates scope before spawning adv-engineer
+- Main ADV independently validates scope before spawning determinus-engineer
 
 ---
 
@@ -801,7 +801,7 @@ adv-verification-triage-bundle MUST be an orchestrator-submitted verification tr
 
 **ID:** `rq-subagentReports20` | **Priority:** **[MUST]**
 
-New adv-researcher reports MUST include an Architecture Judgement object as durable typed report data, in addition to validation and recommendation fields. The payload MUST be a discriminated union keyed on applicability. applicable judgements MUST carry applicability applicable, a one-sentence summary, a non-empty risk string, optional tradeoffs array, required alternatives_considered array, optional spec_law_implications string, and required_validation_consistency with a single source of truth status field pass|caution|fail|unknown that matches validation.status. not_applicable judgements MUST carry applicability not_applicable and a one-sentence rationale that explains why the research has no architecture judgement dimensions. The architecture_judgement object is advisory-only: it MUST NOT complete gates, mutate tasks, change scope, or block research submission, and consumer tools MUST treat researcher fail as advisory architecture judgement with validation.status fail crosswalking to ANTI-PATTERN. The advisory-only fail verdict surfaces as architecture_judgement.risk and MUST NOT introduce a second verdict field. Legacy persisted researcher reports missing architecture_judgement MUST remain readable through adv_change_show include.subagentReports; adv_subagent_report_submit MUST NOT accept legacy-shaped submissions as new ingest.
+New determinus-researcher reports MUST include an Architecture Judgement object as durable typed report data, in addition to validation and recommendation fields. The payload MUST be a discriminated union keyed on applicability. applicable judgements MUST carry applicability applicable, a one-sentence summary, a non-empty risk string, optional tradeoffs array, required alternatives_considered array, optional spec_law_implications string, and required_validation_consistency with a single source of truth status field pass|caution|fail|unknown that matches validation.status. not_applicable judgements MUST carry applicability not_applicable and a one-sentence rationale that explains why the research has no architecture judgement dimensions. The architecture_judgement object is advisory-only: it MUST NOT complete gates, mutate tasks, change scope, or block research submission, and consumer tools MUST treat researcher fail as advisory architecture judgement with validation.status fail crosswalking to ANTI-PATTERN. The advisory-only fail verdict surfaces as architecture_judgement.risk and MUST NOT introduce a second verdict field. Legacy persisted researcher reports missing architecture_judgement MUST remain readable through determinus_change_show include.subagentReports; determinus_subagent_report_submit MUST NOT accept legacy-shaped submissions as new ingest.
 
 **Tags:** `subagents`, `researcher`, `judgement`, `validation`, `verdict`, `zod`, `legacy`
 
@@ -810,9 +810,9 @@ New adv-researcher reports MUST include an Architecture Judgement object as dura
 **Applicable architecture judgement validates structurally** (`rq-subagentReports20.1`)
 
 **Given:**
-- A new adv-researcher report is submitted with applicability applicable
+- A new determinus-researcher report is submitted with applicability applicable
 
-**When:** adv_subagent_report_submit validates the payload
+**When:** determinus_subagent_report_submit validates the payload
 
 **Then:**
 - The report includes architecture_judgement.summary, risk, and required_validation_consistency
@@ -825,7 +825,7 @@ New adv-researcher reports MUST include an Architecture Judgement object as dura
 **Given:**
 - A researcher reports on docs/API/examples research with no architecture judgement dimensions
 
-**When:** adv_subagent_report_submit validates the payload
+**When:** determinus_subagent_report_submit validates the payload
 
 **Then:**
 - The report includes architecture_judgement.applicability not_applicable
@@ -835,7 +835,7 @@ New adv-researcher reports MUST include an Architecture Judgement object as dura
 **Researcher fail judgement remains advisory-only** (`rq-subagentReports20.3`)
 
 **Given:**
-- An adv-researcher report carries validation.status fail and architecture_judgement.applicability applicable
+- An determinus-researcher report carries validation.status fail and architecture_judgement.applicability applicable
 
 **When:** The orchestrator processes the report
 
@@ -849,12 +849,12 @@ New adv-researcher reports MUST include an Architecture Judgement object as dura
 **Given:**
 - A persisted researcher report predates rq-subagentReports20 and lacks architecture_judgement
 
-**When:** adv_change_show runs with include.subagentReports true
+**When:** determinus_change_show runs with include.subagentReports true
 
 **Then:**
 - The report is still returned with source metadata
 - Missing architecture_judgement is treated as not_applicable with a normalized legacy_rationale
-- adv_subagent_report_submit MUST NOT accept the legacy shape as new ingest
+- determinus_subagent_report_submit MUST NOT accept the legacy shape as new ingest
 
 ---
 
@@ -903,7 +903,7 @@ Briefing packets MUST be generated read-only projections derived from persisted 
 **Researcher sources render as bounded stable-order research_citation facts** (`rq-subagentReports21.4`)
 
 **Given:**
-- An adv-researcher report contains a non-empty sources array
+- An determinus-researcher report contains a non-empty sources array
 
 **When:** The briefing fact classifier processes the report
 
@@ -931,7 +931,7 @@ Briefing packets MUST be generated read-only projections derived from persisted 
 
 **ID:** `rq-subagentReports22` | **Priority:** **[MUST]**
 
-When the owning change change projection is terminal (archived or closed), adv_subagent_report_submit MUST persist the report via a disk-projection fallback rather than failing with SUBMIT_PROJECTION_FAILED. Archived changes write to the archive bundle change.json subagent_reports[] (or task.subagent_reports[] for task-scoped reports); closed changes write to the active changes dir change.json. The persisted report carries a recovery_audit marker distinguishing it from mutation-persisted reports. Persistence is idempotent by report key (change_id, scope, agent, attempt). The read path needs no change — terminal projection dominance already routes archived/closed reads through the disk projection. Report consumers (follow_ups, required_follow_ups, design concerns) run after disk persistence because they operate on the persisted report projection and work post-archive. The active-change projection mutation path (rq-subagentReports02), readback normalization (rq-subagentReports09, rq-subagentReports10), and disk readback safety (rq-subagentReports09) are unchanged.
+When the owning change change projection is terminal (archived or closed), determinus_subagent_report_submit MUST persist the report via a disk-projection fallback rather than failing with SUBMIT_PROJECTION_FAILED. Archived changes write to the archive bundle change.json subagent_reports[] (or task.subagent_reports[] for task-scoped reports); closed changes write to the active changes dir change.json. The persisted report carries a recovery_audit marker distinguishing it from mutation-persisted reports. Persistence is idempotent by report key (change_id, scope, agent, attempt). The read path needs no change — terminal projection dominance already routes archived/closed reads through the disk projection. Report consumers (follow_ups, required_follow_ups, design concerns) run after disk persistence because they operate on the persisted report projection and work post-archive. The active-change projection mutation path (rq-subagentReports02), readback normalization (rq-subagentReports09, rq-subagentReports10), and disk readback safety (rq-subagentReports09) are unchanged.
 
 **Tags:** `disk`, `terminal`, `disk-projection`, `post-archive`, `persistence`
 
@@ -942,7 +942,7 @@ When the owning change change projection is terminal (archived or closed), adv_s
 **Given:**
 - A change change projection is terminal (archived or closed)
 
-**When:** adv_subagent_report_submit is called with a valid report
+**When:** determinus_subagent_report_submit is called with a valid report
 
 **Then:**
 - The report persists to the terminal disk projection subagent_reports[] (archive bundle change.json for archived; active changes dir for closed)
@@ -955,7 +955,7 @@ When the owning change change projection is terminal (archived or closed), adv_s
 **Given:**
 - A report was persisted via the disk-projection fallback
 
-**When:** adv_change_show include.subagentReports reads the change
+**When:** determinus_change_show include.subagentReports reads the change
 
 **Then:**
 - The report appears in _subagentReports
@@ -990,7 +990,7 @@ When the owning change change projection is terminal (archived or closed), adv_s
 **Given:**
 - A change change projection is active (draft, pending, or active)
 
-**When:** adv_subagent_report_submit is called
+**When:** determinus_subagent_report_submit is called
 
 **Then:**
 - The mutation path (subagentReportSubmittedMutation) is used as before
@@ -1002,7 +1002,7 @@ When the owning change change projection is terminal (archived or closed), adv_s
 **Given:**
 - A change change projection is active (not archived/closed) but the mutation fails with a completed-change projection error
 
-**When:** adv_subagent_report_submit catches the mutation failure
+**When:** determinus_subagent_report_submit catches the mutation failure
 
 **Then:**
 - The structural completed-change projection classifier (isChange projectionCompletedError) authorizes the disk-projection fallback
@@ -1014,7 +1014,7 @@ When the owning change change projection is terminal (archived or closed), adv_s
 **Given:**
 - A change change projection is active and the mutation fails with an error that is NOT a completed-change projection error (e.g. transient timeout, or a benign message containing 'Change projectionNotFound' as a substring)
 
-**When:** adv_subagent_report_submit catches the mutation failure
+**When:** determinus_subagent_report_submit catches the mutation failure
 
 **Then:**
 - No disk-projection fallback is triggered
@@ -1027,7 +1027,7 @@ When the owning change change projection is terminal (archived or closed), adv_s
 
 **ID:** `rq-subagentReports23` | **Priority:** **[MUST]**
 
-adv-reviewer remediation and harden reports, adv-scanner-bundle review/harden summaries, and orchestrator-submitted adv-verification-triage-bundle (local_verify and ci_check) reports are loop-ledger sources surfaced through adv_change_show include.loopLedger. Reviewer reports map to review_remediation/harden_remediation; verification triage maps to verification_triage (local_verify) or ci_repair (ci_check, carrying ci_check source refs). These ledger entries are derived, typed evidence and MUST NOT authorize, complete, or block any task, contract item, report, or gate; they MUST NOT mutate tasks, change scope, edit code, or spawn remediation. UNKNOWN or routing-only verification triage MUST remain evidence-only: it maps to verdict inconclusive, MUST NOT write task error_recovery (re-affirming rq-subagentReports19), and MUST NOT increment the loop ledger retryFailureCount. The loop ledger is a readback projection; vector/ML similarity and autonomy/retry changes remain out of scope (AC5/AC7).
+determinus-reviewer remediation and harden reports, determinus-scanner-bundle review/harden summaries, and orchestrator-submitted determinus-verification-triage-bundle (local_verify and ci_check) reports are loop-ledger sources surfaced through determinus_change_show include.loopLedger. Reviewer reports map to review_remediation/harden_remediation; verification triage maps to verification_triage (local_verify) or ci_repair (ci_check, carrying ci_check source refs). These ledger entries are derived, typed evidence and MUST NOT authorize, complete, or block any task, contract item, report, or gate; they MUST NOT mutate tasks, change scope, edit code, or spawn remediation. UNKNOWN or routing-only verification triage MUST remain evidence-only: it maps to verdict inconclusive, MUST NOT write task error_recovery (re-affirming rq-subagentReports19), and MUST NOT increment the loop ledger retryFailureCount. The loop ledger is a readback projection; vector/ML similarity and autonomy/retry changes remain out of scope (AC5/AC7).
 
 **Tags:** `subagents`, `reports`, `loop-ledger`, `projection`, `evidence`
 
@@ -1036,9 +1036,9 @@ adv-reviewer remediation and harden reports, adv-scanner-bundle review/harden su
 **Reviewer and triage reports are loop sources** (`rq-subagentReports23.1`)
 
 **Given:**
-- Persisted adv-reviewer (review/harden), adv-scanner-bundle, or adv-verification-triage-bundle reports exist
+- Persisted determinus-reviewer (review/harden), determinus-scanner-bundle, or determinus-verification-triage-bundle reports exist
 
-**When:** adv_change_show include.loopLedger projects the change
+**When:** determinus_change_show include.loopLedger projects the change
 
 **Then:**
 - Reviewer reports produce review_remediation/harden_remediation entries
@@ -1075,7 +1075,7 @@ adv-reviewer remediation and harden reports, adv-scanner-bundle review/harden su
 
 **ID:** `rq-subagentReports24` | **Priority:** **[MUST]**
 
-For adv-researcher reports whose scope.scope_key starts with researcher:design-validation, validation.blockers MUST be a list of typed objects, never free-form strings. Each blocker MUST carry finding (non-empty string), source (typed SubagentSourceReference with label, locator, summary), contract_ids (non-empty list of strings referencing items on the change's approved contract), scope equal to the literal in_scope (out-of-scope alternatives are rejected), and in_scope_remediation (non-empty string). Out-of-scope alternatives belong only in architecture_judgement.alternatives_considered and may never appear in validation.blockers. validation.status fail is advisory-only: it surfaces architecture_judgement.risk and the in-scope remediation, but it MUST NOT auto-block or complete an ADV gate. Other gate blockers (contract compromise, security/release blocker, user-discovered CONFLICT) retain independent authority. The canonical preflight in tool-arg-preflight MUST cap nested report issues at MAX_ZOD_PREFLIGHT_ISSUES bounded rows of field-path plus message, and the plugin-side preflight (adv_subagent_report_submit) MUST short-circuit malformed input before any signal, error_recovery, or workflow mutation persists. Handler-side defense-in-depth rejects malformed blocker authority (unknown contract_ids, scope ≠ in_scope, missing fields) with INVALID_REPORT and MUST NOT mutate workflow state for purely malformed input. Legacy persisted researcher reports remain readable through adv_change_show include.subagentReports, with normalizePersistedSubagentReportState filling legacy architecture_judgement defaults.
+For determinus-researcher reports whose scope.scope_key starts with researcher:design-validation, validation.blockers MUST be a list of typed objects, never free-form strings. Each blocker MUST carry finding (non-empty string), source (typed SubagentSourceReference with label, locator, summary), contract_ids (non-empty list of strings referencing items on the change's approved contract), scope equal to the literal in_scope (out-of-scope alternatives are rejected), and in_scope_remediation (non-empty string). Out-of-scope alternatives belong only in architecture_judgement.alternatives_considered and may never appear in validation.blockers. validation.status fail is advisory-only: it surfaces architecture_judgement.risk and the in-scope remediation, but it MUST NOT auto-block or complete an ADV gate. Other gate blockers (contract compromise, security/release blocker, user-discovered CONFLICT) retain independent authority. The canonical preflight in tool-arg-preflight MUST cap nested report issues at MAX_ZOD_PREFLIGHT_ISSUES bounded rows of field-path plus message, and the plugin-side preflight (determinus_subagent_report_submit) MUST short-circuit malformed input before any signal, error_recovery, or workflow mutation persists. Handler-side defense-in-depth rejects malformed blocker authority (unknown contract_ids, scope ≠ in_scope, missing fields) with INVALID_REPORT and MUST NOT mutate workflow state for purely malformed input. Legacy persisted researcher reports remain readable through determinus_change_show include.subagentReports, with normalizePersistedSubagentReportState filling legacy architecture_judgement defaults.
 
 **Tags:** `subagents`, `researcher`, `design-validation`, `blockers`, `validator_scope`, `advisory_only`, `contract`, `preflight`, `no_mutation`, `backwards_compat`
 
@@ -1084,9 +1084,9 @@ For adv-researcher reports whose scope.scope_key starts with researcher:design-v
 **design-validation blocker entries must be typed objects** (`rq-subagentReports24.1`)
 
 **Given:**
-- A new adv-researcher report is submitted with scope.scope_key starting with researcher:design-validation
+- A new determinus-researcher report is submitted with scope.scope_key starting with researcher:design-validation
 
-**When:** adv_subagent_report_submit validates the report
+**When:** determinus_subagent_report_submit validates the report
 
 **Then:**
 - validation.blockers entries that are bare strings are rejected as INVALID_REPORT with a typed-contract-IDs-required message
@@ -1096,7 +1096,7 @@ For adv-researcher reports whose scope.scope_key starts with researcher:design-v
 **design-validation blocker contract_ids must reference the change's approved contract** (`rq-subagentReports24.2`)
 
 **Given:**
-- A new adv-researcher report is submitted with researcher:design-validation scope and a typed blocker whose contract_ids includes any string not present in change.contract.items[].id
+- A new determinus-researcher report is submitted with researcher:design-validation scope and a typed blocker whose contract_ids includes any string not present in change.contract.items[].id
 
 **When:** The handler-side preflight cross-checks blocker contract_ids against change.contract.items
 
@@ -1108,19 +1108,19 @@ For adv-researcher reports whose scope.scope_key starts with researcher:design-v
 **validation.status fail remains advisory-only and never auto-blocks gates** (`rq-subagentReports24.3`)
 
 **Given:**
-- An adv-researcher report carries validation.status fail and architecture_judgement.applicability applicable with in-scope blockers
+- An determinus-researcher report carries validation.status fail and architecture_judgement.applicability applicable with in-scope blockers
 
 **When:** The orchestrator (or command) processes the report
 
 **Then:**
 - Validator surfaces architecture_judgement.risk and the in-scope remediation in design notes
-- The design gate is not auto-blocked; the command proceeds to /adv-prep unless an independent blocker applies (contract compromise, security/release blocker, user-discovered CONFLICT)
+- The design gate is not auto-blocked; the command proceeds to /determinus-prep unless an independent blocker applies (contract compromise, security/release blocker, user-discovered CONFLICT)
 - User-visible legacy label ANTI-PATTERN remains advisory-only
 
 **malformed nested report input is bounded by the canonical preflight** (`rq-subagentReports24.4`)
 
 **Given:**
-- adv_subagent_report_submit receives a malformed nested report arg (wrong types, missing nested keys, missing field paths)
+- determinus_subagent_report_submit receives a malformed nested report arg (wrong types, missing nested keys, missing field paths)
 
 **When:** The plugin-side preflight validates the report against ScopedSubagentReportSchema
 
@@ -1132,7 +1132,7 @@ For adv-researcher reports whose scope.scope_key starts with researcher:design-v
 **out-of-scope alternatives belong to alternatives_considered only** (`rq-subagentReports24.5`)
 
 **Given:**
-- An adv-researcher design-validation report includes a recommendation that is out of the change's approved contract scope
+- An determinus-researcher design-validation report includes a recommendation that is out of the change's approved contract scope
 
 **When:** The orchestrator routes the report
 

@@ -10,13 +10,13 @@ import {
 
 const designConcernConfig: DispositionToolConfig<
   DesignConcernDisposition,
-  "adv_design_concern_disposition"
+  "determinus_design_concern_disposition"
 > = {
-  toolName: "adv_design_concern_disposition",
+  toolName: "determinus_design_concern_disposition",
   dispositionVerbs: DISPOSITION_VERBS,
   dispositionSchema: DesignConcernDispositionSchema,
   description:
-    "Record a typed disposition for a design-quality concern raised by an adv-designer report (a design_dimensions concern or neighboring recommendation). Clears the structural acceptance/release block for that (taskId, concernKey). Disposition verbs: fixed | rejected_with_evidence | split | fast_follow — there is no accepted_debt path.",
+    "Record a typed disposition for a design-quality concern raised by an determinus-designer report (a design_dimensions concern or neighboring recommendation). Clears the structural acceptance/release block for that (taskId, concernKey). Disposition verbs: fixed | rejected_with_evidence | split | fast_follow — there is no accepted_debt path.",
   argumentDescriptions: {
     changeId: "Change ID that owns the concern.",
     taskId: "Task ID the design concern was raised against.",

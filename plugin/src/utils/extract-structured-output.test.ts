@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { extractStructuredOutput } from "./extract-structured-output";
 
 describe("extractStructuredOutput", () => {
-  it("returns null when no <adv-output> tag present", () => {
+  it("returns null when no <determinus-output> tag present", () => {
     expect(extractStructuredOutput("Just regular prose here.")).toBeNull();
   });
 
@@ -17,9 +17,9 @@ describe("extractStructuredOutput", () => {
     expect(extractStructuredOutput("")).toBeNull();
   });
 
-  it("parses a full valid <adv-output> block", () => {
+  it("parses a full valid <determinus-output> block", () => {
     const text = `Some prose
-<adv-output>
+<determinus-output>
 {
   "filesChanged": [{"path": "src/foo.ts", "linesAdded": 10}],
   "testsAdded": 3,
@@ -27,7 +27,7 @@ describe("extractStructuredOutput", () => {
   "decisions": [{"decision": "use Zod", "why": "type safety"}],
   "followUps": ["refactor bar.ts"]
 }
-</adv-output>`;
+</determinus-output>`;
     const result = extractStructuredOutput(text);
     expect(result).not.toBeNull();
     expect(result!.filesChanged).toHaveLength(1);
@@ -38,7 +38,7 @@ describe("extractStructuredOutput", () => {
   });
 
   it("applies defaults for partial object", () => {
-    const text = `<adv-output>{"filesChanged": []}</adv-output>`;
+    const text = `<determinus-output>{"filesChanged": []}</determinus-output>`;
     const result = extractStructuredOutput(text);
     expect(result).not.toBeNull();
     expect(result!.testsAdded).toBe(0);
@@ -47,31 +47,31 @@ describe("extractStructuredOutput", () => {
   });
 
   it("returns null for invalid JSON inside tag", () => {
-    const text = `<adv-output>{not valid json}</adv-output>`;
+    const text = `<determinus-output>{not valid json}</determinus-output>`;
     expect(extractStructuredOutput(text)).toBeNull();
   });
 
   it("returns null when JSON fails schema validation", () => {
-    const text = `<adv-output>{"testsAdded": -5}</adv-output>`;
+    const text = `<determinus-output>{"testsAdded": -5}</determinus-output>`;
     expect(extractStructuredOutput(text)).toBeNull();
   });
 
   it("takes last occurrence when multiple tags present", () => {
     const text = `First:
-<adv-output>{"testsAdded": 1}</adv-output>
+<determinus-output>{"testsAdded": 1}</determinus-output>
 Second:
-<adv-output>{"testsAdded": 2}</adv-output>`;
+<determinus-output>{"testsAdded": 2}</determinus-output>`;
     const result = extractStructuredOutput(text);
     expect(result).not.toBeNull();
     expect(result!.testsAdded).toBe(2);
   });
 
   it("strips markdown code fences", () => {
-    const text = `<adv-output>
+    const text = `<determinus-output>
 \`\`\`json
 {"testsAdded": 5}
 \`\`\`
-</adv-output>`;
+</determinus-output>`;
     const result = extractStructuredOutput(text);
     expect(result).not.toBeNull();
     expect(result!.testsAdded).toBe(5);
@@ -79,19 +79,19 @@ Second:
 
   it("returns null for oversized output (>10KB)", () => {
     const bigContent = "x".repeat(11 * 1024);
-    const text = `<adv-output>{"data": "${bigContent}"}</adv-output>`;
+    const text = `<determinus-output>{"data": "${bigContent}"}</determinus-output>`;
     expect(extractStructuredOutput(text)).toBeNull();
   });
 
   it("extracts from second argument text when first is empty", () => {
-    const text = `No tag here.\n\n<adv-output>{"testsAdded": 7}</adv-output>`;
+    const text = `No tag here.\n\n<determinus-output>{"testsAdded": 7}</determinus-output>`;
     const result = extractStructuredOutput(text);
     expect(result).not.toBeNull();
     expect(result!.testsAdded).toBe(7);
   });
 
   it("preserves extra fields via passthrough", () => {
-    const text = `<adv-output>{"testsAdded": 1, "customField": "hello"}</adv-output>`;
+    const text = `<determinus-output>{"testsAdded": 1, "customField": "hello"}</determinus-output>`;
     const result = extractStructuredOutput(text);
     expect(result).not.toBeNull();
     expect(result!.testsAdded).toBe(1);
@@ -99,12 +99,12 @@ Second:
   });
 
   it("returns null for empty tag content", () => {
-    const text = `<adv-output></adv-output>`;
+    const text = `<determinus-output></determinus-output>`;
     expect(extractStructuredOutput(text)).toBeNull();
   });
 
   it("returns null for whitespace-only tag content", () => {
-    const text = `<adv-output>   \n  \t  </adv-output>`;
+    const text = `<determinus-output>   \n  \t  </determinus-output>`;
     expect(extractStructuredOutput(text)).toBeNull();
   });
 });

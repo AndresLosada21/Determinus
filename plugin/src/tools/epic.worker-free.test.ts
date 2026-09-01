@@ -1,5 +1,5 @@
 /**
- * adv_epic_list / adv_epic_show worker-free durable projection tests (AC4).
+ * determinus_epic_list / determinus_epic_show worker-free durable projection tests (AC4).
  *
  * Verifies that routine Epic reads render active/retired projection facts without
  * a live workflow, and that completed-candidate evaluation and membership
@@ -142,7 +142,7 @@ function makeStore(epicOverrides?: Partial<Epic>): Store {
   } as unknown as Store;
 }
 
-describe("adv_epic_show worker-free projection reads", () => {
+describe("determinus_epic_show worker-free projection reads", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -180,7 +180,7 @@ describe("adv_epic_show worker-free projection reads", () => {
       throw new Error("Temporal workflow unreachable");
     });
 
-    const result = await epicTools.adv_epic_show.execute(
+    const result = await epicTools.determinus_epic_show.execute(
       { epic_id: "authEpic" },
       store,
     );
@@ -226,7 +226,7 @@ describe("adv_epic_show worker-free projection reads", () => {
       throw new Error("Temporal workflow unreachable");
     });
 
-    const result = await epicTools.adv_epic_show.execute(
+    const result = await epicTools.determinus_epic_show.execute(
       { epic_id: "retiredEpic" },
       store,
     );
@@ -274,7 +274,7 @@ describe("adv_epic_show worker-free projection reads", () => {
       throw new Error("Temporal workflow unreachable");
     });
 
-    const result = await epicTools.adv_epic_show.execute(
+    const result = await epicTools.determinus_epic_show.execute(
       { epic_id: "authEpic" },
       store,
     );
@@ -293,7 +293,7 @@ describe("adv_epic_show worker-free projection reads", () => {
   });
 });
 
-describe("adv_epic_list worker-free projection reads", () => {
+describe("determinus_epic_list worker-free projection reads", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -305,7 +305,7 @@ describe("adv_epic_list worker-free projection reads", () => {
   test("AC4 — lists active Epics from projection without workflow queries", async () => {
     const store = makeStore();
 
-    const result = await epicTools.adv_epic_list.execute({}, store);
+    const result = await epicTools.determinus_epic_list.execute({}, store);
     const parsed = parseToolOutput(result);
 
     expect(parsed.success).toBe(true);
@@ -330,7 +330,7 @@ describe("adv_epic_list worker-free projection reads", () => {
     const store = makeStore(completedEpic);
     store.epics.list = vi.fn(async () => [completedEpic]);
 
-    const result = await epicTools.adv_epic_list.execute(
+    const result = await epicTools.determinus_epic_list.execute(
       { status: "completed" },
       store,
     );

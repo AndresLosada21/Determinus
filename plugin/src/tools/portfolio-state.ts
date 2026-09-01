@@ -1,11 +1,11 @@
 /**
- * Bounded portfolio state for adv_change_create results
+ * Bounded portfolio state for determinus_change_create results
  * (rq-createPortfolioLine01 / AC4).
  *
  * Change creation is where reflexive change creation happens. Surfacing the
  * portfolio at that moment — non-terminal count, never-terminal share, and a
  * soft nudge above threshold — gives the creating agent the state it needs to
- * consider the durable middle tier (`adv_backlog_add`) instead of minting yet
+ * consider the durable middle tier (`determinus_backlog_add`) instead of minting yet
  * another never-terminal change.
  *
  * The read is deadline-capped (DDC3) and degrades to an explicit
@@ -72,7 +72,7 @@ export function derivePortfolioState(
   };
   if (open >= PORTFOLIO_NUDGE_MIN_OPEN && share > PORTFOLIO_NUDGE_SHARE) {
     state.nudge =
-      "consider adv_backlog_add — portfolio has a high never-terminal share";
+      "consider determinus_backlog_add — portfolio has a high never-terminal share";
   }
   return state;
 }

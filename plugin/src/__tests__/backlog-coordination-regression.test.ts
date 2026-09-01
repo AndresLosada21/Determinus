@@ -30,7 +30,7 @@ describe("duplicate backlog work is prevented by the create claim check", () => 
       .fn()
       .mockResolvedValue([{ changeId: "firstClaim", status: "active" }]);
 
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Second attempt at #51",
         origin_kind: "triage",

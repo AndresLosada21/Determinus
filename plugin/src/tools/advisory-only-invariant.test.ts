@@ -7,7 +7,7 @@
  * override specs/contracts, and never used to replace task evidence.
  *
  * AC9 is enforced by architecture today: the enrichment fields are only
- * attached to the tool output of `adv_task_show` and never enter signal
+ * attached to the tool output of `determinus_task_show` and never enter signal
  * payloads, workflow state, or gate handlers. This test catches a future
  * regression where a refactor accidentally bleeds enrichment into
  * authoritative state.

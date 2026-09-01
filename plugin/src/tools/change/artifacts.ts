@@ -253,7 +253,7 @@ export async function loadProposalForContext(
 `;
   return {
     content: scaffold,
-    warning: `⚠️  proposal content not found in persisted documents or disk for change ${changeId}. Using auto-generated scaffold. Run /adv-proposal to create a proper proposal.`,
+    warning: `⚠️  proposal content not found in persisted documents or disk for change ${changeId}. Using auto-generated scaffold. Run /determinus-proposal to create a proper proposal.`,
   };
 }
 /**

@@ -20,7 +20,7 @@ import { formatToolOutput } from "../utils/tool-output";
 // =============================================================================
 
 export const projectTools = {
-  adv_project_context: {
+  determinus_project_context: {
     description:
       "Read project context or read, write, and list per-project metadata entries.",
     args: {

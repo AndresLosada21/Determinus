@@ -11,22 +11,22 @@ import { miscChangeTools } from "./change/handlers-misc";
 
 // Keep routine-read guard boundaries discoverable in this barrel. The actual
 // handler implementations remain in handlers-query.ts.
-// adv_change_list: {
-//   execute: queryChangeTools.adv_change_list.execute,
+// determinus_change_list: {
+//   execute: queryChangeTools.determinus_change_list.execute,
 // },
-// adv_change_show: {
-//   execute: queryChangeTools.adv_change_show.execute,
+// determinus_change_show: {
+//   execute: queryChangeTools.determinus_change_show.execute,
 // },
-// adv_change_create: {
+// determinus_change_create: {
 
 export const changeTools = {
-  adv_change_list: queryChangeTools.adv_change_list,
-  adv_change_show: queryChangeTools.adv_change_show,
-  adv_change_create: lifecycleChangeTools.adv_change_create,
-  adv_change_update: lifecycleChangeTools.adv_change_update,
-  adv_change_close: lifecycleChangeTools.adv_change_close,
-  adv_change_archive: archiveChangeTools.adv_change_archive,
-  adv_change_reenter: miscChangeTools.adv_change_reenter,
+  determinus_change_list: queryChangeTools.determinus_change_list,
+  determinus_change_show: queryChangeTools.determinus_change_show,
+  determinus_change_create: lifecycleChangeTools.determinus_change_create,
+  determinus_change_update: lifecycleChangeTools.determinus_change_update,
+  determinus_change_close: lifecycleChangeTools.determinus_change_close,
+  determinus_change_archive: archiveChangeTools.determinus_change_archive,
+  determinus_change_reenter: miscChangeTools.determinus_change_reenter,
 };
 
 export { CHANGE_VALIDATE_CONTEXT_TIMEOUT_MS } from "./change/helpers";

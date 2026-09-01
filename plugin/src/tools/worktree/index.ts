@@ -465,7 +465,7 @@ async function findGitWorktreeByBranch(
 }
 
 // =============================================================================
-// ADV-SAFE WORKTREE CREATE (T10 — KD-13, peer-review F3, R14)
+// determinus-SAFE WORKTREE CREATE (T10 — KD-13, peer-review F3, R14)
 // =============================================================================
 
 export interface AdvWorktreeCreateDeps {
@@ -990,7 +990,7 @@ async function _createWorktree(
 }
 
 // =============================================================================
-// ADV-SAFE WORKTREE DELETE (T9 — KD-6b, F2, R13)
+// determinus-SAFE WORKTREE DELETE (T9 — KD-6b, F2, R13)
 // =============================================================================
 
 export interface AdvWorktreeDeleteDeps {
@@ -1213,7 +1213,7 @@ async function cleanupOpenCodeWorkspaceForWorktree(
       ok: false,
       error: "WORKSPACE_CLEANUP_FAILED",
       reason: `workspace cleanup failed: could not delete OpenCode workspace ${lookup.workspace.workspaceID}: ${error}`,
-      hint: "OpenCode workspace deletion failed; retained the worktree without removal. Retry with adv_worktree_cleanup after the OpenCode server responds.",
+      hint: "OpenCode workspace deletion failed; retained the worktree without removal. Retry with determinus_worktree_cleanup after the OpenCode server responds.",
     };
   }
   return { ok: true, warning: null };
@@ -1967,7 +1967,7 @@ async function advWorktreeDeleteShared(
       error: "PLAN_REQUIRED",
       reason:
         "A destructive worktree deletion requires a planner-issued plan token.",
-      hint: "Call adv_worktree_delete with dryRun:true, then apply the returned planToken with approvalEvidence.",
+      hint: "Call determinus_worktree_delete with dryRun:true, then apply the returned planToken with approvalEvidence.",
     };
   if (!opts.approvalEvidence?.trim())
     return {

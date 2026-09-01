@@ -62,7 +62,7 @@ export const advChangeReenterHandler = async (
     // at the tool layer with a domain-level message and remediation hint.
     if (result.data.status === "archived" || result.data.status === "closed") {
       return formatToolOutput({
-        error: `Cannot reenter ${result.data.status} change ${changeId}. Reenter is for scope expansion on active changes; archived/closed changes cannot be reopened. Use adv_doctor if workflow recovery is needed.`,
+        error: `Cannot reenter ${result.data.status} change ${changeId}. Reenter is for scope expansion on active changes; archived/closed changes cannot be reopened. Use determinus_doctor if workflow recovery is needed.`,
         changeId,
       });
     }
@@ -174,7 +174,7 @@ export const advChangeReenterHandler = async (
 };
 
 export const miscChangeTools = {
-  adv_change_reenter: {
+  determinus_change_reenter: {
     description:
       "Reopen gates from a specified point for scope expansion re-entry. Resets the target gate and all downstream gates to pending, preserving existing tasks and completed work.",
     args: {

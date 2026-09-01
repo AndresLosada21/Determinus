@@ -8,7 +8,7 @@
 
 ## Context
 
-The ADV plugin registers 83 unique `adv_*` tools that load as top-level plugin tools in every OpenCode Code Mode prompt. Tool-schema weight is the #1 cause of ADV workflow feeling "heavier and slower." OpenCode 1.18.4 CodeMode only defers **MCP server tools**; plugin tools are exempt.
+The ADV plugin registers 83 unique `determinus_*` tools that load as top-level plugin tools in every OpenCode Code Mode prompt. Tool-schema weight is the #1 cause of ADV workflow feeling "heavier and slower." OpenCode 1.18.4 CodeMode only defers **MCP server tools**; plugin tools are exempt.
 
 To move ~13 Tier-4 read-only tools out of every prompt and into on-demand `tools.adv.*` discovery, we need a managed MCP server that:
 
@@ -29,33 +29,33 @@ Three transport topology options were considered:
 
 **Option (c): stdio subprocess under Vision HTTP termination.**
 
-The ADV MCP server is a Node stdio process (`plugin/dist/mcp-server.js`) using `@modelcontextprotocol/sdk` v1.x (`McpServer` + `StdioServerTransport`). Vision spawns one subprocess per ADV-enabled repo, terminates HTTP on a localhost port (6298+ range), bridges HTTP↔stdio, and provides lifecycle supervision (`restart_policy: on-failure`, `max_restarts: 5`, `health_check_interval: 30s`). OpenCode connects via `mcp.adv: { type: "remote", url: "http://localhost:<port>/mcp" }`.
+The ADV MCP server is a Node stdio process (`plugin/dist/mcp-server.js`) using `@modelcontextprotocol/sdk` v1.x (`McpServer` + `StdioServerTransport`). Vision spawns one subprocess per determinus-enabled repo, terminates HTTP on a localhost port (6298+ range), bridges HTTP↔stdio, and provides lifecycle supervision (`restart_policy: on-failure`, `max_restarts: 5`, `health_check_interval: 30s`). OpenCode connects via `mcp.adv: { type: "remote", url: "http://localhost:<port>/mcp" }`.
 
-Each ADV-enabled repo gets its own Vision entry + dedicated port + project-pinned cwd. The Vision entry's `cwd:` field is the **single source of truth** for project identity; no `ADV_MCP_PROJECT_ROOT` env var.
+Each determinus-enabled repo gets its own Vision entry + dedicated port + project-pinned cwd. The Vision entry's `cwd:` field is the **single source of truth** for project identity; no `determinus_MCP_PROJECT_ROOT` env var.
 
 ### Tier-4 catalog (13 tools, AC2')
 
 | # | Tool name | Source tool | Classification |
 |---|---|---|---|
-| 1 | `status` | `adv_status` | needs-temporal + needs-host-probe |
-| 2 | `spec` | `adv_spec` | needs-context |
-| 3 | `wisdom_list` | `adv_wisdom_list` | needs-context |
-| 4 | `reflection_list` | `adv_reflection_list` | needs-context |
-| 5 | `project_context` | `adv_project_context` | pure |
-| 6 | `backlog_list` | `adv_backlog_list` | needs-context |
-| 7 | `backlog_show` | `adv_backlog_show` | needs-context |
-| 8 | `epic_list` | `adv_epic_list` | needs-temporal |
-| 9 | `epic_show` | `adv_epic_show` | needs-temporal |
-| 10 | `wip_state` | `adv_wip_state` | needs-temporal |
-| 11 | `worktree_triage` | `adv_worktree_triage` | needs-host-git |
-| 12 | `tool_catalog` | `adv_tool_catalog` | pure |
-| 13 | `tool_describe` | `adv_tool_describe` | pure |
+| 1 | `status` | `determinus_status` | needs-temporal + needs-host-probe |
+| 2 | `spec` | `determinus_spec` | needs-context |
+| 3 | `wisdom_list` | `determinus_wisdom_list` | needs-context |
+| 4 | `reflection_list` | `determinus_reflection_list` | needs-context |
+| 5 | `project_context` | `determinus_project_context` | pure |
+| 6 | `backlog_list` | `determinus_backlog_list` | needs-context |
+| 7 | `backlog_show` | `determinus_backlog_show` | needs-context |
+| 8 | `epic_list` | `determinus_epic_list` | needs-temporal |
+| 9 | `epic_show` | `determinus_epic_show` | needs-temporal |
+| 10 | `wip_state` | `determinus_wip_state` | needs-temporal |
+| 11 | `worktree_triage` | `determinus_worktree_triage` | needs-host-git |
+| 12 | `tool_catalog` | `determinus_tool_catalog` | pure |
+| 13 | `tool_describe` | `determinus_tool_describe` | pure |
 
 Five tools were removed from the original 18-tool proposal:
-- `adv_reflect` (pure write, violates DONT1)
-- `adv_project_metadata` (`action: read|write|list`, mutates)
-- `adv_conformance` (`action: status|init|lock|unlock|override|run`, mutates)
-- `adv_session_list` (host PID ACL tied to OpenCode's own process)
+- `determinus_reflect` (pure write, violates DONT1)
+- `determinus_project_metadata` (`action: read|write|list`, mutates)
+- `determinus_conformance` (`action: status|init|lock|unlock|override|run`, mutates)
+- `determinus_session_list` (host PID ACL tied to OpenCode's own process)
 
 ## Rationale
 
@@ -76,17 +76,17 @@ The MCP server uses **`McpServer` (high-level)** rather than the low-level `Serv
 
 ### SDK-free catalog module (KD2, AMEND-3)
 
-Original KD2 plan: extract `PUBLIC_TOOL_ENTRIES` + `ADV_TOOL_METADATA` into an SDK-free canonical module (`plugin/src/tool-catalog-entries.ts`).
+Original KD2 plan: extract `PUBLIC_TOOL_ENTRIES` + `determinus_TOOL_METADATA` into an SDK-free canonical module (`plugin/src/tool-catalog-entries.ts`).
 
 **Discovery during execution:** `PUBLIC_TOOL_ENTRIES` is derived from `PUBLIC_TOOL_GROUPS` which imports 30+ SDK-coupled tool-group modules (`tools/spec.ts`, `tools/change.ts`, etc.). Full extraction would require refactoring all tool-group modules to be data-only — too invasive.
 
-**Resolution (AMEND-3):** Extract only types + pure functions + derivation tables to `plugin/src/tool-catalog-entries.ts` (shipped in task `tk-9ad1a04909a2`). Runtime data access via dynamic import (`await import("../tool-registry.js")`); matches the existing `adv_contract_mint` pattern at `tool-registry.ts:1330-1332`. KD2 intent preserved: MCP descriptors depend on SDK-free module only; MCP rebuilds stay decoupled from SDK changes.
+**Resolution (AMEND-3):** Extract only types + pure functions + derivation tables to `plugin/src/tool-catalog-entries.ts` (shipped in task `tk-9ad1a04909a2`). Runtime data access via dynamic import (`await import("../tool-registry.js")`); matches the existing `determinus_contract_mint` pattern at `tool-registry.ts:1330-1332`. KD2 intent preserved: MCP descriptors depend on SDK-free module only; MCP rebuilds stay decoupled from SDK changes.
 
 ### Capability/version handshake (KD7, AMEND-4)
 
-`serverInfo` carries only MCP-standard `name` + `version` (per MCP spec). ADV-specific compatibility metadata (`tier4_tools`, `adv_contract_version`) is exposed via the `adv_handshake` meta-tool — `serverInfo.capabilities` is reserved for protocol-level declarations (sampling/roots/etc.), not arbitrary metadata bags.
+`serverInfo` carries only MCP-standard `name` + `version` (per MCP spec). determinus-specific compatibility metadata (`tier4_tools`, `determinus_contract_version`) is exposed via the `determinus_handshake` meta-tool — `serverInfo.capabilities` is reserved for protocol-level declarations (sampling/roots/etc.), not arbitrary metadata bags.
 
-`ADV_CONTRACT_VERSION = 1` tracks the **handshake schema shape** (not plugin version, not SDK version). Bump on breaking changes to `HandshakeResult` (tool removed from `tier4_tools`, field renamed, semantic redefined).
+`determinus_CONTRACT_VERSION = 1` tracks the **handshake schema shape** (not plugin version, not SDK version). Bump on breaking changes to `HandshakeResult` (tool removed from `tier4_tools`, field renamed, semantic redefined).
 
 ## Consequences
 
@@ -101,7 +101,7 @@ Original KD2 plan: extract `PUBLIC_TOOL_ENTRIES` + `ADV_TOOL_METADATA` into an S
 
 ### Negative
 
-- **Operator deploy burden**: each ADV-enabled repo requires a Vision entry + OpenCode config snippet (documented below)
+- **Operator deploy burden**: each determinus-enabled repo requires a Vision entry + OpenCode config snippet (documented below)
 - **No CI coverage of live deploy**: post-deploy smoke (task `tk-6705bb3ceaf0`) was cancelled; requires operator verification per the runbook below
 - **Dynamic import overhead**: MCP server pays one-time dynamic-import cost for `tool-registry.js` (~50ms measured) on first tool call
 
@@ -131,12 +131,12 @@ OpenCode spawns a stdio child per session via `mcp.adv: { type: "local", command
 
 ### Per-project setup
 
-For each ADV-enabled repo:
+For each determinus-enabled repo:
 
 #### 1. Add Vision entry (`~/.config/vision/servers.yaml`)
 
 ```yaml
-adv-<project-slug>:
+determinus-<project-slug>:
   port: <next-free, 6298+>  # avoid episode=6297, lgrep=6278
   command: /home/jon/.local/share/fnm/fnm
   args:
@@ -179,19 +179,19 @@ vision daemon reload          # picks up new servers.yaml entry
 
 ```bash
 # 1. Confirm Vision entry is running
-vision daemon status | grep adv-<project-slug>
+vision daemon status | grep determinus-<project-slug>
 
 # 2. Confirm MCP server responds (health probe)
 curl -s http://localhost:<port>/mcp | head
 
 # 3. From a fresh OpenCode session, call the handshake tool
 # In OpenCode agent:
-#   const r = await tools.adv.adv_handshake({});
-#   console.log(r);  // expect {tier4_tools:[...13 names...], adv_contract_version:1}
+#   const r = await tools.adv.determinus_handshake({});
+#   console.log(r);  // expect {tier4_tools:[...13 names...], determinus_contract_version:1}
 
 # 4. Verify tool catalog
 #   const cat = await tools.adv.tool_catalog({});
-#   expect 13 Tier-4 entries + adv_handshake
+#   expect 13 Tier-4 entries + determinus_handshake
 
 # 5. Verify degradation tagging (when Temporal is down)
 #   const s = await tools.adv.status({});
@@ -215,8 +215,8 @@ This change MUST NOT release before sibling `slimMutationToolSurface` ships. Ver
 
 - Proposal: `addAdvMcpReadSurface` proposal.md (scope-refreshed 2026-07-20)
 - Design: `addAdvMcpReadSurface` design.md (10 KDs, 7 DDCs, 12 risks, AMEND-1..4)
-- Sibling: `slimMutationToolSurface` (Tier-3 mutation tools → `adv_tool_invoke` routing)
+- Sibling: `slimMutationToolSurface` (Tier-3 mutation tools → `determinus_tool_invoke` routing)
 - Scout: SCOUT-1 (Vision stdio topology), SCOUT-2 (pure descriptors), SCOUT-3 (parity harness), SCOUT-4 (bundle manifest)
 - Validator: Round-1 FAIL (HTTP-child draft), Round-2 CONFLICT (resolved by UD-V1/V2/V3 user decisions)
 - MCP SDK: `@modelcontextprotocol/sdk@1.29.0` — `McpServer`, `StdioServerTransport`, `registerTool`
-- Existing pattern: `adv_contract_mint` dynamic-import pattern at `tool-registry.ts:1330-1332`
+- Existing pattern: `determinus_contract_mint` dynamic-import pattern at `tool-registry.ts:1330-1332`

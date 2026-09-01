@@ -18,12 +18,12 @@ import {
 } from "../__tests__/setup";
 import { changeTools } from "./change";
 
-describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)", () => {
+describe("determinus_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)", () => {
   let dir: string;
   let store: Store;
 
   beforeEach(async () => {
-    dir = await createTempDir("adv-claim-");
+    dir = await createTempDir("determinus-claim-");
     // withChanges:false — avoid the default `addFeature` fixture so we can
     // assert exact change-list state after each claim-check scenario.
     await createTestProject(dir, { withChanges: false });
@@ -39,7 +39,7 @@ describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)"
   test("origin.kind=triage with issue_number fires pre-create disk claim check (rq-backlogCoord02)", async () => {
     const claimChecker = vi.fn().mockResolvedValue([]);
 
-    await changeTools.adv_change_create.execute(
+    await changeTools.determinus_change_create.execute(
       {
         summary: "Backlog feature 51",
         origin_kind: "triage",
@@ -61,7 +61,7 @@ describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)"
       .fn()
       .mockResolvedValue([{ changeId: "existingClaim", status: "active" }]);
 
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Backlog feature 51 attempt 2",
         origin_kind: "triage",
@@ -86,7 +86,7 @@ describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)"
   test("origin.kind=discovery skips disk claim checks (rq-backlogCoord02.3)", async () => {
     const claimChecker = vi.fn().mockResolvedValue([]);
 
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Mid-session discovery",
         origin_kind: "discovery",
@@ -104,7 +104,7 @@ describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)"
   test("origin.kind=triage with issue_number does fire disk claim check", async () => {
     const claimChecker = vi.fn().mockResolvedValue([]);
 
-    await changeTools.adv_change_create.execute(
+    await changeTools.determinus_change_create.execute(
       {
         summary: "Promote agenda item",
         origin_kind: "triage",
@@ -124,7 +124,7 @@ describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)"
   test("change without origin works unchanged (no disk claim check)", async () => {
     const claimChecker = vi.fn().mockResolvedValue([]);
 
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Plain change no origin",
       },
@@ -150,7 +150,7 @@ describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)"
       ];
     });
 
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "My new change",
         origin_kind: "triage",
@@ -178,7 +178,7 @@ describe("adv_change_create claim checks (rq-backlogCoord02, rq-backlogCoord03)"
       .mockResolvedValueOnce([]) // pre-create: empty
       .mockResolvedValueOnce([{ changeId: "myNewChange", status: "draft" }]); // post-create: self only
 
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "My new change",
         origin_kind: "triage",

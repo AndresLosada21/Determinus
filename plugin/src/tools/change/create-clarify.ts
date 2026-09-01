@@ -74,7 +74,7 @@ export async function checkActiveDuplicateChange(
   );
   if (!existingDuplicate) return undefined;
 
-  const baseHint = `Resume the existing change with /adv-apply ${existingDuplicate.id}, or archive it before creating a new one.`;
+  const baseHint = `Resume the existing change with /determinus-apply ${existingDuplicate.id}, or archive it before creating a new one.`;
   return {
     error: `An active change already exists for "${summary}"`,
     code: "DUPLICATE_ACTIVE_CHANGE",
@@ -328,7 +328,7 @@ async function validateTargetEpic(input: {
 // Pattern recognition extracted to utils/synthetic-fixture-detector for reuse
 // across both this tool-layer guard and the storage/json.ts saveChange disk
 // guard (defense-in-depth against direct-disk-write code paths that bypass
-// adv_change_create).
+// determinus_change_create).
 export function isSyntheticValidationDraftSummary(summary: string): boolean {
   return isSyntheticValidationDraftPattern(summary);
 }

@@ -3,7 +3,7 @@
  *
  * Computes an advisory merge-order queue for archived-but-not-yet-merged
  * changes from persisted state. Output is informational —
- * /adv-archive Phase 9 still drives the actual merging; this module just
+ * /determinus-archive Phase 9 still drives the actual merging; this module just
  * suggests the order.
  *
  * Spec anchors:

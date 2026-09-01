@@ -80,7 +80,7 @@ function store(root: string, current: Change): Store {
 
 describe("archive terminal proof", () => {
   test("accepts an already-complete release projection after shipped finalization", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const current = change();
       await seed(root, current);
@@ -132,7 +132,7 @@ describe("archive terminal proof", () => {
   });
 
   test("repairs release and Phase 9 metadata in an archived bundle without an active projection", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const archivedAt = "2026-01-02T03:04:05.000Z";
       const current = change({
@@ -260,7 +260,7 @@ describe("archive terminal proof", () => {
   });
 
   test("audits terminal status convergence instead of treating it as an exact replay", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const archivedAt = "2026-01-02T03:04:05.000Z";
       const current = change({
@@ -314,7 +314,7 @@ describe("archive terminal proof", () => {
   });
 
   test("does not route a corrupt active projection through archived-bundle recovery", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const current = change({
         gates: { ...doneGates(), release: { status: "pending" } },
@@ -351,7 +351,7 @@ describe("archive terminal proof", () => {
   });
 
   test("fails closed when the existing bundle cannot preserve its archive timestamp", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const current = change({
         gates: { ...doneGates(), release: { status: "pending" } },
@@ -403,7 +403,7 @@ describe("archive terminal proof", () => {
   });
 
   test("fails closed when the authoritative release projection is missing", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const current = change({
         gates: { ...doneGates(), release: { status: "pending" } },
@@ -425,7 +425,7 @@ describe("archive terminal proof", () => {
   });
 
   test("fails closed when the archive bundle release status is not complete", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const current = change();
       const bundle = join(root, "bundle");
@@ -457,7 +457,7 @@ describe("archive terminal proof", () => {
   });
 
   test("rejects release proof from a bundle with a foreign change identity", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const current = change();
       const bundle = join(root, "bundle");
@@ -487,7 +487,7 @@ describe("archive terminal proof", () => {
   });
 
   test("uses durable disk gate evidence without workflow reads", async () => {
-    const root = await createTempDir("adv-archive-proof-");
+    const root = await createTempDir("determinus-archive-proof-");
     try {
       const current = change();
       await seed(root, current);

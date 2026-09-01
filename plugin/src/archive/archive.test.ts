@@ -35,13 +35,13 @@ afterEach(async () => {
 });
 
 async function tempProject(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "adv-archive-contract-"));
+  const dir = await mkdtemp(join(tmpdir(), "determinus-archive-contract-"));
   tempDirs.push(dir);
   return dir;
 }
 
 async function gitRepo(name: string): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), `adv-archive-${name}-`));
+  const dir = await mkdtemp(join(tmpdir(), `determinus-archive-${name}-`));
   tempDirs.push(dir);
   execSync("git init", { cwd: dir });
   execSync("git config user.email 'test@test.com'", { cwd: dir });
@@ -821,7 +821,7 @@ describe("contract archive traceability", () => {
                 attempt: 1,
                 workdir_used: "/tmp/wt",
                 scope: { kind: "task", task_id: "tk-digest" },
-                agent: "adv-engineer",
+                agent: "determinus-engineer",
                 status: "complete",
                 files_touched: ["src/a.ts"],
                 verification: [

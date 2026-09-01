@@ -53,8 +53,8 @@ export interface StatusRecommendationSummary {
   omitted: number;
   groups: StatusRecommendationGroup[];
   drilldown: {
-    changes: 'adv_status view:"changes"';
-    hygiene: 'adv_status view:"hygiene"';
+    changes: 'determinus_status view:"changes"';
+    hygiene: 'determinus_status view:"hygiene"';
   };
 }
 
@@ -147,8 +147,8 @@ export function buildStatusRecommendationGroups(
     omitted: Math.max(0, total - shownTotal),
     groups,
     drilldown: {
-      changes: 'adv_status view:"changes"',
-      hygiene: 'adv_status view:"hygiene"',
+      changes: 'determinus_status view:"changes"',
+      hygiene: 'determinus_status view:"hygiene"',
     },
   };
 }

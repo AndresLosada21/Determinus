@@ -1,6 +1,6 @@
 /** Disk-backed status/health integration coverage after Temporal removal. */
 
-process.env.ADV_TOOL_MAX_CHARS = "1000000";
+process.env.determinus_TOOL_MAX_CHARS = "1000000";
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
@@ -57,7 +57,7 @@ describe("disk-backed status and health integration", () => {
   let store: Store;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-status-health-");
+    tempDir = await createTempDir("determinus-status-health-");
     await createTestProject(tempDir, { withChanges: false, withSpecs: true });
     store = await createDiskStore(tempDir);
   });
@@ -85,7 +85,7 @@ describe("disk-backed status and health integration", () => {
 
   test("health view preserves bounded execution metadata", async () => {
     const parsed = parseToolOutput(
-      await statusTools.adv_status.execute({ view: "health" }, store),
+      await statusTools.determinus_status.execute({ view: "health" }, store),
     );
 
     expect(parsed._health_execution).toMatchObject({
@@ -107,7 +107,7 @@ describe("disk-backed status and health integration", () => {
       .mockResolvedValue({ total: 0, classes: {} } as never);
 
     const result = parseToolOutput(
-      await statusTools.adv_status.execute({ view: "health" }, store),
+      await statusTools.determinus_status.execute({ view: "health" }, store),
     );
 
     expect(cleanupSpy).not.toHaveBeenCalled();

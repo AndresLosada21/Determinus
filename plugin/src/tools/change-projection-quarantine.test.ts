@@ -123,13 +123,13 @@ function parseResult(result: string): Record<string, unknown> {
 // Tests
 // =============================================================================
 
-describe("adv_change_projection_quarantine", () => {
+describe("determinus_change_projection_quarantine", () => {
   let tempDir: string;
   let changesDir: string;
   let store: Store;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-change-projection-quarantine-");
+    tempDir = await createTempDir("determinus-change-projection-quarantine-");
     changesDir = join(tempDir, "changes");
     store = createMockStore(tempDir, changesDir);
   });
@@ -147,7 +147,7 @@ describe("adv_change_projection_quarantine", () => {
     );
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: false,
@@ -170,7 +170,7 @@ describe("adv_change_projection_quarantine", () => {
     );
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: true,
@@ -198,7 +198,7 @@ describe("adv_change_projection_quarantine", () => {
     );
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "healthy",
           approvedByUser: true,
@@ -214,7 +214,7 @@ describe("adv_change_projection_quarantine", () => {
 
   test("refuses a missing projection", async () => {
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "missing",
           approvedByUser: true,
@@ -234,7 +234,7 @@ describe("adv_change_projection_quarantine", () => {
     const sourceStats = await stat(sourcePath);
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: true,
@@ -283,7 +283,7 @@ describe("adv_change_projection_quarantine", () => {
     const sourceStats = await stat(sourcePath);
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "corrupt",
           approvedByUser: true,
@@ -312,7 +312,7 @@ describe("adv_change_projection_quarantine", () => {
     );
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           dryRun: true,
@@ -338,7 +338,7 @@ describe("adv_change_projection_quarantine", () => {
     );
 
     const first = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: true,
@@ -350,7 +350,7 @@ describe("adv_change_projection_quarantine", () => {
     expect(first.success).toBe(true);
 
     const second = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: true,
@@ -370,7 +370,7 @@ describe("adv_change_projection_quarantine", () => {
       "x".repeat(PROJECTION_DOCUMENT_BYTE_LIMIT + 1),
     );
 
-    await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+    await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
       {
         changeId: "oversized",
         approvedByUser: true,
@@ -388,7 +388,7 @@ describe("adv_change_projection_quarantine", () => {
 
   test("refuses invalid changeId with path traversal", async () => {
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "../foo",
           approvedByUser: true,
@@ -412,7 +412,7 @@ describe("adv_change_projection_quarantine", () => {
     mocks.acquireFileLock.mockRejectedValueOnce(new Error("lock busy"));
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: true,
@@ -450,7 +450,7 @@ describe("adv_change_projection_quarantine", () => {
     });
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "changing",
           approvedByUser: true,
@@ -474,7 +474,7 @@ describe("adv_change_projection_quarantine", () => {
     );
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: true,
@@ -515,7 +515,7 @@ describe("adv_change_projection_quarantine", () => {
     );
 
     const result = parseResult(
-      await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+      await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
         {
           changeId: "oversized",
           approvedByUser: true,
@@ -538,8 +538,8 @@ describe("adv_change_projection_quarantine", () => {
   });
 
   test("resolves project identity from git root when external state root is non-git", async () => {
-    const gitRoot = await createTempDir("adv-quarantine-git-root-");
-    const externalDir = await createTempDir("adv-quarantine-external-");
+    const gitRoot = await createTempDir("determinus-quarantine-git-root-");
+    const externalDir = await createTempDir("determinus-quarantine-external-");
 
     try {
       // Real committed Git fixture for identity resolution.
@@ -574,7 +574,7 @@ describe("adv_change_projection_quarantine", () => {
       });
 
       const result = parseResult(
-        await changeProjectionQuarantineTools.adv_change_projection_quarantine.execute(
+        await changeProjectionQuarantineTools.determinus_change_projection_quarantine.execute(
           {
             changeId: "oversized",
             approvedByUser: true,

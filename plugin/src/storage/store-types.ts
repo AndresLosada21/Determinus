@@ -181,7 +181,7 @@ export interface ChangeCreateOptionsBag {
 }
 
 /**
- * Bounded portfolio state attached to adv_change_create results
+ * Bounded portfolio state attached to determinus_change_create results
  * (rq-createPortfolioLine01 / AC4). `available: false` is the explicit
  * degradation marker when the deadline-capped read fails — distinguishable
  * from a legitimately zero portfolio.
@@ -196,7 +196,7 @@ export interface ChangePortfolioState {
 export interface ChangeCreateResult {
   changeId: string;
   duplicateWarning?: string;
-  /** Attached by the adv_change_create tool layer (tools/portfolio-state.ts). */
+  /** Attached by the determinus_change_create tool layer (tools/portfolio-state.ts). */
   portfolioState?: ChangePortfolioState;
 }
 
@@ -687,7 +687,7 @@ export interface Store extends ReadStore, CommandStore {
      *     initialMetadata: { origin: { ... }, ... },
      *   })
      *
-     * Tool-surface schemas (`adv_change_create`) accept the same user-facing
+     * Tool-surface schemas (`determinus_change_create`) accept the same user-facing
      * fields as before — this is internal store API only (C10 / C8 in the
      * removePositionalArtifactApi change).
      */

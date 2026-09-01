@@ -20,7 +20,7 @@
  *   5. Consumer routing-only response — the context snapshot, compaction
  *      context, and status next-gate recommendation render exactly the
  *      routing implied by the plan and nothing more; non-authorizing
- *      variants carry no `/adv-*` command route.
+ *      variants carry no `/determinus-*` command route.
  *   6. Read-only (C2/AC3) — plan/directive reads perform zero mutations on
  *      the durable snapshot, verified under deep-freeze.
  */
@@ -245,7 +245,7 @@ describe("manifest ↔ workflow-safe command mapping (AC7)", () => {
     });
 
     it("detects a renamed workflow-safe command", () => {
-      const drifted = { ...GATE_COMMAND, design: "adv-harden" };
+      const drifted = { ...GATE_COMMAND, design: "determinus-harden" };
       expect(findMappingMismatches(drifted, primary)).toEqual([
         expect.stringContaining("design"),
       ]);
@@ -259,7 +259,7 @@ describe("manifest ↔ workflow-safe command mapping (AC7)", () => {
     });
 
     it("detects an extra workflow-safe gate entry", () => {
-      const drifted = { ...GATE_COMMAND, archive: "adv-archive" };
+      const drifted = { ...GATE_COMMAND, archive: "determinus-archive" };
       expect(findMappingMismatches(drifted, primary)).toEqual([
         expect.stringContaining("archive"),
       ]);
@@ -267,7 +267,7 @@ describe("manifest ↔ workflow-safe command mapping (AC7)", () => {
 
     it("detects a renamed manifest primary", () => {
       const renamed = (gate: GateId) =>
-        gate === "design" ? "adv-renamed" : primary(gate);
+        gate === "design" ? "determinus-renamed" : primary(gate);
       expect(findMappingMismatches(GATE_COMMAND, renamed)).toEqual([
         expect.stringContaining("design"),
       ]);
@@ -302,7 +302,7 @@ describe("parity matrix — orientation consumers render routing-only responses"
         expect(nextLine).toContain(`/${row.expect.planCommand}`);
       } else {
         // Non-authorizing rows never route to a command.
-        expect(nextLine).not.toMatch(/\/adv-[a-z-]+/);
+        expect(nextLine).not.toMatch(/\/determinus-[a-z-]+/);
       }
     },
   );
@@ -382,7 +382,7 @@ describe("parity matrix — terminal safety", () => {
 
       const snapshot = snapshotFor(row, directive);
       expect(snapshot).toContain("Next: archived");
-      expect(snapshot).not.toMatch(/Next:[^\n]*\/adv-/);
+      expect(snapshot).not.toMatch(/Next:[^\n]*\/determinus-/);
 
       expect(
         buildNextGateRecommendationFromDirective({

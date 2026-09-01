@@ -65,7 +65,7 @@ describe("deriveWorkflowDirective", () => {
     expect(d.phase).toBe("proposal");
     expect(d.action.kind).toBe("never_started");
     // AC5: never_started carries an executable command for the first gate so
-    // handoff/recovery snapshots render `Next: proposal → /adv-proposal`.
+    // handoff/recovery snapshots render `Next: proposal → /determinus-proposal`.
     expect(d.action.gateId).toBe("proposal");
     expect(d.action.command).toBe(GATE_COMMAND.proposal);
     expect(d.canArchive).toBe(false);
@@ -152,7 +152,7 @@ describe("deriveWorkflowDirective", () => {
     expect(d.phase).toBe("done");
     expect(d.action.kind).toBe("continue");
     expect(d.action.gateId).toBe("release");
-    expect(d.action.command).toBe("adv-archive");
+    expect(d.action.command).toBe("determinus-archive");
   });
 
   it("never_started when only proposal is done and the change is idle", () => {
@@ -189,7 +189,7 @@ describe("deriveWorkflowDirective", () => {
       EPOCH,
     );
     // Closed is terminal: must NOT fall through to
-    // `continue(release, adv-archive)` just because all gates are done.
+    // `continue(release, determinus-archive)` just because all gates are done.
     expect(d.phase).toBe("archived");
     expect(d.action.kind).toBe("archived");
     expect(d.action.command).toBeUndefined();

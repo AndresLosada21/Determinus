@@ -26,9 +26,9 @@ describe("checkWorktreeIsolation", () => {
       errorClass: "WorktreeIsolationViolation",
       mainCheckoutPath: "/repo/main",
       remediation:
-        "Resume or create the ADV worktree with adv_worktree_resume / adv_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.",
+        "Resume or create the ADV worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.",
     });
-    expect(result.remediation).not.toContain("adv_gate_complete");
+    expect(result.remediation).not.toContain("determinus_gate_complete");
     expect(result.reason).toContain("main checkout");
   });
 

@@ -32,33 +32,35 @@ interface GateDef {
 export const GATE_DEFS: readonly GateDef[] = [
   {
     id: "proposal",
-    description: "Proposal: Problem statement confirmed via /adv-proposal",
+    description:
+      "Proposal: Problem statement confirmed via /determinus-proposal",
   },
   {
     id: "discovery",
     description:
-      "Discovery: Context gathered, objectives agreed via /adv-discover",
+      "Discovery: Context gathered, objectives agreed via /determinus-discover",
   },
   {
     id: "design",
-    description: "Design: Architecture decisions validated via /adv-design",
+    description:
+      "Design: Architecture decisions validated via /determinus-design",
   },
   {
     id: "planning",
-    description: "Planning: Task graph synthesized via /adv-prep",
+    description: "Planning: Task graph synthesized via /determinus-prep",
   },
   {
     id: "execution",
-    description: "Execution: Deliverables produced via /adv-apply",
+    description: "Execution: Deliverables produced via /determinus-apply",
   },
   {
     id: "acceptance",
-    description: "Acceptance: User accepts deliverables via /adv-review",
+    description: "Acceptance: User accepts deliverables via /determinus-review",
   },
   {
     id: "release",
     description:
-      "Release: Final quality pass and archive via /adv-harden + /adv-archive",
+      "Release: Final quality pass and archive via /determinus-harden + /determinus-archive",
   },
 ] as const;
 
@@ -175,7 +177,7 @@ export type AcceptanceCriteriaSnapshot = z.infer<
 
 /**
  * Pure current/snapshot acceptance criteria projection surfaced by
- * adv_gate_status. Freshness is derived from the recorded basisRevision, so a
+ * determinus_gate_status. Freshness is derived from the recorded basisRevision, so a
  * stale passing snapshot can never appear as current truth.
  */
 export const AcceptanceCriteriaProjectionSchema = z.object({

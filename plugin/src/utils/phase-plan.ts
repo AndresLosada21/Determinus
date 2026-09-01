@@ -63,21 +63,21 @@ export const PHASE_PLAN_MAX_GUIDANCE = 3;
 // Mirrors `getCommandsByGate(gate)[0].name` from `../manifest.ts`. The manifest
 // is NOT workflow-safe to import, so the canonical ownership is mirrored here
 // and kept in sync with the `gate` field on each `CommandDef`:
-//   proposal   → adv-proposal
-//   discovery  → adv-discover
-//   design     → adv-design
-//   planning   → adv-prep
-//   execution  → adv-apply
-//   acceptance → adv-review
-//   release    → adv-archive   (adv-harden owns no gate; archive is release owner)
+//   proposal   → determinus-proposal
+//   discovery  → determinus-discover
+//   design     → determinus-design
+//   planning   → determinus-prep
+//   execution  → determinus-apply
+//   acceptance → determinus-review
+//   release    → determinus-archive   (determinus-harden owns no gate; archive is release owner)
 export const GATE_COMMAND: Record<GateId, string> = {
-  proposal: "adv-proposal",
-  discovery: "adv-discover",
-  design: "adv-design",
-  planning: "adv-prep",
-  execution: "adv-apply",
-  acceptance: "adv-review",
-  release: "adv-archive",
+  proposal: "determinus-proposal",
+  discovery: "determinus-discover",
+  design: "determinus-design",
+  planning: "determinus-prep",
+  execution: "determinus-apply",
+  acceptance: "determinus-review",
+  release: "determinus-archive",
 };
 
 // =============================================================================
@@ -143,7 +143,7 @@ function synthesizeStuckBlocker(
     message: reason
       ? `Gate ${gateId} is stuck: ${reason}`
       : `Gate ${gateId} is stuck`,
-    remediation: `Run /adv-recover or resolve the blocker on gate ${gateId}`,
+    remediation: `Run /determinus-recover or resolve the blocker on gate ${gateId}`,
   };
 }
 
@@ -246,7 +246,7 @@ export function directiveCtxFromState(
     changeId: state.changeId,
     // Terminal statuses (`archived` and `closed`) share the safe terminal
     // plan so a closed change with all gates done does NOT route to a
-    // confusing `actionable(release, adv-archive)` next-action.
+    // confusing `actionable(release, determinus-archive)` next-action.
     isArchived: isTerminalStatus(state.status),
     firstOpenGate,
     canArchive,
@@ -330,7 +330,7 @@ const planBaseFields = {
 export const PhaseDirectiveSchema = z
   .object({
     kind: z.literal("phase_directive"),
-    command: z.enum(["adv-review"]),
+    command: z.enum(["determinus-review"]),
     content: z.string().min(1),
     contentHash: z.string().regex(/^[0-9a-f]{64}$/),
   })
@@ -569,7 +569,7 @@ export function derivePhasePlan(ctx: DirectiveContext): PhasePlan {
   // Never started: either nothing has begun, or the bucket classifier says
   // the change is a stale proposal-only change (never_started bucket). The
   // plan is actionable with the first gate's manifest-owned command so agents
-  // see an executable next step (e.g. `Next: proposal → /adv-proposal`).
+  // see an executable next step (e.g. `Next: proposal → /determinus-proposal`).
   if (ctx.noGatesStarted || ctx.bucket === "never_started") {
     if (!ctx.firstOpenGate) {
       throw new Error(
@@ -579,7 +579,7 @@ export function derivePhasePlan(ctx: DirectiveContext): PhasePlan {
     return actionablePlan(ctx, ctx.firstOpenGate, true);
   }
 
-  // Fully complete → actionable archive step (release gate owns adv-archive).
+  // Fully complete → actionable archive step (release gate owns determinus-archive).
   if (ctx.canArchive) {
     return actionablePlan(ctx, "release", false);
   }

@@ -63,7 +63,7 @@ function activate(root: string, digest = DIGEST_A): void {
 
 describe("checkPlanRoutingGuard", () => {
   test("no receipt → not fail-closed (legacy routing unchanged)", async () => {
-    const root = await tempDir("adv-guard-none-");
+    const root = await tempDir("determinus-guard-none-");
     const guard = checkPlanRoutingGuard({
       migrationRoot: root,
       currentDigest: DIGEST_A,
@@ -74,30 +74,30 @@ describe("checkPlanRoutingGuard", () => {
   });
 
   test("env override can force fail-closed for drills/tests", async () => {
-    const root = await tempDir("adv-guard-env-");
+    const root = await tempDir("determinus-guard-env-");
     expect(
       checkPlanRoutingGuard({
         migrationRoot: root,
         currentDigest: DIGEST_A,
-        env: { ADV_PLAN_ROUTING_FAIL_CLOSED: "1" },
+        env: { determinus_PLAN_ROUTING_FAIL_CLOSED: "1" },
       }).failClosed,
     ).toBe(true);
   });
 
   test("env override cannot clear a receipt-backed fail-closed boundary", async () => {
-    const root = await tempDir("adv-guard-env-clear-");
+    const root = await tempDir("determinus-guard-env-clear-");
     activate(root);
     const guard = checkPlanRoutingGuard({
       migrationRoot: root,
       currentDigest: DIGEST_A,
-      env: { ADV_PLAN_ROUTING_FAIL_CLOSED: "0" },
+      env: { determinus_PLAN_ROUTING_FAIL_CLOSED: "0" },
     });
     expect(guard.failClosed).toBe(true);
     expect(guard.basis).toBe("receipt_active");
   });
 
   test("active receipt bound to the current digest → fail-closed", async () => {
-    const root = await tempDir("adv-guard-active-");
+    const root = await tempDir("determinus-guard-active-");
     activate(root);
     const guard = checkPlanRoutingGuard({
       migrationRoot: root,
@@ -109,7 +109,7 @@ describe("checkPlanRoutingGuard", () => {
   });
 
   test("active receipt for a DIFFERENT digest → not fail-closed (stale receipt must re-prove)", async () => {
-    const root = await tempDir("adv-guard-stale-");
+    const root = await tempDir("determinus-guard-stale-");
     activate(root, DIGEST_A);
     const guard = checkPlanRoutingGuard({
       migrationRoot: root,
@@ -122,7 +122,7 @@ describe("checkPlanRoutingGuard", () => {
   });
 
   test("active receipt with unknown current identity → fail-closed (do not bypass completed cutover)", async () => {
-    const root = await tempDir("adv-guard-noident-");
+    const root = await tempDir("determinus-guard-noident-");
     activate(root);
     const guard = checkPlanRoutingGuard({
       migrationRoot: root,
@@ -134,7 +134,7 @@ describe("checkPlanRoutingGuard", () => {
   });
 
   test("disabled receipt → not fail-closed (rollback restores legacy routing)", async () => {
-    const root = await tempDir("adv-guard-disabled-");
+    const root = await tempDir("determinus-guard-disabled-");
     activate(root);
     const { disableCutoverReceipt } = await import("./cutover-receipt");
     disableCutoverReceipt({ migrationRoot: root, reason: "rollback" });
@@ -148,7 +148,7 @@ describe("checkPlanRoutingGuard", () => {
   });
 
   test("malformed receipt → fail-closed (unknown cutover state never routes legacy prose)", async () => {
-    const root = await tempDir("adv-guard-malformed-");
+    const root = await tempDir("determinus-guard-malformed-");
     writeFileSync(join(root, "cutover-receipt.json"), "{ corrupt");
     const guard = checkPlanRoutingGuard({
       migrationRoot: root,
@@ -160,7 +160,7 @@ describe("checkPlanRoutingGuard", () => {
   });
 
   test("result is memoized until the receipt file changes", async () => {
-    const root = await tempDir("adv-guard-cache-");
+    const root = await tempDir("determinus-guard-cache-");
     const first = checkPlanRoutingGuard({
       migrationRoot: root,
       currentDigest: DIGEST_A,

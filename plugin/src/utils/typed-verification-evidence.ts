@@ -52,7 +52,7 @@ export function resolveTypedVerificationWarnings(
       return [
         {
           kind: "verification_missing",
-          message: `No durable adv_run_test evidence found for run_id: ${entryRunId}`,
+          message: `No durable determinus_run_test evidence found for run_id: ${entryRunId}`,
         },
       ];
     }
@@ -60,7 +60,7 @@ export function resolveTypedVerificationWarnings(
       return [
         {
           kind: "verification_mismatch",
-          message: `Reported exit_code ${entry.exit_code} differs from durable adv_run_test exitCode ${durable.exitCode} for run_id: ${entryRunId}`,
+          message: `Reported exit_code ${entry.exit_code} differs from durable determinus_run_test exitCode ${durable.exitCode} for run_id: ${entryRunId}`,
         },
       ];
     }

@@ -1,6 +1,6 @@
 # Proposal Checklist
 
-Referenced by `/adv-proposal`. Enforces requirement quality before the proposal gate completes.
+Referenced by `/determinus-proposal`. Enforces requirement quality before the proposal gate completes.
 
 ---
 
@@ -78,9 +78,9 @@ Every proposal.md MUST contain a `## Scope` section with three subsections:
 
 ## Ambiguity Scan (B/F/S)
 
-Run a lightweight 3-category ambiguity scan during `/adv-proposal` Phase 2.6. Per UD2 hybrid scope: only B/F/S are required in `/adv-proposal`; M and optional categories (D/X/Q/I/E/C/T) are not run during proposal.
+Run a lightweight 3-category ambiguity scan during `/determinus-proposal` Phase 2.6. Per UD2 hybrid scope: only B/F/S are required in `/determinus-proposal`; M and optional categories (D/X/Q/I/E/C/T) are not run during proposal.
 
-Uses finding shape from `ADV_INSTRUCTIONS.md § Ambiguity Taxonomy`:
+Uses finding shape from `determinus_INSTRUCTIONS.md § Ambiguity Taxonomy`:
 
 ```
 {Letter}{N}  {SEVERITY}  {Category}  {Finding text}
@@ -100,7 +100,7 @@ Uses finding shape from `ADV_INSTRUCTIONS.md § Ambiguity Taxonomy`:
 ### Gate-Block Rule
 
 - Any CRITICAL finding → block proposal gate completion (under `clarify_enforcement: strict`)
-- Agent honor-system rule per KD1: × MUST NOT call `adv_gate_complete gateId: 'proposal'` if any CRITICAL finding exists
+- Agent honor-system rule per KD1: × MUST NOT call `determinus_gate_complete gateId: 'proposal'` if any CRITICAL finding exists
 - Skip scan when `clarify_enforcement: 'off'`
 
 × MUST NOT fabricate evidence quotes — every finding cites verbatim text from proposal.md or `(no {section} section)`.

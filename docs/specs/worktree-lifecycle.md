@@ -380,7 +380,7 @@ Terminal cleanup candidates MUST NOT run git worktree remove directly. advWorktr
 
 **ID:** `rq-terminalCleanupVisibility01` | **Priority:** **[MUST]**
 
-Retained terminal cleanup blockers must be visible without requiring manual git inspection. adv_status must surface aggregate retained-terminal-worktree counts/classes only. adv_worktree_triage must surface exact branches, paths, and blockers for retained terminal cleanup candidates.
+Retained terminal cleanup blockers must be visible without requiring manual git inspection. determinus_status must surface aggregate retained-terminal-worktree counts/classes only. determinus_worktree_triage must surface exact branches, paths, and blockers for retained terminal cleanup candidates.
 
 **Tags:** `worktree`, `cleanup`, `status`, `triage`
 
@@ -391,7 +391,7 @@ Retained terminal cleanup blockers must be visible without requiring manual git 
 **Given:**
 - Retained terminal cleanup blockers exist
 
-**When:** adv_status runs
+**When:** determinus_status runs
 
 **Then:**
 - The output includes retained cleanup counts/classes
@@ -402,7 +402,7 @@ Retained terminal cleanup blockers must be visible without requiring manual git 
 **Given:**
 - Retained terminal cleanup blockers exist
 
-**When:** adv_worktree_triage runs
+**When:** determinus_worktree_triage runs
 
 **Then:**
 - Exact branches, paths, and blockers are returned
@@ -458,7 +458,7 @@ ADV mutating tools that advance working-tree-impacting gates or change task exec
 - feature_flags.worktree_guard_enforce is true
 - The current session is in the main checkout
 
-**When:** adv_gate_complete is called for discovery or design
+**When:** determinus_gate_complete is called for discovery or design
 
 **Then:**
 - The tool allows the metadata-only gate completion
@@ -472,7 +472,7 @@ ADV mutating tools that advance working-tree-impacting gates or change task exec
 - The current session is in the main checkout
 - There is no setup-ready worktree for the change
 
-**When:** adv_gate_complete is called for planning, execution, acceptance, or release
+**When:** determinus_gate_complete is called for planning, execution, acceptance, or release
 
 **Then:**
 - The tool returns WorktreeIsolationViolation before any state mutation
@@ -486,7 +486,7 @@ ADV mutating tools that advance working-tree-impacting gates or change task exec
 - The current session is in the main checkout
 - There is no setup-ready worktree for the change
 
-**When:** adv_task_add or adv_task_update with in_progress, done, or cancelled status is called
+**When:** determinus_task_add or determinus_task_update with in_progress, done, or cancelled status is called
 
 **Then:**
 - The tool returns WorktreeIsolationViolation before any task mutation mutation
@@ -513,7 +513,7 @@ ADV mutating tools that advance working-tree-impacting gates or change task exec
 - A materialized, setupReady ADV worktree already exists for the change
 - The per-change worktree_auto_managed marker may be true, false, or undefined
 
-**When:** adv_gate_complete for a worktree-mutation gate, or adv_task_update with a status transition, is called
+**When:** determinus_gate_complete for a worktree-mutation gate, or determinus_task_update with a status transition, is called
 
 **Then:**
 - The tool returns decision ALLOW and the state-transition mutation is sent
@@ -528,7 +528,7 @@ ADV mutating tools that advance working-tree-impacting gates or change task exec
 
 **ID:** `rq-worktreeBoundedCleanup01` | **Priority:** **[MUST]**
 
-Worktree cleanup operations must be bounded to prevent runaway deletion. After each worktree deletion, a post-delete notification must be emitted within the default 10s timeout. Per-item cleanup must proceed sequentially with bounded retries; batch or parallel unbounded cleanup is prohibited. The cleanup tool must classify worktrees into drift groups (safe, blocked, dirty/in-use, needs-investigation) and remain report-only for worktree drift even under `--execute`. Actual worktree deletion remains owned by `adv_worktree_delete` and `adv_worktree_cleanup`.
+Worktree cleanup operations must be bounded to prevent runaway deletion. After each worktree deletion, a post-delete notification must be emitted within the default 10s timeout. Per-item cleanup must proceed sequentially with bounded retries; batch or parallel unbounded cleanup is prohibited. The cleanup tool must classify worktrees into drift groups (safe, blocked, dirty/in-use, needs-investigation) and remain report-only for worktree drift even under `--execute`. Actual worktree deletion remains owned by `determinus_worktree_delete` and `determinus_worktree_cleanup`.
 
 **Tags:** `worktree`, `cleanup`, `bounded`, `safety`
 
@@ -537,7 +537,7 @@ Worktree cleanup operations must be bounded to prevent runaway deletion. After e
 **Post-delete notification is bounded** (`rq-worktreeBoundedCleanup01.1`)
 
 **Given:**
-- A worktree deletion is requested via adv_worktree_delete or adv_worktree_cleanup
+- A worktree deletion is requested via determinus_worktree_delete or determinus_worktree_cleanup
 
 **When:** The deletion completes
 
@@ -551,7 +551,7 @@ Worktree cleanup operations must be bounded to prevent runaway deletion. After e
 **Given:**
 - Multiple worktrees are eligible for cleanup
 
-**When:** adv_worktree_cleanup processes the queue
+**When:** determinus_worktree_cleanup processes the queue
 
 **Then:**
 - Worktrees are processed sequentially, one at a time
@@ -564,7 +564,7 @@ Worktree cleanup operations must be bounded to prevent runaway deletion. After e
 
 **ID:** `rq-worktreeBoundedCleanup02` | **Priority:** **[MUST]**
 
-Worktree tool wrappers (adv_worktree_delete, adv_worktree_cleanup) must enforce a safe timeout budget strictly below the SDK's 10s tool-execution ceiling. The safe budget is 8s (WORKTREE_TOOL_SAFE_TIMEOUT_MS). Caller-supplied timeoutMs values exceeding the safe budget are clamped automatically. On timeout, the tool must return a typed timeout response (no late background mutation). Internal operations (git remove, workspace fetch/delete, workflow signal) must each be bounded below the tool budget. The effective timeout must be reported in the response as effectiveTimeoutMs.
+Worktree tool wrappers (determinus_worktree_delete, determinus_worktree_cleanup) must enforce a safe timeout budget strictly below the SDK's 10s tool-execution ceiling. The safe budget is 8s (WORKTREE_TOOL_SAFE_TIMEOUT_MS). Caller-supplied timeoutMs values exceeding the safe budget are clamped automatically. On timeout, the tool must return a typed timeout response (no late background mutation). Internal operations (git remove, workspace fetch/delete, workflow signal) must each be bounded below the tool budget. The effective timeout must be reported in the response as effectiveTimeoutMs.
 
 **Tags:** `worktree`, `timeout`, `safety`, `bounded`, `tool-wrapper`
 
@@ -583,7 +583,7 @@ Worktree tool wrappers (adv_worktree_delete, adv_worktree_cleanup) must enforce 
 **Oversize timeout is clamped with effectiveTimeoutMs** (`rq-worktreeBoundedCleanup02.2`)
 
 **Given:**
-- adv_worktree_cleanup is called with timeoutMs > 8000
+- determinus_worktree_cleanup is called with timeoutMs > 8000
 
 **When:** The tool processes the request
 
@@ -595,7 +595,7 @@ Worktree tool wrappers (adv_worktree_delete, adv_worktree_cleanup) must enforce 
 **Timeout returns typed response with no late mutation** (`rq-worktreeBoundedCleanup02.3`)
 
 **Given:**
-- adv_worktree_delete or adv_worktree_cleanup times out during execution
+- determinus_worktree_delete or determinus_worktree_cleanup times out during execution
 
 **When:** The timeout fires
 
@@ -642,7 +642,7 @@ Worktree cleanup mutation tools that support target-project operation MUST route
 **Unconfirmed target cleanup mutation is rejected** (`rq-worktreeTargetCleanup01.1`)
 
 **Given:**
-- adv_worktree_delete or adv_worktree_cleanup is called with an untrusted target_path
+- determinus_worktree_delete or determinus_worktree_cleanup is called with an untrusted target_path
 - target_confirmed is missing or confirmationEvidence is blank
 
 **When:** The tool validates the target-project mutation
@@ -654,7 +654,7 @@ Worktree cleanup mutation tools that support target-project operation MUST route
 **Approved target cleanup uses target project state** (`rq-worktreeTargetCleanup01.2`)
 
 **Given:**
-- adv_worktree_delete or adv_worktree_cleanup is called with an approved target_path
+- determinus_worktree_delete or determinus_worktree_cleanup is called with an approved target_path
 
 **When:** The cleanup operation evaluates a worktree or queued cleanup candidate
 
@@ -665,13 +665,13 @@ Worktree cleanup mutation tools that support target-project operation MUST route
 **Target triage recommendations are actionable** (`rq-worktreeTargetCleanup01.3`)
 
 **Given:**
-- adv_worktree_triage inspects a project root different from the current store root
+- determinus_worktree_triage inspects a project root different from the current store root
 
 **When:** The triage result includes a delete or cleanup remediation
 
 **Then:**
 - The recommendation includes target_path context or equivalent target-aware remediation
-- The recommendation does not imply that a bare current-project adv_worktree_delete call will repair target-project drift
+- The recommendation does not imply that a bare current-project determinus_worktree_delete call will repair target-project drift
 
 ---
 
@@ -715,7 +715,7 @@ Worktree lease reclamation must treat an owning PID as alive unless the liveness
 
 **ID:** `rq-worktreeStaleRegistryCleanup01` | **Priority:** **[MUST]**
 
-adv_worktree_delete MUST safely clear worktree registry entries reported as `missing_from_disk` when the owning change is terminal (archived or closed) and the on-disk worktree is absent. The cleanup MUST dispatch `worktreeDeletedSignal` with reason `missing_from_disk_cleanup`, refresh the owning change's cache, and leave unsafe cases (non-terminal owning change, dirty/unmerged branch, in-use worktree) retained with a typed blocker. Subsequent `adv_worktree_triage` MUST NOT report the same cleared stale entry.
+determinus_worktree_delete MUST safely clear worktree registry entries reported as `missing_from_disk` when the owning change is terminal (archived or closed) and the on-disk worktree is absent. The cleanup MUST dispatch `worktreeDeletedSignal` with reason `missing_from_disk_cleanup`, refresh the owning change's cache, and leave unsafe cases (non-terminal owning change, dirty/unmerged branch, in-use worktree) retained with a typed blocker. Subsequent `determinus_worktree_triage` MUST NOT report the same cleared stale entry.
 
 **Tags:** `worktree`, `cleanup`, `registry`, `missing-from-disk`
 
@@ -728,7 +728,7 @@ adv_worktree_delete MUST safely clear worktree registry entries reported as `mis
 - The owning change is archived
 - No on-disk worktree exists for change/x
 
-**When:** adv_worktree_delete is called for change/x
+**When:** determinus_worktree_delete is called for change/x
 
 **Then:**
 - worktreeDeletedSignal is dispatched with reason missing_from_disk_cleanup
@@ -742,7 +742,7 @@ adv_worktree_delete MUST safely clear worktree registry entries reported as `mis
 - The owning change is active
 - No on-disk worktree exists for change/y
 
-**When:** adv_worktree_delete is called for change/y
+**When:** determinus_worktree_delete is called for change/y
 
 **Then:**
 - The tool returns ok: false with reason change_not_terminal
@@ -753,7 +753,7 @@ adv_worktree_delete MUST safely clear worktree registry entries reported as `mis
 **Given:**
 - A missing_from_disk registry entry for an archived change was just cleared
 
-**When:** adv_worktree_triage runs afterward
+**When:** determinus_worktree_triage runs afterward
 
 **Then:**
 - The orphans list does not contain the cleared branch/path entry
@@ -764,7 +764,7 @@ adv_worktree_delete MUST safely clear worktree registry entries reported as `mis
 
 **ID:** `rq-healthReadOnlyWorktree01` | **Priority:** **[MUST]**
 
-`adv_status view:health` MUST limit worktree diagnostics to bounded read-only census and retained-state aggregates. It MUST NOT discover cleanup candidates for mutation, drain pending deletions, delete worktrees, or delete branches. Exact cleanup actions remain owned by `adv_worktree_cleanup` and related typed cleanup tools. Hygiene MAY expose bounded read-only archaeology and recommendations without mutating worktree state.
+`determinus_status view:health` MUST limit worktree diagnostics to bounded read-only census and retained-state aggregates. It MUST NOT discover cleanup candidates for mutation, drain pending deletions, delete worktrees, or delete branches. Exact cleanup actions remain owned by `determinus_worktree_cleanup` and related typed cleanup tools. Hygiene MAY expose bounded read-only archaeology and recommendations without mutating worktree state.
 
 **Tags:** `status`, `health`, `worktree`, `read-only`
 
@@ -814,13 +814,13 @@ adv_worktree_delete MUST safely clear worktree registry entries reported as `mis
 
 Worktree tool timeout responses must not assert a cause they did not test, and must not advise an action that cannot succeed.
 
-The timeout branches of adv_worktree_cleanup, adv_worktree_delete, and adv_worktree_detach resolve a setTimeout sentinel rather than a rejection, so no error object exists to classify. These responses must therefore not assert a unreadable projection and must not carry an unconditional adv_doctor referral, unless poison evidence was actually collected on that call (see rq-worktreePoisonprojection lookup01).
+The timeout branches of determinus_worktree_cleanup, determinus_worktree_delete, and determinus_worktree_detach resolve a setTimeout sentinel rather than a rejection, so no error object exists to classify. These responses must therefore not assert a unreadable projection and must not carry an unconditional determinus_doctor referral, unless poison evidence was actually collected on that call (see rq-worktreePoisonprojection lookup01).
 
 Timeout remediation must name an action that can actually succeed. When the caller's timeoutMs was clamped to the safe budget, the response must not advise passing a larger timeoutMs, must state that the safe budget is a structural ceiling, and must not name an option the current mode ignores.
 
-On timeout, adv_worktree_cleanup must report the stage in flight (discovery or drain), captured synchronously before any post-timeout await, plus either pendingDeleteCount or pendingDeleteCountUnavailable when the pending-delete read fails. An empty queue and an unreadable queue must remain distinguishable.
+On timeout, determinus_worktree_cleanup must report the stage in flight (discovery or drain), captured synchronously before any post-timeout await, plus either pendingDeleteCount or pendingDeleteCountUnavailable when the pending-delete read fails. An empty queue and an unreadable queue must remain distinguishable.
 
-adv_worktree_cleanup accepts an optional skipDiscovery flag (worktrees mode only) providing drain-only recovery of already-queued pending deletes after a prior cleanup timed out during discovery. Drain-only must not delete worktrees that discovery never validated.
+determinus_worktree_cleanup accepts an optional skipDiscovery flag (worktrees mode only) providing drain-only recovery of already-queued pending deletes after a prior cleanup timed out during discovery. Drain-only must not delete worktrees that discovery never validated.
 
 Git subprocesses on the cleanup discovery path must each be bounded strictly below the tool budget, derived per-call as min(2000, floor(effectiveTimeoutMs / 4)). Shared git helpers retain their original defaults when invoked from non-cleanup paths.
 
@@ -831,7 +831,7 @@ Git subprocesses on the cleanup discovery path must each be bounded strictly bel
 **Clamped remediation names a reachable action** (`rq-worktreeTimeoutTruthfulness01.1`)
 
 **Given:**
-- adv_worktree_cleanup is called with timeoutMs above the safe budget
+- determinus_worktree_cleanup is called with timeoutMs above the safe budget
 - The call times out in either worktrees or archived_branches mode
 
 **When:** The typed timeout response is produced
@@ -845,7 +845,7 @@ Git subprocesses on the cleanup discovery path must each be bounded strictly bel
 **Unclamped remediation may still offer a larger timeout** (`rq-worktreeTimeoutTruthfulness01.2`)
 
 **Given:**
-- adv_worktree_cleanup times out with no clamp applied
+- determinus_worktree_cleanup times out with no clamp applied
 
 **When:** The typed timeout response is produced
 
@@ -855,19 +855,19 @@ Git subprocesses on the cleanup discovery path must each be bounded strictly bel
 **No unevidenced poison claim on any worktree timeout** (`rq-worktreeTimeoutTruthfulness01.3`)
 
 **Given:**
-- adv_worktree_cleanup, adv_worktree_delete, or adv_worktree_detach times out
+- determinus_worktree_cleanup, determinus_worktree_delete, or determinus_worktree_detach times out
 - No poison evidence was collected on that call
 
 **When:** The typed timeout response is produced
 
 **Then:**
 - The error contains no assertion that a change projection is unreadable
-- Neither error nor remediation carries an unconditional adv_doctor referral
+- Neither error nor remediation carries an unconditional determinus_doctor referral
 
 **Cleanup timeout reports the stage in flight** (`rq-worktreeTimeoutTruthfulness01.4`)
 
 **Given:**
-- adv_worktree_cleanup times out
+- determinus_worktree_cleanup times out
 
 **When:** The typed timeout response is produced
 
@@ -879,7 +879,7 @@ Git subprocesses on the cleanup discovery path must each be bounded strictly bel
 **Unreadable pending-delete queue is distinguishable from an empty one** (`rq-worktreeTimeoutTruthfulness01.5`)
 
 **Given:**
-- adv_worktree_cleanup times out
+- determinus_worktree_cleanup times out
 
 **When:** The pending-delete read succeeds
 
@@ -892,7 +892,7 @@ Git subprocesses on the cleanup discovery path must each be bounded strictly bel
 **Given:**
 - A prior cleanup timed out during discovery leaving pending-delete entries queued
 
-**When:** adv_worktree_cleanup is invoked with skipDiscovery true in worktrees mode
+**When:** determinus_worktree_cleanup is invoked with skipDiscovery true in worktrees mode
 
 **Then:**
 - The discovery scan is skipped

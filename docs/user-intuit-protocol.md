@@ -3,7 +3,7 @@
 A behavior-first protocol for presenting structured pairwise or multi-candidate comparisons to users and capturing their preferences as actionable signal.
 
 **Status:** Phase 1 — text-only, agent-interpreted guidance.
-**Scope:** Agent-generic. Not ADV-owned. Any agent can use this protocol.
+**Scope:** Agent-generic. Not determinus-owned. Any agent can use this protocol.
 
 ## When to Use
 
@@ -197,7 +197,7 @@ These extensions live in the comparator service (separate repo), not in ADV or t
 
 ## Relationship to Other Documents
 
-- **`docs/adv-question-tool.md`** — question tool usage patterns. This protocol builds on its "Visual Comparison Before Questions" section.
-- **`skills/adv-user-intuit/SKILL.md`** — loadable skill with the 4-phase workflow for agents.
+- **`docs/determinus-question-tool.md`** — question tool usage patterns. This protocol builds on its "Visual Comparison Before Questions" section.
+- **`skills/determinus-user-intuit/SKILL.md`** — loadable skill with the 4-phase workflow for agents.
 - **`skills/prioritizer/SKILL.md`** — tradeoff analysis (criteria → decision map). Use when you need to *analyze* tradeoffs, not *present* concrete candidates.
-- **`ADV_INSTRUCTIONS.md`** — ADV command protocols. This protocol is agent-generic, not ADV-specific.
+- **`determinus_INSTRUCTIONS.md`** — ADV command protocols. This protocol is agent-generic, not determinus-specific.

@@ -130,7 +130,7 @@ describe("computeQualitySignals", () => {
   });
 
   test("computes signals for a fixture file", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "adv-tq-"));
+    const dir = await mkdtemp(join(tmpdir(), "determinus-tq-"));
     try {
       const file = join(dir, "sample.test.ts");
       await writeFile(
@@ -167,7 +167,7 @@ const arrow = () => 42;
   });
 
   test("detects mock surface in fixture file", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "adv-tq-"));
+    const dir = await mkdtemp(join(tmpdir(), "determinus-tq-"));
     try {
       const file = join(dir, "mocked.test.ts");
       await writeFile(

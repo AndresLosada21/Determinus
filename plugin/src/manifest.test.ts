@@ -27,41 +27,41 @@ describe("Command Manifest", () => {
 
   test("contains all 29 ADV commands", () => {
     const expectedCommands = [
-      "adv-status",
-      "adv-idea",
-      "adv-problem",
-      "adv-epic",
-      "adv-backlog",
-      "adv-proposal",
-      "adv-validate",
-      "adv-apply",
-      "adv-archive",
-      "adv-clarify",
-      "adv-research",
-      "adv-discover",
-      "adv-design",
-      "adv-prep",
-      "adv-review",
-      "adv-harden",
-      "adv-audit",
-      "adv-arch-scan",
-      "adv-comp-scan",
-      "adv-refactor",
-      "adv-improve",
-      "adv-slop-scan",
-      "adv-task",
-      "adv-tron",
-      "adv-optimizer",
-      "adv-reflect",
-      "adv-cleanup",
-      "adv-triage",
-      "adv-coordinate",
+      "determinus-status",
+      "determinus-idea",
+      "determinus-problem",
+      "determinus-epic",
+      "determinus-backlog",
+      "determinus-proposal",
+      "determinus-validate",
+      "determinus-apply",
+      "determinus-archive",
+      "determinus-clarify",
+      "determinus-research",
+      "determinus-discover",
+      "determinus-design",
+      "determinus-prep",
+      "determinus-review",
+      "determinus-harden",
+      "determinus-audit",
+      "determinus-arch-scan",
+      "determinus-comp-scan",
+      "determinus-refactor",
+      "determinus-improve",
+      "determinus-slop-scan",
+      "determinus-task",
+      "determinus-tron",
+      "determinus-optimizer",
+      "determinus-reflect",
+      "determinus-cleanup",
+      "determinus-triage",
+      "determinus-coordinate",
     ];
 
     for (const cmd of expectedCommands) {
       expect(COMMAND_MANIFEST).toHaveProperty(cmd);
     }
-    expect(COMMAND_MANIFEST).not.toHaveProperty("adv-atc");
+    expect(COMMAND_MANIFEST).not.toHaveProperty("determinus-atc");
     expect(Object.keys(COMMAND_MANIFEST)).toHaveLength(29);
   });
 
@@ -78,21 +78,21 @@ describe("Command Manifest", () => {
   });
 
   test("scanner command descriptions mention coverage-oriented capabilities", () => {
-    expect(COMMAND_MANIFEST["adv-slop-scan"].description).toBe(
+    expect(COMMAND_MANIFEST["determinus-slop-scan"].description).toBe(
       "Scan slop, deletion safety, and detector coverage",
     );
-    expect(COMMAND_MANIFEST["adv-arch-scan"].description).toBe(
+    expect(COMMAND_MANIFEST["determinus-arch-scan"].description).toBe(
       "Scan architecture stack packs, coverage, and heuristic fallbacks",
     );
   });
 
-  test("adv-atc source assets are removed", () => {
-    expect(existsSync(join(REPO_ROOT, ".opencode/command/adv-atc.md"))).toBe(
-      false,
-    );
-    expect(existsSync(join(REPO_ROOT, ".opencode/agents/adv-atc.md"))).toBe(
-      false,
-    );
+  test("determinus-atc source assets are removed", () => {
+    expect(
+      existsSync(join(REPO_ROOT, ".opencode/command/determinus-atc.md")),
+    ).toBe(false);
+    expect(
+      existsSync(join(REPO_ROOT, ".opencode/agents/determinus-atc.md")),
+    ).toBe(false);
   });
 
   test("gate-affecting commands reference valid gate IDs", () => {
@@ -135,13 +135,13 @@ describe("Command Manifest", () => {
 
   describe("getCommandDef", () => {
     test("returns command definition by name", () => {
-      const def = getCommandDef("adv-status");
+      const def = getCommandDef("determinus-status");
       expect(def).toBeDefined();
-      expect(def!.name).toBe("adv-status");
+      expect(def!.name).toBe("determinus-status");
     });
 
     test("returns undefined for unknown command", () => {
-      const def = getCommandDef("adv-nonexistent");
+      const def = getCommandDef("determinus-nonexistent");
       expect(def).toBeUndefined();
     });
   });
@@ -150,7 +150,7 @@ describe("Command Manifest", () => {
     test("returns commands that affect the discovery gate", () => {
       const cmds = getCommandsByGate("discovery");
       expect(cmds.length).toBeGreaterThan(0);
-      expect(cmds.some((c) => c.name === "adv-discover")).toBe(true);
+      expect(cmds.some((c) => c.name === "determinus-discover")).toBe(true);
     });
 
     test("returns empty array for gate with no direct command", () => {
@@ -163,14 +163,14 @@ describe("Command Manifest", () => {
 
   describe("getSuccessors", () => {
     test("returns successor commands for a given command", () => {
-      const successors = getSuccessors("adv-prep");
+      const successors = getSuccessors("determinus-prep");
       expect(successors.length).toBeGreaterThan(0);
       // After prep, you typically do apply
-      expect(successors.some((s) => s.name === "adv-apply")).toBe(true);
+      expect(successors.some((s) => s.name === "determinus-apply")).toBe(true);
     });
 
     test("returns empty array for unknown command", () => {
-      const successors = getSuccessors("adv-nonexistent");
+      const successors = getSuccessors("determinus-nonexistent");
       expect(successors).toEqual([]);
     });
   });
@@ -251,43 +251,43 @@ describe("Command Manifest", () => {
   });
 
   describe("Workflow correctness", () => {
-    test("adv-discover affects discovery gate", () => {
-      const def = getCommandDef("adv-discover");
+    test("determinus-discover affects discovery gate", () => {
+      const def = getCommandDef("determinus-discover");
       expect(def!.gate).toBe("discovery");
     });
 
-    test("adv-design affects design gate", () => {
-      const def = getCommandDef("adv-design");
+    test("determinus-design affects design gate", () => {
+      const def = getCommandDef("determinus-design");
       expect(def!.gate).toBe("design");
     });
 
-    test("adv-prep affects planning gate", () => {
-      const def = getCommandDef("adv-prep");
+    test("determinus-prep affects planning gate", () => {
+      const def = getCommandDef("determinus-prep");
       expect(def!.gate).toBe("planning");
     });
 
-    test("adv-apply affects execution gate", () => {
-      const def = getCommandDef("adv-apply");
+    test("determinus-apply affects execution gate", () => {
+      const def = getCommandDef("determinus-apply");
       expect(def!.gate).toBe("execution");
     });
 
-    test("adv-review affects acceptance gate", () => {
-      const def = getCommandDef("adv-review");
+    test("determinus-review affects acceptance gate", () => {
+      const def = getCommandDef("determinus-review");
       expect(def!.gate).toBe("acceptance");
     });
 
-    test("adv-archive affects release gate", () => {
-      const def = getCommandDef("adv-archive");
+    test("determinus-archive affects release gate", () => {
+      const def = getCommandDef("determinus-archive");
       expect(def!.gate).toBe("release");
     });
 
-    test("adv-archive requires change ID", () => {
-      const def = getCommandDef("adv-archive");
+    test("determinus-archive requires change ID", () => {
+      const def = getCommandDef("determinus-archive");
       expect(def!.requiresChangeId).toBe(true);
     });
 
-    test("adv-status does not require change ID", () => {
-      const def = getCommandDef("adv-status");
+    test("determinus-status does not require change ID", () => {
+      const def = getCommandDef("determinus-status");
       expect(def!.requiresChangeId).toBe(false);
     });
   });
@@ -323,13 +323,13 @@ describe("Command Manifest", () => {
 
     test("no two commands claim the same gate as sole primary owner", () => {
       // Build a map of gate -> commands that own it
-      // Orchestrator commands (adv-task) are exempt — they
+      // Orchestrator commands (determinus-task) are exempt — they
       // intentionally cross gate boundaries to drive multi-phase workflows.
       const gateOwners = new Map<string, string[]>();
       for (const [name, def] of Object.entries(COMMAND_MANIFEST)) {
         if (!def.scope) continue;
         // Orchestrator commands exempt — they intentionally cross boundaries
-        if (name === "adv-task") continue;
+        if (name === "determinus-task") continue;
         for (const gate of def.scope.gates) {
           const owners = gateOwners.get(gate) ?? [];
           owners.push(name);
@@ -348,29 +348,29 @@ describe("Command Manifest", () => {
       ).toHaveLength(0);
     });
 
-    test("adv-proposal scope owns the proposal gate", () => {
-      const def = getCommandDef("adv-proposal");
+    test("determinus-proposal scope owns the proposal gate", () => {
+      const def = getCommandDef("determinus-proposal");
       expect(def!.scope!.gates).toEqual(["proposal"]);
     });
 
-    test("adv-proposal scope does not create tasks", () => {
-      const def = getCommandDef("adv-proposal");
+    test("determinus-proposal scope does not create tasks", () => {
+      const def = getCommandDef("determinus-proposal");
       expect(def!.scope!.creates).not.toContain("tasks");
     });
 
-    test("adv-research scope does not create tasks", () => {
-      const def = getCommandDef("adv-research");
+    test("determinus-research scope does not create tasks", () => {
+      const def = getCommandDef("determinus-research");
       expect(def!.scope!.creates).not.toContain("tasks");
     });
 
-    test("adv-prep scope creates tasks", () => {
-      const def = getCommandDef("adv-prep");
+    test("determinus-prep scope creates tasks", () => {
+      const def = getCommandDef("determinus-prep");
       expect(def!.scope!.creates).toContain("tasks");
     });
 
-    test("adv-task scope reflects fast-track artifact updates", () => {
-      const def = getCommandDef("adv-task");
-      expect(def!.successors).toEqual(["adv-apply"]);
+    test("determinus-task scope reflects fast-track artifact updates", () => {
+      const def = getCommandDef("determinus-task");
+      expect(def!.successors).toEqual(["determinus-apply"]);
       expect(def!.scope!.creates).toEqual(["change", "proposal", "tasks"]);
       expect(def!.scope!.modifies).toEqual(["proposal", "design"]);
       expect(def!.scope!.gates).toEqual([
@@ -381,24 +381,24 @@ describe("Command Manifest", () => {
       ]);
     });
 
-    test("adv-atc is not a supported manifest command", () => {
-      expect(getCommandDef("adv-atc")).toBeUndefined();
+    test("determinus-atc is not a supported manifest command", () => {
+      expect(getCommandDef("determinus-atc")).toBeUndefined();
     });
   });
 
   describe("Phase goal metadata", () => {
     // Lifecycle workflow commands with canonical phase goals.
     const WORKFLOW_COMMANDS = [
-      "adv-proposal",
-      "adv-research",
-      "adv-discover",
-      "adv-design",
-      "adv-prep",
-      "adv-apply",
-      "adv-review",
-      "adv-harden",
-      "adv-archive",
-      "adv-reflect",
+      "determinus-proposal",
+      "determinus-research",
+      "determinus-discover",
+      "determinus-design",
+      "determinus-prep",
+      "determinus-apply",
+      "determinus-review",
+      "determinus-harden",
+      "determinus-archive",
+      "determinus-reflect",
     ] as const;
 
     // Non-workflow commands should NOT have phaseGoal
@@ -472,25 +472,25 @@ describe("Command Manifest", () => {
 
     test("phaseGoal values match the user-approved phase goals", () => {
       const expectedGoals: Record<string, string> = {
-        "adv-proposal":
+        "determinus-proposal":
           "Clarify the problem, user needs, and high-level user outcomes. Establish what and why — no how.",
-        "adv-research":
+        "determinus-research":
           "Produce a defined, fully-researched proposed plan ready for user approval. Validate the how.",
-        "adv-discover":
+        "determinus-discover":
           "Gather current-state evidence, resolve agreement, and capture objectives and acceptance criteria before design.",
-        "adv-design":
+        "determinus-design":
           "Convert the approved agreement into a validated implementation strategy ready for planning.",
-        "adv-prep":
+        "determinus-prep":
           "Complete the flight-check: every gap closed, every dependency mapped, every task ready — ready for autonomous implementation.",
-        "adv-apply":
+        "determinus-apply":
           "Execute the approved plan autonomously. Add discovered tasks within scope. Escalate only on failure.",
-        "adv-review":
+        "determinus-review":
           "Verify implementation matches the approved plan. Auto-fix within scope. Stop on drift.",
-        "adv-harden":
+        "determinus-harden":
           "Verify production-readiness. Auto-fix scoped issues. Stop on drift.",
-        "adv-archive":
+        "determinus-archive":
           "Promote the change from contract to law: apply spec deltas, capture wisdom, clean up.",
-        "adv-reflect":
+        "determinus-reflect":
           "Synthesize post-completion learnings into a durable reflection artifact for process improvement.",
       };
 

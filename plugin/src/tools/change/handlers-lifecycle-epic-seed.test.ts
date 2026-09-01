@@ -9,12 +9,12 @@ import { createDiskStore } from "../../storage/store-disk";
 import type { Store } from "../../types";
 import { changeTools } from "../change";
 
-describe("adv_change_create local Epic seed", () => {
+describe("determinus_change_create local Epic seed", () => {
   let projectDir: string;
   let store: Store;
 
   beforeEach(async () => {
-    projectDir = await createTempDir("adv-local-epic-seed-");
+    projectDir = await createTempDir("determinus-local-epic-seed-");
     store = await createDiskStore(projectDir);
     await store.init();
   });
@@ -26,7 +26,7 @@ describe("adv_change_create local Epic seed", () => {
 
   test("rejects a seed naming a missing Epic before creating a change", async () => {
     const parsed = parseToolOutput(
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Missing local Epic",
           epic_id: "missing-epic",
@@ -45,7 +45,7 @@ describe("adv_change_create local Epic seed", () => {
     await store.epics.create("local-epic", "Local Epic", "Narrative");
 
     const parsed = parseToolOutput(
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Missing local entry",
           epic_id: "local-epic",
@@ -70,7 +70,7 @@ describe("adv_change_create local Epic seed", () => {
     });
 
     const parsed = parseToolOutput(
-      await changeTools.adv_change_create.execute(
+      await changeTools.determinus_change_create.execute(
         {
           summary: "Derived local membership",
           epic_id: "local-epic",

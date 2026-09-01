@@ -43,7 +43,7 @@ afterEach(async () => {
 
 async function mkdtemp(): Promise<string> {
   const { mkdtemp: fsmkdtemp } = await import("fs/promises");
-  return await fsmkdtemp(join(tmpdir(), "adv-conformance-test-"));
+  return await fsmkdtemp(join(tmpdir(), "determinus-conformance-test-"));
 }
 
 describe("getConformanceStatePath", () => {

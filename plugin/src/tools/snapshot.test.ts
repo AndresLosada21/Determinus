@@ -1,7 +1,7 @@
 /**
  * Snapshot Health Tool — Integration Tests
  *
- * Tests for adv_snapshot_health tool wrapper over snapshot-scan.ts.
+ * Tests for determinus_snapshot_health tool wrapper over snapshot-scan.ts.
  * Mocks getDataHome to route snapshot scanning into temp fixtures.
  */
 
@@ -90,12 +90,12 @@ function createMockStore(root: string): Store {
 // Tests
 // =============================================================================
 
-describe("adv_snapshot_health", () => {
+describe("determinus_snapshot_health", () => {
   let tempDir: string;
   let store: Store;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-snapshot-health-");
+    tempDir = await createTempDir("determinus-snapshot-health-");
     mocks.getDataHome.mockReturnValue(tempDir);
     store = createMockStore(tempDir);
   });
@@ -281,7 +281,7 @@ describe("adv_snapshot_health", () => {
     // purpose-specific snapshot-repair audit log, not in agenda.jsonl.
     await expect(
       access(store.paths.agenda),
-      "adv_snapshot_health must not write to the Agenda store; audit goes to the purpose-specific snapshot-repair audit log",
+      "determinus_snapshot_health must not write to the Agenda store; audit goes to the purpose-specific snapshot-repair audit log",
     ).rejects.toThrow();
   });
 

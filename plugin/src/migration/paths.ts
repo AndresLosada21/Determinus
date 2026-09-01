@@ -7,7 +7,7 @@
  * per-project XDG shards — every shard loads the same deployed plugin, so
  * the receipt and registry must be shared.
  *
- * Resolution order: `ADV_MIGRATION_STATE_DIR` (tests/ops override) → own
+ * Resolution order: `determinus_MIGRATION_STATE_DIR` (tests/ops override) → own
  * plugin root derived from the module location → the canonical deploy
  * location (`~/.local/share/Advance/migration`).
  */
@@ -23,8 +23,10 @@ import {
   type BuildIdentity,
 } from "./build-identity";
 
-export const ADV_MIGRATION_STATE_DIR_ENV = "ADV_MIGRATION_STATE_DIR";
-export const ADV_BUILD_IDENTITY_FILE_ENV = "ADV_BUILD_IDENTITY_FILE";
+export const determinus_MIGRATION_STATE_DIR_ENV =
+  "determinus_MIGRATION_STATE_DIR";
+export const determinus_BUILD_IDENTITY_FILE_ENV =
+  "determinus_BUILD_IDENTITY_FILE";
 
 export function resolveMigrationRoot(input?: {
   env?: NodeJS.ProcessEnv;
@@ -32,7 +34,7 @@ export function resolveMigrationRoot(input?: {
   homeDir?: string;
 }): string {
   const env = input?.env ?? process.env;
-  const override = env[ADV_MIGRATION_STATE_DIR_ENV];
+  const override = env[determinus_MIGRATION_STATE_DIR_ENV];
   if (override) return override;
   const pluginRoot = resolveOwnPluginRoot(input?.moduleUrl ?? import.meta.url);
   if (pluginRoot) return join(pluginRoot, "..", "migration");
@@ -55,7 +57,7 @@ export function resolveOwnBuildIdentity(input?: {
   moduleUrl?: string;
 }): BuildIdentity | null {
   const env = input?.env ?? process.env;
-  const identityFile = env[ADV_BUILD_IDENTITY_FILE_ENV];
+  const identityFile = env[determinus_BUILD_IDENTITY_FILE_ENV];
   if (identityFile) {
     return readBuildIdentityFile(identityFile);
   }

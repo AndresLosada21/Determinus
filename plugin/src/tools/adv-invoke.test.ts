@@ -1,6 +1,6 @@
 import { describe, test, expect, vi } from "vitest";
 import { z } from "zod";
-import { advInvokeTools, type ToolLookupResult } from "./adv-invoke";
+import { advInvokeTools, type ToolLookupResult } from "./determinus-invoke";
 
 type MockToolDefinition = {
   execute: ReturnType<typeof vi.fn>;
@@ -18,7 +18,7 @@ function wrapDefinition(
   return mock as unknown as ToolLookupResult["definition"];
 }
 
-describe("adv_tool_invoke", () => {
+describe("determinus_tool_invoke", () => {
   const ctx = { sessionID: "test-session" };
 
   test("AC1: invokes a known tool by name, passes same context, returns same result", async () => {
@@ -28,21 +28,21 @@ describe("adv_tool_invoke", () => {
       rawArgs: { id: z.string() },
     } as ToolLookupResult);
 
-    const result = await advInvokeTools.adv_tool_invoke.execute(
-      { name: "adv_mock_tool", args: { id: "123" } },
+    const result = await advInvokeTools.determinus_tool_invoke.execute(
+      { name: "determinus_mock_tool", args: { id: "123" } },
       lookup,
       ctx,
     );
 
     expect(result).toBe("mock-result");
-    expect(lookup).toHaveBeenCalledWith("adv_mock_tool");
+    expect(lookup).toHaveBeenCalledWith("determinus_mock_tool");
     expect(mockTool.execute).toHaveBeenCalledWith({ id: "123" }, ctx);
   });
 
   test("AC2: unknown name returns typed TOOL_NOT_FOUND rejection", async () => {
     const lookup = vi.fn().mockReturnValue(undefined);
-    const result = await advInvokeTools.adv_tool_invoke.execute(
-      { name: "adv_unknown_tool", args: {} },
+    const result = await advInvokeTools.determinus_tool_invoke.execute(
+      { name: "determinus_unknown_tool", args: {} },
       lookup,
       ctx,
     );
@@ -58,8 +58,8 @@ describe("adv_tool_invoke", () => {
       rawArgs: { id: z.string().min(1) },
     } as ToolLookupResult);
 
-    const result = await advInvokeTools.adv_tool_invoke.execute(
-      { name: "adv_mock_tool", args: { id: 123 } },
+    const result = await advInvokeTools.determinus_tool_invoke.execute(
+      { name: "determinus_mock_tool", args: { id: 123 } },
       lookup,
       ctx,
     );
@@ -75,8 +75,8 @@ describe("adv_tool_invoke", () => {
       rawArgs: { id: z.string() },
     } as ToolLookupResult);
 
-    const result = await advInvokeTools.adv_tool_invoke.execute(
-      { name: "adv_mock_tool", args: { id: "123", unexpected: true } },
+    const result = await advInvokeTools.determinus_tool_invoke.execute(
+      { name: "determinus_mock_tool", args: { id: "123", unexpected: true } },
       lookup,
       ctx,
     );
@@ -92,12 +92,12 @@ describe("adv_tool_invoke", () => {
     } as ToolLookupResult);
 
     for (const name of [
-      "adv_tool_invoke",
-      "adv_tool_catalog",
-      "adv_tool_describe",
+      "determinus_tool_invoke",
+      "determinus_tool_catalog",
+      "determinus_tool_describe",
       "execute",
     ]) {
-      const result = await advInvokeTools.adv_tool_invoke.execute(
+      const result = await advInvokeTools.determinus_tool_invoke.execute(
         { name, args: {} },
         lookup,
         ctx,
@@ -112,7 +112,7 @@ describe("adv_tool_invoke", () => {
     const mockTool = createMockDefinition(
       JSON.stringify({
         status: "APPROVAL_REQUIRED",
-        tool: "adv_approval_tool",
+        tool: "determinus_approval_tool",
       }),
     );
     const lookup = vi.fn().mockReturnValue({
@@ -120,8 +120,8 @@ describe("adv_tool_invoke", () => {
       rawArgs: { changeId: z.string() },
     } as ToolLookupResult);
 
-    const result = await advInvokeTools.adv_tool_invoke.execute(
-      { name: "adv_approval_tool", args: { changeId: "c1" } },
+    const result = await advInvokeTools.determinus_tool_invoke.execute(
+      { name: "determinus_approval_tool", args: { changeId: "c1" } },
       lookup,
       ctx,
     );
@@ -142,8 +142,8 @@ describe("adv_tool_invoke", () => {
       rawArgs: { changeId: z.string() },
     } as ToolLookupResult);
 
-    const result = await advInvokeTools.adv_tool_invoke.execute(
-      { name: "adv_recovery_tool", args: { changeId: "c1" } },
+    const result = await advInvokeTools.determinus_tool_invoke.execute(
+      { name: "determinus_recovery_tool", args: { changeId: "c1" } },
       lookup,
       ctx,
     );

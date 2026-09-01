@@ -56,7 +56,7 @@ export function buildToolSchemaManifest(
   const next = emptyManifest();
 
   for (const [name, args] of entries) {
-    if (!name.startsWith("adv_")) continue;
+    if (!name.startsWith("determinus_")) continue;
     next.total_tools++;
     try {
       const schema = z.toJSONSchema(z.object(args as z.ZodRawShape));

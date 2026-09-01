@@ -211,7 +211,7 @@ export const TaskCompletedSignalPayloadSchema = z.object({
   filesTouched: z.array(z.string()).default([]),
   checkpointSha: z.string().optional(),
   completedAt: IsoTimestampSchema,
-  /** Structured output extracted from `<adv-output>` tags — optional, non-blocking */
+  /** Structured output extracted from `<determinus-output>` tags — optional, non-blocking */
   structured_output: TaskStructuredOutputSchema.optional(),
   /** Evidence ref for red run — rq-TDD009seq ordering enforcement */
   lastRedRunId: z.string().optional(),

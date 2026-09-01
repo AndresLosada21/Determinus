@@ -23,9 +23,9 @@ describe("TIER_4_MCP_TOOLS", () => {
     expect(TIER_4_MCP_TOOLS).toEqual(EXPECTED);
   });
 
-  test("no entry is prefixed with adv_", () => {
+  test("no entry is prefixed with determinus_", () => {
     for (const name of TIER_4_MCP_TOOLS) {
-      expect(name.startsWith("adv_")).toBe(false);
+      expect(name.startsWith("determinus_")).toBe(false);
     }
   });
 });

@@ -1,16 +1,16 @@
 /**
- * Typed timeout classifier for adv_gate_complete.
+ * Typed timeout classifier for determinus_gate_complete.
  *
  * A gate completion has one durable disk mutation. When the safety-net tool
  * timeout fires, the write may or may not have landed; the caller has no way
  * to distinguish without an authoritative read.
  *
- * Unlike adv_change_archive (which has a disk-durable bundle to probe
+ * Unlike determinus_change_archive (which has a disk-durable bundle to probe
  * and an idempotent re-run reconcile), gate_complete has no local probe that
- * would resolve "did the write land?" — only a fresh adv_gate_status read can
+ * would resolve "did the write land?" — only a fresh determinus_gate_status read can
  * answer that. The classifier is therefore
  * PURELY ADVISORY: it returns a typed "may have landed — verify via
- * adv_gate_status before retrying" result so the agent is not left
+ * determinus_gate_status before retrying" result so the agent is not left
  * staring at a bare ToolExecutionTimeout with no next step.
  *
  * Probe discipline: the classifier must NEVER issue reads or any IO. After a
@@ -35,7 +35,7 @@ export interface FormatGateCompleteTimeoutInput {
 }
 
 /**
- * Purely-advisory classifier for adv_gate_complete timeouts.
+ * Purely-advisory classifier for determinus_gate_complete timeouts.
  *
  * Returns a typed advisory result when `changeId` is a non-empty string,
  * or `undefined` to fall back to the generic timeout response when the
@@ -60,25 +60,25 @@ export async function formatGateCompleteTimeoutResult(
     success: false,
     error:
       `Gate signal for '${changeId}' may have landed despite the ` +
-      `${timeoutMs}ms timeout. adv_gate_complete has no bundle-first ` +
+      `${timeoutMs}ms timeout. determinus_gate_complete has no bundle-first ` +
       "durable write — the sole durable mutation is the gate-completed " +
       "signal, which may or may not have been delivered before the " +
       "safety-net budget expired.",
     errorClass: "ToolExecutionTimeout",
-    tool: "adv_gate_complete",
+    tool: "determinus_gate_complete",
     changeId,
     ...(gateId ? { gateId } : {}),
     timeoutMs,
     signalMayHaveLanded: true,
     remediation:
-      "Call adv_gate_status for this changeId and inspect the gates map. " +
+      "Call determinus_gate_status for this changeId and inspect the gates map. " +
       "If the target gate already reads as done, the signal landed and " +
-      "no retry is needed — do NOT call adv_gate_complete again or you " +
+      "no retry is needed — do NOT call determinus_gate_complete again or you " +
       "risk duplicating the approval-evidence trail. If the gate is " +
-      "still not done, retry adv_gate_complete once; gate-completion " +
+      "still not done, retry determinus_gate_complete once; gate-completion " +
       "signals are idempotent at the workflow layer.",
     hint:
-      "Verify via adv_gate_status before retrying. Do not blindly " +
-      "re-fire adv_gate_complete.",
+      "Verify via determinus_gate_status before retrying. Do not blindly " +
+      "re-fire determinus_gate_complete.",
   });
 }

@@ -197,7 +197,7 @@ export const advChangeShowHandler = async (
   if (epic?.success && epic.data) {
     return dispatchFacadeRead(
       epicTools as Record<string, unknown>,
-      "adv_epic_show",
+      "determinus_epic_show",
       { epic_id: changeId, view: include?.entries ? "full" : "compact" },
       store,
     );
@@ -291,7 +291,7 @@ export const advChangeShowHandler = async (
     const paged = paginate(change.tasks, {
       limit,
       offset,
-      tool: "adv_change_show",
+      tool: "determinus_change_show",
       args: `changeId: "${changeId}"`,
     });
     const output: Record<string, unknown> = {
@@ -405,7 +405,7 @@ export const advChangeShowHandler = async (
         return {
           directiveState: {
             ...displayChange,
-            projectId: displayChange.adv_project_id ?? "unknown",
+            projectId: displayChange.determinus_project_id ?? "unknown",
             gates: normalizedGates ?? displayChange.gates,
           } as never,
           normalizedGates,
@@ -547,7 +547,7 @@ export const advChangeShowHandler = async (
         }
       }
       // Ready tasks — unblocked queue, sliced to top-N. Avoids the
-      // separate adv_task_ready round-trip on phase boundaries.
+      // separate determinus_task_ready round-trip on phase boundaries.
       if (include.readyTasks) {
         const readyRead = await subread.run("readyTasks", () =>
           activeStore.tasks.ready(changeId),
@@ -696,7 +696,7 @@ export const advChangeListHandler = async (
   if (filter?.kind === "epic") {
     return dispatchFacadeRead(
       epicTools as Record<string, unknown>,
-      "adv_epic_list",
+      "determinus_epic_list",
       { status: filter.status === "backlog" ? "active" : filter.status },
       store,
     );
@@ -704,7 +704,7 @@ export const advChangeListHandler = async (
   if (filter?.status === "backlog") {
     return dispatchFacadeRead(
       backlogShellTools as Record<string, unknown>,
-      "adv_backlog_list",
+      "determinus_backlog_list",
       {},
       store,
     );
@@ -715,7 +715,7 @@ export const advChangeListHandler = async (
   // handler invocation (tests, internal callers).
   if (status === "active" || status === "pending") {
     return formatToolOutput({
-      error: `status: "${status}" is not a valid filter for adv_change_list. "active" and "pending" are never stored on changes. Use "in-flight" (or no status filter) for open changes; "archived"/"closed" for terminal changes.`,
+      error: `status: "${status}" is not a valid filter for determinus_change_list. "active" and "pending" are never stored on changes. Use "in-flight" (or no status filter) for open changes; "archived"/"closed" for terminal changes.`,
     });
   }
   return withOptionalTargetPathStore(
@@ -788,7 +788,7 @@ export const advChangeListHandler = async (
       const paged = paginate(filtered, {
         limit,
         offset,
-        tool: "adv_change_list",
+        tool: "determinus_change_list",
         args: status ? `status: "${status}"` : undefined,
       });
       return formatToolOutput({
@@ -859,7 +859,7 @@ export const advChangeValidateHandler = async (
         return { kind: "ok", change, context };
       })(),
       CHANGE_VALIDATE_CONTEXT_TIMEOUT_MS,
-      `adv_change_validate input load exceeded ${CHANGE_VALIDATE_CONTEXT_TIMEOUT_MS}ms budget`,
+      `determinus_change_validate input load exceeded ${CHANGE_VALIDATE_CONTEXT_TIMEOUT_MS}ms budget`,
     );
   } catch (err) {
     if (!(err instanceof TimeoutError)) throw err;
@@ -875,7 +875,7 @@ export const advChangeValidateHandler = async (
       hint:
         "Validation input load exceeded its internal time budget (below the 10s tool ceiling). " +
         "No validation verdict was produced and authoritative state is untouched. " +
-        "Likely a slow projection read or peer hydration — retry; if persistent, run adv_status and adv_doctor to inspect project health.",
+        "Likely a slow projection read or peer hydration — retry; if persistent, run determinus_status and determinus_doctor to inspect project health.",
     });
   }
   if (inputs.kind === "response") {
@@ -938,7 +938,7 @@ export const advChangeValidateHandler = async (
 };
 
 export const queryChangeTools = {
-  adv_change_show: {
+  determinus_change_show: {
     description:
       "Get full change details including tasks and deltas. " +
       "Supports optional include flags to collapse the phase-start " +
@@ -1111,7 +1111,7 @@ export const queryChangeTools = {
         .enum(["compact", "pretty"])
         .optional()
         .describe(
-          "Output mode: compact (default) or pretty. Overrides ADV_TOOL_OUTPUT_MODE env var for this call.",
+          "Output mode: compact (default) or pretty. Overrides determinus_TOOL_OUTPUT_MODE env var for this call.",
         ),
     },
     validate: z
@@ -1130,7 +1130,7 @@ export const queryChangeTools = {
       ),
     execute: advChangeShowHandler,
   },
-  adv_change_list: {
+  determinus_change_list: {
     description:
       "List active changes with optional filtering, recency enrichment, and sorting",
     args: {

@@ -5,7 +5,7 @@
  * Validates the code-owned, exhaustive tool-role policy in
  * `plugin/src/tool-role-policy.ts`:
  *
- *   1. Every retained canonical ADV tool (ADV_TOOL_NAMES) has exactly one
+ *   1. Every retained canonical ADV tool (determinus_TOOL_NAMES) has exactly one
  *      role classification: orchestrator | operator-only | dual. Dual entries
  *      keep the action-level read/mutate distinction from
  *      docs/tool-ownership.md instead of flattening it.
@@ -16,7 +16,7 @@
  *      cross-project trust boundaries for fallback convenience (C6):
  *      operator-only tools are grantable only to the ADV orchestrator agent;
  *      every other agent denies every non-allowed retained tool, either by an
- *      explicit `adv_*: false` default-deny wildcard (wildcard-first,
+ *      explicit `determinus_*: false` default-deny wildcard (wildcard-first,
  *      specific-allow-after — OpenCode legacy tools convert to permission
  *      rules with last-match-wins semantics) or by full explicit enumeration
  *      (the orchestrator grants the entire retained surface).
@@ -27,7 +27,7 @@
 import { describe, expect, test } from "vitest";
 import { readdirSync, readFileSync } from "fs";
 import { join, resolve } from "path";
-import { ADV_TOOL_NAMES } from "./tool-registry";
+import { determinus_TOOL_NAMES } from "./tool-registry";
 import {
   AGENT_TOOL_POLICY,
   blockableFromSubAgentSession,
@@ -56,7 +56,7 @@ function sorted(values: readonly string[]): string[] {
 describe("tool role policy — exhaustive classification (AC5/AC7, DDC8)", () => {
   test("policy covers exactly the retained canonical ADV tool names", () => {
     expect(sorted(Object.keys(TOOL_ROLE_POLICY))).toEqual(
-      sorted(ADV_TOOL_NAMES),
+      sorted(determinus_TOOL_NAMES),
     );
   });
 
@@ -108,7 +108,7 @@ describe("tool role policy — exhaustive classification (AC5/AC7, DDC8)", () =>
   });
 
   test("action-level dual distinctions are preserved, not flattened (DDC8)", () => {
-    const status = TOOL_ROLE_POLICY["adv_status"];
+    const status = TOOL_ROLE_POLICY["determinus_status"];
     expect(status.class).toBe("dual");
     expect(status.operatorActions).toContain("forceRefresh");
   });
@@ -143,13 +143,13 @@ describe("tool role policy — ownership matrix parity (docs/tool-ownership.md)"
     // Scoped to rows that assign a role class, because such a row asserts the
     // name is a live host tool. Rows without a role class stay legal, which is
     // what lets the removed-tools table and the replacement-path cells go on
-    // naming retired tools — the same freedom adv_roadmap and
-    // adv_backlog_state already rely on.
+    // naming retired tools — the same freedom determinus_roadmap and
+    // determinus_backlog_state already rely on.
     const retiredHostTools = [
-      "`adv_epic_list`",
-      "`adv_epic_show`",
-      "`adv_backlog_list`",
-      "`adv_backlog_show`",
+      "`determinus_epic_list`",
+      "`determinus_epic_show`",
+      "`determinus_backlog_list`",
+      "`determinus_backlog_show`",
     ];
     const staleRows = lines.filter(
       (line) =>
@@ -176,7 +176,7 @@ describe("tool role policy — agent manifest exactness (SC3/AC6, C6)", () => {
   });
 
   test("policy sets reference only retained canonical ADV tools and never mix grant/deny", () => {
-    const retained = new Set(ADV_TOOL_NAMES);
+    const retained = new Set(determinus_TOOL_NAMES);
     for (const policy of AGENT_TOOL_POLICY) {
       for (const tool of policy.allowed) {
         expect(
@@ -200,20 +200,23 @@ describe("tool role policy — agent manifest exactness (SC3/AC6, C6)", () => {
     }
   });
 
-  test("facade tools are granted to every agent except adv-ci-waiter (addProviderToolSearch AC5)", () => {
+  test("facade tools are granted to every agent except determinus-ci-waiter (addProviderToolSearch AC5)", () => {
     // The compressed tool surface relies on every normal agent (and the
     // orchestrator) being able to discover and dispatch ADV tools through
-    // the three Advance-owned facade tools. adv-ci-waiter is the only
+    // the three Advance-owned facade tools. determinus-ci-waiter is the only
     // exception: it is a bash-only CI poller with no ADV responsibility,
     // so it keeps an empty allowlist with the deny wildcard.
-    const FACADE_TOOLS = ["adv_tool_catalog", "adv_tool_invoke"] as const;
+    const FACADE_TOOLS = [
+      "determinus_tool_catalog",
+      "determinus_tool_invoke",
+    ] as const;
     const EXPECTED_FACADE_HOLDER = new Set<string>(FACADE_TOOLS);
     for (const policy of AGENT_TOOL_POLICY) {
-      if (policy.agent === "adv-ci-waiter") {
+      if (policy.agent === "determinus-ci-waiter") {
         for (const tool of FACADE_TOOLS) {
           expect(
             policy.allowed.includes(tool),
-            `adv-ci-waiter must NOT carry facade tool ${tool} (no ADV surface)`,
+            `determinus-ci-waiter must NOT carry facade tool ${tool} (no ADV surface)`,
           ).toBe(false);
         }
         continue;
@@ -243,10 +246,10 @@ describe("tool role policy — agent manifest exactness (SC3/AC6, C6)", () => {
 
   test("operator-only tools are invoke-only — not in any manifest, protected by approval gates (C6)", () => {
     // After slimMutationToolSurface, operator-only tools are routed through
-    // adv_tool_invoke exclusively. No agent manifest exposes them directly.
+    // determinus_tool_invoke exclusively. No agent manifest exposes them directly.
     // Their destructive surface is protected by the tools' own
     // approvedByUser + approvalEvidence required arguments, not by manifest
-    // grantability. adv_tool_invoke dispatches through the canonical
+    // grantability. determinus_tool_invoke dispatches through the canonical
     // ToolDefinition.execute which re-runs validation, authorization,
     // approval, and recovery enforcement.
     for (const policy of AGENT_TOOL_POLICY) {
@@ -272,23 +275,23 @@ describe("tool role policy — runtime blockable set derivation (AC5)", () => {
   const EXPECTED_UNION_FLOOR = Object.freeze([
     // Tier 1 — always top-level for every spawnable sub-agent
     // (tierToolsReduceUpfrontSurface). All other ADV tools are invoke-only
-    // (Tier 3), routed through adv_tool_invoke.
-    "adv_change_archive",
-    "adv_change_close",
-    "adv_change_create",
-    "adv_change_list",
-    "adv_change_show",
-    "adv_change_update",
-    "adv_gate_complete",
-    "adv_gate_status",
-    "adv_run_test",
-    "adv_subagent_report_submit",
-    "adv_task_add",
-    "adv_task_checkpoint",
-    "adv_task_list",
-    "adv_task_update",
-    "adv_tool_catalog",
-    "adv_tool_invoke",
+    // (Tier 3), routed through determinus_tool_invoke.
+    "determinus_change_archive",
+    "determinus_change_close",
+    "determinus_change_create",
+    "determinus_change_list",
+    "determinus_change_show",
+    "determinus_change_update",
+    "determinus_gate_complete",
+    "determinus_gate_status",
+    "determinus_run_test",
+    "determinus_subagent_report_submit",
+    "determinus_task_add",
+    "determinus_task_checkpoint",
+    "determinus_task_list",
+    "determinus_task_update",
+    "determinus_tool_catalog",
+    "determinus_tool_invoke",
   ]);
 
   test("subAgentUnionAllowlist returns the expected union floor", () => {
@@ -309,14 +312,14 @@ describe("tool role policy — runtime blockable set derivation (AC5)", () => {
     for (const tool of OPERATOR_ONLY_TOOL_NAMES) {
       expect(blockable.has(tool)).toBe(true);
     }
-    expect(blockable.has("adv_change_create")).toBe(false);
-    for (const tool of ADV_TOOL_NAMES.filter((name) =>
-      name.startsWith("adv_epic_"),
+    expect(blockable.has("determinus_change_create")).toBe(false);
+    for (const tool of determinus_TOOL_NAMES.filter((name) =>
+      name.startsWith("determinus_epic_"),
     )) {
       expect(blockable.has(tool)).toBe(true);
     }
-    expect(blockable.has("adv_worktree_create")).toBe(true);
-    expect(blockable.has("adv_worktree_delete")).toBe(true);
+    expect(blockable.has("determinus_worktree_create")).toBe(true);
+    expect(blockable.has("determinus_worktree_delete")).toBe(true);
   });
 
   test("roster-derived helpers are deterministic and frozen", () => {

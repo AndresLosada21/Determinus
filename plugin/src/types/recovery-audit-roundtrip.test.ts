@@ -75,7 +75,7 @@ const engineerReport = {
   task_id: "tk-eng",
   scope: { kind: "task" as const, task_id: "tk-eng" },
   attempt: 1,
-  agent: "adv-engineer",
+  agent: "determinus-engineer",
   status: "complete" as const,
   files_touched: ["plugin/src/types/subagent-reports.ts"],
   verification: [
@@ -107,7 +107,7 @@ const taskReviewerReport = {
   task_id: "tk-review",
   scope: { kind: "task" as const, task_id: "tk-review" },
   attempt: 1,
-  agent: "adv-reviewer",
+  agent: "determinus-reviewer",
   phase: "review" as const,
   verdict: "READY" as const,
   blocking_findings: [],
@@ -132,7 +132,7 @@ const changeScopedReviewerReport = {
   change_id: "fixRecoverySchemaDrift",
   scope: { kind: "change" as const, scope_key: "review:acceptance" },
   attempt: 1,
-  agent: "adv-reviewer",
+  agent: "determinus-reviewer",
   phase: "review" as const,
   verdict: "READY" as const,
   blocking_findings: [],
@@ -158,7 +158,7 @@ const designerReport = {
   task_id: "tk-design",
   scope: { kind: "task" as const, task_id: "tk-design" },
   attempt: 1,
-  agent: "adv-designer",
+  agent: "determinus-designer",
   status: "complete" as const,
   files_touched: ["src/components/Button.tsx"],
   verification: [
@@ -177,7 +177,7 @@ const designerReport = {
   workdir_used: "/tmp/worktree",
   context_update_for_adv: {
     what_ads_needs_to_know: "Button shipped",
-    suggested_next_action: "Run /adv-review",
+    suggested_next_action: "Run /determinus-review",
   },
   design_dimensions: {
     component_correctness: "pass" as const,
@@ -196,7 +196,7 @@ const researcherReport = {
   change_id: "fixRecoverySchemaDrift",
   scope: { kind: "change" as const, scope_key: "researcher:recovery-docs" },
   attempt: 1,
-  agent: "adv-researcher",
+  agent: "determinus-researcher",
   topic: "recovery_audit schema drift",
   sources: [
     {
@@ -236,7 +236,7 @@ const tronReport = {
   change_id: "fixRecoverySchemaDrift",
   scope: { kind: "change" as const, scope_key: "tron:recovery-flow" },
   attempt: 1,
-  agent: "adv-tron",
+  agent: "determinus-tron",
   target: "recovery writers",
   evidence: [
     {
@@ -248,7 +248,7 @@ const tronReport = {
   hotspots: ["plugin/src/tools/_recovery-writers.ts"],
   risks: ["Strict schemas reject writes without recovery_audit field"],
   open_questions: [],
-  suggested_next_commands: ["/adv-apply fixRecoverySchemaDrift"],
+  suggested_next_commands: ["/determinus-apply fixRecoverySchemaDrift"],
   follow_ups: [],
   workdir_used: "/tmp/worktree",
 };
@@ -258,7 +258,7 @@ const scannerBundleReport = {
   change_id: "fixRecoverySchemaDrift",
   scope: { kind: "change" as const, scope_key: "scanner-bundle:review" },
   attempt: 1,
-  agent: "adv-scanner-bundle",
+  agent: "determinus-scanner-bundle",
   phase: "review" as const,
   scanner_count: 1,
   dimensions: ["schema"],
@@ -286,7 +286,7 @@ const verificationTriageReport = {
   change_id: "fixRecoverySchemaDrift",
   scope: { kind: "change" as const, scope_key: "verifier:local-verify" },
   attempt: 1,
-  agent: "adv-verification-triage-bundle",
+  agent: "determinus-verification-triage-bundle",
   workdir_used: "/tmp/worktree",
   phase: "local_verify" as const,
   targets: [
@@ -314,7 +314,7 @@ const visualReviewReport = {
   change_id: "fixRecoverySchemaDrift",
   scope: { kind: "change" as const, scope_key: "visual-review:screenshot" },
   attempt: 1,
-  agent: "adv-visual-review",
+  agent: "determinus-visual-review",
   workdir_used: "/tmp/worktree",
   image: "screenshot.png",
   description: "Recovery write surface overview",

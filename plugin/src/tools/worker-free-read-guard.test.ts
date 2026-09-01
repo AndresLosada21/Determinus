@@ -29,34 +29,34 @@ interface ReadHandlerBoundary {
  */
 const ROUTINE_READ_HANDLERS: ReadHandlerBoundary[] = [
   {
-    tool: "adv_change_list",
+    tool: "determinus_change_list",
     file: "plugin/src/tools/change.ts",
-    startMarker: "adv_change_list: {",
-    endMarker: "adv_change_show: {",
+    startMarker: "determinus_change_list: {",
+    endMarker: "determinus_change_show: {",
   },
   {
-    tool: "adv_change_show",
+    tool: "determinus_change_show",
     file: "plugin/src/tools/change.ts",
-    startMarker: "adv_change_show: {",
-    endMarker: "adv_change_create: {",
+    startMarker: "determinus_change_show: {",
+    endMarker: "determinus_change_create: {",
   },
   {
-    tool: "adv_gate_status",
+    tool: "determinus_gate_status",
     file: "plugin/src/tools/gate.ts",
-    startMarker: "adv_gate_status: {",
-    endMarker: "adv_gate_complete: {",
+    startMarker: "determinus_gate_status: {",
+    endMarker: "determinus_gate_complete: {",
   },
   {
-    tool: "adv_epic_list",
+    tool: "determinus_epic_list",
     file: "plugin/src/tools/epic.ts",
-    startMarker: "adv_epic_list: {",
-    endMarker: "adv_epic_update: {",
+    startMarker: "determinus_epic_list: {",
+    endMarker: "determinus_epic_update: {",
   },
   {
-    tool: "adv_epic_show",
+    tool: "determinus_epic_show",
     file: "plugin/src/tools/epic.ts",
-    startMarker: "adv_epic_show: {",
-    endMarker: "adv_epic_list: {",
+    startMarker: "determinus_epic_show: {",
+    endMarker: "determinus_epic_list: {",
   },
 ];
 
@@ -112,13 +112,13 @@ describe("worker-free structural guard for routine host-tool reads", () => {
 
   test("guard catches workflow-query constructs in a fixture", () => {
     const fixture = `
-      adv_fixture: {
+      determinus_fixture: {
         execute: async () => {
           const handle = getChangeHandle(client, projectId, changeId);
           return handle.query(getStateQuery);
         },
       },
-      adv_next: {
+      determinus_next: {
     `;
     const found = findForbiddenTokens(fixture);
     expect(found).toEqual(

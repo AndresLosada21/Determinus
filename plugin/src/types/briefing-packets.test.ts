@@ -34,13 +34,13 @@ describe("Briefing packet type foundations", () => {
 
   it("maps every non-archive lane to a persisted sub-agent report agent", () => {
     expect(BRIEFING_PACKET_LANE_TO_AGENT).toEqual({
-      researcher: "adv-researcher",
-      engineer: "adv-engineer",
-      designer: "adv-designer",
-      reviewer: "adv-reviewer",
-      scanner: "adv-scanner-bundle",
-      verifier: "adv-verification-triage-bundle",
-      visual_review: "adv-visual-review",
+      researcher: "determinus-researcher",
+      engineer: "determinus-engineer",
+      designer: "determinus-designer",
+      reviewer: "determinus-reviewer",
+      scanner: "determinus-scanner-bundle",
+      verifier: "determinus-verification-triage-bundle",
+      visual_review: "determinus-visual-review",
     });
 
     for (const agent of Object.values(BRIEFING_PACKET_LANE_TO_AGENT)) {
@@ -50,16 +50,16 @@ describe("Briefing packet type foundations", () => {
 
   it("derives lane identity anchors from sub-agent report field sources", () => {
     expect(getBriefingPacketLaneAnchors("engineer")).toEqual(
-      getSubagentReportPacketAnchors("adv-engineer"),
+      getSubagentReportPacketAnchors("determinus-engineer"),
     );
     expect(getBriefingPacketLaneAnchors("reviewer")).toEqual(
-      getSubagentReportPacketAnchors("adv-reviewer"),
+      getSubagentReportPacketAnchors("determinus-reviewer"),
     );
     expect(getBriefingPacketLaneAnchors("scanner")).toEqual(
-      getSubagentReportPacketAnchors("adv-scanner-bundle"),
+      getSubagentReportPacketAnchors("determinus-scanner-bundle"),
     );
     expect(getBriefingPacketLaneAnchors("verifier")).toEqual(
-      getSubagentReportPacketAnchors("adv-verification-triage-bundle"),
+      getSubagentReportPacketAnchors("determinus-verification-triage-bundle"),
     );
   });
 
@@ -69,7 +69,7 @@ describe("Briefing packet type foundations", () => {
       getBriefingPacketLaneAnchors("archive"),
     ).toThrow();
     expect(getBriefingPacketArchiveAnchors()).not.toEqual(
-      getSubagentReportPacketAnchors("adv-engineer"),
+      getSubagentReportPacketAnchors("determinus-engineer"),
     );
     expect(getBriefingPacketArchiveAnchors()).toContain("CHANGE");
     expect(getBriefingPacketArchiveAnchors()).toContain("STATUS");
@@ -126,7 +126,10 @@ describe("Briefing packet type foundations", () => {
         },
       ],
       unavailable_markers: [],
-      session_metadata: { generated_by: "adv-engineer", audit_only: true },
+      session_metadata: {
+        generated_by: "determinus-engineer",
+        audit_only: true,
+      },
     });
 
     expect(packet.lane).toBe("engineer");
@@ -141,7 +144,10 @@ describe("Briefing packet type foundations", () => {
         lane: "engineer",
         sections: [],
         facts: [],
-        session_metadata: { generated_by: "adv-engineer", audit_only: false },
+        session_metadata: {
+          generated_by: "determinus-engineer",
+          audit_only: false,
+        },
       }),
     ).toThrow();
   });
@@ -204,11 +210,11 @@ describe("Briefing packet lane descriptors", () => {
   it("does not let virtual lanes claim manifest grants", () => {
     expect(BRIEFING_PACKET_LANE_DESCRIPTORS.scanner).toEqual({
       kind: "virtual",
-      bundle: "adv-scanner-bundle",
+      bundle: "determinus-scanner-bundle",
     });
     expect(BRIEFING_PACKET_LANE_DESCRIPTORS.verifier).toEqual({
       kind: "virtual",
-      bundle: "adv-verification-triage-bundle",
+      bundle: "determinus-verification-triage-bundle",
     });
 
     for (const lane of ["scanner", "verifier"] as const) {
@@ -228,9 +234,11 @@ describe("Briefing packet lane descriptors", () => {
   });
 
   it("kept virtual lane descriptors consistent with the bundle-to-agent map", () => {
-    expect(BRIEFING_PACKET_LANE_TO_AGENT.scanner).toBe("adv-scanner-bundle");
+    expect(BRIEFING_PACKET_LANE_TO_AGENT.scanner).toBe(
+      "determinus-scanner-bundle",
+    );
     expect(BRIEFING_PACKET_LANE_TO_AGENT.verifier).toBe(
-      "adv-verification-triage-bundle",
+      "determinus-verification-triage-bundle",
     );
   });
 });

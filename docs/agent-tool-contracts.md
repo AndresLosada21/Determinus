@@ -25,21 +25,21 @@ Before shipping an agent-callable tool or sub-agent report contract:
    - `PHASE` → reviewer `phase`
    - `ATTEMPT` → report dedupe key and retry audit
    - `CHANGE` / `WORKING DIRECTORY` → scope and worktree grounding
-   - `SCOPE KEY` → change-scoped optimized handoff reports (`adv-researcher`, `adv-tron`, orchestrator-submitted scanner bundles)
+   - `SCOPE KEY` → change-scoped optimized handoff reports (`determinus-researcher`, `determinus-tron`, orchestrator-submitted scanner bundles)
 4. **Scope anchors:** add warn-first rollout anchors for bounded work:
    - `TASK_SCOPE`, `IN_SCOPE`, `OUT_OF_SCOPE`
    - `DONE_WHEN`, `STOP_WHEN`, `VERIFICATION`
 5. **Prompt mapping:** update worker guidance so the agent copies packet values into the tool payload before exit and reports `scope_drift` plus `required_main_agent_actions` instead of hiding drift in prose.
 6. **Transport lane:** classify the lane.
-   - `worker`: typed persisted worker; must call `adv_subagent_report_submit`.
-   - `optimized handoff`: typed persisted change-scoped worker (`adv-researcher`, `adv-tron`) with `scope.kind: "change"` and a structural `scope_key`.
-   - `scanner`: non-persisted analysis worker; must not call `adv_subagent_report_submit` or write `task.subagent_reports[]`. Only the orchestrator may submit an `adv-scanner-bundle` synthesis.
+   - `worker`: typed persisted worker; must call `determinus_subagent_report_submit`.
+   - `optimized handoff`: typed persisted change-scoped worker (`determinus-researcher`, `determinus-tron`) with `scope.kind: "change"` and a structural `scope_key`.
+   - `scanner`: non-persisted analysis worker; must not call `determinus_subagent_report_submit` or write `task.subagent_reports[]`. Only the orchestrator may submit an `determinus-scanner-bundle` synthesis.
 7. **Tests:** add RED/GREEN asset, preflight, or schema tests proving required anchors and policies are enforced. Tool-arg changes need representative malformed-call tests and drift guards for audited `FIELD_POLICIES` entries.
 8. **Specs/docs:** update the owning spec when the behavior is capability law, not incidental prose.
 
 ## ADV Report Contract Example
 
-`adv-engineer` typed worker packet:
+`determinus-engineer` typed worker packet:
 
 ```text
 WORKING DIRECTORY: {workdir}
@@ -59,10 +59,10 @@ VERIFICATION:
   required_when_possible:
     - {task-specific test/lint/typecheck command}
   optional_additional_checks: true
-EXPECTED OUTPUT: call adv_subagent_report_submit with ENGINEER_REPORT
+EXPECTED OUTPUT: call determinus_subagent_report_submit with ENGINEER_REPORT
 ```
 
-`adv-reviewer` remediation packet adds `PHASE`:
+`determinus-reviewer` remediation packet adds `PHASE`:
 
 ```text
 WORKING DIRECTORY: {workdir}
@@ -83,29 +83,29 @@ VERIFICATION:
   required_when_possible:
     - {targeted test/lint/static check for fixed finding(s)}
   optional_additional_checks: true
-EXPECTED OUTPUT: call adv_subagent_report_submit with REVIEWER_REPORT
+EXPECTED OUTPUT: call determinus_subagent_report_submit with REVIEWER_REPORT
 ```
 
 Change-scoped optimized handoff packets add `SCOPE KEY` instead of `TASK`; examples include `researcher:design-validation`, `researcher:discovery-opportunity-scout`, and `tron:{target-slug}`. These workers submit typed change-scoped reports.
 
-Review/harden `explore` scanners stay scanner lanes: they may receive `WORKING DIRECTORY`, `CHANGE`, and `ATTEMPT`, but return dimension-specific analysis JSON to the orchestrator instead of persisted reports. After synthesis, the orchestrator may submit one `adv-scanner-bundle` report with `SCOPE KEY: scanner-bundle:{review|harden}`.
+Review/harden `explore` scanners stay scanner lanes: they may receive `WORKING DIRECTORY`, `CHANGE`, and `ATTEMPT`, but return dimension-specific analysis JSON to the orchestrator instead of persisted reports. After synthesis, the orchestrator may submit one `determinus-scanner-bundle` report with `SCOPE KEY: scanner-bundle:{review|harden}`.
 
 ## Sub-Agent Plugin-Tool Runtime Limitation
 
 opencode `task`-spawned sub-agents receive only the tools injected into their
-session. An agent manifest gates host-plugin tools (`adv_*`) but cannot summon
+session. An agent manifest gates host-plugin tools (`determinus_*`) but cannot summon
 an absent tool. Treat the ADV MCP Tier-4 read surface (`tools.adv.*`) as
 optional too: use it only when the generated Code Mode catalog exposes the
 `adv` namespace.
 
 Consequences and resolution levers:
 
-- A spawned `adv-engineer` / `adv-reviewer` records `adv_run_test` evidence and
+- A spawned `determinus-engineer` / `determinus-reviewer` records `determinus_run_test` evidence and
   submits its typed report when those host tools are exposed. Otherwise it
   returns the typed report as final-message text and the **orchestrator relays**
-  it via `adv_subagent_report_submit`.
-- Durable `adv_run_test` evidence is the authority, not the report text. The evidence is persisted per task via `testRunRecordedSignal` → `state.testRuns[taskId][]` (mirrored as `change.test_runs`). The verification-evidence matcher in `tools/subagent-report.ts` consults this durable ledger (latest retained record per exact command), so evidence recorded by **any** session — the sub-agent when tools exist, or the orchestrator when relaying — satisfies the acceptance/release verification gate. When relaying a sub-agent report, the orchestrator SHOULD record `adv_run_test` for each cited command so the durable ledger backs the report.
-- Escape hatch: `adv_verification_evidence_disposition` (verbs `fixed | rejected_with_evidence | split | fast_follow`) records a typed disposition to clear a residual `verification_missing` / `verification_mismatch` block on a completed task when durable evidence cannot be re-associated.
+  it via `determinus_subagent_report_submit`.
+- Durable `determinus_run_test` evidence is the authority, not the report text. The evidence is persisted per task via `testRunRecordedSignal` → `state.testRuns[taskId][]` (mirrored as `change.test_runs`). The verification-evidence matcher in `tools/subagent-report.ts` consults this durable ledger (latest retained record per exact command), so evidence recorded by **any** session — the sub-agent when tools exist, or the orchestrator when relaying — satisfies the acceptance/release verification gate. When relaying a sub-agent report, the orchestrator SHOULD record `determinus_run_test` for each cited command so the durable ledger backs the report.
+- Escape hatch: `determinus_verification_evidence_disposition` (verbs `fixed | rejected_with_evidence | split | fast_follow`) records a typed disposition to clear a residual `verification_missing` / `verification_mismatch` block on a completed task when durable evidence cannot be re-associated.
 - Related but separate: host-loaded plugin **staleness** (a deployed `dist/index.js` predating source tools) requires `pnpm run build` + `deploy-local.sh --fix` + an OpenCode restart to reload; the disposition tool being absent from a session's surface is a symptom of this staleness, not a missing feature.
 
 ## Recurrence Guard

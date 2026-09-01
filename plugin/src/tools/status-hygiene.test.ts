@@ -73,7 +73,7 @@ describe("appendArchivedBranchHygieneRecommendations", () => {
     expect(status.archived_branch_hygiene).toBeDefined();
     expect(status.archived_branch_hygiene.count).toBe(1);
     expect(status.archived_branch_hygiene.recommendation).toContain(
-      "adv_worktree_cleanup",
+      "determinus_worktree_cleanup",
     );
     expect(status.archived_branch_hygiene.recommendation).toContain(
       "archived_branches",

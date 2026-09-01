@@ -18,8 +18,8 @@ describe("sweepClosedChangesFromDisk", () => {
   let closedDir: string;
 
   beforeEach(async () => {
-    changesDir = await createTempDir("adv-disk-sweep-");
-    closedDir = await createTempDir("adv-disk-sweep-closed-");
+    changesDir = await createTempDir("determinus-disk-sweep-");
+    closedDir = await createTempDir("determinus-disk-sweep-closed-");
   });
 
   afterEach(async () => {
@@ -140,7 +140,7 @@ describe("sweepClosedChangesFromDisk — durability guard", () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await createTempDir("adv-sweep-guard-");
+    root = await createTempDir("determinus-sweep-guard-");
   });
 
   afterEach(async () => {

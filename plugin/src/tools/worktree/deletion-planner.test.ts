@@ -20,7 +20,7 @@ function makeFixture(): {
   worktree: string;
   cleanup: () => void;
 } {
-  const root = mkdtempSync(join(tmpdir(), "adv-deletion-planner-"));
+  const root = mkdtempSync(join(tmpdir(), "determinus-deletion-planner-"));
   const worktree = `${root}-linked`;
   git(root, "init", "-b", "main");
   git(root, "config", "user.email", "test@example.invalid");
@@ -71,7 +71,9 @@ describe("WorktreeDeletionPlanner", () => {
   });
 
   it("plans a squash-equivalent release branch from two all-minus cherry lines", async () => {
-    const root = mkdtempSync(join(tmpdir(), "adv-deletion-planner-squash-"));
+    const root = mkdtempSync(
+      join(tmpdir(), "determinus-deletion-planner-squash-"),
+    );
     const worktree = `${root}-linked`;
     try {
       git(root, "init", "-b", "trunk");

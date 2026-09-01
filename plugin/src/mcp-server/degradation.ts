@@ -20,7 +20,7 @@ export interface DegradationOptions {
 }
 
 /**
- * Host-probe fields surfaced by `adv_status` whose data originates from host
+ * Host-probe fields surfaced by `determinus_status` whose data originates from host
  * probes (worker process lock, session-debt scan, etc.).
  * When host probes are unavailable, these fields are tagged with
  * `{ degraded: true, source: "host_probe_unavailable_in_mcp" }`.

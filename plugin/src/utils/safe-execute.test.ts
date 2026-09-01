@@ -21,7 +21,7 @@ import {
 } from "./safe-execute";
 import {
   createAdvSessionNotReadyEnvelope,
-  ADV_SESSION_READINESS_RETRY_HINT,
+  determinus_SESSION_READINESS_RETRY_HINT,
   isAdvSessionNotReady,
 } from "./readiness-envelope";
 
@@ -31,29 +31,29 @@ describe("safe-execute", () => {
   let originalCacheDir: string | undefined;
 
   beforeEach(() => {
-    profileDir = mkdtempSync(join(tmpdir(), "adv-profile-"));
-    originalAdvProfile = process.env.ADV_PROFILE;
-    originalCacheDir = process.env.ADV_CACHE_DIR;
-    process.env.ADV_CACHE_DIR = profileDir;
+    profileDir = mkdtempSync(join(tmpdir(), "determinus-profile-"));
+    originalAdvProfile = process.env.determinus_PROFILE;
+    originalCacheDir = process.env.determinus_CACHE_DIR;
+    process.env.determinus_CACHE_DIR = profileDir;
   });
 
   afterEach(() => {
     if (originalAdvProfile === undefined) {
-      delete process.env.ADV_PROFILE;
+      delete process.env.determinus_PROFILE;
     } else {
-      process.env.ADV_PROFILE = originalAdvProfile;
+      process.env.determinus_PROFILE = originalAdvProfile;
     }
 
     if (originalCacheDir === undefined) {
-      delete process.env.ADV_CACHE_DIR;
+      delete process.env.determinus_CACHE_DIR;
     } else {
-      process.env.ADV_CACHE_DIR = originalCacheDir;
+      process.env.determinus_CACHE_DIR = originalCacheDir;
     }
 
     rmSync(profileDir, { recursive: true, force: true });
   });
 
-  const profileLogFile = () => join(profileDir, "adv-profile.log");
+  const profileLogFile = () => join(profileDir, "determinus-profile.log");
 
   describe("formatZodError", () => {
     it("formats a single field error", () => {
@@ -222,8 +222,8 @@ describe("safe-execute", () => {
       expect(result).toBe(banner);
     });
 
-    it("writes timing profile entries on success when ADV_PROFILE=1", async () => {
-      process.env.ADV_PROFILE = "1";
+    it("writes timing profile entries on success when determinus_PROFILE=1", async () => {
+      process.env.determinus_PROFILE = "1";
       const fn = async (args: { id: string }) =>
         JSON.stringify({ success: true, id: args.id });
       const wrapped = safeExecute(fn, "profiled_tool");
@@ -237,8 +237,8 @@ describe("safe-execute", () => {
       expect(content).toContain('"duration_ms":');
     });
 
-    it("writes timing profile entries on error when ADV_PROFILE=1", async () => {
-      process.env.ADV_PROFILE = "1";
+    it("writes timing profile entries on error when determinus_PROFILE=1", async () => {
+      process.env.determinus_PROFILE = "1";
       const fn = async (): Promise<string> => {
         throw new Error("boom");
       };
@@ -261,8 +261,8 @@ describe("safe-execute", () => {
     // (default 10000ms), the wrapper MUST return a structured
     // ToolExecutionTimeout error to the agent.
     //
-    // This is the fix for the zero-args `adv_change_update` hang reproduced
-    // live during the /adv-design phase of this change (see wisdom
+    // This is the fix for the zero-args `determinus_change_update` hang reproduced
+    // live during the /determinus-design phase of this change (see wisdom
     // ws-3550c245 and design.md KD-8).
     describe("tool execution timeout (P1.12 A3)", () => {
       it("returns ToolExecutionTimeout error when execute hangs past timeout", async () => {
@@ -319,7 +319,7 @@ describe("safe-execute", () => {
 
     // fixArchiveTerminalProjection SC3/AC4: a tool may install a typed
     // timeout classifier. When the safety-net timeout fires but the tool's
-    // durable work already landed (e.g. adv_change_archive's bundle write),
+    // durable work already landed (e.g. determinus_change_archive's bundle write),
     // the classifier replaces the bare ToolExecutionTimeout with a typed,
     // actionable result. The hook is best-effort: returning undefined or
     // throwing preserves the generic response.
@@ -409,8 +409,8 @@ describe("safe-execute", () => {
     });
   });
 
-  describe("ADV_SESSION_NOT_READY preservation (KD4 fail-closed barrier)", () => {
-    it("returns a structured, caller-discriminable payload when a mutation throws ADV_SESSION_NOT_READY", async () => {
+  describe("determinus_SESSION_NOT_READY preservation (KD4 fail-closed barrier)", () => {
+    it("returns a structured, caller-discriminable payload when a mutation throws determinus_SESSION_NOT_READY", async () => {
       const blockers = [
         "describe_task_queue_no_pollers",
         "queue_not_serviceable",
@@ -419,41 +419,41 @@ describe("safe-execute", () => {
       const fn = async (): Promise<string> => {
         throw envelope;
       };
-      const wrapped = safeExecute(fn, "adv_task_update");
+      const wrapped = safeExecute(fn, "determinus_task_update");
       const raw = await wrapped({ changeId: "chg-1" }, {} as any);
 
       // Before the fix this would be a generic error string.
       const result = JSON.parse(raw);
-      expect(result.error).toBe("ADV_SESSION_NOT_READY");
-      expect(result.kind).toBe("ADV_SESSION_NOT_READY");
+      expect(result.error).toBe("determinus_SESSION_NOT_READY");
+      expect(result.kind).toBe("determinus_SESSION_NOT_READY");
       expect(result.blockers).toEqual(
-        expect.arrayContaining(["ADV_SESSION_NOT_READY", ...blockers]),
+        expect.arrayContaining(["determinus_SESSION_NOT_READY", ...blockers]),
       );
-      expect(result.blockers).toContain("ADV_SESSION_NOT_READY");
-      expect(result.retryHint).toBe(ADV_SESSION_READINESS_RETRY_HINT);
+      expect(result.blockers).toContain("determinus_SESSION_NOT_READY");
+      expect(result.retryHint).toBe(determinus_SESSION_READINESS_RETRY_HINT);
       expect(result.retryable).toBe(true);
-      expect(result.tool).toBe("adv_task_update");
+      expect(result.tool).toBe("determinus_task_update");
       // Must be re-discriminable by isAdvSessionNotReady
       expect(isAdvSessionNotReady(result)).toBe(true);
-      // Distinct from ADV_PLUGIN_INIT_FAILED
-      expect(result.status).not.toBe("ADV_PLUGIN_INIT_FAILED");
+      // Distinct from determinus_PLUGIN_INIT_FAILED
+      expect(result.status).not.toBe("determinus_PLUGIN_INIT_FAILED");
       // Distinct from no_poller
       expect(result.class).not.toBe("no_poller");
     });
 
-    it("safeExecuteSimple also preserves ADV_SESSION_NOT_READY structure", async () => {
+    it("safeExecuteSimple also preserves determinus_SESSION_NOT_READY structure", async () => {
       const envelope = createAdvSessionNotReadyEnvelope(["query_probe_failed"]);
       const fn = async (): Promise<string> => {
         throw envelope;
       };
-      const wrapped = safeExecuteSimple(fn, "adv_doctor");
+      const wrapped = safeExecuteSimple(fn, "determinus_doctor");
       const raw = await wrapped({ changeId: "chg-2" }, "/tmp/proj");
       const result = JSON.parse(raw);
-      expect(result.kind).toBe("ADV_SESSION_NOT_READY");
-      expect(result.blockers).toContain("ADV_SESSION_NOT_READY");
-      expect(result.retryHint).toBe(ADV_SESSION_READINESS_RETRY_HINT);
+      expect(result.kind).toBe("determinus_SESSION_NOT_READY");
+      expect(result.blockers).toContain("determinus_SESSION_NOT_READY");
+      expect(result.retryHint).toBe(determinus_SESSION_READINESS_RETRY_HINT);
       expect(result.retryable).toBe(true);
-      expect(result.tool).toBe("adv_doctor");
+      expect(result.tool).toBe("determinus_doctor");
       expect(isAdvSessionNotReady(result)).toBe(true);
     });
   });
@@ -478,8 +478,8 @@ describe("safe-execute", () => {
       expect(parsed.tool).toBe("test_tool");
     });
 
-    it("writes timing profile entries for simple wrappers when ADV_PROFILE=1", async () => {
-      process.env.ADV_PROFILE = "1";
+    it("writes timing profile entries for simple wrappers when determinus_PROFILE=1", async () => {
+      process.env.determinus_PROFILE = "1";
       const fn = async (args: { path: string }, dir: string) =>
         JSON.stringify({ path: args.path, dir });
       const wrapped = safeExecuteSimple(fn, "simple_profiled_tool");

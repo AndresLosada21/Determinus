@@ -25,8 +25,8 @@ import {
   readCutoverReceipt,
 } from "./cutover-receipt";
 import {
-  ADV_BUILD_IDENTITY_FILE_ENV,
-  ADV_MIGRATION_STATE_DIR_ENV,
+  determinus_BUILD_IDENTITY_FILE_ENV,
+  determinus_MIGRATION_STATE_DIR_ENV,
   resolveMigrationRoot,
   resolveOwnBuildIdentity,
 } from "./paths";
@@ -47,8 +47,12 @@ export interface PlanRoutingGuard {
   receiptDigest?: string;
 }
 
-export const ADV_PLAN_ROUTING_FAIL_CLOSED_ENV = "ADV_PLAN_ROUTING_FAIL_CLOSED";
-export { ADV_BUILD_IDENTITY_FILE_ENV, ADV_MIGRATION_STATE_DIR_ENV };
+export const determinus_PLAN_ROUTING_FAIL_CLOSED_ENV =
+  "determinus_PLAN_ROUTING_FAIL_CLOSED";
+export {
+  determinus_BUILD_IDENTITY_FILE_ENV,
+  determinus_MIGRATION_STATE_DIR_ENV,
+};
 
 function defaultCurrentDigest(): string | null {
   return resolveOwnBuildIdentity()?.digest ?? null;
@@ -75,7 +79,7 @@ export function checkPlanRoutingGuard(input?: {
   env?: NodeJS.ProcessEnv;
 }): PlanRoutingGuard {
   const env = input?.env ?? process.env;
-  const override = env[ADV_PLAN_ROUTING_FAIL_CLOSED_ENV];
+  const override = env[determinus_PLAN_ROUTING_FAIL_CLOSED_ENV];
   if (override === "1") {
     // Test/drill forcing may make routing stricter before cutover, but an
     // environment variable must never clear a receipt-backed safety boundary.
@@ -95,7 +99,7 @@ export function checkPlanRoutingGuard(input?: {
     receiptFile,
     mtimeOf(receiptFile),
     currentDigest,
-    env[ADV_PLAN_ROUTING_FAIL_CLOSED_ENV] ?? "",
+    env[determinus_PLAN_ROUTING_FAIL_CLOSED_ENV] ?? "",
   ]);
   if (cacheKey === key && cacheValue) return cacheValue;
 

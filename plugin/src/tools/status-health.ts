@@ -1,5 +1,5 @@
 /**
- * Disk-backed health probes used by `adv_status`.
+ * Disk-backed health probes used by `determinus_status`.
  *
  * Health here describes files and projections that this process can actually
  * inspect. It does not report transport, worker, queue, or server state.

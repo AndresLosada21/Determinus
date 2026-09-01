@@ -64,9 +64,9 @@ describe("DDC5 — conformance corpus (parity vs plugin)", () => {
     // This is the canonical parity test (also asserted in server.test.ts).
     // Re-stated here under the conformance banner for DDC5 accounting.
     //
-    // The plugin's adv_project_context.execute(args, store) reads project.md
+    // The plugin's determinus_project_context.execute(args, store) reads project.md
     // from the cwd. The MCP handler dispatches through the narrow injected
-    // Tier-4 factory, which resolves to the same adv_project_context handler.
+    // Tier-4 factory, which resolves to the same determinus_project_context handler.
     // Both resolve to the same project.md file at process.cwd(); therefore
     // responses must be deep-equal.
     const { client, clientTransport, serverTransport } =
@@ -86,7 +86,7 @@ describe("DDC5 — conformance corpus (parity vs plugin)", () => {
     let pluginText: string;
     try {
       const tools = createFullToolMap(store, cwd);
-      const result = await tools.adv_project_context.execute({});
+      const result = await tools.determinus_project_context.execute({});
       pluginText =
         typeof result === "string"
           ? result

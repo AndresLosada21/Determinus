@@ -47,7 +47,7 @@ export type RelatedRepo = z.infer<typeof RelatedRepoSchema>;
 // =============================================================================
 
 /**
- * Per-project threshold overrides for /adv-slop-scan.
+ * Per-project threshold overrides for /determinus-slop-scan.
  *
  * Defaults are calibrated to avoid false positives on normal single-guard
  * or single-catch patterns. Override in project.json under features.slop_scan.
@@ -121,7 +121,7 @@ export const FeatureFlagsSchema = z
      */
     tdd_enforcement: z.enum(["strict", "advisory", "off"]).default("strict"),
     /**
-     * Whether /adv-apply automatically creates a git worktree for high-risk changes.
+     * Whether /determinus-apply automatically creates a git worktree for high-risk changes.
      * Default: true (current behavior)
      */
     worktree_auto_create: z.boolean().default(true),
@@ -156,13 +156,13 @@ export const FeatureFlagsSchema = z
      * Clarify enforcement mode.
      * - "off" (default): Clarify checks skipped entirely; no findings emitted
      * - "advisory": Ambiguity findings surfaced as warnings in tool output; no blocking
-     * - "strict": Ambiguity findings block the prep gate until resolved via /adv-clarify
+     * - "strict": Ambiguity findings block the prep gate until resolved via /determinus-clarify
      */
     clarify_enforcement: z
       .enum(["off", "advisory", "strict"])
       .default("advisory"),
     /**
-     * Threshold overrides for /adv-slop-scan detection.
+     * Threshold overrides for /determinus-slop-scan detection.
      * All thresholds have smart defaults; override only what differs from project norms.
      */
     slop_scan: SlopScanConfigSchema.default(() =>
@@ -309,7 +309,7 @@ export const ProjectConfigSchema = z
     product: ProductLinkSchema.optional(),
     /**
      * Archive finalization mode.
-     * - "direct" (default): /adv-archive finalizes by merging the change branch
+     * - "direct" (default): /determinus-archive finalizes by merging the change branch
      *   into the default branch and optionally pushing it.
      * - "pr": local default-branch merge is skipped; archive finalization must
      *   push the change branch and guide the operator through PR workflow.

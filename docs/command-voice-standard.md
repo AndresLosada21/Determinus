@@ -1,6 +1,6 @@
 # ADV Command Voice Standard
 
-Defines the enforceable voice rules for all `/adv-*` command descriptions, protocol sections, and user-facing text.
+Defines the enforceable voice rules for all `/determinus-*` command descriptions, protocol sections, and user-facing text.
 
 ## Core Rules
 
@@ -47,7 +47,7 @@ Before sending user-facing text, scan for internal artifact names. Reframe in th
 
 ## Manifest Description Rules
 
-`manifest.ts` is the **single source of truth** for command descriptions. All other surfaces (command doc frontmatter, README, ADV_INSTRUCTIONS) derive from it. Drift is enforced by `plugin/src/manifest-doc-drift.test.ts`.
+`manifest.ts` is the **single source of truth** for command descriptions. All other surfaces (command doc frontmatter, README, determinus_INSTRUCTIONS) derive from it. Drift is enforced by `plugin/src/manifest-doc-drift.test.ts`.
 
 Every `CommandDef.description` in `manifest.ts` MUST:
 
@@ -88,7 +88,7 @@ Tasks end in exactly one state:
 - **Done** — all acceptance criteria met
 - **Doom Loop** — 3 failed attempts, user guidance needed
 
-Escalate via `adv_task_cancel` after 3 genuine attempts with documented diagnosis.
+Escalate via `determinus_task_cancel` after 3 genuine attempts with documented diagnosis.
 ```
 
 ### 2. BAD/GOOD Tables for Failure-Prone Protocols
@@ -152,13 +152,13 @@ Every protocol section that can conflict with another MUST include a resolution 
 | Cross-repo + tool unavailable      | Proceed in-place, note in wisdom                        |
 ```
 
-## Command Doc (`.opencode/command/adv-*.md`) Template
+## Command Doc (`.opencode/command/determinus-*.md`) Template
 
 Every command doc MUST follow this structure:
 
 ```markdown
 ---
-name: adv-{name}
+name: determinus-{name}
 description: { 5-14 word imperative description }
 agent: { agent }
 ---
@@ -238,7 +238,7 @@ Manifest descriptions and command doc text cover **what** and **when**. This sec
 
 ## Prose-Load Reduction Rules
 
-ADV instruction surfaces (`ADV_INSTRUCTIONS.md`, `docs/command-voice-standard.md`, `.opencode/agents/adv.md`, `.opencode/command/adv-*.md`) MUST classify every section by enforcement class and use the matching compression template. Governed by `rq-proseReduction01`–`rq-proseReduction04`.
+ADV instruction surfaces (`determinus_INSTRUCTIONS.md`, `docs/command-voice-standard.md`, `.opencode/agents/adv.md`, `.opencode/command/determinus-*.md`) MUST classify every section by enforcement class and use the matching compression template. Governed by `rq-proseReduction01`–`rq-proseReduction04`.
 
 ### Enforcement classes
 
@@ -299,7 +299,7 @@ Compression work halts when no remaining section can be classified as fully-enfo
 
 ## Gate Handoff Voice
 
-Three-section spine + blockquote wayfinder for all `/adv-*` gate-transition messages. Enforced by `plugin/src/handoff-footer-drift.test.ts`. Spec: `rq-handoffVoice01` (MUST priority). Replaces prior templates (Orchestration Summary, CONTRACT FULFILLED, ARCHIVE COMPLETE, READY FOR BUILD).
+Three-section spine + blockquote wayfinder for all `/determinus-*` gate-transition messages. Enforced by `plugin/src/handoff-footer-drift.test.ts`. Spec: `rq-handoffVoice01` (MUST priority). Replaces prior templates (Orchestration Summary, CONTRACT FULFILLED, ARCHIVE COMPLETE, READY FOR BUILD).
 
 Reply instructions for human-checkpoint approvals stay outside the blockquote per § Inline Approval Voice.
 
@@ -322,10 +322,10 @@ Every gate handoff uses exactly three narrative sections, in this order:
 > **{change-id}**
 > {gate} ✓ → {next-gate}
 >
-> → `/adv-{next-command} {change-id}`
+> → `/determinus-{next-command} {change-id}`
 ```
 
-No other sections, headings, or structural elements in the handoff. The blockquote wayfinder block is the only content after `## Delivered`. Internal state lives in ADV tools (`adv_change_show`, `adv_task_list`, `_contextSnapshot`), not chat.
+No other sections, headings, or structural elements in the handoff. The blockquote wayfinder block is the only content after `## Delivered`. Internal state lives in ADV tools (`determinus_change_show`, `determinus_task_list`, `_contextSnapshot`), not chat.
 
 ### Spine rules
 
@@ -334,7 +334,7 @@ No other sections, headings, or structural elements in the handoff. The blockquo
 - Use plain technical English. Prefer everyday words over jargon when both work. Use short sentences and active voice.
 - Keep checkpoint presentations to one line of next-phase preview at most. Do not enumerate adjustment menus.
 
-**Command binding.** The arrow-prefixed command is not an arbitrary placeholder. It MUST be the manifest-registered command from the current actionable phase-plan / directive for the next gate. If the directive is non-actionable (blocked/recovery/approval/terminal) or carries no registered command, the arrow-prefixed row is omitted and the blockquote shows a blocked/recovery/approval status line instead. If a user reaches ADV with the retired `/adv-accept` wording, correct `/adv-accept` to `/adv-review` in returned guidance; do not register `/adv-accept` as a command or alias.
+**Command binding.** The arrow-prefixed command is not an arbitrary placeholder. It MUST be the manifest-registered command from the current actionable phase-plan / directive for the next gate. If the directive is non-actionable (blocked/recovery/approval/terminal) or carries no registered command, the arrow-prefixed row is omitted and the blockquote shows a blocked/recovery/approval status line instead. If a user reaches ADV with the retired `/determinus-accept` wording, correct `/determinus-accept` to `/determinus-review` in returned guidance; do not register `/determinus-accept` as a command or alias.
 
 ### Decision rationale (major decisions only)
 
@@ -376,7 +376,7 @@ Accepted source markers are compact citation metadata: `spec:rq-id`, `agreement:
 
 ### Archive terminal variant
 
-`/adv-archive` is terminal only when release proof exists. Verb branches by release-proof state.
+`/determinus-archive` is terminal only when release proof exists. Verb branches by release-proof state.
 
 **Shipped** (remote-backed `origin/{default-branch}` reachability or merged PR proof exists; deploy/reflection advisory state visible):
 
@@ -475,7 +475,7 @@ Archive stopped before release completion because remote-backed release proof is
 > **{change-id}** · release blocked · Blocked.
 ```
 
-| Selection (from `/adv-archive` Phase 8) | Variant |
+| Selection (from `/determinus-archive` Phase 8) | Variant |
 |---|---|
 | `origin/{default-branch}` reachability proven OR PR state is MERGED | **Shipped.** |
 | no `origin` remote configured and no local bare origin | **Blocked.** (`NO_REMOTE_RELEASE_AUTHORITY`) |
@@ -486,7 +486,7 @@ Deploy/reflection failures remain visible in Delivered lines and do not block re
 
 `Shipped.` uses a single-line blockquote terminal — the change is final. `Pending auto-merge.` and `Blocked.` use a single-line blockquote status and leave the change active. A `Blocked.` caused by a missing `origin` remote keeps the change active and reports `NO_REMOTE_RELEASE_AUTHORITY`.
 
-### Fast-track variant (`/adv-task`)
+### Fast-track variant (`/determinus-task`)
 
 Collapses proposal → discovery → design → planning into one step. Variant at handoff:
 
@@ -505,7 +505,7 @@ Collapses proposal → discovery → design → planning into one step. Variant 
 > **{change-id}**
 > task ✓ → apply
 >
-> → `/adv-apply {change-id}`
+> → `/determinus-apply {change-id}`
 ```
 
 ### Action banner cleanup
@@ -515,7 +515,7 @@ Mid-command banner taxonomy (CONTRACT ACTIVE, CONTRACT STATUS, CONTRACT FULFILLE
 | Banner | Action | Replacement |
 |--------|--------|-------------|
 | CONTRACT ACTIVE | Trim to purpose line | `Working on: {change-id}` + reference to `_contextSnapshot` for state |
-| CONTRACT STATUS | Drop entirely | No per-task status block. State visible via `adv_task_list` and `_contextSnapshot`. TDD phase markers (`TDD_RED`/`TDD_GREEN`) were retired — TDD evidence lives in `adv_run_test` tool records |
+| CONTRACT STATUS | Drop entirely | No per-task status block. State visible via `determinus_task_list` and `_contextSnapshot`. TDD phase markers (`TDD_RED`/`TDD_GREEN`) were retired — TDD evidence lives in `determinus_run_test` tool records |
 | CONTRACT FULFILLED | Replace with spine | Use the canonical three-section spine + footer (apply → review handoff) |
 | QUICK CONTRACT | Keep, apply STE profile | Retain contract-confirmation shape (INTENT / SCOPE / USER OUTCOMES). Tighten labels, drop filler. Not a handoff — mid-command confirmation block |
 | READY FOR BUILD | Replace with fast-track spine | Use the fast-track variant above |
@@ -556,7 +556,7 @@ Set a source-level timeout bound and define fallback behavior. Keep construction
 Reply `continue` to proceed, or reply with what to adjust.
 ```
 
-#### Pair 1: /adv-apply handoff (verbose → spine)
+#### Pair 1: /determinus-apply handoff (verbose → spine)
 
 **BAD — mechanics dump:**
 
@@ -573,13 +573,13 @@ Reply `continue` to proceed, or reply with what to adjust.
 
 ### Sub-Agents Spawned
 - librarian × 2 (API docs)
-- adv-researcher × 1 (architecture validation)
+- determinus-researcher × 1 (architecture validation)
 
 ### Result
 All 21 tasks completed. Build passes. Tests pass. Lint clean.
 
 ### Next Step
-Run /adv-review gateHandoffVoiceStandard
+Run /determinus-review gateHandoffVoiceStandard
 ```
 
 **GOOD — spine:**
@@ -604,10 +604,10 @@ What was built and how it was verified. Three-section spine + blockquote wayfind
 > **gateHandoffVoiceStandard**
 > execution ✓ → acceptance
 >
-> → `/adv-review gateHandoffVoiceStandard`
+> → `/determinus-review gateHandoffVoiceStandard`
 ```
 
-#### Pair 2: /adv-discover handoff (artifact-recall → spine)
+#### Pair 2: /determinus-discover handoff (artifact-recall → spine)
 
 **BAD — artifact recall headings:**
 
@@ -615,14 +615,14 @@ What was built and how it was verified. Three-section spine + blockquote wayfind
 ## Discoveries
 
 - The Orchestration Summary template in `.opencode/agents/adv.md` (lines ~247-269) is the primary source of verbose handoffs.
-- `ADV_INSTRUCTIONS.md` has zero handoff/Orchestration Summary references.
-- `adv-refactor.md` has 1 CONTRACT ACTIVE reference to trim.
+- `determinus_INSTRUCTIONS.md` has zero handoff/Orchestration Summary references.
+- `determinus-refactor.md` has 1 CONTRACT ACTIVE reference to trim.
 - Overlays do NOT define handoff prose.
 
 ## Accomplished
 
 Completed gates: proposal ✓, discovery ✓
-In progress: Ready for design via /adv-design
+In progress: Ready for design via /determinus-design
 
 Task graph: 21 pending tasks, 1 cancelled.
 
@@ -642,7 +642,7 @@ Agreed objectives + constraints + user decisions. Spine = Problem / Chosen direc
 
 ## Delivered
 - Agreement confirmed: three-section spine + blockquote wayfinder block for all gate handoffs
-- Scope: all /adv-* commands, not just /adv-apply
+- Scope: all /determinus-* commands, not just /determinus-apply
 - Constraint: extend existing voice standard doc, no sibling doc
 - Constraint: replace Orchestration Summary entirely, not supplement
 - 21-task graph synthesized across Phases A–G
@@ -652,7 +652,7 @@ Agreed objectives + constraints + user decisions. Spine = Problem / Chosen direc
 > **gateHandoffVoiceStandard**
 > discovery ✓ → design
 >
-> → `/adv-design gateHandoffVoiceStandard`
+> → `/determinus-design gateHandoffVoiceStandard`
 ```
 
 ## Inline Approval Voice
@@ -661,21 +661,21 @@ Inline prose reply instructions at the seven named human checkpoints (vs `questi
 
 **Applies to** the seven named human checkpoints from `rq-autonomy01`:
 
-1. Proposal confirmation (`/adv-proposal` step 9)
-2. Agreement sign-off (`/adv-discover` Phase 4.5.1 + 4.6)
-3. Design approval (`/adv-design` Phase 4 conditional pause)
-4. Prep approval (`/adv-prep` Phase 5.2)
-5. Acceptance (`/adv-review` end-of-phase)
-6. Archive sign-off (`/adv-archive` Phase 5)
-7. Cancellation approval (`/adv-apply` cancellation policy + any caller of `adv_task_cancel`)
+1. Proposal confirmation (`/determinus-proposal` step 9)
+2. Agreement sign-off (`/determinus-discover` Phase 4.5.1 + 4.6)
+3. Design approval (`/determinus-design` Phase 4 conditional pause)
+4. Prep approval (`/determinus-prep` Phase 5.2)
+5. Acceptance (`/determinus-review` end-of-phase)
+6. Archive sign-off (`/determinus-archive` Phase 5)
+7. Cancellation approval (`/determinus-apply` cancellation policy + any caller of `determinus_task_cancel`)
 
 **Does NOT apply to** these question-tool surfaces, which keep their current behavior:
 
 - Doom-loop recovery (3 failed task attempts)
-- Drift detection in `/adv-review` and `/adv-harden`
+- Drift detection in `/determinus-review` and `/determinus-harden`
 - Change-id selection / disambiguation
-- AC clarification rounds (`/adv-discover` Phase 4.5)
-- Triage commands (`/adv-idea`, `/adv-problem`, `/adv-clarify`)
+- AC clarification rounds (`/determinus-discover` Phase 4.5)
+- Triage commands (`/determinus-idea`, `/determinus-problem`, `/determinus-clarify`)
 
 ### Two parsing tiers
 
@@ -695,7 +695,7 @@ lgtm, ship it, looks good, sounds good, fine, yep, yeah
 
 **Reply matches whitelist** → proceed inline immediately.
 
-**Reply starts with `/adv-X`** → no-op for the agent. OpenCode dispatches the slash command into its own session.
+**Reply starts with `/determinus-X`** → no-op for the agent. OpenCode dispatches the slash command into its own session.
 
 **Reply does NOT match whitelist and is not a slash command** → LLM judgment classifies into one of:
 
@@ -735,7 +735,7 @@ approve, approved, confirm, confirmed, yes, proceed, sign off, signoff, ship it
 Archiving `{change-id}`.
 ```
 
-Then proceed with `adv_change_archive phase9: "run"` in the same response. The archive tool finalizes git evidence and records the release gate before retiring the change; do not call `adv_gate_complete release` separately on the normal archive path. No separate confirmation-echo turn. Tier B safety comes from the strict whitelist (no LLM fallback, deliberate phrases) plus the six prior gate approvals already cemented; the wait-one-turn pattern was removed because it added friction without meaningfully changing the abort surface.
+Then proceed with `determinus_change_archive phase9: "run"` in the same response. The archive tool finalizes git evidence and records the release gate before retiring the change; do not call `determinus_gate_complete release` separately on the normal archive path. No separate confirmation-echo turn. Tier B safety comes from the strict whitelist (no LLM fallback, deliberate phrases) plus the six prior gate approvals already cemented; the wait-one-turn pattern was removed because it added friction without meaningfully changing the abort surface.
 
 ### Pattern templates
 
@@ -756,12 +756,12 @@ Then proceed with `adv_change_archive phase9: "run"` in the same response. The a
 > **{change-id}**
 > {gate} ✓ → {next-gate}
 >
-> → `/adv-{next-command} {change-id}`
+> → `/determinus-{next-command} {change-id}`
 
 Reply `continue` to proceed, or reply with what to adjust.
 ```
 
-**Command-as-approval rule:** When the blockquote wayfinder block shows a specific continuation command (e.g., `/adv-apply {change-id}`), invoking that exact command while the checkpoint is pending counts as explicit approval equivalent to a Tier A whitelist word. The agent completes the pending gate with `userApproved: true` and proceeds immediately without a second approval prompt. This applies only to Tier A checkpoints; Tier B remains whitelist-only.
+**Command-as-approval rule:** When the blockquote wayfinder block shows a specific continuation command (e.g., `/determinus-apply {change-id}`), invoking that exact command while the checkpoint is pending counts as explicit approval equivalent to a Tier A whitelist word. The agent completes the pending gate with `userApproved: true` and proceeds immediately without a second approval prompt. This applies only to Tier A checkpoints; Tier B remains whitelist-only.
 
 #### Tier B — Archive sign-off
 
@@ -798,7 +798,7 @@ Reply EXACTLY one of:
 Anything else → agent re-prompts with the same options.
 ```
 
-#### AC checkpoint with `/adv-clarify` literal detection
+#### AC checkpoint with `/determinus-clarify` literal detection
 
 ```
 Acceptance Criteria for {change-id}:
@@ -808,34 +808,34 @@ Acceptance Criteria for {change-id}:
 
 Reply:
 - `approve` (or whitelist hit) — approve AC and proceed to agreement persistence
-- `/adv-clarify {change-id}` — halt /adv-discover; user runs /adv-clarify; rerun /adv-discover after
+- `/determinus-clarify {change-id}` — halt /determinus-discover; user runs /determinus-clarify; rerun /determinus-discover after
 - Or describe what to add/clarify — agent normalizes into revised AC and re-runs this checkpoint
 ```
 
 **Detection rules (in order):**
 
-1. Reply trimmed = `/adv-clarify` or `/adv-clarify {change-id}` → halt cleanly (no `agreement.md` write, no `adv_gate_complete` call).
-2. Reply trimmed first token = `/adv-clarify` → halt cleanly.
+1. Reply trimmed = `/determinus-clarify` or `/determinus-clarify {change-id}` → halt cleanly (no `agreement.md` write, no `determinus_gate_complete` call).
+2. Reply trimmed first token = `/determinus-clarify` → halt cleanly.
 3. Reply matches Tier A whitelist → approve AC, proceed.
-4. Otherwise → treat as revision text. Revise AC. Re-run checkpoint (max 3 loops, then recommend `/adv-clarify`).
+4. Otherwise → treat as revision text. Revise AC. Re-run checkpoint (max 3 loops, then recommend `/determinus-clarify`).
 
-**× Do NOT** treat phrases like "I want to clarify something" or "let's clarify X" as `/adv-clarify` invocation. Only the literal slash command triggers the halt branch. Non-literal "clarify" intent is revision text.
+**× Do NOT** treat phrases like "I want to clarify something" or "let's clarify X" as `/determinus-clarify` invocation. Only the literal slash command triggers the halt branch. Non-literal "clarify" intent is revision text.
 
 ### Prep gate machine contract
 
-The prep gate's `userApproved: true` argument on `adv_gate_complete` is a machine contract independent of the UX surface. When the user replies with a Tier A whitelist word at `/adv-prep` Phase 5.2, the agent MUST pass `userApproved: true` to `adv_gate_complete`. Inline approval is the upstream signal source; the machine contract is unchanged.
+The prep gate's `userApproved: true` argument on `determinus_gate_complete` is a machine contract independent of the UX surface. When the user replies with a Tier A whitelist word at `/determinus-prep` Phase 5.2, the agent MUST pass `userApproved: true` to `determinus_gate_complete`. Inline approval is the upstream signal source; the machine contract is unchanged.
 
 ### BAD / GOOD
 
 | BAD | GOOD |
 |---|---|
-| `question` popup with "Approve and proceed to /adv-discover" option | Inline blockquote wayfinder block with `Reply `continue` to proceed inline to discovery, or run `/adv-discover {change-id}`` |
+| `question` popup with "Approve and proceed to /determinus-discover" option | Inline blockquote wayfinder block with `Reply `continue` to proceed inline to discovery, or run `/determinus-discover {change-id}`` |
 | Cancellation popup with "Approve all / Review individually / Reject" | Inline numbered task list with `Reply `approve all`, `reject all`, `keep N`, `cancel N`, `stop`` |
 | LLM fallback for archive sign-off | Whitelist-only, single-turn execution on match |
 | Two-turn archive (echo + wait + execute) | One-turn archive (whitelist match → `Archiving {id}.` + execute in same response) |
-| Phrase "I want to clarify" treated as `/adv-clarify` | Only literal `/adv-clarify` reply triggers halt branch |
+| Phrase "I want to clarify" treated as `/determinus-clarify` | Only literal `/determinus-clarify` reply triggers halt branch |
 | Two `question` calls (popup + "shall I proceed?") | One inline blockquote wayfinder block; whitelist match or exact command invocation advances immediately |
-| Prose-labeled footer block with `Current phase:`, `Next phase:`, `Run when ready:` | Blockquote wayfinder block: `> **{id}**` / `> {gate} ✓ → {next}` / `> → `/adv-cmd {id}`` |
+| Prose-labeled footer block with `Current phase:`, `Next phase:`, `Run when ready:` | Blockquote wayfinder block: `> **{id}**` / `> {gate} ✓ → {next}` / `> → `/determinus-cmd {id}`` |
 | Redundant command lines in wayfinder block | Exactly one runnable command shown |
 
 ### Anti-patterns

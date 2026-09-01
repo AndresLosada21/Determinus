@@ -10,9 +10,9 @@ import {
 import type { ToolDefinition } from "@opencode-ai/plugin";
 
 /**
- * Integration tests for `adv_tool_invoke` (addProviderToolSearch AC1–AC4).
+ * Integration tests for `determinus_tool_invoke` (addProviderToolSearch AC1–AC4).
  *
- * The unit suite in `adv-invoke.test.ts` covers the facade's behavior with a
+ * The unit suite in `determinus-invoke.test.ts` covers the facade's behavior with a
  * mocked `ToolLookup`. These tests exercise the production wiring in
  * `createToolMap`: the closure-captured lookup over `baseToolMap` returns the
  * SAME wrapped `ToolDefinition` that direct calls dispatch to, so the facade
@@ -31,12 +31,12 @@ import type { ToolDefinition } from "@opencode-ai/plugin";
 const NO_CTX = undefined;
 
 function getInvokeTool(map: Record<string, unknown>): ToolDefinition {
-  const invoke = map.adv_tool_invoke;
+  const invoke = map.determinus_tool_invoke;
   if (
     !invoke ||
     typeof (invoke as { execute?: unknown }).execute !== "function"
   ) {
-    throw new Error("adv_tool_invoke not registered or missing execute");
+    throw new Error("determinus_tool_invoke not registered or missing execute");
   }
   return invoke as ToolDefinition;
 }
@@ -65,7 +65,7 @@ async function invokeFacade(
   return JSON.stringify(result);
 }
 
-describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
+describe("determinus_tool_invoke integration — real createToolMap dispatch", () => {
   let tempDir: string;
 
   beforeEach(async () => {
@@ -77,7 +77,7 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
     await cleanupTempDir(tempDir);
   });
 
-  test("AC1: facade dispatch of adv_change_list matches a direct call", async () => {
+  test("AC1: facade dispatch of determinus_change_list matches a direct call", async () => {
     const store = await createDiskStore(tempDir);
     await store.init();
     try {
@@ -86,10 +86,10 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
         unknown
       >;
 
-      // Direct call: invoke adv_change_list without going through the facade.
-      // adv_change_list takes only optional filters, so empty-ish args are
+      // Direct call: invoke determinus_change_list without going through the facade.
+      // determinus_change_list takes only optional filters, so empty-ish args are
       // schema-valid and exercise the real read path.
-      const direct = asTool(map.adv_change_list);
+      const direct = asTool(map.determinus_change_list);
       const directResult = await direct.execute(
         { status: "in-flight", limit: 5 } as unknown as Parameters<
           ToolDefinition["execute"]
@@ -101,9 +101,9 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
           ? directResult
           : String((directResult as { output?: string })?.output ?? "");
 
-      // Facade call: same args, dispatched through adv_tool_invoke.
+      // Facade call: same args, dispatched through determinus_tool_invoke.
       const facadeStr = await invokeFacade(map, {
-        name: "adv_change_list",
+        name: "determinus_change_list",
         args: { status: "in-flight", limit: 5 },
       });
 
@@ -134,7 +134,7 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
         unknown
       >;
       const result = await invokeFacade(map, {
-        name: "adv_definitely_not_a_tool",
+        name: "determinus_definitely_not_a_tool",
         args: {},
       });
       const parsed = parseToolOutput(result) as {
@@ -156,10 +156,10 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
         string,
         unknown
       >;
-      // adv_change_list.limit is `z.number().optional()`. Passing a string
+      // determinus_change_list.limit is `z.number().optional()`. Passing a string
       // forces a Zod type-check rejection at the canonical schema layer.
       const result = await invokeFacade(map, {
-        name: "adv_change_list",
+        name: "determinus_change_list",
         args: { limit: "not-a-number" },
       });
       const parsed = parseToolOutput(result) as {
@@ -183,7 +183,7 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
         unknown
       >;
       const result = await invokeFacade(map, {
-        name: "adv_change_list",
+        name: "determinus_change_list",
         args: { limit: 5, unexpected: true },
       });
       const parsed = parseToolOutput(result) as { code?: string };
@@ -202,9 +202,9 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
         unknown
       >;
       for (const name of [
-        "adv_tool_invoke",
-        "adv_tool_catalog",
-        "adv_tool_describe",
+        "determinus_tool_invoke",
+        "determinus_tool_catalog",
+        "determinus_tool_describe",
         "execute",
       ]) {
         const result = await invokeFacade(map, { name, args: {} });
@@ -224,7 +224,7 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
         string,
         unknown
       >;
-      // adv_change_close requires approvedByUser=true AND non-empty
+      // determinus_change_close requires approvedByUser=true AND non-empty
       // approvalEvidence at the canonical Zod schema layer. Passing both
       // lets the facade dispatch to the wrapped handler; the handler then
       // runs its own checks (change existence, supersede validity, etc.)
@@ -232,7 +232,7 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
       // facade did NOT shortcut to a facade-level code — dispatch occurred
       // and the wrapped tool's own enforcement ran.
       const result = await invokeFacade(map, {
-        name: "adv_change_close",
+        name: "determinus_change_close",
         args: {
           changeId: "fake-change-id-not-present",
           reason: "cancelled",
@@ -261,7 +261,7 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
     }
   });
 
-  test("AC1: target_path on adv_change_show reaches the wrapped handler", async () => {
+  test("AC1: target_path on determinus_change_show reaches the wrapped handler", async () => {
     const store = await createDiskStore(tempDir);
     await store.init();
     try {
@@ -269,13 +269,13 @@ describe("adv_tool_invoke integration — real createToolMap dispatch", () => {
         string,
         unknown
       >;
-      // adv_change_show requires changeId; target_path is optional.
+      // determinus_change_show requires changeId; target_path is optional.
       // Passing both through the facade must reach the handler unchanged.
       // The handler will run its own target_path handling (disk snapshot
       // for untrusted paths). We assert only that the args flow through
       // without facade-level rejection.
       const result = await invokeFacade(map, {
-        name: "adv_change_show",
+        name: "determinus_change_show",
         args: {
           changeId: "fake-change-id-not-present",
           target_path: tempDir,

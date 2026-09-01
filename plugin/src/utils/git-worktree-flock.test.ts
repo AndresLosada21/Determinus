@@ -52,7 +52,7 @@ afterEach(() => {
 
 describe("git worktree repository lease", () => {
   it("blocks on a live owner and records an owner token", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "adv-flock-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "determinus-flock-"));
     dirs.push(dir);
 
     const first = await acquireGitWorktreeFlock(dir);
@@ -69,7 +69,7 @@ describe("git worktree repository lease", () => {
   });
 
   it("reclaims a dead owner using a new token", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "adv-flock-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "determinus-flock-"));
     dirs.push(dir);
     const first = await acquireGitWorktreeFlock(dir);
     if (!first.owned) throw new Error("initial lease was not acquired");
@@ -85,7 +85,7 @@ describe("git worktree repository lease", () => {
   });
 
   it("does not let a non-owner release the lease", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "adv-flock-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "determinus-flock-"));
     dirs.push(dir);
     const first = await acquireGitWorktreeFlock(dir);
     if (!first.owned) throw new Error("initial lease was not acquired");
@@ -97,7 +97,9 @@ describe("git worktree repository lease", () => {
   });
 
   it("holds a kernel flock until the dedicated process group exits", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "adv-process-flock-"));
+    const dir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "determinus-process-flock-"),
+    );
     dirs.push(dir);
 
     const first = await acquireGitWorktreeProcessLease(dir);
@@ -121,7 +123,7 @@ describe("git worktree repository lease", () => {
 
   it("does not use the host runtime executable for the holder", async () => {
     const dir = fs.mkdtempSync(
-      path.join(os.tmpdir(), "adv-process-flock-runtime-"),
+      path.join(os.tmpdir(), "determinus-process-flock-runtime-"),
     );
     dirs.push(dir);
     const previousExecPath = process.execPath;
@@ -145,7 +147,7 @@ describe("git worktree repository lease", () => {
         path.join(dir, "git-worktree.lock"),
         "sh",
         "-c",
-        "command -v tail >/dev/null 2>&1 || { printf '%s\\n' 'ADV_WORKTREE_FLOCK_HOLDER_UNAVAILABLE' >&2; exit 127; }; printf '%s\\n' 'ADV_WORKTREE_FLOCK_READY'; exec tail -f /dev/null",
+        "command -v tail >/dev/null 2>&1 || { printf '%s\\n' 'determinus_WORKTREE_FLOCK_HOLDER_UNAVAILABLE' >&2; exit 127; }; printf '%s\\n' 'determinus_WORKTREE_FLOCK_READY'; exec tail -f /dev/null",
       ]);
       expect(invocation?.args).not.toContain(process.execPath);
     } finally {
@@ -155,7 +157,7 @@ describe("git worktree repository lease", () => {
 
   it("returns a typed non-busy error for holder startup failure", async () => {
     const dir = fs.mkdtempSync(
-      path.join(os.tmpdir(), "adv-process-flock-failure-"),
+      path.join(os.tmpdir(), "determinus-process-flock-failure-"),
     );
     dirs.push(dir);
     const child = Object.assign(new EventEmitter(), {
@@ -183,7 +185,7 @@ describe("git worktree repository lease", () => {
 
   it("classifies a missing holder command as unsupported, not contention", async () => {
     const dir = fs.mkdtempSync(
-      path.join(os.tmpdir(), "adv-process-flock-missing-holder-"),
+      path.join(os.tmpdir(), "determinus-process-flock-missing-holder-"),
     );
     dirs.push(dir);
     const child = Object.assign(new EventEmitter(), {
@@ -196,7 +198,10 @@ describe("git worktree repository lease", () => {
     const acquisition = acquireGitWorktreeProcessLease(dir, {
       spawnProcess: () => {
         queueMicrotask(() => {
-          child.stderr.emit("data", "ADV_WORKTREE_FLOCK_HOLDER_UNAVAILABLE\n");
+          child.stderr.emit(
+            "data",
+            "determinus_WORKTREE_FLOCK_HOLDER_UNAVAILABLE\n",
+          );
           child.emit("close", 127, null);
         });
         return child as unknown as ChildProcess;
@@ -210,7 +215,7 @@ describe("git worktree repository lease", () => {
 
   it("fails closed on unsupported platforms", async () => {
     const dir = fs.mkdtempSync(
-      path.join(os.tmpdir(), "adv-process-flock-platform-"),
+      path.join(os.tmpdir(), "determinus-process-flock-platform-"),
     );
     dirs.push(dir);
 
@@ -220,7 +225,7 @@ describe("git worktree repository lease", () => {
   });
 
   it("shares the canonical administrative lease across main and linked worktrees", async () => {
-    const repo = makeGitRepo("adv-common-dir-");
+    const repo = makeGitRepo("determinus-common-dir-");
     const linked = path.join(repo, "linked");
     git(repo, "worktree", "add", "-q", "-b", "linked", linked);
 
@@ -245,15 +250,15 @@ describe("git worktree repository lease", () => {
   });
 
   it("keeps administrative lease paths independent across separate clones", async () => {
-    const first = makeGitRepo("adv-clone-a-");
-    const second = makeGitRepo("adv-clone-b-");
+    const first = makeGitRepo("determinus-clone-a-");
+    const second = makeGitRepo("determinus-clone-b-");
     await expect(resolveGitWorktreeLeaseDir(first)).resolves.not.toBe(
       await resolveGitWorktreeLeaseDir(second),
     );
   });
 
   it("removes an unlocked known legacy artifact and leaves .adv otherwise untouched", async () => {
-    const repo = makeGitRepo("adv-legacy-empty-");
+    const repo = makeGitRepo("determinus-legacy-empty-");
     const advDir = path.join(repo, ".adv");
     const lockPath = path.join(advDir, "git-worktree.lock");
     fs.mkdirSync(advDir);
@@ -269,7 +274,7 @@ describe("git worktree repository lease", () => {
   });
 
   it("removes a bounded JSON legacy artifact", async () => {
-    const repo = makeGitRepo("adv-legacy-json-");
+    const repo = makeGitRepo("determinus-legacy-json-");
     const lockPath = path.join(repo, ".adv", "git-worktree.lock");
     fs.mkdirSync(path.dirname(lockPath));
     fs.writeFileSync(
@@ -288,7 +293,7 @@ describe("git worktree repository lease", () => {
   });
 
   it("preserves and refuses a held legacy artifact with the distinct conflict code", async () => {
-    const repo = makeGitRepo("adv-legacy-held-");
+    const repo = makeGitRepo("determinus-legacy-held-");
     const advDir = path.join(repo, ".adv");
     const lockPath = path.join(advDir, "git-worktree.lock");
     fs.mkdirSync(advDir);
@@ -312,7 +317,7 @@ describe("git worktree repository lease", () => {
   });
 
   it("preserves and refuses malformed legacy artifacts", async () => {
-    const repo = makeGitRepo("adv-legacy-malformed-");
+    const repo = makeGitRepo("determinus-legacy-malformed-");
     const lockPath = path.join(repo, ".adv", "git-worktree.lock");
     fs.mkdirSync(path.dirname(lockPath));
     fs.writeFileSync(lockPath, JSON.stringify({ unexpected: true }));
@@ -325,9 +330,9 @@ describe("git worktree repository lease", () => {
   });
 
   it("refuses legacy symlink paths without traversing outside the repository", async () => {
-    const repo = makeGitRepo("adv-legacy-symlink-");
+    const repo = makeGitRepo("determinus-legacy-symlink-");
     const external = fs.mkdtempSync(
-      path.join(os.tmpdir(), "adv-legacy-external-"),
+      path.join(os.tmpdir(), "determinus-legacy-external-"),
     );
     dirs.push(external);
     const externalLock = path.join(external, "git-worktree.lock");
@@ -342,9 +347,9 @@ describe("git worktree repository lease", () => {
   });
 
   it("preserves a symlinked legacy artifact without following it", async () => {
-    const repo = makeGitRepo("adv-legacy-lock-symlink-");
+    const repo = makeGitRepo("determinus-legacy-lock-symlink-");
     const external = fs.mkdtempSync(
-      path.join(os.tmpdir(), "adv-legacy-external-"),
+      path.join(os.tmpdir(), "determinus-legacy-external-"),
     );
     dirs.push(external);
     const externalLock = path.join(external, "git-worktree.lock");

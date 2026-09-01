@@ -2,7 +2,7 @@
  * MCP Tier-4 tool dispatcher.
  *
  * Table-driven registry for the 13 read tools declared in the canonical Tier-4
- * catalog. Each handler delegates to the plugin's `adv_*` tool. The dispatcher
+ * catalog. Each handler delegates to the plugin's `determinus_*` tool. The dispatcher
  * does NOT import the global tool-registry; the host/server registration path
  * must inject a `createToolMap` factory (see `mcp-server/tier4-tool-map.ts`).
  */
@@ -88,7 +88,7 @@ export const TIER4_TOOL_DESCRIPTIONS: Record<Tier4ToolName, string> = {
 
 /**
  * Execute a Tier-4 read tool by dispatching to the plugin's registered
- * `adv_<toolName>` handler.
+ * `determinus_<toolName>` handler.
  *
  * The store is created per-call as a disk-only backend and closed in `finally`
  * so the MCP server never holds a Store connection between calls.
@@ -166,7 +166,7 @@ export async function executeTier4Tool(
 
     try {
       const tools = options.createToolMap(store, cwd) as ToolMap;
-      const hostName = `adv_${toolName}`;
+      const hostName = `determinus_${toolName}`;
       const toolDef = tools[hostName];
       if (!toolDef) {
         return JSON.stringify({

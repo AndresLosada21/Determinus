@@ -56,12 +56,12 @@ async function seed(root: string, change: Change): Promise<void> {
 
 describe("change tools — disk projection", () => {
   test("shows the persisted change identity and gates", async () => {
-    const root = await createTempDir("adv-change-");
+    const root = await createTempDir("determinus-change-");
     try {
       const change = current();
       await seed(root, change);
       const parsed = JSON.parse(
-        await changeTools.adv_change_show.execute(
+        await changeTools.determinus_change_show.execute(
           { changeId: change.id },
           storeFor(root, change),
         ),
@@ -78,11 +78,11 @@ describe("change tools — disk projection", () => {
   });
 
   test("lists rows with derived phase and recency metadata", async () => {
-    const root = await createTempDir("adv-change-");
+    const root = await createTempDir("determinus-change-");
     try {
       const change = current();
       const parsed = JSON.parse(
-        await changeTools.adv_change_list.execute(
+        await changeTools.determinus_change_list.execute(
           {},
           storeFor(root, change, [
             {
@@ -112,13 +112,13 @@ describe("change tools — disk projection", () => {
   });
 
   test("returns requested artifact content from the active disk directory", async () => {
-    const root = await createTempDir("adv-change-");
+    const root = await createTempDir("determinus-change-");
     try {
       const change = current();
       await seed(root, change);
       await writeFile(join(root, change.id, "proposal.md"), "# Disk proposal");
       const parsed = JSON.parse(
-        await changeTools.adv_change_show.execute(
+        await changeTools.determinus_change_show.execute(
           { changeId: change.id, include: { proposal: true } },
           storeFor(root, change),
         ),
@@ -130,14 +130,17 @@ describe("change tools — disk projection", () => {
   });
 
   test("returns a structured error for an unknown change", async () => {
-    const root = await createTempDir("adv-change-");
+    const root = await createTempDir("determinus-change-");
     try {
       const change = current();
       const parsed = JSON.parse(
-        await changeTools.adv_change_show.execute({ changeId: "missing" }, {
-          ...storeFor(root, change),
-          changes: { get: async () => ({ success: true, data: null }) },
-        } as Store),
+        await changeTools.determinus_change_show.execute(
+          { changeId: "missing" },
+          {
+            ...storeFor(root, change),
+            changes: { get: async () => ({ success: true, data: null }) },
+          } as Store,
+        ),
       );
       expect(parsed.error).toContain("Change not found");
     } finally {
@@ -146,10 +149,10 @@ describe("change tools — disk projection", () => {
   });
 
   test("rejects invalid active status filter instead of returning false empty success", async () => {
-    const root = await createTempDir("adv-change-");
+    const root = await createTempDir("determinus-change-");
     try {
       const parsed = JSON.parse(
-        await changeTools.adv_change_list.execute(
+        await changeTools.determinus_change_list.execute(
           { status: "active" },
           storeFor(root, current()),
         ),

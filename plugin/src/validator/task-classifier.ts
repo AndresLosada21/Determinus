@@ -139,9 +139,9 @@ type TaskWithTddEvidence = Pick<Task, "title" | "metadata"> & {
  *     separate_verification, or trivial title heuristic).
  *   - "compliant" when TDD applies AND the task carries either complete legacy
  *     red/green `tdd_evidence` OR signal-driven completion verification.
- *     rq-TDD001inl now records inline TDD through adv_run_test calls with the
+ *     rq-TDD001inl now records inline TDD through determinus_run_test calls with the
  *     final claim in taskCompletedSignal.verification; the validator cannot
- *     query historical adv_run_test records here, so the durable task-level
+ *     query historical determinus_run_test records here, so the durable task-level
  *     completion proof is sufficient for archive validation.
  *   - "missing" when TDD applies but evidence is absent or incomplete.
  *
@@ -199,7 +199,7 @@ function defaultPolicyFor(type: TaskType): ContractEvidencePolicy {
 
 function proofTargetFor(policy: ContractEvidencePolicy): string {
   const targets: Record<ContractEvidencePolicy, string> = {
-    test: "Automated red/green tests evidenced by adv_run_test",
+    test: "Automated red/green tests evidenced by determinus_run_test",
     review: "Structured review conclusion",
     static_check: "Static analysis or check output",
     design_proof: "Design proof or design artifact",
@@ -387,7 +387,7 @@ export function validateTaskEvidenceForStage(
           const matchingReport = reports.find(
             (r) =>
               reportKeyFromReport(r) === reviewEvidenceRef.report_key &&
-              r.agent === "adv-reviewer" &&
+              r.agent === "determinus-reviewer" &&
               (typeof r.scope !== "string" && r.scope.kind === "task"
                 ? r.scope.task_id === task.id
                 : "task_id" in r && r.task_id === task.id),

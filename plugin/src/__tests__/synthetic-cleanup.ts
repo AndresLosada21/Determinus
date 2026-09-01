@@ -2,7 +2,7 @@ import { readFile, readdir, rm } from "fs/promises";
 import { basename, dirname, join, resolve } from "path";
 import { SYNTHETIC_TEST_PROJECT_ID_PREFIX } from "../utils/project-id";
 
-export const ADV_TEST_OWNER_MARKER = ".adv-test-owner";
+export const determinus_TEST_OWNER_MARKER = ".determinus-test-owner";
 
 async function listSyntheticDirsIn(parent: string): Promise<string[]> {
   try {
@@ -47,7 +47,10 @@ export async function listSyntheticAdvDirs(
 async function markerMatches(path: string, runId?: string): Promise<boolean> {
   if (!runId) return true;
   try {
-    const marker = await readFile(join(path, ADV_TEST_OWNER_MARKER), "utf-8");
+    const marker = await readFile(
+      join(path, determinus_TEST_OWNER_MARKER),
+      "utf-8",
+    );
     return marker.trim() === runId;
   } catch {
     // Missing marker means legacy/orphan synthetic test residue. Keep marker

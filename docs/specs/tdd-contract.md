@@ -13,7 +13,7 @@ Canonical definition of how TDD phases integrate with the ADV task model. Inline
 
 **ID:** `rq-TDD001inl` | **Priority:** **[MUST]**
 
-Implementation tasks MUST use inline TDD by default: the red phase (write failing test) and green phase (make it pass) happen within the same task. Proposal templates MUST NOT create separate test tasks for same-scope work. Inline TDD progress is evidenced by adv_run_test invocations and durably summarized by the final verification claim on taskCompletedSignal.
+Implementation tasks MUST use inline TDD by default: the red phase (write failing test) and green phase (make it pass) happen within the same task. Proposal templates MUST NOT create separate test tasks for same-scope work. Inline TDD progress is evidenced by determinus_run_test invocations and durably summarized by the final verification claim on taskCompletedSignal.
 
 **Tags:** `tdd`, `task-model`, `inline`
 
@@ -27,13 +27,13 @@ Implementation tasks MUST use inline TDD by default: the red phase (write failin
 **When:** TDD compliance is checked
 
 **Then:**
-- The task uses adv_run_test outputs as inline TDD evidence; final durable claim is recorded in taskCompletedSignal.verification
+- The task uses determinus_run_test outputs as inline TDD evidence; final durable claim is recorded in taskCompletedSignal.verification
 - No separate test task is required for this scope
 
 **Proposal templates do not create separate test tasks for same-scope work** (`rq-TDD001inl.2`)
 
 **Given:**
-- A proposal is generated via /adv-proposal
+- A proposal is generated via /determinus-proposal
 
 **When:** Step 8 task generation runs
 
@@ -246,13 +246,13 @@ When a TDD inversion is detected, the remediation MUST be: merge the test task i
 
 **ID:** `rq-TDD008path` | **Priority:** **[MUST]**
 
-For ordinary inline TDD work, the primary red/green execution path MUST use adv_run_test for both phases after test or implementation changes are made with editing tools. `adv_run_test.phase` is optional descriptive metadata (`red`, `green`, or `verify`) for traceability; it is not gate enforcement and must not complete or block task progression by itself. No separate fallback evidence tool is part of the live task surface; externally obtained evidence is folded into task verification text when needed.
+For ordinary inline TDD work, the primary red/green execution path MUST use determinus_run_test for both phases after test or implementation changes are made with editing tools. `determinus_run_test.phase` is optional descriptive metadata (`red`, `green`, or `verify`) for traceability; it is not gate enforcement and must not complete or block task progression by itself. No separate fallback evidence tool is part of the live task surface; externally obtained evidence is folded into task verification text when needed.
 
 **Tags:** `tdd`, `inline`, `evidence`, `workflow`
 
 #### Scenarios
 
-**Inline TDD uses adv_run_test as primary red and green path** (`rq-TDD008path.1`)
+**Inline TDD uses determinus_run_test as primary red and green path** (`rq-TDD008path.1`)
 
 **Given:**
 - An implementation task with metadata.tdd_intent='inline'
@@ -261,13 +261,13 @@ For ordinary inline TDD work, the primary red/green execution path MUST use adv_
 **When:** The ordinary TDD workflow is executed
 
 **Then:**
-- The test command is run through adv_run_test for the red phase
-- The test command is run through adv_run_test for the green phase
+- The test command is run through determinus_run_test for the red phase
+- The test command is run through determinus_run_test for the green phase
 
 **Primary path uses result fields for evidence semantics** (`rq-TDD008path.3`)
 
 **Given:**
-- adv_run_test records red or green phase evidence
+- determinus_run_test records red or green phase evidence
 
 **When:** Command result semantics are interpreted
 
@@ -279,7 +279,7 @@ For ordinary inline TDD work, the primary red/green execution path MUST use adv_
 **Optional phase metadata remains bounded and descriptive** (`rq-TDD008path.4`)
 
 **Given:**
-- adv_run_test is invoked for inline TDD evidence
+- determinus_run_test is invoked for inline TDD evidence
 
 **When:** The caller supplies phase metadata
 
@@ -353,11 +353,11 @@ When a task with metadata.tdd_intent='inline' is completed via taskCompletedSign
 
 ---
 
-### Advisory Test-Quality Signals in adv_run_test Evidence
+### Advisory Test-Quality Signals in determinus_run_test Evidence
 
 **ID:** `rq-TDD010qual` | **Priority:** **[SHOULD]**
 
-The adv_run_test.v1 evidence record MAY carry advisory quality signals computed by static-parsing the test file referenced by the command argument: assertionDensity (count of assertion invocations), mockSurface (detected mock API patterns with counts), and behaviorSurface ('small', 'medium', or 'large' classified by assertion count and function coverage). These signals are advisory only — surfaced to /adv-review for human attention. They MUST NOT gate task completion, gate progression, or signal acceptance. Mock detection patterns are API-qualified (vi.mock, jest.mock, sinon.stub, unittest.mock.patch, etc.) to avoid false positives on the bare 'mock' token.
+The determinus_run_test.v1 evidence record MAY carry advisory quality signals computed by static-parsing the test file referenced by the command argument: assertionDensity (count of assertion invocations), mockSurface (detected mock API patterns with counts), and behaviorSurface ('small', 'medium', or 'large' classified by assertion count and function coverage). These signals are advisory only — surfaced to /determinus-review for human attention. They MUST NOT gate task completion, gate progression, or signal acceptance. Mock detection patterns are API-qualified (vi.mock, jest.mock, sinon.stub, unittest.mock.patch, etc.) to avoid false positives on the bare 'mock' token.
 
 **Tags:** `tdd`, `quality`, `advisory`, `evidence`
 
@@ -366,7 +366,7 @@ The adv_run_test.v1 evidence record MAY carry advisory quality signals computed 
 **Quality signals computed when specific test file is referenced** (`rq-TDD010qual.1`)
 
 **Given:**
-- adv_run_test is called with a command referencing a specific test file
+- determinus_run_test is called with a command referencing a specific test file
 - The test file exists and is readable
 
 **When:** The evidence record is constructed
@@ -379,7 +379,7 @@ The adv_run_test.v1 evidence record MAY carry advisory quality signals computed 
 **Quality signals omitted for broad commands** (`rq-TDD010qual.2`)
 
 **Given:**
-- adv_run_test is called with a broad command (e.g., 'pnpm test' without a specific file)
+- determinus_run_test is called with a broad command (e.g., 'pnpm test' without a specific file)
 
 **When:** The evidence record is constructed
 
@@ -390,14 +390,14 @@ The adv_run_test.v1 evidence record MAY carry advisory quality signals computed 
 **Quality signals do not gate task completion** (`rq-TDD010qual.3`)
 
 **Given:**
-- An adv_run_test evidence record with low assertionDensity or high mockSurface
+- An determinus_run_test evidence record with low assertionDensity or high mockSurface
 
 **When:** Task completion or gate progression is evaluated
 
 **Then:**
 - The quality signals are advisory only
 - Task completion is not blocked by quality signal values
-- The signals are surfaced to /adv-review for human attention
+- The signals are surfaced to /determinus-review for human attention
 
 **Mock detection uses API-qualified patterns only** (`rq-TDD010qual.4`)
 
@@ -451,7 +451,7 @@ Tasks whose deliverable type is docs, research, approval, ops, or other non-code
 
 **ID:** `rq-TDD012ledgerEvidence` | **Priority:** **[MUST]**
 
-The adv_change_show loop-ledger readback (rq-loopLedger01) surfaces test_runs only as source references (kind test_run) and exposes a derived retryFailureCount. Neither is authoritative. The authoritative red/green sequence remains the testRunRecordedSignal record ordering enforced at task completion (rq-TDD009seq), and the authoritative retry/attempt accounting remains task.attempts plus task.error_recovery. test_runs MUST NOT be reinterpreted as attempt counts, and the ledger retryFailureCount MUST NOT redefine or gate the retry budget, task completion, or acceptance. This clarification does not broaden TDD enforcement; it only pins the readback as evidence.
+The determinus_change_show loop-ledger readback (rq-loopLedger01) surfaces test_runs only as source references (kind test_run) and exposes a derived retryFailureCount. Neither is authoritative. The authoritative red/green sequence remains the testRunRecordedSignal record ordering enforced at task completion (rq-TDD009seq), and the authoritative retry/attempt accounting remains task.attempts plus task.error_recovery. test_runs MUST NOT be reinterpreted as attempt counts, and the ledger retryFailureCount MUST NOT redefine or gate the retry budget, task completion, or acceptance. This clarification does not broaden TDD enforcement; it only pins the readback as evidence.
 
 **Tags:** `tdd`, `loop-ledger`, `evidence`, `projection`
 
@@ -460,7 +460,7 @@ The adv_change_show loop-ledger readback (rq-loopLedger01) surfaces test_runs on
 **test_runs are evidence refs, never attempt counts** (`rq-TDD012ledgerEvidence.1`)
 
 **Given:**
-- A task has adv_run_test test_runs recorded against it
+- A task has determinus_run_test test_runs recorded against it
 
 **When:** The loop ledger is projected or task completion is evaluated
 
@@ -561,7 +561,7 @@ Every task MUST have a normalized evidence plan that records exactly one evidenc
 
 **ID:** `rq-TDD014policyRoute` | **Priority:** **[MUST]**
 
-Task deliverable type, normalized evidence policy and proof target, and explicit TDD intent MUST determine the required proof route. A valid non-test route for non-code work MUST NOT require adv_run_test, red/green phases, or a test-run ID. Task titles, generic agent instructions, and a desire for coverage are advisory and MUST NOT create a test obligation. Behavior-bearing inline code retains its existing red/green requirements; this rule does not weaken proof for that work.
+Task deliverable type, normalized evidence policy and proof target, and explicit TDD intent MUST determine the required proof route. A valid non-test route for non-code work MUST NOT require determinus_run_test, red/green phases, or a test-run ID. Task titles, generic agent instructions, and a desire for coverage are advisory and MUST NOT create a test obligation. Behavior-bearing inline code retains its existing red/green requirements; this rule does not weaken proof for that work.
 
 **Tags:** `tdd`, `evidence-policy`, `non-code`, `agent-guidance`
 
@@ -575,7 +575,7 @@ Task deliverable type, normalized evidence policy and proof target, and explicit
 **When:** Task completion or acceptance evaluates its evidence
 
 **Then:**
-- No adv_run_test, red/green phase, or test-run ID is required
+- No determinus_run_test, red/green phase, or test-run ID is required
 - The policy-required proof remains required
 
 **Behavior-bearing inline code retains TDD** (`rq-TDD014policyRoute.2`)

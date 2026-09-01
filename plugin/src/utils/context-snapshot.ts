@@ -627,8 +627,8 @@ export function formatTickerSnapshot(input: TickerSnapshotInput): string {
  * Build a compact context ticker from change-shaped input.
  *
  * Parallel to buildChangeContextSnapshot; emitted by transient task tools
- * (adv_task_update→in_progress|done, adv_task_ready, adv_task_add,
- * adv_task_cancel) per rq-ctxticker2.
+ * (determinus_task_update→in_progress|done, determinus_task_ready, determinus_task_add,
+ * determinus_task_cancel) per rq-ctxticker2.
  */
 export function buildChangeContextTicker({
   change,

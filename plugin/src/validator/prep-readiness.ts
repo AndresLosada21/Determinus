@@ -2,7 +2,7 @@
  * Prep-Readiness Validator
  *
  * Machine-enforced checks that answer: "Do we have everything we need
- * ready to make the full change?" Runs as part of `adv_gate_complete prep`.
+ * ready to make the full change?" Runs as part of `determinus_gate_complete prep`.
  *
  * Architecture:
  * - Pure functions — no I/O, no filesystem access beyond the Change object
@@ -731,12 +731,12 @@ export function checkTaskOrderingProvisional(
     issues.push({
       code: PrepReadinessCodes.TASK_ORDERING_PROVISIONAL,
       severity: "warning",
-      message: `Task "${task.id}" will be subject to rq-TDD009seq red→green ordering enforcement at completion time. Record a failing test via adv_run_test with phase:'red' before completing this task.`,
+      message: `Task "${task.id}" will be subject to rq-TDD009seq red→green ordering enforcement at completion time. Record a failing test via determinus_run_test with phase:'red' before completing this task.`,
       path: `tasks.${task.id}`,
       details: {
         taskId: task.id,
         remediation:
-          "Use adv_run_test phase:'red' (expect failure) then phase:'green' (expect pass) before task completion. Include lastRedRunId and lastGreenRunId in the task completion payload.",
+          "Use determinus_run_test phase:'red' (expect failure) then phase:'green' (expect pass) before task completion. Include lastRedRunId and lastGreenRunId in the task completion payload.",
       },
     });
   }

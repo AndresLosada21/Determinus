@@ -1,4 +1,4 @@
-/** Partial archive-delta repair classification for adv_change_archive. */
+/** Partial archive-delta repair classification for determinus_change_archive. */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { join } from "node:path";
@@ -280,7 +280,7 @@ function parseResult(result: string) {
   return JSON.parse(result) as Record<string, unknown>;
 }
 
-describe("adv_change_archive partial archive-delta repair", () => {
+describe("determinus_change_archive partial archive-delta repair", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -502,7 +502,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         phase9: "run",
@@ -574,7 +574,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
       },
     });
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         dryRun: true,
@@ -740,7 +740,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
   });
 
   it("constructs production archive recovery with separate local and PR repository identities", async () => {
-    const root = mkdtempSync(join(tmpdir(), "adv-archive-recovery-"));
+    const root = mkdtempSync(join(tmpdir(), "determinus-archive-recovery-"));
     const worktree = join(root, "linked");
     const canonicalBundlePath = join(root, "canonical", CHANGE_ID);
     try {
@@ -931,7 +931,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     seedForChange(change);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1003,7 +1003,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     seedForChange(change);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1029,7 +1029,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1052,7 +1052,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     mocks.readProjectionManifest.mockResolvedValue(manifest);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1073,7 +1073,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     seedForChange(change);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1094,7 +1094,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     seedForChange(change);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1116,7 +1116,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     seedForChange(change);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1144,7 +1144,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: "/repo-wt/change/some-topic",
@@ -1168,7 +1168,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     seedForChange(change);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1194,7 +1194,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     seedForChange(change);
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       { changeId: CHANGE_ID, phase9: "skip" },
       store,
     );
@@ -1216,7 +1216,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     mocks.loadChange.mockResolvedValue({ success: true, data: null });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       { changeId: CHANGE_ID, phase9: "run" },
       store,
     );
@@ -1243,7 +1243,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       { changeId: CHANGE_ID, phase9: "run" },
       store,
     );
@@ -1268,7 +1268,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       { changeId: CHANGE_ID, phase9: "run" },
       store,
     );
@@ -1295,7 +1295,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
     });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         worktreePath: REPAIR_WORKTREE,
@@ -1315,7 +1315,7 @@ describe("adv_change_archive partial archive-delta repair", () => {
 
 // A successful archive creates the durable bundle for every change, including
 // changes with no spec deltas.
-describe("adv_change_archive zero-delta bundle creation", () => {
+describe("determinus_change_archive zero-delta bundle creation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -1418,7 +1418,7 @@ describe("adv_change_archive zero-delta bundle creation", () => {
     const change = makeChange({ deltas: {} });
     const store = makeStore(change);
 
-    const result = await archiveChangeTools.adv_change_archive.execute(
+    const result = await archiveChangeTools.determinus_change_archive.execute(
       {
         changeId: CHANGE_ID,
         phase9: "skip",

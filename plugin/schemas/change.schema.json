@@ -65,9 +65,6 @@
       "minimum": 0,
       "type": "integer"
     },
-    "adv_project_id": {
-      "type": "string"
-    },
     "affectedPaths": {
       "items": {
         "type": "string"
@@ -1127,6 +1124,9 @@
         "type": "object"
       },
       "type": "array"
+    },
+    "determinus_project_id": {
+      "type": "string"
     },
     "documents": {
       "properties": {
@@ -3924,7 +3924,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-engineer",
+                    "const": "determinus-engineer",
                     "type": "string"
                   },
                   "apply_context": {
@@ -4344,7 +4344,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-reviewer",
+                    "const": "determinus-reviewer",
                     "type": "string"
                   },
                   "attempt": {
@@ -4759,7 +4759,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-designer",
+                    "const": "determinus-designer",
                     "type": "string"
                   },
                   "apply_context": {
@@ -5281,7 +5281,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-reviewer",
+                    "const": "determinus-reviewer",
                     "type": "string"
                   },
                   "attempt": {
@@ -5684,7 +5684,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-researcher",
+                    "const": "determinus-researcher",
                     "type": "string"
                   },
                   "architecture_assessment": {
@@ -6045,7 +6045,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-tron",
+                    "const": "determinus-tron",
                     "type": "string"
                   },
                   "attempt": {
@@ -6363,7 +6363,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-scanner-bundle",
+                    "const": "determinus-scanner-bundle",
                     "type": "string"
                   },
                   "attempt": {
@@ -6562,7 +6562,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-verification-triage-bundle",
+                    "const": "determinus-verification-triage-bundle",
                     "type": "string"
                   },
                   "attempt": {
@@ -6833,7 +6833,7 @@
                     "enum": [
                       "continue",
                       "retry_narrower",
-                      "route_adv_engineer",
+                      "route_determinus_engineer",
                       "ask_user",
                       "block_environment",
                       "wait_ci",
@@ -7073,7 +7073,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "agent": {
-                    "const": "adv-visual-review",
+                    "const": "determinus-visual-review",
                     "type": "string"
                   },
                   "anomalies": {
@@ -7945,7 +7945,7 @@
                   "additionalProperties": false,
                   "properties": {
                     "agent": {
-                      "const": "adv-engineer",
+                      "const": "determinus-engineer",
                       "type": "string"
                     },
                     "apply_context": {
@@ -8365,7 +8365,7 @@
                   "additionalProperties": false,
                   "properties": {
                     "agent": {
-                      "const": "adv-reviewer",
+                      "const": "determinus-reviewer",
                       "type": "string"
                     },
                     "attempt": {
@@ -8780,7 +8780,7 @@
                   "additionalProperties": false,
                   "properties": {
                     "agent": {
-                      "const": "adv-designer",
+                      "const": "determinus-designer",
                       "type": "string"
                     },
                     "apply_context": {

@@ -94,7 +94,7 @@ function reviewMatrix(): ContractReviewMatrix {
 
 describe("reconcileRecoveredAcceptanceRemediation", () => {
   test("returns reconciled with zero cleared when no pending markers exist", async () => {
-    const dir = await createTempDir("adv-acceptance-reconciliation-");
+    const dir = await createTempDir("determinus-acceptance-reconciliation-");
     try {
       const change = baseChange();
       await seed(dir, change);
@@ -109,7 +109,7 @@ describe("reconcileRecoveredAcceptanceRemediation", () => {
   });
 
   test("clears recovered disposition and review-matrix markers in one verified disk mutation", async () => {
-    const dir = await createTempDir("adv-acceptance-reconciliation-");
+    const dir = await createTempDir("determinus-acceptance-reconciliation-");
     try {
       const change = baseChange({
         design_concern_dispositions: [designDisposition()],
@@ -151,7 +151,7 @@ describe("reconcileRecoveredAcceptanceRemediation", () => {
   });
 
   test("preserves marker payload while clearing only recovery audit metadata", async () => {
-    const dir = await createTempDir("adv-acceptance-reconciliation-");
+    const dir = await createTempDir("determinus-acceptance-reconciliation-");
     try {
       const change = baseChange({
         design_concern_dispositions: [designDisposition()],
@@ -176,7 +176,7 @@ describe("reconcileRecoveredAcceptanceRemediation", () => {
   });
 
   test("fails closed when the authoritative projection is missing", async () => {
-    const dir = await createTempDir("adv-acceptance-reconciliation-");
+    const dir = await createTempDir("determinus-acceptance-reconciliation-");
     try {
       const result = await reconcileRecoveredAcceptanceRemediation({
         store: storeFor(dir),

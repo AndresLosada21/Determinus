@@ -181,12 +181,12 @@ async function buildFutureWorkProjection(
 
 // rq-advcfg01: Status Config Diagnostics and Feature Flags
 //
-// rq-advStatusView01 — adv_status accepts an optional view selector that
+// rq-advStatusView01 — determinus_status accepts an optional view selector that
 // scopes the response to one of four lenses (summary / health / changes /
 // hygiene). The default "summary" view omits the hygiene-archaeology fields
 // that bloat the response when callers only need orientation.
 export const statusTools = {
-  adv_status: {
+  determinus_status: {
     description:
       "Show project overview: specs, active changes, and next-step recommendations. " +
       "Use the optional `view` selector to scope the response: " +
@@ -229,7 +229,7 @@ export const statusTools = {
         .enum(["compact", "pretty"])
         .optional()
         .describe(
-          "Output mode: compact (default) or pretty. Overrides ADV_TOOL_OUTPUT_MODE env var for this call.",
+          "Output mode: compact (default) or pretty. Overrides determinus_TOOL_OUTPUT_MODE env var for this call.",
         ),
     },
     execute: async (
@@ -286,7 +286,7 @@ export const statusTools = {
                 ? buildHealthStatusReadOptions()
                 : undefined;
           const { status: loadedStatus } = await withRecordedPhase(
-            "adv_status",
+            "determinus_status",
             "statusLoad",
             () => loadStatusWithBootstrapRetry(activeStore, statusReadOptions),
           );
@@ -307,7 +307,8 @@ export const statusTools = {
               priority: "high",
               title: "Status read incomplete",
               detail: warning.message,
-              action: "retry `adv_status` or query the named changes directly",
+              action:
+                "retry `determinus_status` or query the named changes directly",
               source: "health",
               message: `⚠️ Status read incomplete — ${warning.message}`,
             });
@@ -429,7 +430,7 @@ export const statusTools = {
             const migrationRead = await runBoundedStatusPhase(
               "status.migrationStatus",
               () =>
-                withRecordedPhase("adv_status", "migrationStatus", () =>
+                withRecordedPhase("determinus_status", "migrationStatus", () =>
                   loadMigrationStatus(activeStore),
                 ),
             );
@@ -450,7 +451,7 @@ export const statusTools = {
 
           if (plan.recentEnrichment) {
             let recentChanges = await withRecordedPhase(
-              "adv_status",
+              "determinus_status",
               "recentChangeScopeFilter",
               () =>
                 filterRecentChangesForProductScope(
@@ -481,7 +482,7 @@ export const statusTools = {
             const clarifyMode = features?.clarify_enforcement ?? "advisory";
 
             await withRecordedPhase(
-              "adv_status",
+              "determinus_status",
               "recentChangeEnrichment",
               async () => {
                 let primaryAssigned = false;
@@ -557,7 +558,7 @@ export const statusTools = {
             const resumeRead = await runBoundedStatusPhase(
               "status.resumeProjection",
               () =>
-                withRecordedPhase("adv_status", "resumeProjection", () =>
+                withRecordedPhase("determinus_status", "resumeProjection", () =>
                   appendResumeProjectionRecommendations(activeStore, status, {
                     projectId,
                     limit: 3,
@@ -677,7 +678,7 @@ export const statusTools = {
                 "status.worktreeCleanup",
                 () =>
                   withRecordedPhase(
-                    "adv_status",
+                    "determinus_status",
                     "worktreeCleanup",
                     async () => {
                       try {
@@ -732,8 +733,10 @@ export const statusTools = {
               const sessionDebtRead = await runBoundedStatusPhase(
                 "status.sessionDebt",
                 () =>
-                  withRecordedPhase("adv_status", "sessionDebtScan", () =>
-                    scanOpenCodeSessionDebt(),
+                  withRecordedPhase(
+                    "determinus_status",
+                    "sessionDebtScan",
+                    () => scanOpenCodeSessionDebt(),
                   ),
               );
               if (sessionDebtRead.kind === "deadline") {
@@ -769,7 +772,7 @@ export const statusTools = {
               const healthSnapshotRead = await runBoundedStatusPhase(
                 "status.healthSnapshot",
                 () =>
-                  withRecordedPhase("adv_status", "healthSnapshot", () =>
+                  withRecordedPhase("determinus_status", "healthSnapshot", () =>
                     computeHealthSnapshot(activeStore),
                   ),
               );
@@ -782,13 +785,13 @@ export const statusTools = {
               healthSnapshot = healthSnapshotRead.data;
               if (healthSnapshot.closed_to_active_ratio > 5) {
                 const ratio = healthSnapshot.closed_to_active_ratio;
-                const message = `⚠️  Closed-change disk leak detected (ratio ${ratio}:1). Run \`adv_cleanup\` to inspect stale changes.`;
+                const message = `⚠️  Closed-change disk leak detected (ratio ${ratio}:1). Run \`determinus_cleanup\` to inspect stale changes.`;
                 pushStatusRecommendation(status, {
                   kind: "cleanup",
                   priority: "medium",
                   title: "Closed-change disk leak detected",
                   detail: `ratio ${ratio}:1`,
-                  action: "Run `adv_cleanup` to inspect stale changes",
+                  action: "Run `determinus_cleanup` to inspect stale changes",
                   source: "session_debt",
                   message,
                 });
@@ -845,7 +848,7 @@ export const statusTools = {
               const snapshotHealthRead = await runBoundedStatusPhase(
                 "status.snapshotHealth",
                 () =>
-                  withRecordedPhase("adv_status", "snapshotHealth", () =>
+                  withRecordedPhase("determinus_status", "snapshotHealth", () =>
                     fetchStatusSnapshotHealth(projectId, { forceRefresh }),
                   ),
               );
@@ -969,7 +972,7 @@ export const statusTools = {
           }
 
           const formatted = await withRecordedPhase(
-            "adv_status",
+            "determinus_status",
             "formatOutput",
             async () =>
               formatStatusOutput({
@@ -1078,8 +1081,10 @@ export const statusTools = {
             const futureWorkRead = await runBoundedStatusPhase(
               "status.futureWorkProjection",
               () =>
-                withRecordedPhase("adv_status", "futureWorkProjection", () =>
-                  buildFutureWorkProjection(activeStore),
+                withRecordedPhase(
+                  "determinus_status",
+                  "futureWorkProjection",
+                  () => buildFutureWorkProjection(activeStore),
                 ),
             );
             if (futureWorkRead.kind === "deadline") {

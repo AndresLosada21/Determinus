@@ -255,7 +255,7 @@ describe("ensureWorktreeForMutation — block_only mode", () => {
       errorClass: "WorktreeIsolationViolation",
       mainCheckoutPath: "/repo/main",
     });
-    expect(result.remediation).toContain("adv_worktree");
+    expect(result.remediation).toContain("determinus_worktree");
     // block_only mode MUST NOT carry the auto-create-specific fields
     expect(result.code).toBeUndefined();
     expect(result.expectedWorktreePath).toBeUndefined();

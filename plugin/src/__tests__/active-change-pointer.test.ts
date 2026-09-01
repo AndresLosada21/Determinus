@@ -251,7 +251,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
   describe("T4 — recordTerminalChange post-output hook", () => {
     const setPointerViaCreate = async (changeId: string) => {
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_create" } as any,
+        { tool: "determinus_change_create" } as any,
         {
           args: { summary: "test" },
           output: JSON.stringify({ changeId }),
@@ -266,7 +266,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       expect(getStatus().activeChangeId).toBe(changeId);
 
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_close" } as any,
+        { tool: "determinus_change_close" } as any,
         { args: { changeId }, output: terminalOutput(changeId) } as any,
       );
       expect(getStatus().activeChangeId).toBeNull();
@@ -279,7 +279,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       expect(getStatus().activeChangeId).toBe(activeId);
 
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_close" } as any,
+        { tool: "determinus_change_close" } as any,
         {
           args: { changeId: "otherId" },
           output: terminalOutput("otherId"),
@@ -293,7 +293,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       const activeId = "activeFail";
       await setPointerViaCreate(activeId);
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_close" } as any,
+        { tool: "determinus_change_close" } as any,
         {
           args: { changeId: activeId },
           output: terminalOutput(activeId, false),
@@ -307,7 +307,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       const activeId = "activeArchive";
       await setPointerViaCreate(activeId);
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_archive" } as any,
+        { tool: "determinus_change_archive" } as any,
         {
           args: { changeId: activeId },
           output: terminalOutput(activeId),
@@ -319,7 +319,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
     it("is a no-op when no active pointer is set", async () => {
       await createPlugin();
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_close" } as any,
+        { tool: "determinus_change_close" } as any,
         {
           args: { changeId: "nobody" },
           output: terminalOutput("nobody"),
@@ -329,10 +329,10 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
     });
   });
 
-  describe("T5 — phantom-pointer clearing via adv_doctor provider (option B)", () => {
+  describe("T5 — phantom-pointer clearing via determinus_doctor provider (option B)", () => {
     const setPointerViaCreate = async (changeId: string) => {
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_create" } as any,
+        { tool: "determinus_change_create" } as any,
         {
           args: { summary: "test" },
           output: JSON.stringify({ changeId }),
@@ -341,8 +341,8 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
     };
 
     // rq-recoverySurfaceParity01 / rq-doctorConsolidation01 option B:
-    // adv_change_forget was retired. Its session-pointer clearing is now
-    // owned by adv_doctor via the pointer-repair provider that index.ts
+    // determinus_change_forget was retired. Its session-pointer clearing is now
+    // owned by determinus_doctor via the pointer-repair provider that index.ts
     // injects during plugin init. These tests verify the WIRING: the
     // injected provider reads and clears the real session pointer.
 
@@ -379,27 +379,27 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
   });
 
   describe("T7 — reachability gate in handleToolExecuteBefore", () => {
-    it("does not re-point for read-only adv_change_show with reachable changeId", async () => {
+    it("does not re-point for read-only determinus_change_show with reachable changeId", async () => {
       mockStore = makeFakeStore({
         changesDir: join(tempDir, ".adv/changes"),
         reachable: new Set(["realChange"]),
       });
       await createPlugin();
       await hooks["tool.execute.before"]!(
-        { tool: "adv_change_show", sessionID: "main" } as any,
+        { tool: "determinus_change_show", sessionID: "main" } as any,
         { args: { changeId: "realChange" } } as any,
       );
       expect(getStatus().activeChangeId).toBeNull();
     });
 
-    it("preserves existing pointer for read-only adv_gate_status", async () => {
+    it("preserves existing pointer for read-only determinus_gate_status", async () => {
       mockStore = makeFakeStore({
         changesDir: join(tempDir, ".adv/changes"),
         reachable: new Set(["activeA", "otherB"]),
       });
       await createPlugin();
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_create" } as any,
+        { tool: "determinus_change_create" } as any,
         {
           args: { summary: "test" },
           output: JSON.stringify({ changeId: "activeA" }),
@@ -408,20 +408,20 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       expect(getStatus().activeChangeId).toBe("activeA");
 
       await hooks["tool.execute.before"]!(
-        { tool: "adv_gate_status", sessionID: "main" } as any,
+        { tool: "determinus_gate_status", sessionID: "main" } as any,
         { args: { changeId: "otherB" } } as any,
       );
       expect(getStatus().activeChangeId).toBe("activeA");
     });
 
-    it("preserves existing pointer for read-only adv_task_list", async () => {
+    it("preserves existing pointer for read-only determinus_task_list", async () => {
       mockStore = makeFakeStore({
         changesDir: join(tempDir, ".adv/changes"),
         reachable: new Set(["activeA", "otherB"]),
       });
       await createPlugin();
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_create" } as any,
+        { tool: "determinus_change_create" } as any,
         {
           args: { summary: "test" },
           output: JSON.stringify({ changeId: "activeA" }),
@@ -430,7 +430,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       expect(getStatus().activeChangeId).toBe("activeA");
 
       await hooks["tool.execute.before"]!(
-        { tool: "adv_task_list", sessionID: "main" } as any,
+        { tool: "determinus_task_list", sessionID: "main" } as any,
         { args: { changeId: "otherB" } } as any,
       );
       expect(getStatus().activeChangeId).toBe("activeA");
@@ -444,7 +444,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       await seedDiskChange(join(tempDir, ".adv/changes"), "realChange");
       await createPlugin();
       await hooks["tool.execute.before"]!(
-        { tool: "adv_task_update", sessionID: "main" } as any,
+        { tool: "determinus_task_update", sessionID: "main" } as any,
         { args: { changeId: "realChange" } } as any,
       );
       expect(getStatus().activeChangeId).toBe("realChange");
@@ -458,13 +458,13 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       await seedDiskChange(join(tempDir, ".adv/changes"), "existingChange");
       await createPlugin();
       await hooks["tool.execute.before"]!(
-        { tool: "adv_task_update", sessionID: "main" } as any,
+        { tool: "determinus_task_update", sessionID: "main" } as any,
         { args: { changeId: "existingChange" } } as any,
       );
       expect(getStatus().activeChangeId).toBe("existingChange");
 
       await hooks["tool.execute.before"]!(
-        { tool: "adv_task_update", sessionID: "main" } as any,
+        { tool: "determinus_task_update", sessionID: "main" } as any,
         { args: { changeId: "typoChange" } } as any,
       );
       expect(getStatus().activeChangeId).toBe("existingChange");
@@ -481,7 +481,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       mockStore = makeFakeStore({ changesDir });
       await createPlugin();
       await hooks["tool.execute.before"]!(
-        { tool: "adv_task_update", sessionID: "main" } as any,
+        { tool: "determinus_task_update", sessionID: "main" } as any,
         { args: { changeId: diskOnlyId } } as any,
       );
       expect(getStatus().activeChangeId).toBe(diskOnlyId);
@@ -522,7 +522,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       await createPlugin();
 
       await hooks["tool.execute.before"]!(
-        { tool: "adv_task_update", sessionID: "main" } as any,
+        { tool: "determinus_task_update", sessionID: "main" } as any,
         {
           args: {
             changeId: targetChangeId,
@@ -569,7 +569,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       await createPlugin();
 
       await hooks["tool.execute.before"]!(
-        { tool: "adv_change_show", sessionID: "main" } as any,
+        { tool: "determinus_change_show", sessionID: "main" } as any,
         {
           args: {
             changeId: targetChangeId,
@@ -593,7 +593,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
 
       // Establish an active pointer (could have been set by a cross-project repoint)
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_create" } as any,
+        { tool: "determinus_change_create" } as any,
         {
           args: { summary: "test" },
           output: JSON.stringify({ changeId: targetChangeId }),
@@ -603,7 +603,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
 
       // Cross-project close with matching changeId clears regardless of project ownership
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_close" } as any,
+        { tool: "determinus_change_close" } as any,
         {
           args: { changeId: targetChangeId, target_path: targetDir },
           output: terminalOutput(targetChangeId),
@@ -621,7 +621,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       await createPlugin();
       // Set pointer via create after-hook, which is not gated on reachability.
       await hooks["tool.execute.after"]!(
-        { tool: "adv_change_create" } as any,
+        { tool: "determinus_change_create" } as any,
         {
           args: { summary: "test" },
           output: JSON.stringify({ changeId: "ghost" }),
@@ -629,7 +629,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
       );
       expect(getStatus().activeChangeId).toBe("ghost");
       // The doctor pointer-repair provider clears unconditionally when
-      // invoked; the confirmed-absent gating lives in adv_doctor's probe
+      // invoked; the confirmed-absent gating lives in determinus_doctor's probe
       // (covered by doctor.test.ts). Here we assert the wiring clears the
       // real session pointer.
       getDoctorPointerRepairProvider()!.clearActivePointer();
@@ -644,7 +644,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
 
     beforeEach(() => {
       vi.clearAllMocks();
-      process.env.ADV_WORKTREE_HOME = join(tempDir, "worktrees");
+      process.env.determinus_WORKTREE_HOME = join(tempDir, "worktrees");
       worktreeBase = getWorktreeBase(
         "0e000000ec00d000000000000000000000000000",
       );
@@ -653,7 +653,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
     afterEach(() => {
       cwdSpy?.mockRestore();
       cwdSpy = undefined;
-      delete process.env.ADV_WORKTREE_HOME;
+      delete process.env.determinus_WORKTREE_HOME;
     });
 
     it("AC1: seeds pointer from matching worktree cwd", async () => {

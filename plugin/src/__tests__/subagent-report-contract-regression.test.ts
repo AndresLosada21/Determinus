@@ -23,13 +23,13 @@ import { compactToolPart, compactPromptMessages } from "../index";
 
 const over = (n: number): string => "x".repeat(n);
 
-// Minimal valid adv-researcher report fixture.
+// Minimal valid determinus-researcher report fixture.
 const validResearcher = {
   schema_version: "1.0",
   change_id: "regressionTest",
   scope: { kind: "change" as const, scope_key: "researcher:regression" },
   attempt: 1,
-  agent: "adv-researcher",
+  agent: "determinus-researcher",
   topic: "Regression fixture",
   sources: [
     {

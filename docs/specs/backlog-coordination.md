@@ -56,7 +56,7 @@ When a change change projection is created with state.origin.issue_number set, r
 
 **ID:** `rq-backlogCoord02` | **Priority:** **[MUST]**
 
-adv_change_create with a positive origin.issue_number performs a disk projection lookup query before change projection start, independent of the readable origin-kind label. If an existing running open-lifecycle change in the same project holds the same AdvBacklogIssueNumber, the tool returns typed CLAIM_CONFLICT evidence. Successful issue-linked creation makes the change change projection the durable claim record.
+determinus_change_create with a positive origin.issue_number performs a disk projection lookup query before change projection start, independent of the readable origin-kind label. If an existing running open-lifecycle change in the same project holds the same AdvBacklogIssueNumber, the tool returns typed CLAIM_CONFLICT evidence. Successful issue-linked creation makes the change change projection the durable claim record.
 
 **Tags:** `coordination`, `claims`, `atomicity`
 
@@ -67,7 +67,7 @@ adv_change_create with a positive origin.issue_number performs a disk projection
 **Given:**
 - An open running change change projection holds origin.issue_number = 51 in project pid-abc
 
-**When:** adv_change_create is called with origin_kind: 'triage', origin_issue_number: 51
+**When:** determinus_change_create is called with origin_kind: 'triage', origin_issue_number: 51
 
 **Then:**
 - The tool returns code CLAIM_CONFLICT with existing change evidence
@@ -78,7 +78,7 @@ adv_change_create with a positive origin.issue_number performs a disk projection
 **Given:**
 - No active change projection holds origin.issue_number = 99
 
-**When:** adv_change_create is called with origin_kind: 'triage', origin_issue_number: 99
+**When:** determinus_change_create is called with origin_kind: 'triage', origin_issue_number: 99
 
 **Then:**
 - The change projection is created
@@ -89,7 +89,7 @@ adv_change_create with a positive origin.issue_number performs a disk projection
 **Given:**
 - A create request has no origin.issue_number
 
-**When:** adv_change_create validates the request
+**When:** determinus_change_create validates the request
 
 **Then:**
 - No issue-claim projection lookup query fires
@@ -101,7 +101,7 @@ adv_change_create with a positive origin.issue_number performs a disk projection
 
 **ID:** `rq-backlogCoord03` | **Priority:** **[MUST]**
 
-disk projection lookup is eventually consistent. Two simultaneous issue-linked adv_change_create calls may both pass the pre-create check. After change projection start, any create with a positive origin.issue_number re-runs the same projection lookup query within the configured window, independent of origin kind. More than one change projection sharing the issue produces CLAIM_RACE_DETECTED advisory evidence; the new change is not rolled back.
+disk projection lookup is eventually consistent. Two simultaneous issue-linked determinus_change_create calls may both pass the pre-create check. After change projection start, any create with a positive origin.issue_number re-runs the same projection lookup query within the configured window, independent of origin kind. More than one change projection sharing the issue produces CLAIM_RACE_DETECTED advisory evidence; the new change is not rolled back.
 
 **Tags:** `coordination`, `claims`, `eventual-consistency`
 
@@ -137,7 +137,7 @@ disk projection lookup is eventually consistent. Two simultaneous issue-linked a
 
 **ID:** `rq-backlogCoord04` | **Priority:** **[MUST]**
 
-adv_wip_state returns a single aggregated view of an ADV project's in-flight coordination state: (a) running open-lifecycle changes from disk projection lookup, (b) worktree state from the worktree state DB, (c) peer sessions from the session registry. One tool call per agent session; no client-side composition required. Read-only — does not mutate state.
+determinus_wip_state returns a single aggregated view of an ADV project's in-flight coordination state: (a) running open-lifecycle changes from disk projection lookup, (b) worktree state from the worktree state DB, (c) peer sessions from the session registry. One tool call per agent session; no client-side composition required. Read-only — does not mutate state.
 
 **Tags:** `coordination`, `wip`, `aggregation`
 
@@ -148,7 +148,7 @@ adv_wip_state returns a single aggregated view of an ADV project's in-flight coo
 **Given:**
 - Project pid-abc has 2 active changes, 1 active worktree, 1 peer session
 
-**When:** adv_wip_state is called
+**When:** determinus_wip_state is called
 
 **Then:**
 - The response includes active_changes: [...] with 2 entries
@@ -162,7 +162,7 @@ adv_wip_state returns a single aggregated view of an ADV project's in-flight coo
 - Session registry lookup fails (e.g., SQLite locked)
 - Active changes and worktrees succeed
 
-**When:** adv_wip_state is called
+**When:** determinus_wip_state is called
 
 **Then:**
 - The response includes active_changes and worktrees populated
@@ -175,7 +175,7 @@ adv_wip_state returns a single aggregated view of an ADV project's in-flight coo
 
 **ID:** `rq-wipPoisonIsolation01` | **Priority:** **[MUST]**
 
-adv_wip_state MUST preserve healthy active-change, worktree, and peer-session results when one worktree-owning change change projection cannot be queried. Per-change projection poison or query failures from the worktree source MUST be surfaced as human-readable warnings and as structured unreadable_projections metadata optimized for automation and agent triage. The metadata MUST include source, changeId, change projectionId, recoveryReason, evidenceSummary, and message when poison evidence is available. The tool remains read-only and MUST NOT perform destructive recovery.
+determinus_wip_state MUST preserve healthy active-change, worktree, and peer-session results when one worktree-owning change change projection cannot be queried. Per-change projection poison or query failures from the worktree source MUST be surfaced as human-readable warnings and as structured unreadable_projections metadata optimized for automation and agent triage. The metadata MUST include source, changeId, change projectionId, recoveryReason, evidenceSummary, and message when poison evidence is available. The tool remains read-only and MUST NOT perform destructive recovery.
 
 **Tags:** `coordination`, `wip`, `unavailable-projection`, `automation`
 
@@ -187,7 +187,7 @@ adv_wip_state MUST preserve healthy active-change, worktree, and peer-session re
 - One change change projection returns healthy worktree records
 - A second change change projection query fails with unavailable-projection evidence
 
-**When:** adv_wip_state is called
+**When:** determinus_wip_state is called
 
 **Then:**
 - The healthy worktree remains in worktrees
@@ -199,7 +199,7 @@ adv_wip_state MUST preserve healthy active-change, worktree, and peer-session re
 **Given:**
 - unreadable_projections contains a change projection with TMPRL1100, NonDeterministic, Nondeterminism, Change projectionTaskFailedCauseNonDeterministicError, No command scheduled, or Change projectionExecutionUpdateAccepted evidence
 
-**When:** adv_wip_state returns the response
+**When:** determinus_wip_state returns the response
 
 **Then:**
 - No terminate, reset, reseed, archive, or delete action is performed
@@ -211,7 +211,7 @@ adv_wip_state MUST preserve healthy active-change, worktree, and peer-session re
 
 **ID:** `rq-backlogCoord05` | **Priority:** **[MUST]**
 
-/adv-triage portfolio-balance reporting MUST correlate open GitHub issue numbers with active changes through queryActiveChangesByIssueNumbers or an equivalent bounded disk projection lookup lookup. It MUST NOT perform per-change state reads to annotate the issue pool. The retired adv_roadmap tool and its file/live reader modes MUST remain absent.
+/determinus-triage portfolio-balance reporting MUST correlate open GitHub issue numbers with active changes through queryActiveChangesByIssueNumbers or an equivalent bounded disk projection lookup lookup. It MUST NOT perform per-change state reads to annotate the issue pool. The retired determinus_roadmap tool and its file/live reader modes MUST remain absent.
 
 **Tags:** `coordination`, `performance`, `visibility`
 
@@ -220,7 +220,7 @@ adv_wip_state MUST preserve healthy active-change, worktree, and peer-session re
 **One bounded lookup covers the displayed issue pool** (`rq-backlogCoord05.1`)
 
 **Given:**
-- /adv-triage gathered up to 100 open issue numbers
+- /determinus-triage gathered up to 100 open issue numbers
 
 **When:** It builds change-to-issue portfolio annotations
 
@@ -251,7 +251,7 @@ adv_wip_state MUST preserve healthy active-change, worktree, and peer-session re
 - Change annotation is marked unavailable
 - Issue data remains visible
 - No per-change fallback is attempted
-- adv_roadmap remains absent
+- determinus_roadmap remains absent
 
 ---
 
@@ -259,7 +259,7 @@ adv_wip_state MUST preserve healthy active-change, worktree, and peer-session re
 
 **ID:** `rq-backlogCoord07` | **Priority:** **[MUST]**
 
-ROADMAP.md and .adv/roadmap-snapshot.json are retired projections. /adv-triage MUST NOT generate, refresh, echo, commit, or push either artifact. Portfolio-balance reads use current typed ADV state plus current GitHub issue/project data; no snapshot TTL contract remains.
+ROADMAP.md and .adv/roadmap-snapshot.json are retired projections. /determinus-triage MUST NOT generate, refresh, echo, commit, or push either artifact. Portfolio-balance reads use current typed ADV state plus current GitHub issue/project data; no snapshot TTL contract remains.
 
 **Tags:** `coordination`, `freshness`, `ttl`
 
@@ -268,7 +268,7 @@ ROADMAP.md and .adv/roadmap-snapshot.json are retired projections. /adv-triage M
 **Triage does not write roadmap artifacts** (`rq-backlogCoord07.1`)
 
 **Given:**
-- /adv-triage completes successfully
+- /determinus-triage completes successfully
 
 **When:** Its output and filesystem effects are inspected
 
@@ -282,7 +282,7 @@ ROADMAP.md and .adv/roadmap-snapshot.json are retired projections. /adv-triage M
 **Given:**
 - Active changes, Epics, and open GitHub issues exist
 
-**When:** /adv-triage builds its balance report
+**When:** /determinus-triage builds its balance report
 
 **Then:**
 - Typed ADV reads supply change and Epic state
@@ -295,7 +295,7 @@ ROADMAP.md and .adv/roadmap-snapshot.json are retired projections. /adv-triage M
 
 **ID:** `rq-backlogCoord08` | **Priority:** **[MUST]**
 
-adv_change_create MUST validate origin linkage before writing a change projection. The roadmap origin kind is readable legacy provenance only and MUST be rejected for new writes with a typed retirement error pointing to triage. Triage accepts optional positive origin_issue_number and optional non-blank source artifact; discovery accepts source artifact but rejects issue number; adhoc and omitted kind reject linkage fields. Valid issue metadata seeds the disk projection and AdvBacklogIssueNumber claim data atomically with change creation.
+determinus_change_create MUST validate origin linkage before writing a change projection. The roadmap origin kind is readable legacy provenance only and MUST be rejected for new writes with a typed retirement error pointing to triage. Triage accepts optional positive origin_issue_number and optional non-blank source artifact; discovery accepts source artifact but rejects issue number; adhoc and omitted kind reject linkage fields. Valid issue metadata seeds the disk projection and AdvBacklogIssueNumber claim data atomically with change creation.
 
 **Tags:** `coordination`, `origin`, `claims`, `projection fields`
 
@@ -364,7 +364,7 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 
 **ID:** `rq-backlogCoord09` | **Priority:** **[MUST]**
 
-/adv-triage MUST run source cleanup validation after structural match/gap analysis and before new issue creation or bug priority assignment. Cleanup validation covers represented and unrepresented ADV changes, GitHub issues/project items, and local sources gathered by /adv-triage. Each non-relevant cleanup candidate MUST include source, stable ref, classification, evidence, proposed action, and approval group. Heuristics such as title similarity or agent inference are advisory only and MUST NOT close, complete, cancel, remove, suppress, merge-note, deprioritize, or otherwise mutate items without structural evidence and explicit approval batched by source/reason. Legacy agenda duplicate/superseded/should-merge candidates approved for cleanup MUST complete with a note referencing the survivor/source. Bug priority assignment MUST NOT run until cleanup validation has completed for the candidate pool. User questions during bug priority assignment gather context only and MUST NOT ask the user to confirm or choose a priority; the agent assigns priority autonomously within a bounded question budget.
+/determinus-triage MUST run source cleanup validation after structural match/gap analysis and before new issue creation or bug priority assignment. Cleanup validation covers represented and unrepresented ADV changes, GitHub issues/project items, and local sources gathered by /determinus-triage. Each non-relevant cleanup candidate MUST include source, stable ref, classification, evidence, proposed action, and approval group. Heuristics such as title similarity or agent inference are advisory only and MUST NOT close, complete, cancel, remove, suppress, merge-note, deprioritize, or otherwise mutate items without structural evidence and explicit approval batched by source/reason. Legacy agenda duplicate/superseded/should-merge candidates approved for cleanup MUST complete with a note referencing the survivor/source. Bug priority assignment MUST NOT run until cleanup validation has completed for the candidate pool. User questions during bug priority assignment gather context only and MUST NOT ask the user to confirm or choose a priority; the agent assigns priority autonomously within a bounded question budget.
 
 **Tags:** `triage`, `cleanup`, `backlog`, `human-authority`, `p33`
 
@@ -373,9 +373,9 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 **Cleanup validation precedes issue creation and bug priority assignment** (`rq-backlogCoord09.1`)
 
 **Given:**
-- /adv-triage has gathered sources and built represented[] plus unrepresented[] match results
+- /determinus-triage has gathered sources and built represented[] plus unrepresented[] match results
 
-**When:** /adv-triage prepares Phase 4 bug priority loop
+**When:** /determinus-triage prepares Phase 4 bug priority loop
 
 **Then:**
 - Source cleanup validation has run before any new GH issue creation prompt
@@ -401,7 +401,7 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 **When:** No structural evidence and no explicit user approval exists
 
 **Then:**
-- /adv-triage does not close, complete, cancel, remove, suppress, merge-note, or deprioritize the item
+- /determinus-triage does not close, complete, cancel, remove, suppress, merge-note, or deprioritize the item
 - The candidate remains surfaced for user confirmation or clarification
 
 **Bug priority assignment is bounded-autonomous** (`rq-backlogCoord09.4`)
@@ -409,7 +409,7 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 **Given:**
 - A bug lacks a priority:* label after cleanup validation
 
-**When:** /adv-triage assigns priority
+**When:** /determinus-triage assigns priority
 
 **Then:**
 - The agent asks at most 2 context-gathering questions per bug
@@ -421,7 +421,7 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 **Given:**
 - A legacy agenda item is approved as duplicate/superseded or should-merge
 
-**When:** /adv-triage applies cleanup
+**When:** /determinus-triage applies cleanup
 
 **Then:**
 - The legacy agenda item is completed rather than silently deleted
@@ -433,7 +433,7 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 
 **ID:** `rq-backlogCoord10` | **Priority:** **[MUST]**
 
-`/adv-triage` portfolio-balance reporting MUST represent nonterminal ADV changes that carry no linked GitHub issue, so defect work tracked only as an ADV change remains visible. Membership in that set MUST be determined structurally from typed change state and MUST NOT be decided by title similarity, title prefix inference, or agent inference. A defect ranking hint MAY influence ordering within the set, MUST render its evidence source, and MUST NOT filter, suppress, close, deprioritize, or authorize any mutation. `origin.kind` is the primary hint source; title prefix is secondary and weak. Existing constraints remain in force: `priority:*` labels stay GitHub-issue-scoped and MUST NOT be written to an ADV change, and the bounded projection lookup lookup rules of rq-backlogCoord05 continue to apply.
+`/determinus-triage` portfolio-balance reporting MUST represent nonterminal ADV changes that carry no linked GitHub issue, so defect work tracked only as an ADV change remains visible. Membership in that set MUST be determined structurally from typed change state and MUST NOT be decided by title similarity, title prefix inference, or agent inference. A defect ranking hint MAY influence ordering within the set, MUST render its evidence source, and MUST NOT filter, suppress, close, deprioritize, or authorize any mutation. `origin.kind` is the primary hint source; title prefix is secondary and weak. Existing constraints remain in force: `priority:*` labels stay GitHub-issue-scoped and MUST NOT be written to an ADV change, and the bounded projection lookup lookup rules of rq-backlogCoord05 continue to apply.
 
 **Tags:** `triage`, `backlog`, `portfolio`, `p33`, `structural-membership`
 
@@ -444,7 +444,7 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 **Given:**
 - Nonterminal ADV changes exist with no linked GitHub issue
 
-**When:** `/adv-triage` renders portfolio balance
+**When:** `/determinus-triage` renders portfolio balance
 
 **Then:**
 - Those changes appear in the report
@@ -490,7 +490,7 @@ adv_change_create MUST validate origin linkage before writing a change projectio
 
 **ID:** `rq-opsFollowWip01` | **Priority:** **[MUST]**
 
-Planning, WIP, and collision checks MUST surface active linked ops/enabler work from structural change projection state or projection lookup-backed discovery, not from agenda text search. adv_wip_state and related planning readbacks MUST include active ops_followup_links and their status when queried in the context of a source/parent change. Collision detection MUST treat an active blocking ops_followup_link as an in-flight dependency.
+Planning, WIP, and collision checks MUST surface active linked ops/enabler work from structural change projection state or projection lookup-backed discovery, not from agenda text search. determinus_wip_state and related planning readbacks MUST include active ops_followup_links and their status when queried in the context of a source/parent change. Collision detection MUST treat an active blocking ops_followup_link as an in-flight dependency.
 
 **Tags:** `coordination`, `wip`, `ops-follow-up`, `collision`, `planning`, `visibility`
 
@@ -501,7 +501,7 @@ Planning, WIP, and collision checks MUST surface active linked ops/enabler work 
 **Given:**
 - A parent change has active ops_followup_links with status running
 
-**When:** adv_wip_state is queried for the project
+**When:** determinus_wip_state is queried for the project
 
 **Then:**
 - The response includes an ops_follow_ups section
@@ -510,7 +510,7 @@ Planning, WIP, and collision checks MUST surface active linked ops/enabler work 
 **Planning collision uses structural state** (`rq-opsFollowWip01.2`)
 
 **Given:**
-- /adv-prep evaluates a change whose parent has a blocks link that is not complete
+- /determinus-prep evaluates a change whose parent has a blocks link that is not complete
 
 **When:** The readiness/collision check runs
 

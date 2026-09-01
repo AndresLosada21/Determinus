@@ -100,7 +100,7 @@ export function appendDraft(
  * Transition a draft to the dismissed terminal state. Returns a new array
  * with the matching draft updated; unknown IDs leave the array unchanged.
  *
- * Used by adv_task_checkpoint auto-dismiss (dismiss_reason: "auto_checkpoint")
+ * Used by determinus_task_checkpoint auto-dismiss (dismiss_reason: "auto_checkpoint")
  * and explicit user dismiss paths (dismiss_reason: "user_dismissed").
  *
  * DDC4: idempotent — dismissing an already-dismissed draft is a no-op
@@ -161,7 +161,7 @@ export function dismissAllSuggestedDrafts(
 
 /**
  * Transition a draft to the promoted terminal state, recording the new
- * wisdom ID. Used by adv_wisdom_add from_draft_id.
+ * wisdom ID. Used by determinus_wisdom_add from_draft_id.
  *
  * Returns null only when the draft is not found; returns the array
  * unchanged when the draft is in a non-suggested terminal state (caller

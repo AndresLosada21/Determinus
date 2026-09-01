@@ -4,8 +4,8 @@
  * AC3: edge validation fires at every edge-writing ingress.
  * AC4: shell promotion / change creation refuse nonterminal prerequisites.
  *
- * These tests verify that adv_epic_add_shell, adv_epic_promote_shell, and
- * adv_change_create actually wire the D3 enforcement module to the Store.
+ * These tests verify that determinus_epic_add_shell, determinus_epic_promote_shell, and
+ * determinus_change_create actually wire the D3 enforcement module to the Store.
  */
 import { describe, test, expect, vi } from "vitest";
 import { epicTools } from "./epic";
@@ -185,10 +185,10 @@ function makeStore(opts?: { epic?: Partial<Epic>; changes?: Change[] }): Store {
   } as unknown as Store;
 }
 
-describe("adv_epic_add_shell D3 enforcement", () => {
+describe("determinus_epic_add_shell D3 enforcement", () => {
   test("rejects self-edge in blocked_by", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -205,7 +205,7 @@ describe("adv_epic_add_shell D3 enforcement", () => {
 
   test("rejects unresolved same-project target", async () => {
     const store = makeStore();
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -231,7 +231,7 @@ describe("adv_epic_add_shell D3 enforcement", () => {
         ],
       },
     });
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -250,7 +250,7 @@ describe("adv_epic_add_shell D3 enforcement", () => {
     const store = makeStore({
       changes: [makeChange({ id: "prereq", title: "Prereq" })],
     });
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -281,7 +281,7 @@ describe("adv_epic_add_shell D3 enforcement", () => {
         }),
       ],
     });
-    const output = await epicTools.adv_epic_add_shell.execute(
+    const output = await epicTools.determinus_epic_add_shell.execute(
       {
         epic_id: "addAuthEpic",
         title: "Shell One",
@@ -302,7 +302,7 @@ describe("adv_epic_add_shell D3 enforcement", () => {
   });
 });
 
-describe("adv_epic_promote_shell D3 enforcement", () => {
+describe("determinus_epic_promote_shell D3 enforcement", () => {
   test("rejects promotion when blocked_by prereq is nonterminal", async () => {
     const store = makeStore({
       epic: {
@@ -322,7 +322,7 @@ describe("adv_epic_promote_shell D3 enforcement", () => {
         }),
       ],
     });
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1", change_id: "change-1" },
       store,
     );
@@ -344,7 +344,7 @@ describe("adv_epic_promote_shell D3 enforcement", () => {
       },
       changes: [makeChange({ id: "prereq", title: "Prereq" })],
     });
-    const output = await epicTools.adv_epic_promote_shell.execute(
+    const output = await epicTools.determinus_epic_promote_shell.execute(
       { epic_id: "addAuthEpic", entry_id: "shell-1", change_id: "change-1" },
       store,
     );
@@ -354,7 +354,7 @@ describe("adv_epic_promote_shell D3 enforcement", () => {
   });
 });
 
-describe("adv_change_create D3 enforcement", () => {
+describe("determinus_change_create D3 enforcement", () => {
   test("rejects creation when same_project_dependencies prereq is nonterminal", async () => {
     const store = makeStore({
       changes: [
@@ -366,7 +366,7 @@ describe("adv_change_create D3 enforcement", () => {
         }),
       ],
     });
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Add New Feature",
         same_project_dependencies: [changeRef("prereq")],
@@ -383,7 +383,7 @@ describe("adv_change_create D3 enforcement", () => {
     const store = makeStore({
       changes: [makeChange({ id: "prereq", title: "Prereq" })],
     });
-    const output = await changeTools.adv_change_create.execute(
+    const output = await changeTools.determinus_change_create.execute(
       {
         summary: "Add New Feature",
         same_project_dependencies: [changeRef("prereq")],

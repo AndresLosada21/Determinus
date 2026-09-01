@@ -1,7 +1,7 @@
 /**
  * status-health-plan.ts
  *
- * Request-local bounded execution plan for `adv_status view:"health"`.
+ * Request-local bounded execution plan for `determinus_status view:"health"`.
  *
  * Wires the existing HealthExecutionPlan executor around the existing probe
  * and diagnostic helpers. Every provider is typed and degrades safely; the
@@ -47,7 +47,7 @@ import {
   type PendingDeleteSummary,
 } from "./worktree/state";
 
-// One request-scoped absolute budget for `adv_status view:health`. The cutoff
+// One request-scoped absolute budget for `determinus_status view:health`. The cutoff
 // closes provider admission early enough to reserve bounded composition time
 // (cutoff + reserve = deadline), and concurrency/candidate limits are fixed and
 // explicit rather than derived. Deadline expiry yields typed partial output;

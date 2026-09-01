@@ -186,10 +186,10 @@ function bashLiteral(input: string): string {
 
 export function createDeployFixture(): DeployFixtureContext {
   const tempHome = realpathSync(
-    mkdtempSync(join(tmpdir(), "adv-deploy-fixture-home-")),
+    mkdtempSync(join(tmpdir(), "determinus-deploy-fixture-home-")),
   );
   const tempWorktreeRoot = realpathSync(
-    mkdtempSync(join(tmpdir(), "adv-deploy-fixture-wt-")),
+    mkdtempSync(join(tmpdir(), "determinus-deploy-fixture-wt-")),
   );
   const tempWorktree = join(tempWorktreeRoot, "repo-worktree");
   const fakeBin = join(tempHome, "bin");

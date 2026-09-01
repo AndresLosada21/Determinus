@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-  ADV_MORPH_WORKTREE_CAPABILITY,
+  determinus_MORPH_WORKTREE_CAPABILITY,
   authorizeMorphWorktree,
 } from "./morph-worktree-authorization";
 
@@ -22,7 +22,7 @@ describe("authorizeMorphWorktree", () => {
 
     const descriptor = Object.getOwnPropertyDescriptor(
       args,
-      ADV_MORPH_WORKTREE_CAPABILITY,
+      determinus_MORPH_WORKTREE_CAPABILITY,
     );
     expect(descriptor?.enumerable).toBe(false);
     expect(descriptor?.value).toEqual({

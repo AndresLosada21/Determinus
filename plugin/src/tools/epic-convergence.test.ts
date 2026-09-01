@@ -35,7 +35,7 @@ function makeChange(overrides?: Partial<Change>): Change {
     status: "draft",
     created_at: "2026-07-01T00:00:00.000Z",
     updated_at: "2026-07-01T00:00:00.000Z",
-    adv_project_id: "project-A",
+    determinus_project_id: "project-A",
     ...overrides,
   } as Change;
 }

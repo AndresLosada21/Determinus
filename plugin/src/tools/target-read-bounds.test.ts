@@ -105,7 +105,7 @@ describe("target-path read bounds", () => {
     ).rejects.toMatchObject({ code: "ENOENT" });
 
     const taskOutput = JSON.parse(
-      await taskTools.adv_task_list.execute(
+      await taskTools.determinus_task_list.execute(
         {
           changeId: "change-0000",
           target_path: targetRoot,

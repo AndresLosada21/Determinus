@@ -37,7 +37,7 @@ describe("buildCompactionContext stale-ledger remediation", () => {
     });
 
     expect(output).toContain("ADV STALE LEDGER REMEDIATION");
-    expect(output).toContain("adv_change_show");
+    expect(output).toContain("determinus_change_show");
     expect(output).toContain("include.snapshot=true");
     expect(output).toContain("include.readyTasks=true");
     expect(output).toContain("_readyTasks");
@@ -112,7 +112,7 @@ describe("buildCompactionContext directive (AC5)", () => {
     action: {
       kind: "never_started",
       gateId: "proposal",
-      command: "adv-proposal",
+      command: "determinus-proposal",
     },
     approvalPending: false,
     blockers: [],
@@ -130,7 +130,7 @@ describe("buildCompactionContext directive (AC5)", () => {
       directive: neverStartedDirective,
     });
 
-    expect(output).toContain("Next: proposal → /adv-proposal");
+    expect(output).toContain("Next: proposal → /determinus-proposal");
   });
 
   test("omits the Next: line when no directive is provided", () => {

@@ -1,11 +1,11 @@
 /**
- * Tests for the adv_gate_complete typed timeout classifier.
+ * Tests for the determinus_gate_complete typed timeout classifier.
  *
- * fixTemporalTimeoutsWorker AC1: adv_gate_complete fires a single Temporal
+ * fixTemporalTimeoutsWorker AC1: determinus_gate_complete fires a single Temporal
  * signal (gateCompletedSignal) via fireSignalAndRefresh — there is no
  * bundle-first durable write to reconcile, so the classifier is purely
  * advisory. When the safety-net timeout fires, the caller must see a
- * typed "signal may have landed — verify via adv_gate_status" result
+ * typed "signal may have landed — verify via determinus_gate_status" result
  * instead of a bare ToolExecutionTimeout.
  *
  * Probe discipline: the classifier must NEVER issue Temporal queries or
@@ -28,14 +28,14 @@ describe("formatGateCompleteTimeoutResult", () => {
     const parsed = JSON.parse(raw!);
     expect(parsed.success).toBe(false);
     expect(parsed.errorClass).toBe("ToolExecutionTimeout");
-    expect(parsed.tool).toBe("adv_gate_complete");
+    expect(parsed.tool).toBe("determinus_gate_complete");
     expect(parsed.changeId).toBe("example");
     expect(parsed.gateId).toBe("proposal");
     expect(parsed.timeoutMs).toBe(30_000);
     expect(parsed.signalMayHaveLanded).toBe(true);
     expect(parsed.error).toMatch(/may have landed/i);
-    expect(parsed.remediation).toMatch(/adv_gate_status/i);
-    expect(parsed.hint).toMatch(/adv_gate_status/i);
+    expect(parsed.remediation).toMatch(/determinus_gate_status/i);
+    expect(parsed.hint).toMatch(/determinus_gate_status/i);
   });
 
   it("omits gateId from the payload when not a string", async () => {

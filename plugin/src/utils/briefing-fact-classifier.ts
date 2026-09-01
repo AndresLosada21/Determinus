@@ -18,7 +18,7 @@
  *   - spec_delta_candidate      → explicit typed facts only
  *   - epic_terminal_note        → supplied Epic membership context
  *   - research_citation         → first RESEARCH_CITATION_RENDER_LIMIT
- *                                 adv-researcher sources (stable order)
+ *                                 determinus-researcher sources (stable order)
  *                                 plus one deterministic omission marker
  *                                 when sources exceed the bound
  *   - archive_only_evidence     → decisions, changes_made, verification,
@@ -158,7 +158,7 @@ function classifyTaskScopedReport(
   }
 
   // required_follow_ups are typed obligations routed through
-  // adv_followup_promote into an ops/enabler child change. They are never
+  // determinus_followup_promote into an ops/enabler child change. They are never
   // written into an unowned queue (retireAgendaWorkflow AC2).
   if (
     "required_follow_ups" in report &&
@@ -196,7 +196,7 @@ function classifyTaskScopedReport(
   }
 
   // reviewer wisdom_candidates are durable wisdom promotions.
-  if (report.agent === "adv-reviewer") {
+  if (report.agent === "determinus-reviewer") {
     const reviewerReport = report as AnyReviewerReport;
     for (const wc of reviewerReport.wisdom_candidates) {
       addFact(
@@ -222,7 +222,7 @@ function classifyTaskScopedReport(
   // designer design_dimensions concerns and neighboring_recommendations carry
   // typed structural blockers via gate-readiness (retireAgendaWorkflow AC4);
   // they surface as report follow-up facts but are not written into any queue.
-  if (report.agent === "adv-designer") {
+  if (report.agent === "determinus-designer") {
     const designerReport = report as DesignerSubagentReport;
     for (const dim of DESIGN_DIMENSION_KEYS) {
       if (designerReport.design_dimensions[dim] === "concern") {
@@ -258,7 +258,7 @@ function classifyTaskScopedReport(
   }
 
   // engineer decisions are archive-only evidence.
-  if (report.agent === "adv-engineer") {
+  if (report.agent === "determinus-engineer") {
     const engineerReport = report as EngineerSubagentReport;
     for (const decision of engineerReport.decisions) {
       addFact(
@@ -357,7 +357,7 @@ function classifyChangeScopedReport(
   facts: BriefingFact[],
 ): void {
   // Researcher
-  if (report.agent === "adv-researcher") {
+  if (report.agent === "determinus-researcher") {
     const researcherReport = report as ResearcherSubagentReport;
     // AC4/SC3/C5/DONT4: render the first RESEARCH_CITATION_RENDER_LIMIT
     // sources in stable report order as typed research_citation facts. When
@@ -413,7 +413,7 @@ function classifyChangeScopedReport(
   }
 
   // Tron
-  if (report.agent === "adv-tron") {
+  if (report.agent === "determinus-tron") {
     const tronReport = report as TronSubagentReport;
     for (const finding of tronReport.findings) {
       addFact(facts, report, "archive_only_evidence", "findings", finding);
@@ -439,7 +439,7 @@ function classifyChangeScopedReport(
   }
 
   // Scanner bundle
-  if (report.agent === "adv-scanner-bundle") {
+  if (report.agent === "determinus-scanner-bundle") {
     // follow_ups handled in task-scoped branch; findings are archive-only.
     const scannerReport = report as ScannerBundleSubagentReport;
     for (const finding of scannerReport.findings) {
@@ -454,7 +454,7 @@ function classifyChangeScopedReport(
   }
 
   // Verifier bundle
-  if (report.agent === "adv-verification-triage-bundle") {
+  if (report.agent === "determinus-verification-triage-bundle") {
     const verifierReport = report as VerificationTriageBundleSubagentReport;
     for (const finding of verifierReport.findings) {
       addFact(

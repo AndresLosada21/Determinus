@@ -3,15 +3,15 @@ import { join, resolve } from "path";
 import { describe, expect, test } from "vitest";
 
 const REPO_ROOT = resolve(__dirname, "../..");
-const COMMAND_PATH = join(REPO_ROOT, ".opencode/command/adv-triage.md");
-const SKILL_PATH = join(REPO_ROOT, "skills/adv-triage/SKILL.md");
-const PROMPTS_PATH = join(REPO_ROOT, "skills/adv-triage/PROMPTS.md");
+const COMMAND_PATH = join(REPO_ROOT, ".opencode/command/determinus-triage.md");
+const SKILL_PATH = join(REPO_ROOT, "skills/determinus-triage/SKILL.md");
+const PROMPTS_PATH = join(REPO_ROOT, "skills/determinus-triage/PROMPTS.md");
 const ANTI_PATTERNS_PATH = join(
   REPO_ROOT,
-  "skills/adv-triage/ANTI-PATTERNS.md",
+  "skills/determinus-triage/ANTI-PATTERNS.md",
 );
 
-describe("adv-triage Phase 4c agent-driven bug priority", () => {
+describe("determinus-triage Phase 4c agent-driven bug priority", () => {
   test("command reframes Phase 4c as agent-driven priority loop", () => {
     const content = readFileSync(COMMAND_PATH, "utf8");
 

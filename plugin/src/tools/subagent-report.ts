@@ -37,7 +37,7 @@ const MAX_REPORT_FOLLOW_UPS = 10;
 
 const AdvRunTestEvidenceSchema = z
   .object({
-    schema_version: z.literal("adv_run_test.v1"),
+    schema_version: z.literal("determinus_run_test.v1"),
     command: z.string().min(1),
     exitCode: z.number().int().nullable(),
     passed: z.boolean(),
@@ -226,7 +226,7 @@ function invalidTaskAnchorOutput(input: {
         title: task.title,
       })),
       guidance:
-        "Task-scoped reports must use an existing ADV task ID. Independent review/harden reports must use the change-scoped reviewer variant. Scanner lanes must not call adv_subagent_report_submit directly.",
+        "Task-scoped reports must use an existing ADV task ID. Independent review/harden reports must use the change-scoped reviewer variant. Scanner lanes must not call determinus_subagent_report_submit directly.",
     }),
     input.projectContext,
   );
@@ -584,7 +584,7 @@ function evidenceByCommand(text: string): Map<string, AdvRunTestEvidence> {
 }
 
 /**
- * Durable per-task `adv_run_test` evidence recorded via `testRunRecordedSignal`
+ * Durable per-task `determinus_run_test` evidence recorded via `testRunRecordedSignal`
  * and persisted in `state.testRuns[taskId][]` (mirrored as `change.test_runs`).
  * Consulting it lets evidence recorded by ANY session (a sub-agent when plugin
  * tools are available, or an orchestrator relaying a sub-agent report) satisfy
@@ -616,19 +616,19 @@ export function verificationWarnings(
   task?: Task,
   durableRecords?: readonly DurableTestRunLike[],
 ): ConsumerWarning[] {
-  if (report.agent === "adv-reviewer") {
+  if (report.agent === "determinus-reviewer") {
     // rq-reviewerEvidenceAuthority01: for review-policy tasks, the persisted
-    // same-task adv-reviewer report IS the authoritative completion evidence.
+    // same-task determinus-reviewer report IS the authoritative completion evidence.
     // Its aggregate tests_run list neither creates nor substitutes for durable
     // execution evidence. Suppress verification_missing for review policy only;
-    // test/static_check still require durable adv_run_test evidence.
+    // test/static_check still require durable determinus_run_test evidence.
     const policy = task ? resolveTaskEvidence(task).policy : undefined;
     if (!task || policy === "review") {
       return [];
     }
     return report.verification.tests_run.map((command) => ({
       kind: "verification_missing" as const,
-      message: `Reviewer aggregate evidence is non-authoritative; no typed adv_run_test run ID proves command: ${command}`,
+      message: `Reviewer aggregate evidence is non-authoritative; no typed determinus_run_test run ID proves command: ${command}`,
     }));
   }
   if (!task) return [];
@@ -642,7 +642,10 @@ export function verificationWarnings(
   const structuredEvidence = evidenceByCommand(recorded);
   const durableByCommand = latestDurableByCommand(durableRecords);
 
-  if (report.agent === "adv-engineer" || report.agent === "adv-designer") {
+  if (
+    report.agent === "determinus-engineer" ||
+    report.agent === "determinus-designer"
+  ) {
     return report.verification.flatMap((entry): ConsumerWarning[] => {
       // rq-subagentReports25: typed-binding provenance. When the entry
       // carries a typed run reference (`test_run_id` preferred, `run_id`
@@ -673,7 +676,7 @@ export function verificationWarnings(
           return [
             {
               kind: "verification_mismatch" as const,
-              message: `Reported exit_code ${entry.exit_code} differs from durable adv_run_test evidence exitCode ${durable.exitCode} for command: ${entry.command}`,
+              message: `Reported exit_code ${entry.exit_code} differs from durable determinus_run_test evidence exitCode ${durable.exitCode} for command: ${entry.command}`,
             },
           ];
         }
@@ -685,7 +688,7 @@ export function verificationWarnings(
         return [
           {
             kind: "verification_missing" as const,
-            message: `No adv_run_test evidence found for reported command: ${entry.command}`,
+            message: `No determinus_run_test evidence found for reported command: ${entry.command}`,
           },
         ];
       }
@@ -698,7 +701,7 @@ export function verificationWarnings(
           return [
             {
               kind: "verification_mismatch" as const,
-              message: `Reported exit_code ${entry.exit_code} differs from structured adv_run_test.v1 exitCode ${evidence.exitCode} for command: ${entry.command}`,
+              message: `Reported exit_code ${entry.exit_code} differs from structured determinus_run_test.v1 exitCode ${evidence.exitCode} for command: ${entry.command}`,
             },
           ];
         }
@@ -734,7 +737,8 @@ function withConsumerWarnings(
     ...warnings,
   ]);
   const evidenceBinding =
-    report.agent === "adv-engineer" || report.agent === "adv-designer"
+    report.agent === "determinus-engineer" ||
+    report.agent === "determinus-designer"
       ? {
           evidence_binding_version: report.verification.some(
             (entry) => entry.test_run_id ?? entry.run_id,
@@ -755,7 +759,7 @@ function withConsumerWarnings(
 
 // retireAgendaWorkflow: report follow_ups remain source-attributed report
 // metadata. No queue is written by the consumer; promotion happens only via
-// adv_followup_promote (AC2/AC3).
+// determinus_followup_promote (AC2/AC3).
 function consumeFollowUps(input: {
   report: ScopedSubagentReport;
   dryRun?: boolean;
@@ -787,7 +791,7 @@ function consumeFollowUps(input: {
 // rq-opsFollowPromotion01: required follow-ups carry obligation_class,
 // severity, and source_contract_id into typed ops follow-up promotion.
 // retireAgendaWorkflow AC2: no agenda write; typed owner comes from
-// adv_followup_promote.
+// determinus_followup_promote.
 function consumeRequiredFollowUps(input: {
   report: ScopedSubagentReport;
   dryRun?: boolean;
@@ -839,7 +843,7 @@ function consumeDesignerDesignConcerns(input: {
   warnings: ConsumerWarning[];
 } {
   const { report } = input;
-  if (report.agent !== "adv-designer") {
+  if (report.agent !== "determinus-designer") {
     return { previewCount: 0, created: [], warnings: [] };
   }
 
@@ -872,7 +876,7 @@ function consumeDesignerDesignConcerns(input: {
       `Design concern ${concern.concernKey} on task ${taskId} ` +
       `(dedupe ${designConcernDedupeKey(report.change_id, taskId, concern.concernKey)}) ` +
       `is a structural acceptance/release blocker until disposed via ` +
-      `adv_design_concern_disposition.`,
+      `determinus_design_concern_disposition.`,
   }));
 
   return {
@@ -927,8 +931,8 @@ async function executeSubmit(
     );
   }
 
-  // Read fresh workflow state so durable adv_run_test evidence recorded via
-  // testRunRecordedSignal is visible: adv_run_test is cache-refresh-exempt, so a
+  // Read fresh workflow state so durable determinus_run_test evidence recorded via
+  // testRunRecordedSignal is visible: determinus_run_test is cache-refresh-exempt, so a
   // stale changeCache entry could otherwise omit just-recorded test_runs and
   // produce a false verification_missing (validator blocker).
   try {
@@ -938,7 +942,7 @@ async function executeSubmit(
   }
   const change = await loadChange(store, parsedReport.report.change_id);
   if (
-    parsedReport.report.agent === "adv-researcher" &&
+    parsedReport.report.agent === "determinus-researcher" &&
     parsedReport.report.scope.scope_key.startsWith(
       "researcher:design-validation",
     )
@@ -1166,12 +1170,12 @@ async function executeSubmit(
 }
 
 export const subagentReportTools = {
-  adv_subagent_report_submit: {
+  determinus_subagent_report_submit: {
     description:
       "Submit a typed, Zod-validated sub-agent report and persist it on the owning ADV change/task scope.",
     args: {
       report: ScopedSubagentReportSchema.describe(
-        "Typed sub-agent report payload. v1 supports adv-engineer, adv-reviewer, adv-designer, adv-researcher, adv-tron, orchestrator-submitted adv-scanner-bundle reports, and orchestrator-submitted adv-verification-triage-bundle reports. For canonical REVIEWER_REPORT shapes (READY + CONFLICT), see .opencode/agents/adv-reviewer.md § REVIEWER_REPORT Payload — discrimination is by `agent` field; each variant has distinct required fields (e.g., adv-reviewer requires scope, verification, scope_drift, required_main_agent_actions).",
+        "Typed sub-agent report payload. v1 supports determinus-engineer, determinus-reviewer, determinus-designer, determinus-researcher, determinus-tron, orchestrator-submitted determinus-scanner-bundle reports, and orchestrator-submitted determinus-verification-triage-bundle reports. For canonical REVIEWER_REPORT shapes (READY + CONFLICT), see .opencode/agents/determinus-reviewer.md § REVIEWER_REPORT Payload — discrimination is by `agent` field; each variant has distinct required fields (e.g., determinus-reviewer requires scope, verification, scope_drift, required_main_agent_actions).",
       ),
       dryRun: z
         .boolean()

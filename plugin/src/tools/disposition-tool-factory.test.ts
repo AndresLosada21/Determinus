@@ -25,7 +25,7 @@ const argumentKeys = [
 
 const expectedDescriptions = {
   design:
-    "Record a typed disposition for a design-quality concern raised by an adv-designer report (a design_dimensions concern or neighboring recommendation). Clears the structural acceptance/release block for that (taskId, concernKey). Disposition verbs: fixed | rejected_with_evidence | split | fast_follow — there is no accepted_debt path.",
+    "Record a typed disposition for a design-quality concern raised by an determinus-designer report (a design_dimensions concern or neighboring recommendation). Clears the structural acceptance/release block for that (taskId, concernKey). Disposition verbs: fixed | rejected_with_evidence | split | fast_follow — there is no accepted_debt path.",
 };
 
 function createStore(): Store {
@@ -86,7 +86,7 @@ describe("disposition tool factory contract", () => {
   test("exposes a factory and preserves exact tool metadata", () => {
     expect(createDispositionTool).toBeTypeOf("function");
 
-    const design = designConcernTools.adv_design_concern_disposition;
+    const design = designConcernTools.determinus_design_concern_disposition;
 
     expect(design.description).toBe(expectedDescriptions.design);
     expect(Object.keys(design.args)).toEqual(argumentKeys);
@@ -100,7 +100,7 @@ describe("disposition tool factory contract", () => {
   test("preserves each tool's explicit error-code set, including the typo", async () => {
     expect(
       await emittedErrorCodes(
-        designConcernTools.adv_design_concern_disposition,
+        designConcernTools.determinus_design_concern_disposition,
         "dimension:site_design_consistency",
       ),
     ).toEqual([

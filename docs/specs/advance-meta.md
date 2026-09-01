@@ -44,7 +44,7 @@ Supported internal validation or parity flows must not leave synthetic draft cha
 **Given:**
 - Supported internal validation activity has run
 
-**When:** adv_change_list with status draft or adv_status is executed on the live project
+**When:** determinus_change_list with status draft or determinus_status is executed on the live project
 
 **Then:**
 - Stale synthetic parity-validation drafts are absent from live draft results
@@ -56,7 +56,7 @@ Supported internal validation or parity flows must not leave synthetic draft cha
 
 **ID:** `rq-advcfg01` | **Priority:** **[MUST]**
 
-adv_status must surface project.json diagnostics and include parsed feature flag values so agents can see config health and runtime policy settings without opening files.
+determinus_status must surface project.json diagnostics and include parsed feature flag values so agents can see config health and runtime policy settings without opening files.
 
 #### Scenarios
 
@@ -65,7 +65,7 @@ adv_status must surface project.json diagnostics and include parsed feature flag
 **Given:**
 - project.json is malformed or schema-invalid
 
-**When:** adv_status is executed
+**When:** determinus_status is executed
 
 **Then:**
 - Output includes a config error or warning recommendation
@@ -76,7 +76,7 @@ adv_status must surface project.json diagnostics and include parsed feature flag
 **Given:**
 - project.json parses successfully
 
-**When:** adv_status is executed
+**When:** determinus_status is executed
 
 **Then:**
 - Output includes feature_flags values
@@ -90,7 +90,7 @@ adv_status must surface project.json diagnostics and include parsed feature flag
 
 **ID:** `rq-statusCliBridge01` | **Priority:** **[MUST]**
 
-The default /adv-status slash command must remain a thin OpenCode shell-output bridge over `adv status --no-color`. The CLI status command is live disk-backed by default for active change rows: it must query live ADV state before rendering, must fail closed when live state is unavailable, and must not silently render stale disk projections as current active changes. The command file must not instruct the agent to call ADV MCP status/list/show/spec tools, synthesize cross-change health, read roadmap freshness, or add recommendations. Remediation for disk/server/worker failures belongs in CLI stdout/stderr or JSON output, not in the slash-command prompt.
+The default /determinus-status slash command must remain a thin OpenCode shell-output bridge over `adv status --no-color`. The CLI status command is live disk-backed by default for active change rows: it must query live ADV state before rendering, must fail closed when live state is unavailable, and must not silently render stale disk projections as current active changes. The command file must not instruct the agent to call ADV MCP status/list/show/spec tools, synthesize cross-change health, read roadmap freshness, or add recommendations. Remediation for disk/server/worker failures belongs in CLI stdout/stderr or JSON output, not in the slash-command prompt.
 
 **Tags:** `status`, `command`, `cli`, `no-fanout`
 
@@ -99,7 +99,7 @@ The default /adv-status slash command must remain a thin OpenCode shell-output b
 **Default slash command runs live CLI table** (`rq-statusCliBridge01.1`)
 
 **Given:**
-- A user invokes /adv-status
+- A user invokes /determinus-status
 - The installed `adv` CLI is available on PATH
 
 **When:** The OpenCode command template is processed
@@ -112,22 +112,22 @@ The default /adv-status slash command must remain a thin OpenCode shell-output b
 **Default slash command forbids agent fanout** (`rq-statusCliBridge01.2`)
 
 **Given:**
-- The /adv-status command file is inspected
+- The /determinus-status command file is inspected
 
 **When:** Its default body is evaluated for status work instructions
 
 **Then:**
-- It does not instruct the agent to call adv_status, adv_change_list, adv_change_show, adv_gate_status, or adv_spec
+- It does not instruct the agent to call determinus_status, determinus_change_list, determinus_change_show, determinus_gate_status, or determinus_spec
 - It does not instruct the agent to build cross-change health, roadmap freshness, per-spec listings, or synthesized recommendations
 - It tells the agent to return the command output verbatim without analysis
 
 **Live CLI failure fails closed without stale active fallback** (`rq-statusCliBridge01.3`)
 
 **Given:**
-- The /adv-status command template runs `adv status --no-color`
+- The /determinus-status command template runs `adv status --no-color`
 - disk connection, projection lookup listing, or change projection query is unavailable or times out
 
-**When:** The default /adv-status path handles that result
+**When:** The default /determinus-status path handles that result
 
 **Then:**
 - The CLI exits non-zero and surfaces remediation in stdout/stderr or JSON
@@ -362,7 +362,7 @@ The local `adv dashboard` routine `/api/state` refresh MUST build ADV summary ca
 
 **ID:** `rq-roadmapCliBridge01` | **Priority:** **[MUST]**
 
-The /adv-roadmap command, adv roadmap CLI subcommand, adv_roadmap MCP tool, and bin/lib/roadmap implementation are retired and MUST remain absent. What's-next and portfolio-balancing requests route to /adv-triage, which uses typed ADV state plus current GitHub issue/project data.
+The /determinus-roadmap command, adv roadmap CLI subcommand, determinus_roadmap MCP tool, and bin/lib/roadmap implementation are retired and MUST remain absent. What's-next and portfolio-balancing requests route to /determinus-triage, which uses typed ADV state plus current GitHub issue/project data.
 
 **Tags:** `roadmap`, `command`, `cli`, `no-fanout`
 
@@ -376,9 +376,9 @@ The /adv-roadmap command, adv roadmap CLI subcommand, adv_roadmap MCP tool, and 
 **When:** Roadmap retirement conformance runs
 
 **Then:**
-- .opencode/command/adv-roadmap.md is absent
+- .opencode/command/determinus-roadmap.md is absent
 - bin/adv does not dispatch roadmap
-- adv_roadmap is absent from the registry and manifests
+- determinus_roadmap is absent from the registry and manifests
 - bin/lib/roadmap.ts is absent
 
 **Portfolio requests route to triage** (`rq-roadmapCliBridge01.2`)
@@ -389,7 +389,7 @@ The /adv-roadmap command, adv roadmap CLI subcommand, adv_roadmap MCP tool, and 
 **When:** ADV intent routing evaluates the request
 
 **Then:**
-- The request routes to /adv-triage
+- The request routes to /determinus-triage
 - No removed roadmap surface is recommended
 
 ---
@@ -407,7 +407,7 @@ ADV health and recovery diagnostics that probe disk, mutation paths, worker diag
 **Status health probes are coalesced and freshened** (`rq-statusProbeCache01.1`)
 
 **Given:**
-- Multiple adv_status view:health calls request disk health, queue serviceability, projection fields health, snapshot health, or worktree census within the probe TTL
+- Multiple determinus_status view:health calls request disk health, queue serviceability, projection fields health, snapshot health, or worktree census within the probe TTL
 
 **When:** The probes execute
 
@@ -433,7 +433,7 @@ ADV health and recovery diagnostics that probe disk, mutation paths, worker diag
 **Status force refresh is advisory-only** (`rq-statusProbeCache01.4`)
 
 **Given:**
-- adv_status is called with forceRefresh:true and a view that requests advisory health probes
+- determinus_status is called with forceRefresh:true and a view that requests advisory health probes
 - Fresh cached values already exist for one or more selected probes
 
 **When:** The status read executes
@@ -454,15 +454,15 @@ ADV health and recovery diagnostics that probe disk, mutation paths, worker diag
 **Then:**
 - The AbortMutation is forwarded into cancellable underlying work when the underlying operation accepts cancellation
 - Non-cancellable operations are explicitly bounded elsewhere or classified as non-cancellable diagnostic work
-- Non-cancellable expensive probes are not required for adv_status view: "summary" unless independently bounded and covered by tests
+- Non-cancellable expensive probes are not required for determinus_status view: "summary" unless independently bounded and covered by tests
 
 ---
 
-### Lean adv_status Summary Execution
+### Lean determinus_status Summary Execution
 
 **ID:** `rq-statusSummaryLazy01` | **Priority:** **[MUST]**
 
-adv_status view: "summary" must execute a summary-specific read plan instead of paying for health/hygiene-only diagnostics and cleanup work before projection. The summary plan must preserve active/recent orientation, bounded recommendations, and explicit degraded/freshness markers. Detailed health, hygiene, archived/closed leak archaeology, snapshot-health scanning, worktree cleanup retry/discovery, and similar expensive diagnostics belong in explicit health/hygiene views or dedicated tools unless proven bounded and required for summary orientation. Summary/cache/projection lookup data must not authorize gate completion, archive, recovery, repair, task mutation, contract proof, unlock, override, or other safety-critical decisions.
+determinus_status view: "summary" must execute a summary-specific read plan instead of paying for health/hygiene-only diagnostics and cleanup work before projection. The summary plan must preserve active/recent orientation, bounded recommendations, and explicit degraded/freshness markers. Detailed health, hygiene, archived/closed leak archaeology, snapshot-health scanning, worktree cleanup retry/discovery, and similar expensive diagnostics belong in explicit health/hygiene views or dedicated tools unless proven bounded and required for summary orientation. Summary/cache/projection lookup data must not authorize gate completion, archive, recovery, repair, task mutation, contract proof, unlock, override, or other safety-critical decisions.
 
 **Tags:** `status`, `latency`, `diagnostics`
 
@@ -471,7 +471,7 @@ adv_status view: "summary" must execute a summary-specific read plan instead of 
 **Summary skips health and hygiene-only providers by default** (`rq-statusSummaryLazy01.1`)
 
 **Given:**
-- adv_status is called with view: "summary"
+- determinus_status is called with view: "summary"
 
 **When:** The status read plan executes
 
@@ -483,7 +483,7 @@ adv_status view: "summary" must execute a summary-specific read plan instead of 
 **Detailed views retain diagnostics omitted by summary** (`rq-statusSummaryLazy01.2`)
 
 **Given:**
-- adv_status is called with view: "health" or view: "hygiene"
+- determinus_status is called with view: "health" or view: "hygiene"
 
 **When:** The status read plan executes
 
@@ -494,7 +494,7 @@ adv_status view: "summary" must execute a summary-specific read plan instead of 
 **Summary projections remain advisory** (`rq-statusSummaryLazy01.3`)
 
 **Given:**
-- adv_status view: "summary" uses summary, cached, or projection lookup-derived data
+- determinus_status view: "summary" uses summary, cached, or projection lookup-derived data
 
 **When:** A safety-critical mutation, gate, archive, recovery, repair, unlock, override, or contract proof decision is evaluated
 
@@ -520,7 +520,7 @@ ADV diagnostics must safely detect stale blank assistant messages and stale `run
 - The OpenCode database contains assistant messages with finish null and zero parts older than the stale threshold
 - The database also contains tool parts with `state.status` of `running` or `pending` older than the stale threshold
 
-**When:** adv_status or an ADV doctor diagnostic is executed
+**When:** determinus_status or an ADV doctor diagnostic is executed
 
 **Then:**
 - The diagnostic opens the OpenCode database read-only
@@ -564,7 +564,7 @@ ADV diagnostics must safely detect stale blank assistant messages and stale `run
 
 **Then:**
 - The diagnostic returns an unavailable/degraded result
-- adv_status continues to complete
+- determinus_status continues to complete
 - No destructive operation is attempted
 
 ---
@@ -573,7 +573,7 @@ ADV diagnostics must safely detect stale blank assistant messages and stale `run
 
 **ID:** `rq-advmeta01` | **Priority:** **[MUST]**
 
-Tasks may include optional metadata key/value pairs. adv_task_list must support has_metadata_key:<key> and metadata:<key>=<value> filters with behavior aligned between workflow-owned source-of-truth state and any derived query or index surface.
+Tasks may include optional metadata key/value pairs. determinus_task_list must support has_metadata_key:<key> and metadata:<key>=<value> filters with behavior aligned between workflow-owned source-of-truth state and any derived query or index surface.
 
 #### Scenarios
 
@@ -582,7 +582,7 @@ Tasks may include optional metadata key/value pairs. adv_task_list must support 
 **Given:**
 - A change with tasks containing metadata keys
 
-**When:** adv_task_list is called with filter has_metadata_key:<key>
+**When:** determinus_task_list is called with filter has_metadata_key:<key>
 
 **Then:**
 - Only tasks containing that metadata key are returned
@@ -592,7 +592,7 @@ Tasks may include optional metadata key/value pairs. adv_task_list must support 
 **Given:**
 - A change with tasks containing metadata key/value pairs
 
-**When:** adv_task_list is called with filter metadata:<key>=<value>
+**When:** determinus_task_list is called with filter metadata:<key>=<value>
 
 **Then:**
 - Only tasks matching both key and value are returned
@@ -635,7 +635,7 @@ On SIGINT/SIGTERM, the plugin must run a bounded flush path before close, with i
 
 **ID:** `rq-dueDiligence01` | **Priority:** **[MUST]**
 
-ADV-managed guidance (orchestrator agent text, synced overlays, and accompanying drift tests) must require source-appropriate due diligence before answering, recommending, or deciding on unknown platform, architecture, or capability questions. Diligence may use any appropriate mix of evidence sources (local code via lgrep/read, repo history or repo examples, GitHub examples, official docs, web research, or similar); the evidence bar is not a fixed source stack. Requests like "quick answer", "from your knowledge", or "don't research" may change response brevity only and must not lower the evidence bar. If required diligence cannot be completed, the response must stop and surface the blockage instead of presenting an unverified recommendation as settled.
+determinus-managed guidance (orchestrator agent text, synced overlays, and accompanying drift tests) must require source-appropriate due diligence before answering, recommending, or deciding on unknown platform, architecture, or capability questions. Diligence may use any appropriate mix of evidence sources (local code via lgrep/read, repo history or repo examples, GitHub examples, official docs, web research, or similar); the evidence bar is not a fixed source stack. Requests like "quick answer", "from your knowledge", or "don't research" may change response brevity only and must not lower the evidence bar. If required diligence cannot be completed, the response must stop and surface the blockage instead of presenting an unverified recommendation as settled.
 
 **Tags:** `research`, `due-diligence`, `routing`, `guidance`
 
@@ -644,7 +644,7 @@ ADV-managed guidance (orchestrator agent text, synced overlays, and accompanying
 **Unknown capability question triggers source-appropriate diligence** (`rq-dueDiligence01.1`)
 
 **Given:**
-- An unknown platform, architecture, or capability question is posed to an ADV-managed agent
+- An unknown platform, architecture, or capability question is posed to an determinus-managed agent
 
 **When:** The agent prepares an answer, recommendation, or decision
 
@@ -695,7 +695,7 @@ ADV-managed guidance (orchestrator agent text, synced overlays, and accompanying
 
 **ID:** `rq-proseReduction01` | **Priority:** **[MUST]**
 
-ADV instruction surfaces (ADV_INSTRUCTIONS.md, docs/command-voice-standard.md, .opencode/agents/adv.md, .opencode/command/adv-*.md) MUST classify each section by enforcement class (fully-enforced, partially-enforced, inherently-prose) and apply the matching compression template defined in docs/command-voice-standard.md § Prose-Load Reduction Rules. Sections whose behavior is fully or partially enforced by code MUST NOT contain paragraph explanations duplicating the enforced behavior; they MUST use a pointer line + constraint table format.
+ADV instruction surfaces (determinus_INSTRUCTIONS.md, docs/command-voice-standard.md, .opencode/agents/adv.md, .opencode/command/determinus-*.md) MUST classify each section by enforcement class (fully-enforced, partially-enforced, inherently-prose) and apply the matching compression template defined in docs/command-voice-standard.md § Prose-Load Reduction Rules. Sections whose behavior is fully or partially enforced by code MUST NOT contain paragraph explanations duplicating the enforced behavior; they MUST use a pointer line + constraint table format.
 
 **Tags:** `prose-reduction`, `instruction-surfaces`, `compression`
 
@@ -730,7 +730,7 @@ ADV instruction surfaces (ADV_INSTRUCTIONS.md, docs/command-voice-standard.md, .
 
 **ID:** `rq-providerAdvSkinny01` | **Priority:** **[MUST]**
 
-ADV must expose one canonical lean ADV runtime prompt while preserving provider-specific guidance through runtime system-block hint injection. deploy-local.sh must not append the full ADV_INSTRUCTIONS.md protocol reference into global adv.md, require generated adv-{provider}.md runtime agents, or create concatenated provider prompt files. Provider hints must be selected from structured provider/model context and emitted through the existing single-system-entry system block path.
+ADV must expose one canonical lean ADV runtime prompt while preserving provider-specific guidance through runtime system-block hint injection. deploy-local.sh must not append the full determinus_INSTRUCTIONS.md protocol reference into global adv.md, require generated determinus-{provider}.md runtime agents, or create concatenated provider prompt files. Provider hints must be selected from structured provider/model context and emitted through the existing single-system-entry system block path.
 
 **Tags:** `provider-adv`, `prompt-parts`, `sync`
 
@@ -745,17 +745,17 @@ ADV must expose one canonical lean ADV runtime prompt while preserving provider-
 
 **Then:**
 - Global adv.md is the complete lean runtime ADV agent
-- Global adv.md is assembled from the canonical runtime agent source without wholesale ADV_INSTRUCTIONS.md append
+- Global adv.md is assembled from the canonical runtime agent source without wholesale determinus_INSTRUCTIONS.md append
 - Runtime-critical protocol removed or compressed from global adv.md is covered by a runtime protocol coverage inventory, retained runtime text, code/spec enforcement, or command-contract ownership
-- Global adv-{provider}.md files are not generated as required runtime artifacts
-- Concatenated provider prompt files are not generated as required runtime artifacts at agent-parts/advance/adv-{provider}.md
-- agent.adv-{provider}.prompt refs are not written by deploy-local.sh
+- Global determinus-{provider}.md files are not generated as required runtime artifacts
+- Concatenated provider prompt files are not generated as required runtime artifacts at agent-parts/advance/determinus-{provider}.md
+- agent.determinus-{provider}.prompt refs are not written by deploy-local.sh
 - Generic adv visibility is not disabled because of retired provider variants
 
 **Stale generated provider artifacts are removed or reported** (`rq-providerAdvSkinny01.1a`)
 
 **Given:**
-- A stale generated adv-{provider}.md file or concatenated provider prompt file exists from the retired provider-variant architecture
+- A stale generated determinus-{provider}.md file or concatenated provider prompt file exists from the retired provider-variant architecture
 
 **When:** scripts/deploy-local.sh --fix runs
 
@@ -783,7 +783,7 @@ ADV must expose one canonical lean ADV runtime prompt while preserving provider-
 
 **ID:** `rq-providerAdvMetrics01` | **Priority:** **[MUST]**
 
-Provider ADV evaluation must report prompt-size planes for the single-agent architecture: lean ADV runtime prompt size, ADV reference protocol size, provider hint size, dynamic ADV system-block estimate, global voice-contract allowance, selected runtime prompt size, and removed or avoided provider-variant duplication. Metrics must be coverage-first reporting and must not require generated adv-{provider}.md files as canonical inputs or impose a hard prompt-size cap as correctness proof.
+Provider ADV evaluation must report prompt-size planes for the single-agent architecture: lean ADV runtime prompt size, ADV reference protocol size, provider hint size, dynamic ADV system-block estimate, global voice-contract allowance, selected runtime prompt size, and removed or avoided provider-variant duplication. Metrics must be coverage-first reporting and must not require generated determinus-{provider}.md files as canonical inputs or impose a hard prompt-size cap as correctness proof.
 
 **Tags:** `provider-adv`, `metrics`, `prompt-size`
 
@@ -797,10 +797,10 @@ Provider ADV evaluation must report prompt-size planes for the single-agent arch
 **When:** The provider evaluation harness reports prompt size metrics
 
 **Then:**
-- Metrics include lean_adv_runtime_prompt bytes and lines
-- Metrics include adv_reference_protocol bytes and lines
+- Metrics include lean_determinus_runtime_prompt bytes and lines
+- Metrics include determinus_reference_protocol bytes and lines
 - Metrics include provider hint bytes and lines
-- Metrics include adv_dynamic_system_block_estimate bytes and lines
+- Metrics include determinus_dynamic_system_block_estimate bytes and lines
 - Metrics include voice_contract_allowance bytes and lines
 - Metrics include selected_agent_runtime_prompt bytes and lines for the composed single ADV prompt plus one runtime provider hint
 - Metrics include removed or avoided provider-variant duplication when measurable
@@ -941,7 +941,7 @@ Skill files under skills/*/SKILL.md MUST use the same enforcement-class compress
 
 **ID:** `rq-skillClassification01` | **Priority:** **[MUST]**
 
-Commands backed by dedicated or shared skills MUST be listed in ADV_INSTRUCTIONS.md § Command vs Skill Boundaries so command/skill ownership stays explicit and drift is reviewable.
+Commands backed by dedicated or shared skills MUST be listed in determinus_INSTRUCTIONS.md § Command vs Skill Boundaries so command/skill ownership stays explicit and drift is reviewable.
 
 **Tags:** `skills`, `classification`, `instructions`
 
@@ -955,7 +955,7 @@ Commands backed by dedicated or shared skills MUST be listed in ADV_INSTRUCTIONS
 **When:** Extraction is complete
 
 **Then:**
-- ADV_INSTRUCTIONS.md § Command vs Skill Boundaries lists the command under Dedicated skill or Shared skill
+- determinus_INSTRUCTIONS.md § Command vs Skill Boundaries lists the command under Dedicated skill or Shared skill
 - The row includes the skill identifier
 - The command is not listed as Command-only
 
@@ -1001,7 +1001,7 @@ ADV runtime command guidance MUST NOT require agents to read Advance source or i
 
 **ID:** `rq-contextShed01` | **Priority:** **[MUST]**
 
-Delegation routing tables in ADV_INSTRUCTIONS.md and adv-apply.md MUST include step 4.5 (Context-Shed Test) between risk-signal check (step 4) and default fallback (step 5). The test is a 4-question AND-conjunctive heuristic: (1) orchestrator already made design/architectural decisions for this task, (2) task's HOW does not feed into a downstream task's decisions, (3) acceptance criteria are fully defined before delegation, (4) task is mechanical implementation of a decided plan. All four must pass for delegate_allowed. Gated by floor: ~5 files touched OR ~50 lines changed. Conservative bias: when uncertain, default to inline_required. Step 4.5 MUST NOT override step 1 (human delegation_hint) or step 4 (risk signals).
+Delegation routing tables in determinus_INSTRUCTIONS.md and determinus-apply.md MUST include step 4.5 (Context-Shed Test) between risk-signal check (step 4) and default fallback (step 5). The test is a 4-question AND-conjunctive heuristic: (1) orchestrator already made design/architectural decisions for this task, (2) task's HOW does not feed into a downstream task's decisions, (3) acceptance criteria are fully defined before delegation, (4) task is mechanical implementation of a decided plan. All four must pass for delegate_allowed. Gated by floor: ~5 files touched OR ~50 lines changed. Conservative bias: when uncertain, default to inline_required. Step 4.5 MUST NOT override step 1 (human delegation_hint) or step 4 (risk signals).
 
 **Tags:** `delegation`, `routing`, `context-shed`, `orchestrator`
 
@@ -1010,8 +1010,8 @@ Delegation routing tables in ADV_INSTRUCTIONS.md and adv-apply.md MUST include s
 **Step 4.5 inserted between step 4 and step 5 in both routing tables** (`rq-contextShed01.1`)
 
 **Given:**
-- ADV_INSTRUCTIONS.md contains the Delegation Routing table
-- adv-apply.md contains the Delegation Routing table
+- determinus_INSTRUCTIONS.md contains the Delegation Routing table
+- determinus-apply.md contains the Delegation Routing table
 
 **When:** The routing tables are inspected
 
@@ -1062,7 +1062,7 @@ Delegation routing tables in ADV_INSTRUCTIONS.md and adv-apply.md MUST include s
 
 **ID:** `rq-contextShed02` | **Priority:** **[MUST]**
 
-The adv.md orchestrator agent's Context-Optimal Execution section MUST include context-shed delegation criteria as prose bullets (NOT a routing table). Wording must reference the 4-question AND test and floor threshold. Additionally, adv-apply.md Task Flow MUST include a post-delegation P23 campsite-rule diff-scan step that checks same-pattern local subsystem issues after a delegated task returns, applying small/safe/local fixes inline and documenting scope-expanding findings as follow-ups without auto-fixing.
+The adv.md orchestrator agent's Context-Optimal Execution section MUST include context-shed delegation criteria as prose bullets (NOT a routing table). Wording must reference the 4-question AND test and floor threshold. Additionally, determinus-apply.md Task Flow MUST include a post-delegation P23 campsite-rule diff-scan step that checks same-pattern local subsystem issues after a delegated task returns, applying small/safe/local fixes inline and documenting scope-expanding findings as follow-ups without auto-fixing.
 
 **Tags:** `delegation`, `orchestrator`, `campsite-rule`, `context-shed`
 
@@ -1080,10 +1080,10 @@ The adv.md orchestrator agent's Context-Optimal Execution section MUST include c
 - The section does NOT contain a markdown routing table (no | pipe characters in table format)
 - The criteria reference the 4-question AND test and floor threshold
 
-**adv-apply.md contains post-delegation P23 diff-scan step** (`rq-contextShed02.2`)
+**determinus-apply.md contains post-delegation P23 diff-scan step** (`rq-contextShed02.2`)
 
 **Given:**
-- The adv-apply.md Task Flow is inspected
+- The determinus-apply.md Task Flow is inspected
 
 **When:** Post-delegation steps are checked
 
@@ -1101,9 +1101,9 @@ The adv.md orchestrator agent's Context-Optimal Execution section MUST include c
 **When:** Context-shed assertions are evaluated
 
 **Then:**
-- ADV_INSTRUCTIONS.md and adv-apply.md delegation tables contain step 4.5 with matching wording
+- determinus_INSTRUCTIONS.md and determinus-apply.md delegation tables contain step 4.5 with matching wording
 - adv.md Context-Optimal Execution section contains context-shed tokens without table pipe characters
-- adv-apply.md contains P23 diff-scan step tokens
+- determinus-apply.md contains P23 diff-scan step tokens
 
 ---
 
@@ -1111,7 +1111,7 @@ The adv.md orchestrator agent's Context-Optimal Execution section MUST include c
 
 **ID:** `rq-orchestratorOpsDelegation01` | **Priority:** **[MUST]**
 
-The primary adv orchestrator SHOULD delegate broad operational work before repeating expensive primary-context cycles, while retaining all ADV authority boundaries. Operational work includes expected >5 file reads/searches, repo structure/dependency/same-pattern scans, DB/log/status/usage audits, GitHub CI/check-run/status investigation, repeated verify/test bursts, local verification bursts, CI/check-run failures, and known-scope code edits. Repeated local verification bursts and CI/check-run failures should route through structured verification triage before a second primary digest cycle when the next step is authority-free; local verify-only bursts route to adv-verifier with general fallback only when adv-verifier is unavailable. The no second primary-cycle rule applies when another recon/shell/test/CI-check cycle is needed and the next step is authority-free. Delegation guidance is instruction/spec/test-level only: adv.md Context-Optimal Execution carries prose-only guidance, ADV_INSTRUCTIONS.md carries the single orchestrator-session operational routing table, and adv-apply.md task-level Step 4.5 routing remains unchanged. The primary adv must keep gate completion, task-graph mutation, checkpoint/archive/sign-off, scope-drift, contract-compromise, safety, release, and user-facing synthesis authority. Operational routing must not make general the ADV code-writing default; code-edit rows route to adv-engineer or adv-designer by scope.
+The primary adv orchestrator SHOULD delegate broad operational work before repeating expensive primary-context cycles, while retaining all ADV authority boundaries. Operational work includes expected >5 file reads/searches, repo structure/dependency/same-pattern scans, DB/log/status/usage audits, GitHub CI/check-run/status investigation, repeated verify/test bursts, local verification bursts, CI/check-run failures, and known-scope code edits. Repeated local verification bursts and CI/check-run failures should route through structured verification triage before a second primary digest cycle when the next step is authority-free; local verify-only bursts route to determinus-verifier with general fallback only when determinus-verifier is unavailable. The no second primary-cycle rule applies when another recon/shell/test/CI-check cycle is needed and the next step is authority-free. Delegation guidance is instruction/spec/test-level only: adv.md Context-Optimal Execution carries prose-only guidance, determinus_INSTRUCTIONS.md carries the single orchestrator-session operational routing table, and determinus-apply.md task-level Step 4.5 routing remains unchanged. The primary adv must keep gate completion, task-graph mutation, checkpoint/archive/sign-off, scope-drift, contract-compromise, safety, release, and user-facing synthesis authority. Operational routing must not make general the ADV code-writing default; code-edit rows route to determinus-engineer or determinus-designer by scope.
 
 **Tags:** `delegation`, `orchestrator`, `operations`, `context-shed`
 
@@ -1135,15 +1135,15 @@ The primary adv orchestrator SHOULD delegate broad operational work before repea
 **Given:**
 - The primary adv expects broad operational work outside a task graph item
 
-**When:** The work matches a routing trigger in ADV_INSTRUCTIONS.md
+**When:** The work matches a routing trigger in determinus_INSTRUCTIONS.md
 
 **Then:**
 - >5 file reads/searches routes to explore
-- Repo structure, dependency map, or same-pattern scan routes to explore or adv-tron
+- Repo structure, dependency map, or same-pattern scan routes to explore or determinus-tron
 - DB/log/status/usage audit routes to general
 - GitHub CI / check-run / status investigation routes to general
-- Repeated verify/test bursts route to adv-verifier, with general fallback only when adv-verifier is unavailable
-- Code edits after task scope is known route to adv-engineer, or adv-designer for frontend/component scope
+- Repeated verify/test bursts route to determinus-verifier, with general fallback only when determinus-verifier is unavailable
+- Code edits after task scope is known route to determinus-engineer, or determinus-designer for frontend/component scope
 
 **No second primary operational cycle before delegation** (`rq-orchestratorOpsDelegation01.3`)
 
@@ -1171,22 +1171,22 @@ The primary adv orchestrator SHOULD delegate broad operational work before repea
 - The section contains no markdown routing table
 - The section contains no pipe characters
 
-**ADV_INSTRUCTIONS.md owns the operational routing table** (`rq-orchestratorOpsDelegation01.5`)
+**determinus_INSTRUCTIONS.md owns the operational routing table** (`rq-orchestratorOpsDelegation01.5`)
 
 **Given:**
-- ADV_INSTRUCTIONS.md is inspected
+- determinus_INSTRUCTIONS.md is inspected
 
 **When:** Operational delegation routing guidance is checked
 
 **Then:**
-- ADV_INSTRUCTIONS.md contains a clearly labeled Orchestrator-Session Operational Routing table
+- determinus_INSTRUCTIONS.md contains a clearly labeled Orchestrator-Session Operational Routing table
 - The table contains a GitHub CI / check-run / status investigation row mapped to general
-- The table routes code-edit rows to adv-engineer or adv-designer, not general
-- adv-apply.md does not duplicate the operational routing table
+- The table routes code-edit rows to determinus-engineer or determinus-designer, not general
+- determinus-apply.md does not duplicate the operational routing table
 
 ---
 
-### adv_archive_purge tool
+### determinus_archive_purge tool
 
 **ID:** `rq-archivePurge01` | **Priority:** **[MUST]**
 
@@ -1199,29 +1199,29 @@ ADV must provide an explicit user-side lever to purge an archived change's archi
 **Given:**
 - An archived change with an existing archive/<id>/change.json bundle on disk
 
-**When:** adv_archive_purge changeId: <id> is invoked without includeDiskBundle
+**When:** determinus_archive_purge changeId: <id> is invoked without includeDiskBundle
 
 **Then:**
 - The on-disk archive bundle is preserved
-- adv_change_show for the changeId returns content from the on-disk projection
+- determinus_change_show for the changeId returns content from the on-disk projection
 
 **Opt-in includeDiskBundle removes disk artifacts** (`rq-archivePurge01.2`)
 
 **Given:**
 - An archived change with a disk bundle
 
-**When:** adv_archive_purge changeId: <id> includeDiskBundle: true is invoked
+**When:** determinus_archive_purge changeId: <id> includeDiskBundle: true is invoked
 
 **Then:**
 - The archive/<id>/ directory is recursively removed from disk
-- Subsequent adv_change_show returns the existing not-found error path
+- Subsequent determinus_change_show returns the existing not-found error path
 
 **Refuses non-archived or unknown changes** (`rq-archivePurge01.3`)
 
 **Given:**
 - A change in active status, OR a changeId that does not exist in the archive
 
-**When:** adv_archive_purge is invoked
+**When:** determinus_archive_purge is invoked
 
 **Then:**
 - The tool returns a structured error and makes no state mutations
@@ -1247,12 +1247,12 @@ The plugin's safety-net wrapper has a default 10s timeout (DEFAULT_TOOL_TIMEOUT_
 - The registration uses safeExecute with an explicit { timeoutMs: N } where N is sufficient for the inner budget plus modest headroom
 - A code comment cites the inner-budget rationale and references this requirement
 
-**adv_doctor disk recovery uses bounded verified recovery** (`rq-toolTimeoutOverride01.2`)
+**determinus_doctor disk recovery uses bounded verified recovery** (`rq-toolTimeoutOverride01.2`)
 
 **Given:**
 - A bounded disk recovery is requested for the current project
 
-**When:** adv_doctor applies a safe disk fix
+**When:** determinus_doctor applies a safe disk fix
 
 **Then:**
 - The tool waits up to the configured verification budget (default 10s) for the expected disk condition to become verifiable
@@ -1262,11 +1262,11 @@ The plugin's safety-net wrapper has a default 10s timeout (DEFAULT_TOOL_TIMEOUT_
 
 ---
 
-### adv_change_bulk_close composes disk sweep
+### determinus_change_bulk_close composes disk sweep
 
 **ID:** `rq-bulkCloseDiskSweep01` | **Priority:** **[MUST]**
 
-After a successful adv_change_bulk_close, both workflow state and the on-disk change projection (changes/<id>/change.json) MUST be removed in the same call for changes whose individual close succeeded. Per-id outcomes are reported in diskRemoved and diskFailed arrays in the response. Mid-flight workflow-close failure preserves source dirs as the orphan-sweep recovery path.
+After a successful determinus_change_bulk_close, both workflow state and the on-disk change projection (changes/<id>/change.json) MUST be removed in the same call for changes whose individual close succeeded. Per-id outcomes are reported in diskRemoved and diskFailed arrays in the response. Mid-flight workflow-close failure preserves source dirs as the orphan-sweep recovery path.
 
 #### Scenarios
 
@@ -1275,7 +1275,7 @@ After a successful adv_change_bulk_close, both workflow state and the on-disk ch
 **Given:**
 - Multiple draft changes selected for closure with explicit user approval
 
-**When:** adv_change_bulk_close is invoked and the underlying closeBatch succeeds
+**When:** determinus_change_bulk_close is invoked and the underlying closeBatch succeeds
 
 **Then:**
 - Each closed change's source directory is removed via sweepClosedChangesFromDisk
@@ -1299,7 +1299,7 @@ After a successful adv_change_bulk_close, both workflow state and the on-disk ch
 
 **ID:** `rq-testFixtureProjectId01` | **Priority:** **[MUST]**
 
-During vitest runs (process.env.VITEST === 'true' or process.env.ADV_TEST_MODE === '1'), getProjectId MUST NOT resolve to a real git root commit SHA from a fixture path. For a real-git directory it returns a path-derived synthetic ID with a recognizable prefix; for a non-git fixture it returns null (preserving the legacy in-repo path fallback). This prevents test fixtures from leaking state into a real ADV project's external state directory.
+During vitest runs (process.env.VITEST === 'true' or process.env.determinus_TEST_MODE === '1'), getProjectId MUST NOT resolve to a real git root commit SHA from a fixture path. For a real-git directory it returns a path-derived synthetic ID with a recognizable prefix; for a non-git fixture it returns null (preserving the legacy in-repo path fallback). This prevents test fixtures from leaking state into a real ADV project's external state directory.
 
 #### Scenarios
 
@@ -1354,7 +1354,7 @@ Multi-session state writes against the same change MUST serialize through commit
 
 **Given:**
 - Two or more OpenCode sessions sharing the same ADV project are active
-- Each session issues an ADV-mutating tool call (for example adv_change_update or adv_task_update) against the same change concurrently
+- Each session issues an determinus-mutating tool call (for example determinus_change_update or determinus_task_update) against the same change concurrently
 
 **When:** The plugin processes the concurrent updates
 
@@ -1377,7 +1377,7 @@ Multi-session state writes against the same change MUST serialize through commit
 - Mutation commits preserve deterministic revision and operation identity ordering
 - No mutator depends on Date.now(), floating-point math, or process-local state
 
-**ADV-mutating tools must not use client-side soft locks for cross-session coordination** (`rq-multiSessionCoordination01.3`)
+**determinus-mutating tools must not use client-side soft locks for cross-session coordination** (`rq-multiSessionCoordination01.3`)
 
 **Given:**
 - The set of ADV tools whose execution mode is authoritative is inspected
@@ -1385,7 +1385,7 @@ Multi-session state writes against the same change MUST serialize through commit
 **When:** Their implementation is reviewed
 
 **Then:**
-- No ADV-mutating tool uses an unscoped JSONL sidecar lock or process-local mutex as a substitute for the projection authority
+- No determinus-mutating tool uses an unscoped JSONL sidecar lock or process-local mutex as a substitute for the projection authority
 - The per-change advisory lock is used only inside commitChangeProjection; git-worktree locking remains separate
 - All cross-session coordination flows through verified disk projection commits
 
@@ -1395,7 +1395,7 @@ Multi-session state writes against the same change MUST serialize through commit
 
 **ID:** `rq-worktreeRegistry01` | **Priority:** **[MUST]**
 
-Worktree state for ADV-managed worktrees MUST live inside durable change projections and be available through the bounded worktree registry read model. Sidecar SQLite databases or JSONL files MUST NOT be the authoritative source for worktree state. Cross-session reads MUST observe the same registry contents.
+Worktree state for determinus-managed worktrees MUST live inside durable change projections and be available through the bounded worktree registry read model. Sidecar SQLite databases or JSONL files MUST NOT be the authoritative source for worktree state. Cross-session reads MUST observe the same registry contents.
 
 **Tags:** `worktree`, `registry`, `state-authority`, `disk`
 
@@ -1404,7 +1404,7 @@ Worktree state for ADV-managed worktrees MUST live inside durable change project
 **Worktree create persists state into change change projection worktree state** (`rq-worktreeRegistry01.1`)
 
 **Given:**
-- A session invokes adv_worktree_create with a branch name
+- A session invokes determinus_worktree_create with a branch name
 
 **When:** The create flow completes successfully
 
@@ -1441,11 +1441,11 @@ Worktree state for ADV-managed worktrees MUST live inside durable change project
 
 ---
 
-### adv_worktree_create reuses existing change worktree before create
+### determinus_worktree_create reuses existing change worktree before create
 
 **ID:** `rq-worktreeReuse01` | **Priority:** **[MUST]**
 
-When adv_worktree_create is invoked for a branch that already has a registered git worktree (canonically `change/<change-id>`), the tool MUST detect and reuse the existing worktree before invoking `git worktree add`. If the branch record exists in git but the on-disk path is missing, the tool MUST prune the stale git worktree metadata before creating a fresh worktree. The tool MUST NOT recommend in-place edits as a fallback path; missing workflow access surfaces as a structured failure with a recommended next action.
+When determinus_worktree_create is invoked for a branch that already has a registered git worktree (canonically `change/<change-id>`), the tool MUST detect and reuse the existing worktree before invoking `git worktree add`. If the branch record exists in git but the on-disk path is missing, the tool MUST prune the stale git worktree metadata before creating a fresh worktree. The tool MUST NOT recommend in-place edits as a fallback path; missing workflow access surfaces as a structured failure with a recommended next action.
 
 **Tags:** `worktree`, `reuse`, `preflight`, `recovery`
 
@@ -1457,7 +1457,7 @@ When adv_worktree_create is invoked for a branch that already has a registered g
 - A git worktree already exists for the requested branch (for example refs/heads/change/<change-id>)
 - The on-disk worktree path is present
 
-**When:** adv_worktree_create is invoked for that branch
+**When:** determinus_worktree_create is invoked for that branch
 
 **Then:**
 - The tool returns success with the existing path, branch, baseRef, and headSha
@@ -1471,7 +1471,7 @@ When adv_worktree_create is invoked for a branch that already has a registered g
 - A git worktree branch entry exists for the requested branch
 - The on-disk worktree path is missing
 
-**When:** adv_worktree_create is invoked for that branch
+**When:** determinus_worktree_create is invoked for that branch
 
 **Then:**
 - The tool prunes the stale git worktree metadata (`git worktree prune` or equivalent)
@@ -1484,7 +1484,7 @@ When adv_worktree_create is invoked for a branch that already has a registered g
 
 **ID:** `rq-multiSessionFraming01` | **Priority:** **[MUST]**
 
-Production ADV code and ADV-managed instruction surfaces must frame multi-session as a supported design center, not as a hazard. The legacy [ADV:WARN] Concurrent OpenCode sessions detected warning is forbidden in production code. ADV_INSTRUCTIONS.md must contain the Multi-Session Coordination section, and the canonical status-marker table must list [ADV:PEER_SESSIONS].
+Production ADV code and determinus-managed instruction surfaces must frame multi-session as a supported design center, not as a hazard. The legacy [ADV:WARN] Concurrent OpenCode sessions detected warning is forbidden in production code. determinus_INSTRUCTIONS.md must contain the Multi-Session Coordination section, and the canonical status-marker table must list [ADV:PEER_SESSIONS].
 
 **Tags:** `multi-session`, `framing`, `instruction-surfaces`, `status-markers`
 
@@ -1502,10 +1502,10 @@ Production ADV code and ADV-managed instruction surfaces must frame multi-sessio
 - The diagnostic does not use the [ADV:WARN] Concurrent OpenCode sessions detected wording
 - The wording does not describe multi-session as a hazard or race condition
 
-**ADV_INSTRUCTIONS contains Multi-Session Coordination, not Concurrent Session Hazard** (`rq-multiSessionFraming01.2`)
+**determinus_INSTRUCTIONS contains Multi-Session Coordination, not Concurrent Session Hazard** (`rq-multiSessionFraming01.2`)
 
 **Given:**
-- ADV_INSTRUCTIONS.md is inspected
+- determinus_INSTRUCTIONS.md is inspected
 
 **When:** The relevant section is read
 
@@ -1517,7 +1517,7 @@ Production ADV code and ADV-managed instruction surfaces must frame multi-sessio
 **Status-marker table lists [ADV:PEER_SESSIONS] as informational** (`rq-multiSessionFraming01.3`)
 
 **Given:**
-- The canonical status-marker table in ADV_INSTRUCTIONS.md is inspected
+- The canonical status-marker table in determinus_INSTRUCTIONS.md is inspected
 
 **When:** The table rows are read
 
@@ -1532,7 +1532,7 @@ Production ADV code and ADV-managed instruction surfaces must frame multi-sessio
 
 **ID:** `rq-scopedAdvInstructions01` | **Priority:** **[MUST]**
 
-ADV protocol must be scoped to the single ADV runtime agent without globally registering ADV_INSTRUCTIONS.md in opencode.json instructions[]. The runtime prompt must stay complete through a lean ADV runtime prompt plus runtime protocol coverage inventory, retained text, code/spec enforcement, and command-contract ownership rather than wholesale ADV_INSTRUCTIONS.md concatenation. Sync and setup flows must preserve unrelated global instructions while removing legacy ADV_INSTRUCTIONS.md entries so non-ADV agents avoid ADV protocol prompt tax.
+ADV protocol must be scoped to the single ADV runtime agent without globally registering determinus_INSTRUCTIONS.md in opencode.json instructions[]. The runtime prompt must stay complete through a lean ADV runtime prompt plus runtime protocol coverage inventory, retained text, code/spec enforcement, and command-contract ownership rather than wholesale determinus_INSTRUCTIONS.md concatenation. Sync and setup flows must preserve unrelated global instructions while removing legacy determinus_INSTRUCTIONS.md entries so non-ADV agents avoid ADV protocol prompt tax.
 
 **Tags:** `instructions`, `deploy-local`, `prompt-scope`, `provider-agents`
 
@@ -1547,13 +1547,13 @@ ADV protocol must be scoped to the single ADV runtime agent without globally reg
 
 **Then:**
 - The content is the complete lean ADV runtime prompt
-- The content does not include a wholesale ADV_INSTRUCTIONS.md protocol-reference append
+- The content does not include a wholesale determinus_INSTRUCTIONS.md protocol-reference append
 - Removed or compressed runtime protocol is mapped in a runtime protocol coverage inventory to retained runtime text, code/spec enforcement, command contracts, or reference-only material
 - The content does not include provider-specific runtime hints
 - Provider hints are supplied only by the runtime system-block injection path
-- The effective static prompt is the canonical lean ADV runtime prompt; ADV_INSTRUCTIONS.md remains the full repo/dev reference source
+- The effective static prompt is the canonical lean ADV runtime prompt; determinus_INSTRUCTIONS.md remains the full repo/dev reference source
 
-**Global config excludes ADV_INSTRUCTIONS.md** (`rq-scopedAdvInstructions01.2`)
+**Global config excludes determinus_INSTRUCTIONS.md** (`rq-scopedAdvInstructions01.2`)
 
 **Given:**
 - scripts/deploy-local.sh --fix manages a global opencode.json config
@@ -1562,9 +1562,9 @@ ADV protocol must be scoped to the single ADV runtime agent without globally reg
 
 **Then:**
 - The plugin path remains registered in plugin[]
-- The repository ADV_INSTRUCTIONS.md path is absent from instructions[]
-- Any stale global-copy ADV_INSTRUCTIONS.md path is absent from instructions[]
-- scripts/deploy-local.sh --check treats ADV_INSTRUCTIONS.md presence in instructions[] as drift
+- The repository determinus_INSTRUCTIONS.md path is absent from instructions[]
+- Any stale global-copy determinus_INSTRUCTIONS.md path is absent from instructions[]
+- scripts/deploy-local.sh --check treats determinus_INSTRUCTIONS.md presence in instructions[] as drift
 
 **Non-ADV prompt surfaces do not carry ADV protocol markers** (`rq-scopedAdvInstructions01.3`)
 
@@ -1574,19 +1574,19 @@ ADV protocol must be scoped to the single ADV runtime agent without globally reg
 **When:** Their prompt or instruction content is checked for ADV protocol-only markers
 
 **Then:**
-- Markers unique to ADV_INSTRUCTIONS.md such as ## TDD Protocol (RSTC) or ## Critical Protocols are absent
+- Markers unique to determinus_INSTRUCTIONS.md such as ## TDD Protocol (RSTC) or ## Critical Protocols are absent
 - Non-ADV prompts remain self-contained for any rules they reference
-- No non-ADV agent depends on hidden ADV_INSTRUCTIONS.md sections for correctness
+- No non-ADV agent depends on hidden determinus_INSTRUCTIONS.md sections for correctness
 
 **Unrelated global instructions are preserved during migration** (`rq-scopedAdvInstructions01.4`)
 
 **Given:**
-- opencode.json instructions[] contains unrelated user or organization instruction files alongside a legacy ADV_INSTRUCTIONS.md entry
+- opencode.json instructions[] contains unrelated user or organization instruction files alongside a legacy determinus_INSTRUCTIONS.md entry
 
 **When:** scripts/deploy-local.sh --fix runs
 
 **Then:**
-- Only ADV_INSTRUCTIONS.md entries managed by ADV are removed from instructions[]
+- Only determinus_INSTRUCTIONS.md entries managed by ADV are removed from instructions[]
 - Unrelated instruction entries remain in their existing order
 - The resulting config remains valid JSON and is accepted by check mode
 
@@ -1596,7 +1596,7 @@ ADV protocol must be scoped to the single ADV runtime agent without globally reg
 
 **ID:** `rq-twf01` | **Priority:** **[MUST]**
 
-When features.worktree_guard_enforce is true (default) or omitted, the plugin MUST intercept direct file-write tool calls and known destructive bash write patterns via the tool.execute.before hook and block writes into the trunk checkout when HEAD is the default branch. When features.worktree_guard_enforce is explicitly false, the trunk write firewall MUST allow direct file-write tools and known destructive bash write patterns in the trunk checkout (legacy escape hatch). In strict mode, the firewall MUST allow writes inside ADV worktrees, outside git checkouts, and during explicit git recovery states (merge, rebase, cherry-pick, revert). Trunk evaluation is target-relative: each write target MUST be evaluated against the git worktree topology of the repository that owns the target, so a foreign repository's main (non-linked) checkout on its own default branch MUST be blocked exactly like the session project's trunk checkout, and a linked, non-prunable worktree of any repository MUST be allowed. Foreign-target defaults are conservative: when the target repository's worktree topology cannot be probed, the resolved git root MUST be evaluated as its own main checkout, and stale (prunable) worktree topology entries MUST NOT confer worktree eligibility on write targets. A narrow allowlist of ADV-generated trunk artifacts (ROADMAP.md, CHANGELOG.md, .adv/github-project.json, .adv/roadmap-snapshot.json) MAY bypass the block only as exact root-relative paths at the target repository's main checkout root; nested paths are never exempt. Git commands MUST NOT be classified or blocked by this firewall; P32 is enforced by where files are edited, not by restricting git operations. Shell indirection and script-internal writes are accepted residual risk documented in ADV instructions.
+When features.worktree_guard_enforce is true (default) or omitted, the plugin MUST intercept direct file-write tool calls and known destructive bash write patterns via the tool.execute.before hook and block writes into the trunk checkout when HEAD is the default branch. When features.worktree_guard_enforce is explicitly false, the trunk write firewall MUST allow direct file-write tools and known destructive bash write patterns in the trunk checkout (legacy escape hatch). In strict mode, the firewall MUST allow writes inside ADV worktrees, outside git checkouts, and during explicit git recovery states (merge, rebase, cherry-pick, revert). Trunk evaluation is target-relative: each write target MUST be evaluated against the git worktree topology of the repository that owns the target, so a foreign repository's main (non-linked) checkout on its own default branch MUST be blocked exactly like the session project's trunk checkout, and a linked, non-prunable worktree of any repository MUST be allowed. Foreign-target defaults are conservative: when the target repository's worktree topology cannot be probed, the resolved git root MUST be evaluated as its own main checkout, and stale (prunable) worktree topology entries MUST NOT confer worktree eligibility on write targets. A narrow allowlist of determinus-generated trunk artifacts (ROADMAP.md, CHANGELOG.md, .adv/github-project.json, .adv/roadmap-snapshot.json) MAY bypass the block only as exact root-relative paths at the target repository's main checkout root; nested paths are never exempt. Git commands MUST NOT be classified or blocked by this firewall; P32 is enforced by where files are edited, not by restricting git operations. Shell indirection and script-internal writes are accepted residual risk documented in ADV instructions.
 
 **Tags:** `git`, `worktree`, `firewall`, `trunk`, `safety`
 
@@ -1701,7 +1701,7 @@ When features.worktree_guard_enforce is true (default) or omitted, the plugin MU
 
 **Then:**
 - The firewall may not detect the indirect write target
-- This limitation is documented in ADV_INSTRUCTIONS.md as accepted residual risk
+- This limitation is documented in determinus_INSTRUCTIONS.md as accepted residual risk
 - ADV instruction surfaces still prohibit intentional trunk-checkout file writes outside worktrees
 
 **Foreign main checkout blocked on its own default branch** (`rq-twf01.8`)
@@ -1746,7 +1746,7 @@ When features.worktree_guard_enforce is true (default) or omitted, the plugin MU
 - The target is evaluated on its own merits against its resolved git root
 - A default-branch HEAD in that checkout blocks the write
 
-**ADV-generated artifacts allowed only as exact target-root paths** (`rq-twf01.11`)
+**determinus-generated artifacts allowed only as exact target-root paths** (`rq-twf01.11`)
 
 **Given:**
 - features.worktree_guard_enforce is true (default) or omitted
@@ -1762,11 +1762,11 @@ When features.worktree_guard_enforce is true (default) or omitted, the plugin MU
 
 ---
 
-### clarify_enforcement flag extends to /adv-audit ambiguity detection
+### clarify_enforcement flag extends to /determinus-audit ambiguity detection
 
 **ID:** `rq-clarifyEnforcementAudit01` | **Priority:** **[MUST]**
 
-The clarify_enforcement configuration flag (off | advisory | strict) MUST extend to /adv-audit ambiguity detection. When off, ambiguity detection is skipped. When advisory, findings are informational only and do not affect quality gates. When strict, ambiguity findings participate in quality gate evaluation and health status promotion. Cross-reference: advance-workflow rq-ambiguityScan01..rq-ambiguityScan05.
+The clarify_enforcement configuration flag (off | advisory | strict) MUST extend to /determinus-audit ambiguity detection. When off, ambiguity detection is skipped. When advisory, findings are informational only and do not affect quality gates. When strict, ambiguity findings participate in quality gate evaluation and health status promotion. Cross-reference: advance-workflow rq-ambiguityScan01..rq-ambiguityScan05.
 
 **Tags:** `audit`, `ambiguity`, `clarify`, `configuration`
 
@@ -1777,7 +1777,7 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 **Given:**
 - clarify_enforcement is set to 'off' in project configuration
 
-**When:** /adv-audit executes Phase 3 Synthesis
+**When:** /determinus-audit executes Phase 3 Synthesis
 
 **Then:**
 - runSpecAmbiguityChecks is NOT invoked
@@ -1789,7 +1789,7 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 **Given:**
 - clarify_enforcement is set to 'advisory'
 
-**When:** /adv-audit completes and applies quality gates
+**When:** /determinus-audit completes and applies quality gates
 
 **Then:**
 - Ambiguity findings appear in the report's ambiguity section
@@ -1801,7 +1801,7 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 **Given:**
 - clarify_enforcement is set to 'strict'
 
-**When:** /adv-audit applies quality gates
+**When:** /determinus-audit applies quality gates
 
 **Then:**
 - CRITICAL ambiguity ≥ 1 promotes health to MAJOR_DRIFT
@@ -1810,20 +1810,20 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 
 ---
 
-### adv_status lazy view planning
+### determinus_status lazy view planning
 
 **ID:** `rq-advStatusLazyView01` | **Priority:** **[MUST]**
 
-`adv_status` MUST execute only the provider groups required by the selected `view`. `view: "summary"` MUST NOT invoke detailed-only providers (worktree cleanup, worktree census, OpenCode session-debt scan, snapshot-health scan, plugin-runtime provenance, project-metadata read, external-state hygiene), and the formatted output for `view: "summary"` MUST NOT carry health/worktree/session-debt/peer detail sections. Detailed views remain free to invoke their providers. The recommendation-list `_contextSnapshot` emission (chat-output-display `rq-ctxticker2.5` — advisory multi-change display) MUST be preserved across all views. The default-OFF opt-in behavior of `rq-ctxsnap2` and `rq-ctxticker2` (applied to mutation/ready tools) does NOT affect `adv_status` recommendation-list snapshots.
+`determinus_status` MUST execute only the provider groups required by the selected `view`. `view: "summary"` MUST NOT invoke detailed-only providers (worktree cleanup, worktree census, OpenCode session-debt scan, snapshot-health scan, plugin-runtime provenance, project-metadata read, external-state hygiene), and the formatted output for `view: "summary"` MUST NOT carry health/worktree/session-debt/peer detail sections. Detailed views remain free to invoke their providers. The recommendation-list `_contextSnapshot` emission (chat-output-display `rq-ctxticker2.5` — advisory multi-change display) MUST be preserved across all views. The default-OFF opt-in behavior of `rq-ctxsnap2` and `rq-ctxticker2` (applied to mutation/ready tools) does NOT affect `determinus_status` recommendation-list snapshots.
 
-**Tags:** `adv_status`, `latency`
+**Tags:** `determinus_status`, `latency`
 
 #### Scenarios
 
 **Summary skips detailed providers but preserves recommendation-list snapshots** (`rq-advStatusLazyView01.1`)
 
 **Given:**
-- adv_status is called with view: "summary"
+- determinus_status is called with view: "summary"
 
 **When:** The tool builds output
 
@@ -1835,7 +1835,7 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 **Detailed views retain their providers** (`rq-advStatusLazyView01.2`)
 
 **Given:**
-- adv_status is called with view: "health" or view: "hygiene"
+- determinus_status is called with view: "health" or view: "hygiene"
 
 **When:** The tool builds output
 
@@ -1845,13 +1845,13 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 
 ---
 
-### adv_status Summary Output Is Bounded Before Enrichment
+### determinus_status Summary Output Is Bounded Before Enrichment
 
 **ID:** `rq-advStatusBoundedSummary01` | **Priority:** **[MUST]**
 
-`adv_status view: "summary"` MUST keep both compute and output bounded for large WIP projects. The summary view MUST cap recent changes before any per-change enrichment, artifact reads, or recommendation generation that depends on the recent-change list. It MUST cap summary recommendations to a small fixed window and include omitted-count metadata or an omitted-count marker when truncation occurs. Detailed views (`changes`, `hygiene`, and `health`) remain explicit drilldowns for fuller diagnostics and MUST NOT be used as implicit default fanout.
+`determinus_status view: "summary"` MUST keep both compute and output bounded for large WIP projects. The summary view MUST cap recent changes before any per-change enrichment, artifact reads, or recommendation generation that depends on the recent-change list. It MUST cap summary recommendations to a small fixed window and include omitted-count metadata or an omitted-count marker when truncation occurs. Detailed views (`changes`, `hygiene`, and `health`) remain explicit drilldowns for fuller diagnostics and MUST NOT be used as implicit default fanout.
 
-**Tags:** `adv_status`, `latency`, `summary`, `bounded-output`
+**Tags:** `determinus_status`, `latency`, `summary`, `bounded-output`
 
 #### Scenarios
 
@@ -1860,7 +1860,7 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 **Given:**
 - A project has more active or recent changes than the summary recent-change limit
 
-**When:** adv_status is called with view: "summary"
+**When:** determinus_status is called with view: "summary"
 
 **Then:**
 - The recent-change list is sliced to the fixed summary limit before per-change enrichment runs
@@ -1872,7 +1872,7 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 **Given:**
 - Summary recommendation generation produces more entries than the summary recommendation limit
 
-**When:** adv_status builds the summary response
+**When:** determinus_status builds the summary response
 
 **Then:**
 - Only the fixed recommendation window is returned
@@ -1884,7 +1884,7 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 **Given:**
 - A caller requests view: "changes", view: "hygiene", or view: "health"
 
-**When:** adv_status builds the selected detailed view
+**When:** determinus_status builds the selected detailed view
 
 **Then:**
 - The detailed view may expose fuller diagnostics required by that view
@@ -1897,9 +1897,9 @@ The clarify_enforcement configuration flag (off | advisory | strict) MUST extend
 
 **ID:** `rq-changeSummaryReadModel01` | **Priority:** **[MUST]**
 
-Default `adv_change_list` and warm `adv_status` read paths MUST avoid per-change full hydration when summary data already satisfies the response contract. The disk store MUST expose a summary listing surface (`Store.changes.listSummary`) that serves rows from `ChangeSummaryMemo` or `changeCache` when available, hydrates only IDs missing summary proof, and falls back to the authoritative `listResolvedChanges`/`changes.get` path for archived/closed callers, content filters, and any path whose correctness requires full state. Summary/cache data MUST NOT authorize gates, archive, worker-lock recovery, claims, task completion, or contract evidence.
+Default `determinus_change_list` and warm `determinus_status` read paths MUST avoid per-change full hydration when summary data already satisfies the response contract. The disk store MUST expose a summary listing surface (`Store.changes.listSummary`) that serves rows from `ChangeSummaryMemo` or `changeCache` when available, hydrates only IDs missing summary proof, and falls back to the authoritative `listResolvedChanges`/`changes.get` path for archived/closed callers, content filters, and any path whose correctness requires full state. Summary/cache data MUST NOT authorize gates, archive, worker-lock recovery, claims, task completion, or contract evidence.
 
-**Tags:** `adv_change_list`, `adv_status`, `latency`, `cache`
+**Tags:** `determinus_change_list`, `determinus_status`, `latency`, `cache`
 
 #### Scenarios
 
@@ -1908,7 +1908,7 @@ Default `adv_change_list` and warm `adv_status` read paths MUST avoid per-change
 **Given:**
 - ChangeSummaryMemo holds complete summaries for the requested IDs
 
-**When:** Default adv_change_list is served via listSummary
+**When:** Default determinus_change_list is served via listSummary
 
 **Then:**
 - Per-change full hydration is not invoked for memo-served IDs
@@ -1933,7 +1933,7 @@ Default `adv_change_list` and warm `adv_status` read paths MUST avoid per-change
 
 **ID:** `rq-advLatencyTelemetry01` | **Priority:** **[MUST]**
 
-ADV tool execution MUST record duration telemetry to an in-memory rollup surfaced via `adv_status view: "health"`. Per-tool aggregates MUST include count, total_ms, last_ms, max_ms, and error_count. Named phase/substep durations (e.g. `adv_status` providers, `adv_run_test` substeps) MUST be retained in a bounded recent-phase ring so operators can diagnose substep overhead without enabling `ADV_PROFILE` file logging. Error paths MUST preserve their error class and still record duration.
+ADV tool execution MUST record duration telemetry to an in-memory rollup surfaced via `determinus_status view: "health"`. Per-tool aggregates MUST include count, total_ms, last_ms, max_ms, and error_count. Named phase/substep durations (e.g. `determinus_status` providers, `determinus_run_test` substeps) MUST be retained in a bounded recent-phase ring so operators can diagnose substep overhead without enabling `determinus_PROFILE` file logging. Error paths MUST preserve their error class and still record duration.
 
 **Tags:** `telemetry`, `metrics`, `latency`
 
@@ -1942,21 +1942,21 @@ ADV tool execution MUST record duration telemetry to an in-memory rollup surface
 **Per-tool duration rollup is always recorded** (`rq-advLatencyTelemetry01.1`)
 
 **Given:**
-- safeExecute wraps an adv_* tool invocation
+- safeExecute wraps an determinus_* tool invocation
 
 **When:** The tool succeeds or fails
 
 **Then:**
-- adv_tool_durations records count, total_ms, last_ms, max_ms for the tool name
+- determinus_tool_durations records count, total_ms, last_ms, max_ms for the tool name
 - Error outcomes additionally increment error_count without losing duration
 - wall_time_ms accumulates the measured duration
 
 **Named phase/substep ring surfaces in health view** (`rq-advLatencyTelemetry01.2`)
 
 **Given:**
-- adv_status and adv_run_test invoke withRecordedPhase for their named phases
+- determinus_status and determinus_run_test invoke withRecordedPhase for their named phases
 
-**When:** adv_status view: "health" is read
+**When:** determinus_status view: "health" is read
 
 **Then:**
 - metrics.recent_phase_durations exposes the named samples bounded by RECENT_PHASE_BUFFER_LIMIT
@@ -1968,7 +1968,7 @@ ADV tool execution MUST record duration telemetry to an in-memory rollup surface
 
 **ID:** `rq-advLatencyBench01` | **Priority:** **[MUST]**
 
-`plugin/scripts/bench-adv-latency.ts` MUST initialize under the disk-only store contract. Default mode (`--mode disk`) MUST use a documented isolated substitute backed by `createDiskStore` so the harness runs without a live disk worker; samples MUST include `adv_status view: "summary"`, `adv_status view: "health"`, `adv_change_list`, `adv_change_show`, a disk-store task list fallback, and `adv_run_test` echo/no-op. `--mode disk` MUST require a real disk-backed setup or fail closed with remediation; it MUST NOT fabricate a DiskProjectionStoreBundle or silently substitute disk numbers. Every report MUST label mode and runtime context and include operation name, iterations, warmup, min, p50, p95, max, and avg so disk-substitute results cannot be confused with live disk latency evidence.
+`plugin/scripts/bench-determinus-latency.ts` MUST initialize under the disk-only store contract. Default mode (`--mode disk`) MUST use a documented isolated substitute backed by `createDiskStore` so the harness runs without a live disk worker; samples MUST include `determinus_status view: "summary"`, `determinus_status view: "health"`, `determinus_change_list`, `determinus_change_show`, a disk-store task list fallback, and `determinus_run_test` echo/no-op. `--mode disk` MUST require a real disk-backed setup or fail closed with remediation; it MUST NOT fabricate a DiskProjectionStoreBundle or silently substitute disk numbers. Every report MUST label mode and runtime context and include operation name, iterations, warmup, min, p50, p95, max, and avg so disk-substitute results cannot be confused with live disk latency evidence.
 
 **Tags:** `benchmark`, `latency`
 
@@ -1984,7 +1984,7 @@ ADV tool execution MUST record duration telemetry to an in-memory rollup surface
 **Then:**
 - The harness initializes via createDiskStore
 - Markdown report includes metadata (mode, substitute, change id, iterations) and per-operation stats
-- Sample operations include both summary and health adv_status views
+- Sample operations include both summary and health determinus_status views
 
 **disk mode refuses to silently substitute** (`rq-advLatencyBench01.2`)
 
@@ -2011,32 +2011,32 @@ ADV tool execution MUST record duration telemetry to an in-memory rollup surface
 
 ---
 
-### adv_run_test hot-path latency preserves correctness
+### determinus_run_test hot-path latency preserves correctness
 
 **ID:** `rq-advRunTestLatency01` | **Priority:** **[MUST]**
 
-`adv_run_test` latency improvements MUST preserve the existing tool contract: task validation, shell-command execution semantics, timeout/max-buffer classification, exit-code reporting, and output shaping. Every invocation MUST execute the supplied command fresh; the tool MUST NOT cache, skip, or fabricate command results. The public result contract MUST include typed fields `passed`, `classification`, `durationMs`, `outputBytesSeen`, `outputBytesRetained`, `outputTruncated`, `executionMode`, a typed evidence-recording status, and compact `evidence.schema_version='adv_run_test.v1'` while legacy fields remain available. Telemetry MUST record duration for substeps `targetRouting`, `taskLookup`, `commandExecution`, and `outputShaping` so operators can diagnose hot-path overhead without changing the tool contract. Subprocess implementation changes are allowed only when compatibility tests cover shell metacharacters/pipelines/redirects, timeout/kill classification, max-buffer classification, stdout/stderr capture, non-zero exit reporting, and output shaping.
+`determinus_run_test` latency improvements MUST preserve the existing tool contract: task validation, shell-command execution semantics, timeout/max-buffer classification, exit-code reporting, and output shaping. Every invocation MUST execute the supplied command fresh; the tool MUST NOT cache, skip, or fabricate command results. The public result contract MUST include typed fields `passed`, `classification`, `durationMs`, `outputBytesSeen`, `outputBytesRetained`, `outputTruncated`, `executionMode`, a typed evidence-recording status, and compact `evidence.schema_version='determinus_run_test.v1'` while legacy fields remain available. Telemetry MUST record duration for substeps `targetRouting`, `taskLookup`, `commandExecution`, and `outputShaping` so operators can diagnose hot-path overhead without changing the tool contract. Subprocess implementation changes are allowed only when compatibility tests cover shell metacharacters/pipelines/redirects, timeout/kill classification, max-buffer classification, stdout/stderr capture, non-zero exit reporting, and output shaping.
 
-**Tags:** `adv_run_test`, `latency`, `tdd`
+**Tags:** `determinus_run_test`, `latency`, `tdd`
 
 #### Scenarios
 
 **Substep telemetry surfaces without altering contract** (`rq-advRunTestLatency01.1`)
 
 **Given:**
-- adv_run_test is invoked with a valid task and shell command
+- determinus_run_test is invoked with a valid task and shell command
 
 **When:** The tool completes successfully or with non-zero exit
 
 **Then:**
-- Recent phase samples include taskLookup, commandExecution, and outputShaping for tool adv_run_test
+- Recent phase samples include taskLookup, commandExecution, and outputShaping for tool determinus_run_test
 - commandExecution outcome reflects the exit code (success on 0, error on non-zero)
 - Task validation, timeout, max-buffer, and output shaping classifications are unchanged
 
 **Per-call fresh execution** (`rq-advRunTestLatency01.2`)
 
 **Given:**
-- adv_run_test is invoked twice with the same task and command
+- determinus_run_test is invoked twice with the same task and command
 
 **When:** Both invocations complete
 
@@ -2047,19 +2047,19 @@ ADV tool execution MUST record duration telemetry to an in-memory rollup surface
 **Typed result contract remains backward compatible** (`rq-advRunTestLatency01.3`)
 
 **Given:**
-- adv_run_test completes with pass, failure, timeout, or output-limit classification
+- determinus_run_test completes with pass, failure, timeout, or output-limit classification
 
 **When:** The tool response is returned
 
 **Then:**
 - Typed fields include `passed`, `classification`, `durationMs`, `outputBytesSeen`, `outputBytesRetained`, `outputTruncated`, and `executionMode`
-- The compact evidence block uses schema_version `adv_run_test.v1`
+- The compact evidence block uses schema_version `determinus_run_test.v1`
 - The legacy fields remain available: `success`, `exitCode`, `output`, `command`, `timedOut`, `maxBufferExceeded`, and `timeoutMs` when applicable
 
 **Evidence recording degradation is explicit and bounded** (`rq-advRunTestLatency01.4`)
 
 **Given:**
-- adv_run_test has completed the supplied shell command
+- determinus_run_test has completed the supplied shell command
 - The best-effort testRunRecordedSignal cannot be recorded before the bounded recording wait expires or fails
 
 **When:** The tool response is returned
@@ -2203,7 +2203,7 @@ ADV project identity is derived from the repository root commit. In a shallow cl
 
 **ID:** `rq-toolOwnership01` | **Priority:** **[MUST]**
 
-Every registered ADV tool must have an explicit ownership/reachability classification—orchestrator, operator-only, or dual—recorded in the git-tracked matrix at docs/tool-ownership.md. Machine-resolvable recovery belongs in normal operations and MUST NOT remain as routine operator-only repair tools. The operator repair group contains only genuine operator boundaries: adv_archive_purge, adv_doctor, and adv_store_cleanup. Deleted workflow-termination and identity-consolidation tools MUST NOT remain in the matrix or repair group. Intent-bearing origin, legacy-store, and worktree maintenance may remain separately classified outside the repair group. Operator-only destructive actions require explicit instruction and approval evidence. The matrix is enforced by static tests against the canonical registry.
+Every registered ADV tool must have an explicit ownership/reachability classification—orchestrator, operator-only, or dual—recorded in the git-tracked matrix at docs/tool-ownership.md. Machine-resolvable recovery belongs in normal operations and MUST NOT remain as routine operator-only repair tools. The operator repair group contains only genuine operator boundaries: determinus_archive_purge, determinus_doctor, and determinus_store_cleanup. Deleted workflow-termination and identity-consolidation tools MUST NOT remain in the matrix or repair group. Intent-bearing origin, legacy-store, and worktree maintenance may remain separately classified outside the repair group. Operator-only destructive actions require explicit instruction and approval evidence. The matrix is enforced by static tests against the canonical registry.
 
 **Tags:** `tool-surface`, `ownership`, `operator-only`, `docs`
 
@@ -2228,7 +2228,7 @@ Every registered ADV tool must have an explicit ownership/reachability classific
 **When:** Tool ownership and grouping are inspected
 
 **Then:**
-- The repair group contains no more than adv_archive_purge, adv_doctor, and adv_store_cleanup
+- The repair group contains no more than determinus_archive_purge, determinus_doctor, and determinus_store_cleanup
 - Superseded diagnose, reconnect, restart, registration, status-repair, archive-repair, membership-repair, and pointer-forget tools are absent
 - Destructive actions retain explicit approval requirements
 
@@ -2309,7 +2309,7 @@ When the session project enables worktree_guard_enforce, the trunk write firewal
 
 **ID:** `rq-statusHealthTypedDegradation01` | **Priority:** **[MUST]**
 
-Every provider admitted by `adv_status view:health` MUST produce a discriminated outcome of `ok`, `stale`, `timeout`, `error`, `unavailable`, or `not_admitted`. Completed sections MUST remain available when another provider degrades. Existing required response fields and freshness metadata MUST remain compatible. Cached or stale provider evidence is advisory only and MUST NOT independently establish authoritative completeness or authorize mutation. Request-aborted force-refresh work MUST NOT publish late request-scoped cache state.
+Every provider admitted by `determinus_status view:health` MUST produce a discriminated outcome of `ok`, `stale`, `timeout`, `error`, `unavailable`, or `not_admitted`. Completed sections MUST remain available when another provider degrades. Existing required response fields and freshness metadata MUST remain compatible. Cached or stale provider evidence is advisory only and MUST NOT independently establish authoritative completeness or authorize mutation. Request-aborted force-refresh work MUST NOT publish late request-scoped cache state.
 
 **Tags:** `status`, `health`, `degradation`, `cache`
 
@@ -2448,11 +2448,11 @@ Once normal operations directly handle a machine-resolvable recovery class, the 
 
 ---
 
-### adv_doctor Phantom Session-Pointer Safe-Fix
+### determinus_doctor Phantom Session-Pointer Safe-Fix
 
 **ID:** `rq-doctorPhantomPointer01` | **Priority:** **[MUST]**
 
-The retired adv_change_forget tool's session active-change pointer clearing is consolidated into adv_doctor as a phantom_pointer safe-fix (design D5/D6, option B). Clearing MUST be structurally gated on confirmed-absent evidence via a tri-state probe (probeChangePhantomStatus in plugin/src/tools/_adapters.ts) that returns confirmed_absent | confirmed_present | indeterminate. A probe tier that throws (transport failure, timeout, schema error) MUST classify as indeterminate and MUST NOT be mistaken for absence. adv_doctor clears the session pointer ONLY on confirmed_absent; indeterminate MUST refuse with a typed approval_required proposal; confirmed_present is a no-op. Pointer access is injected via a plugin-host-only DoctorPointerRepairProvider (setDoctorPointerRepairProvider in index.ts); tests and the MCP server see a null provider and skip the phantom check entirely. All state.activeChange.id mutations remain in index.ts closure scope per rq-activeChangePointer01 — the doctor provider's clearActivePointer delegates to the same setActiveChange(null) path.
+The retired determinus_change_forget tool's session active-change pointer clearing is consolidated into determinus_doctor as a phantom_pointer safe-fix (design D5/D6, option B). Clearing MUST be structurally gated on confirmed-absent evidence via a tri-state probe (probeChangePhantomStatus in plugin/src/tools/_adapters.ts) that returns confirmed_absent | confirmed_present | indeterminate. A probe tier that throws (transport failure, timeout, schema error) MUST classify as indeterminate and MUST NOT be mistaken for absence. determinus_doctor clears the session pointer ONLY on confirmed_absent; indeterminate MUST refuse with a typed approval_required proposal; confirmed_present is a no-op. Pointer access is injected via a plugin-host-only DoctorPointerRepairProvider (setDoctorPointerRepairProvider in index.ts); tests and the MCP server see a null provider and skip the phantom check entirely. All state.activeChange.id mutations remain in index.ts closure scope per rq-activeChangePointer01 — the doctor provider's clearActivePointer delegates to the same setActiveChange(null) path.
 
 **Tags:** `pointer`, `session`, `phantom`, `recovery`, `doctor`, `tri-state`
 
@@ -2465,7 +2465,7 @@ The retired adv_change_forget tool's session active-change pointer clearing is c
 - The pointer-repair provider is injected
 - The tri-state probe for X returns confirmed_absent (disk change.json absent AND store/Visibility explicitly not-found)
 
-**When:** adv_doctor runs its diagnose→safe-fix→verify cycle
+**When:** determinus_doctor runs its diagnose→safe-fix→verify cycle
 
 **Then:**
 - A phantom_pointer finding is recorded
@@ -2479,7 +2479,7 @@ The retired adv_change_forget tool's session active-change pointer clearing is c
 - A plugin-host session with state.activeChange.id set to changeId X
 - The tri-state probe for X returns indeterminate because a probe tier threw (transport failure / timeout)
 
-**When:** adv_doctor runs its diagnose→safe-fix→verify cycle
+**When:** determinus_doctor runs its diagnose→safe-fix→verify cycle
 
 **Then:**
 - state.activeChange.id remains X (NOT cleared)
@@ -2493,7 +2493,7 @@ The retired adv_change_forget tool's session active-change pointer clearing is c
 - Case A: a plugin-host session where the probe returns confirmed_present for the active pointer
 - Case B: a tests/MCP-server context where no pointer-repair provider is injected
 
-**When:** adv_doctor runs
+**When:** determinus_doctor runs
 
 **Then:**
 - (Case A) No phantom_pointer finding is produced and the pointer is not cleared
@@ -2579,7 +2579,7 @@ Routine ADV reads MUST resolve from schema-versioned durable entity projections 
 
 **ID:** `rq-loadedBundleIdentityAuthority01` | **Priority:** **[MUST]**
 
-The generation embedded in the loaded ADV bundle is the authority for whether the running code matches the deployed code. On a generation mismatch, ADV traffic MUST be refused with a typed mismatch code, both generations, and a recovery hint naming the process that owns the loaded module: an OpenCode restart for the host plugin bundle, and a restart of the Vision-managed adv-advance server for the MCP server bundle. Absent embedded generation or an unreadable manifest MUST be classified as unknown freshness and MUST continue to serve traffic, keeping dev/source runs and deployment gaps distinct from a mismatch. Generation equality alone decides staleness; per-file digests and filesystem timestamps stay diagnostic. The manifest MUST be published atomically after both bundle files exist so every reader observes a complete publish. Because a superseded bundle skips workflow patch markers silently, every durability guarantee implemented behind a `wf.patched` gate MUST additionally be paired with this generation guard so only current code serves the affected traffic.
+The generation embedded in the loaded ADV bundle is the authority for whether the running code matches the deployed code. On a generation mismatch, ADV traffic MUST be refused with a typed mismatch code, both generations, and a recovery hint naming the process that owns the loaded module: an OpenCode restart for the host plugin bundle, and a restart of the Vision-managed determinus-advance server for the MCP server bundle. Absent embedded generation or an unreadable manifest MUST be classified as unknown freshness and MUST continue to serve traffic, keeping dev/source runs and deployment gaps distinct from a mismatch. Generation equality alone decides staleness; per-file digests and filesystem timestamps stay diagnostic. The manifest MUST be published atomically after both bundle files exist so every reader observes a complete publish. Because a superseded bundle skips workflow patch markers silently, every durability guarantee implemented behind a `wf.patched` gate MUST additionally be paired with this generation guard so only current code serves the affected traffic.
 
 **Tags:** `meta`, `deploy`, `bundle`, `code-identity`, `correctness`, `recovery`
 
@@ -2591,19 +2591,19 @@ The generation embedded in the loaded ADV bundle is the authority for whether th
 - A deployed bundle manifest exists
 - The loaded bundle generation differs from the deployed manifest generation
 
-**When:** An adv_ tool call is dispatched
+**When:** An determinus_ tool call is dispatched
 
 **Then:**
 - The call is refused before it can answer from superseded code
 - The refusal carries a typed generation-mismatch code and both generations
-- The recovery hint names the process that owns the loaded module, distinguishing the OpenCode host plugin from the Vision-managed adv-advance server
+- The recovery hint names the process that owns the loaded module, distinguishing the OpenCode host plugin from the Vision-managed determinus-advance server
 
 **Unknown freshness keeps serving traffic** (`rq-loadedBundleIdentityAuthority01.2`)
 
 **Given:**
 - The loaded bundle carries no embedded generation, or the deployed manifest is absent or unreadable
 
-**When:** An adv_ tool call is dispatched
+**When:** An determinus_ tool call is dispatched
 
 **Then:**
 - Freshness is classified as unknown
@@ -2730,7 +2730,7 @@ Active ADV surfaces MUST NOT reference a skill that does not exist. A canonical 
 **Resolving canonical reference** (`rq-skillReferenceIntegrity01.1`)
 
 **Given:**
-- An active surface contains skill("adv-foo") and skills/adv-foo/SKILL.md exists
+- An active surface contains skill("determinus-foo") and skills/determinus-foo/SKILL.md exists
 
 **When:** The validator runs
 
@@ -2740,7 +2740,7 @@ Active ADV surfaces MUST NOT reference a skill that does not exist. A canonical 
 **Unresolved canonical reference** (`rq-skillReferenceIntegrity01.2`)
 
 **Given:**
-- An active surface contains skill("adv-foo") and skills/adv-foo/SKILL.md does not exist
+- An active surface contains skill("determinus-foo") and skills/determinus-foo/SKILL.md does not exist
 
 **When:** The validator runs
 

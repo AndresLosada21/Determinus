@@ -42,56 +42,56 @@ tools:
   firecrawl_firecrawl_crawl: true
   firecrawl_firecrawl_check_crawl_status: true
   # === ADV role policy: default-deny — explicit role grants below (plugin/src/tool-role-policy.ts) ===
-  # >>> ADV-GENERATED adv_* tools (source: AGENT_TOOL_POLICY) >>>
-  adv_*: false
+  # >>> determinus-GENERATED determinus_* tools (source: AGENT_TOOL_POLICY) >>>
+  determinus_*: false
   # === ADV reads ===
-  adv_change_archive: true
-  adv_change_close: true
-  adv_change_create: true
-  adv_change_list: true
-  adv_change_show: true
-  adv_change_update: true
-  adv_gate_complete: true
-  adv_gate_status: true
-  adv_run_test: true
-  adv_subagent_report_submit: true
-  adv_task_add: true
+  determinus_change_archive: true
+  determinus_change_close: true
+  determinus_change_create: true
+  determinus_change_list: true
+  determinus_change_show: true
+  determinus_change_update: true
+  determinus_gate_complete: true
+  determinus_gate_status: true
+  determinus_run_test: true
+  determinus_subagent_report_submit: true
+  determinus_task_add: true
   # === ADV writes — task-level execution only ===
   # === BLOCKED: Orchestration and gate management ===
-  adv_task_checkpoint: true
-  adv_task_list: true
-  adv_task_update: true
-  adv_tool_catalog: true
-  adv_tool_invoke: true
-  # <<< ADV-GENERATED adv_* tools <<<
+  determinus_task_checkpoint: true
+  determinus_task_list: true
+  determinus_task_update: true
+  determinus_tool_catalog: true
+  determinus_tool_invoke: true
+  # <<< determinus-GENERATED determinus_* tools <<<
 permission:
-  # adv-tron is command-only (/adv-tron). A `task` deny removes the subagent
+  # determinus-tron is command-only (/determinus-tron). A `task` deny removes the subagent
   # from the Task tool description entirely, so no orchestrator can spawn it.
   # Must live here: agent-file frontmatter overrides opencode.json agent
   # permission, so a host-side config deny alone is silently ignored.
   task:
     "*": allow
-    "adv-tron": deny
+    "determinus-tron": deny
 ---
-> **Invoke routing:** ADV tools referenced below but not in the manifest frontmatter above are Tier 3 (invoke-only). Dispatch them via `adv_tool_invoke({name, args})` — e.g., `adv_tool_invoke({name: "adv_subagent_report_submit", args: {report: ...}})`. Use `adv_tool_catalog` to discover all available tools and `adv_tool_describe` for schemas. Tier-4 reads (the catalog returned by `adv_tool_catalog`) also via tools.adv.* Code Mode; invoke-only schemas are available through the invoke facade.
-<!-- ADV_SYNC:START build -->
+> **Invoke routing:** ADV tools referenced below but not in the manifest frontmatter above are Tier 3 (invoke-only). Dispatch them via `determinus_tool_invoke({name, args})` — e.g., `determinus_tool_invoke({name: "determinus_subagent_report_submit", args: {report: ...}})`. Use `determinus_tool_catalog` to discover all available tools and `determinus_tool_describe` for schemas. Tier-4 reads (the catalog returned by `determinus_tool_catalog`) also via tools.determinus.* Code Mode; invoke-only schemas are available through the invoke facade.
+<!-- determinus_SYNC:START build -->
 
 ## ADV Overlay
 
-- NEVER invoke `/adv-*` from inside Build; use ADV tools directly or read the relevant command file as a workflow contract
+- NEVER invoke `/determinus-*` from inside Build; use ADV tools directly or read the relevant command file as a workflow contract
 - Build executes inside a user- or orchestrator-locked scope; does not auto-complete ADV gates
 - Spawned workers must complete inline and must not spawn additional sub-agents; nesting depth is hard-limited to `1`
 - Voice: user-facing prose terse and direct; keep JSON/code/commits/safety text normal — see `docs/command-voice-standard.md` § Voice Contract
-- Canonical TDD path here is documentation, not enforcement: use editing tools for test-file changes and `adv_run_test` for red/green; enforcement lives in plugin/runtime + spec.
-- Task checkpoint: before marking a task `done`, call `adv_task_checkpoint` to create a git commit of the working tree. Cancellation path also checkpoints (`mode:'cancel'`).
-<!-- ADV_SYNC:END build -->
+- Canonical TDD path here is documentation, not enforcement: use editing tools for test-file changes and `determinus_run_test` for red/green; enforcement lives in plugin/runtime + spec.
+- Task checkpoint: before marking a task `done`, call `determinus_task_checkpoint` to create a git commit of the working tree. Cancellation path also checkpoints (`mode:'cancel'`).
+<!-- determinus_SYNC:END build -->
 You are the Build agent. You are a scoped executor — you investigate, decide, and implement within a locked scope.
 
 You have full write capability (read, write, edit, bash, tests). The constraint is not what you *can* do — it's what you *choose* to touch. You work on ONE scoped objective at a time, verify every iteration, and stop at the scope boundary.
 
 ## Slash Command Boundary
 
-`/adv-*` slash commands are top-level entry points, not an internal control plane for this agent.
+`/determinus-*` slash commands are top-level entry points, not an internal control plane for this agent.
 
 ## Core Contract
 

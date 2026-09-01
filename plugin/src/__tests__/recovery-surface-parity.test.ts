@@ -1,8 +1,8 @@
 /**
  * rq-recoverySurfaceParity01 (tk-0528be678596, design D6 / DDC7 / AC7)
  *
- * Removal-parity test: the four adv_temporal_* operator tools are retired
- * because adv_doctor (added in tk-dc21b6a3658d) consolidates their safe
+ * Removal-parity test: the four determinus_temporal_* operator tools are retired
+ * because determinus_doctor (added in tk-dc21b6a3658d) consolidates their safe
  * subset into a single diagnose→safe-fix→verify entry point.
  *
  * Scope: this test guards the RUNTIME surface — the files that actually
@@ -15,8 +15,8 @@
  * availability surface an operator/agent actually touches.
  *
  * All eight superseded recovery tools are now retired and consolidated
- * into adv_doctor (design D6 / rq-recoverySurfaceParity01). adv_change_forget
- * is replaced by adv_doctor's phantom_pointer safe-fix (option B): a
+ * into determinus_doctor (design D6 / rq-recoverySurfaceParity01). determinus_change_forget
+ * is replaced by determinus_doctor's phantom_pointer safe-fix (option B): a
  * tri-state probe clears the session pointer only on confirmed-absent
  * evidence and refuses on indeterminate. The poisoned_history public-arg
  * removal is tracked separately.
@@ -29,14 +29,14 @@ import { readdirSync, statSync } from "node:fs";
 const SRC_ROOT = join(__dirname, "..");
 
 const RETIRED_TOOLS = [
-  "adv_temporal_diagnose",
-  "adv_temporal_reconnect",
-  "adv_temporal_register_search_attributes",
-  "adv_temporal_worker_restart",
-  "adv_archive_repair",
-  "adv_change_status_repair",
-  "adv_epic_repair_membership",
-  "adv_change_forget",
+  "determinus_temporal_diagnose",
+  "determinus_temporal_reconnect",
+  "determinus_temporal_register_search_attributes",
+  "determinus_temporal_worker_restart",
+  "determinus_archive_repair",
+  "determinus_change_status_repair",
+  "determinus_epic_repair_membership",
+  "determinus_change_forget",
 ] as const;
 
 /**
@@ -62,7 +62,7 @@ const ASSET_DOC_SPEC_PATTERNS: Array<RegExp> = [
   /assets?\.test\.ts$/,
   /docs\/tool-ownership\.md$/,
   /\.adv\/specs\/.*\/spec\.json$/,
-  // Agent definition markdown files (e.g., adv-temporal-repair.md) carry
+  // Agent definition markdown files (e.g., determinus-temporal-repair.md) carry
   // tool grants for the documented tool surface; their update is bundled
   // with the agent-definition revision, not this runtime retirement.
   /\.opencode\/agents\/.*\.md$/,
@@ -107,7 +107,7 @@ function activeReferenceCount(content: string, tool: string): number {
   return count;
 }
 
-describe("recovery surface parity — adv_temporal_* runtime retirements (rq-recoverySurfaceParity01)", () => {
+describe("recovery surface parity — determinus_temporal_* runtime retirements (rq-recoverySurfaceParity01)", () => {
   test("retired tool names are not present in runtime code (registry/policy/preflight/catalog/hints)", () => {
     const violations: Array<{
       file: string;
@@ -131,9 +131,9 @@ describe("recovery surface parity — adv_temporal_* runtime retirements (rq-rec
         .map((v) => `  ${v.file}: ${v.tool} × ${v.count}`)
         .join("\n");
       throw new Error(
-        `Active runtime references to retired adv_temporal_* tools found:\n${formatted}\n\n` +
-          `These tools were consolidated into adv_doctor (tk-dc21b6a3658d). ` +
-          `Remove the runtime surface or update the reference to point at adv_doctor.`,
+        `Active runtime references to retired determinus_temporal_* tools found:\n${formatted}\n\n` +
+          `These tools were consolidated into determinus_doctor (tk-dc21b6a3658d). ` +
+          `Remove the runtime surface or update the reference to point at determinus_doctor.`,
       );
     }
   });

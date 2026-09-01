@@ -342,14 +342,14 @@ export class GitWorktreeFlockQuiescenceError extends Error {
   }
 }
 
-const FLOCK_READY = "ADV_WORKTREE_FLOCK_READY\n";
+const FLOCK_READY = "determinus_WORKTREE_FLOCK_READY\n";
 /** GNU util-linux documents 1 as the default conflict code; keep it distinct. */
 export const GIT_WORKTREE_FLOCK_CONFLICT_EXIT_CODE = 73;
 const FLOCK_DIAGNOSTIC_LIMIT = 4_096;
 // Keep this shell program constant: the lock path is a separate argv and no
 // path, token, or runtime value is interpolated into shell syntax.
 const FLOCK_HOLDER_SCRIPT =
-  "command -v tail >/dev/null 2>&1 || { printf '%s\\n' 'ADV_WORKTREE_FLOCK_HOLDER_UNAVAILABLE' >&2; exit 127; }; printf '%s\\n' 'ADV_WORKTREE_FLOCK_READY'; exec tail -f /dev/null";
+  "command -v tail >/dev/null 2>&1 || { printf '%s\\n' 'determinus_WORKTREE_FLOCK_HOLDER_UNAVAILABLE' >&2; exit 127; }; printf '%s\\n' 'determinus_WORKTREE_FLOCK_READY'; exec tail -f /dev/null";
 
 export class GitWorktreeFlockHolderError extends Error {
   constructor(

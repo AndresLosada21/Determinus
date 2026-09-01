@@ -1,7 +1,7 @@
 /**
  * Tests for sanitizeRoadmapOrigin (rq-roadmapOriginSanitize01).
  *
- * Verifies the contract that strips ADV-emitted scoring fields from
+ * Verifies the contract that strips determinus-emitted scoring fields from
  * roadmap-origin issue bodies before proposal synthesis. Coordinates
  * with `enforcescoreblindproposaldesig` which defines the contract.
  */
@@ -11,13 +11,13 @@ import { sanitizeRoadmapOrigin } from "./roadmap-origin-sanitize";
 
 describe("sanitizeRoadmapOrigin", () => {
   describe("strips known scoring patterns", () => {
-    test("removes <!-- adv-triage:scoring v1 ... --> block (multiline)", () => {
+    test("removes <!-- determinus-triage:scoring v1 ... --> block (multiline)", () => {
       const body = `## Issue
 
 This is a real bug.
 
-<!-- adv-triage:scoring v1
-TimeCriticality=5: blocks /adv-discover for new users; user growth-aware
+<!-- determinus-triage:scoring v1
+TimeCriticality=5: blocks /determinus-discover for new users; user growth-aware
 RROE=8: enables Phase 5 roadmap auto-update without manual edits
 Effort=3: contained in single command + manifest entry
 WSJF=5.3 = (8 + 5 + 8) / 3
@@ -29,7 +29,7 @@ More body content here.`;
 
       const result = sanitizeRoadmapOrigin(body);
 
-      expect(result.sanitized).not.toContain("adv-triage:scoring");
+      expect(result.sanitized).not.toContain("determinus-triage:scoring");
       expect(result.sanitized).not.toContain("TimeCriticality=");
       expect(result.sanitized).not.toContain("scored_by=");
       expect(result.sanitized).toContain("This is a real bug.");
@@ -157,7 +157,7 @@ Best wishes.`;
 
 Real content.
 
-<!-- adv-triage:scoring v1
+<!-- determinus-triage:scoring v1
 WSJF=5.3
 -->
 
@@ -178,7 +178,7 @@ End.`;
     });
 
     test("body that is ONLY scoring trailers becomes near-empty", () => {
-      const body = `<!-- adv-triage:scoring v1
+      const body = `<!-- determinus-triage:scoring v1
 WSJF=5.3
 -->
 

@@ -45,7 +45,7 @@ describe("tool-catalog-entries — exported API", () => {
     expect(typeof mod.deriveToolRealm).toBe("function");
     expect(typeof mod.deriveToolMetadata).toBe("function");
     // Constants
-    expect(mod.ADV_PUBLIC_TOOL_BASELINE_COUNT).toBe(80);
+    expect(mod.determinus_PUBLIC_TOOL_BASELINE_COUNT).toBe(80);
     // Realms/groups data structures
     expect(Array.isArray(mod.REALM_PREFIXES)).toBe(true);
     expect(mod.REALM_PREFIXES.length).toBeGreaterThan(0);
@@ -76,7 +76,7 @@ describe("tool-catalog-entries — exported API", () => {
 
   it("deriveToolMetadata returns a complete metadata record", async () => {
     const { deriveToolMetadata } = await import("./tool-catalog-entries");
-    const meta = deriveToolMetadata("adv_status");
+    const meta = deriveToolMetadata("determinus_status");
     expect(meta.realm).toBe("status");
     expect(meta.group).toBe("read");
     expect(meta.lifecycle).toContain("execution");
@@ -86,7 +86,7 @@ describe("tool-catalog-entries — exported API", () => {
 
   it("deriveToolMetadata classifies retained write tools", async () => {
     const { deriveToolMetadata } = await import("./tool-catalog-entries");
-    const meta = deriveToolMetadata("adv_change_archive");
+    const meta = deriveToolMetadata("determinus_change_archive");
     expect(meta.group).toBe("lifecycle");
     expect(meta.risk).toBe("low");
     expect(meta.recoveryOnly).toBe(false);

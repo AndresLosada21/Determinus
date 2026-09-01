@@ -196,7 +196,7 @@ export function registerPluginSession(input: {
   pid?: number;
 }): RegisterPluginSessionResult {
   const env = input.env ?? process.env;
-  if (env.VITEST === "true" || env.ADV_TEST_MODE === "1") {
+  if (env.VITEST === "true" || env.determinus_TEST_MODE === "1") {
     return { registered: false, skipped: "test_mode" };
   }
   if (!input.identity) {

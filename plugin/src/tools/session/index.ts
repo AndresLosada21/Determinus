@@ -50,7 +50,7 @@ export const isPidAlive = isProcessAliveByPid;
 
 /**
  * Privacy-defensive projection of a session_registry entry. Used by
- * the `adv_change_show` sessions include and the Peer Sessions section in `adv_status`.
+ * the `determinus_change_show` sessions include and the Peer Sessions section in `determinus_status`.
  */
 export interface SessionListEntry {
   /** Opaque session id (`sess_<8 alphanumeric>`). */

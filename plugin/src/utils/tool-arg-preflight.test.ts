@@ -29,79 +29,79 @@ type ExpectedFieldPolicy = {
 
 const AUDITED_PREFLIGHT_POLICY_REQUIREMENTS: ExpectedFieldPolicy[] = [
   {
-    toolName: "adv_worktree_delete",
+    toolName: "determinus_worktree_delete",
     field: "planToken",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_worktree_delete",
+    toolName: "determinus_worktree_delete",
     field: "approvalEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_worktree_cleanup",
+    toolName: "determinus_worktree_cleanup",
     field: "approvalEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_task_update",
+    toolName: "determinus_task_update",
     field: "proof_target",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "origin_issue_number",
     policy: "zero",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "epic_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "epic_id",
     policy: "sentinels",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "entry_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "entry_id",
     policy: "sentinels",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "epic_title",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "epic_title",
     policy: "sentinels",
     action: "omit",
   },
   {
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     field: "epic_order",
     policy: "zero",
     action: "omit",
@@ -109,49 +109,49 @@ const AUDITED_PREFLIGHT_POLICY_REQUIREMENTS: ExpectedFieldPolicy[] = [
   {
     // rq-toolPlaceholderPolicy01.6: contextually-validated audit fields
     // flipped from reject to omit to prevent strict-mode deadlock.
-    toolName: "adv_change_update",
+    toolName: "determinus_change_update",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_update",
+    toolName: "determinus_change_update",
     field: "priorApprovalEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_archive",
+    toolName: "determinus_change_archive",
     field: "worktreePath",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_archive",
+    toolName: "determinus_change_archive",
     field: "target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_change_archive",
+    toolName: "determinus_change_archive",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_task_checkpoint",
+    toolName: "determinus_task_checkpoint",
     field: "target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_task_checkpoint",
+    toolName: "determinus_task_checkpoint",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_task_checkpoint",
+    toolName: "determinus_task_checkpoint",
     field: "workdir",
     policy: "blank",
     action: "omit",
@@ -159,7 +159,7 @@ const AUDITED_PREFLIGHT_POLICY_REQUIREMENTS: ExpectedFieldPolicy[] = [
   {
     // Tool catalog page limit: 0 placeholder fills normalize to omitted so
     // the handler default (50) applies; bounded read, no safety impact.
-    toolName: "adv_tool_catalog",
+    toolName: "determinus_tool_catalog",
     field: "limit",
     policy: "zero",
     action: "omit",
@@ -167,476 +167,476 @@ const AUDITED_PREFLIGHT_POLICY_REQUIREMENTS: ExpectedFieldPolicy[] = [
   {
     // Optional review proof: strict-mode blank fills must not masquerade as a
     // real conclusion; route-specific evidence validation remains authoritative.
-    toolName: "adv_task_add",
+    toolName: "determinus_task_add",
     field: "review_conclusion",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_task_cancel",
+    toolName: "determinus_task_cancel",
     field: "approvalEvidence",
     policy: "blank",
     action: "reject",
   },
   {
-    toolName: "adv_task_cancel",
+    toolName: "determinus_task_cancel",
     field: "reasons",
     policy: "recordValuesBlank",
     action: "reject",
   },
   {
-    toolName: "adv_gate_complete",
+    toolName: "determinus_gate_complete",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_gate_complete",
+    toolName: "determinus_gate_complete",
     field: "priorApprovalEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_contract_mint",
+    toolName: "determinus_contract_mint",
     field: "priorApprovalEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_followup_promote",
+    toolName: "determinus_followup_promote",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   // tk-6ff82311335f: read-tool page-limit fields surfaced by the coverage guard.
   {
-    toolName: "adv_backlog_list",
+    toolName: "determinus_backlog_list",
     field: "tail_limit",
     policy: "zero",
     action: "omit",
   },
   {
-    toolName: "adv_epic_list",
+    toolName: "determinus_epic_list",
     field: "limit",
     policy: "zero",
     action: "omit",
   },
   {
-    toolName: "adv_wisdom_list",
+    toolName: "determinus_wisdom_list",
     field: "maxEntries",
     policy: "zero",
     action: "omit",
   },
   {
-    toolName: "adv_reflection_list",
+    toolName: "determinus_reflection_list",
     field: "maxEntries",
     policy: "zero",
     action: "omit",
   },
   {
-    toolName: "adv_ops_run_evidence_add",
+    toolName: "determinus_ops_run_evidence_add",
     field: "step_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_ops_run_evidence_add",
+    toolName: "determinus_ops_run_evidence_add",
     field: "batch",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_ops_run_evidence_add",
+    toolName: "determinus_ops_run_evidence_add",
     field: "completion_signal",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_ops_run_evidence_add",
+    toolName: "determinus_ops_run_evidence_add",
     field: "health_verification",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_ops_run_evidence_add",
+    toolName: "determinus_ops_run_evidence_add",
     field: "rollback_or_cleanup_disposition",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_create",
+    toolName: "determinus_epic_create",
     field: "owner_project_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_create",
+    toolName: "determinus_epic_create",
     field: "owner_repo_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_create",
+    toolName: "determinus_epic_create",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_create",
+    toolName: "determinus_epic_create",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_create",
+    toolName: "determinus_epic_create",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_show",
+    toolName: "determinus_epic_show",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_show",
+    toolName: "determinus_epic_show",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_show",
+    toolName: "determinus_epic_show",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_list",
+    toolName: "determinus_epic_list",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_list",
+    toolName: "determinus_epic_list",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_list",
+    toolName: "determinus_epic_list",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_update",
+    toolName: "determinus_epic_update",
     field: "title",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_update",
+    toolName: "determinus_epic_update",
     field: "narrative",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_update",
+    toolName: "determinus_epic_update",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_update",
+    toolName: "determinus_epic_update",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_update",
+    toolName: "determinus_epic_update",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     field: "backlog_ref",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     field: "title",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     field: "success_hint",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     field: "entry_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_promote_shell",
+    toolName: "determinus_epic_promote_shell",
     field: "change_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_promote_shell",
+    toolName: "determinus_epic_promote_shell",
     field: "promoted_by",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_promote_shell",
+    toolName: "determinus_epic_promote_shell",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_promote_shell",
+    toolName: "determinus_epic_promote_shell",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_promote_shell",
+    toolName: "determinus_epic_promote_shell",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "title",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "entry_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "repo_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "linked_by",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "entry_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "change_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "from_entry_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "to_entry_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "repo_id",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "moved_by",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_reorder",
+    toolName: "determinus_epic_reorder",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_reorder",
+    toolName: "determinus_epic_reorder",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_reorder",
+    toolName: "determinus_epic_reorder",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_retire",
+    toolName: "determinus_epic_retire",
     field: "retired_by",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_retire",
+    toolName: "determinus_epic_retire",
     field: "epic_owner_target_path",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_retire",
+    toolName: "determinus_epic_retire",
     field: "epic_owner_target_confirmed",
     policy: "blank",
     action: "omit",
   },
   {
-    toolName: "adv_epic_retire",
+    toolName: "determinus_epic_retire",
     field: "epic_owner_confirmationEvidence",
     policy: "blank",
     action: "omit",
@@ -667,7 +667,7 @@ const CREATE_SCHEMA = {
 const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   {
     label: "minimal valid ad hoc payload",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Add rate limiting" },
     ok: true,
@@ -680,7 +680,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
     // "adhoc" and accepts. THIS IS THE BUG FIX.
     label:
       "ad hoc normalizes zero issue number and blank source artifact (strict-mode GPT payload)",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Add placeholder guard",
@@ -698,7 +698,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
     // T2 (rq-toolArgBlankArtifactLinkage01.3 revised): blank design normalizes
     // to omitted; proposal is written; design artifact stays untouched.
     label: "blank create artifact normalizes to omitted",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Add artifact guard", proposal: "valid", design: " " },
     ok: true,
@@ -706,7 +706,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "roadmap origin is retired for new create writes",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Promote roadmap", origin_kind: "roadmap" },
     ok: false,
@@ -714,7 +714,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "roadmap origin retirement takes precedence over linkage fields",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Promote roadmap",
@@ -727,7 +727,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "triage permits source artifact",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Promote triage",
@@ -738,7 +738,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "discovery rejects issue number",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Promote discovery",
@@ -753,7 +753,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
     // omitted via { blank: "omit" } policy. The change creates as if no
     // target_path was sent.
     label: "blank target path normalizes to omitted",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Add target path guard", target_path: " " },
     ok: true,
@@ -761,7 +761,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "source linkage requires target path",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Add source guard", source_change_id: "abc" },
     ok: false,
@@ -772,7 +772,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
     // the cross-field source_project-requires-target check no longer fires
     // (source_project was stripped). This is the GPT-correct outcome.
     label: "blank source project normalizes to omitted (target path retained)",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Add source guard",
@@ -789,7 +789,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
     // T2: blank source_change_id normalizes to omitted. Same rationale as
     // source_project above.
     label: "blank source change normalizes to omitted (target path retained)",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Add source guard",
@@ -804,7 +804,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "parent sentinel rejected",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Add parent guard", parent_change_id: "none" },
     ok: false,
@@ -812,7 +812,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "empty scope repos normalizes to omitted",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Add scope guard", scope_repos: [] },
     ok: true,
@@ -820,7 +820,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank create-time Epic fields normalize to omitted",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Add Epic guard",
@@ -834,7 +834,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "sentinel create-time Epic fields normalize to omitted",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Add Epic sentinel guard",
@@ -847,7 +847,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "partial create-time Epic membership is rejected before persistence",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: { summary: "Add Epic partial guard", epic_id: "addAuthEpic" },
     ok: false,
@@ -855,7 +855,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "complete create-time Epic membership survives preflight",
-    toolName: "adv_change_create",
+    toolName: "determinus_change_create",
     schema: CREATE_SCHEMA,
     rawArgs: {
       summary: "Add Epic member",
@@ -875,28 +875,28 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank task content rejected",
-    toolName: "adv_task_add",
+    toolName: "determinus_task_add",
     rawArgs: { content: " " },
     ok: false,
     fields: ["content"],
   },
   {
     label: "blank wisdom content rejected",
-    toolName: "adv_wisdom_add",
+    toolName: "determinus_wisdom_add",
     rawArgs: { content: " " },
     ok: false,
     fields: ["content"],
   },
   {
     label: "blank run-test command rejected",
-    toolName: "adv_run_test",
+    toolName: "determinus_run_test",
     rawArgs: { command: " " },
     ok: false,
     fields: ["command"],
   },
   {
     label: "blank run-test phase normalizes to omitted",
-    toolName: "adv_run_test",
+    toolName: "determinus_run_test",
     schema: {
       taskId: z.string(),
       command: z.string(),
@@ -911,7 +911,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
     // (handler defaults to "agent") so strict-mode providers can complete
     // non-recovery gates without deadlock.
     label: "blank gate actor normalizes to omitted",
-    toolName: "adv_gate_complete",
+    toolName: "determinus_gate_complete",
     rawArgs: { changeId: "c", gateId: "design", completedBy: " " },
     ok: true,
     normalizedArgs: { changeId: "c", gateId: "design" },
@@ -919,35 +919,35 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   {
     // T2: gate notes are optional-descriptive — blank normalizes to omitted.
     label: "blank gate notes normalize to omitted",
-    toolName: "adv_gate_complete",
+    toolName: "determinus_gate_complete",
     rawArgs: { changeId: "c", gateId: "design", notes: " " },
     ok: true,
     normalizedArgs: { changeId: "c", gateId: "design" },
   },
   {
     label: "blank approval evidence rejected",
-    toolName: "adv_change_close",
+    toolName: "determinus_change_close",
     rawArgs: { approvalEvidence: " " },
     ok: false,
     fields: ["approvalEvidence"],
   },
   {
     label: "blank cancellation reason rejected",
-    toolName: "adv_task_cancel",
+    toolName: "determinus_task_cancel",
     rawArgs: { reasons: { "tk-1": " " } },
     ok: false,
     fields: ["reasons.tk-1"],
   },
   {
     label: "blank worktree branch rejected",
-    toolName: "adv_worktree_create",
+    toolName: "determinus_worktree_create",
     rawArgs: { branch: " " },
     ok: false,
     fields: ["branch"],
   },
   {
     label: "blank worktree base rejected",
-    toolName: "adv_worktree_create",
+    toolName: "determinus_worktree_create",
     rawArgs: { base: " " },
     ok: false,
     fields: ["base"],
@@ -955,7 +955,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   {
     // T2: target_path is optional on read tools — blank normalizes to omitted.
     label: "blank target path normalizes to omitted on read tools",
-    toolName: "adv_change_show",
+    toolName: "determinus_change_show",
     rawArgs: { changeId: "c", target_path: " " },
     ok: true,
     normalizedArgs: { changeId: "c" },
@@ -963,7 +963,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   {
     // T2: target_path is optional on mutation tools too — blank normalizes.
     label: "blank target path normalizes to omitted on mutation tools",
-    toolName: "adv_task_update",
+    toolName: "determinus_task_update",
     rawArgs: { taskId: "tk-1", status: "done", target_path: " " },
     ok: true,
     normalizedArgs: { taskId: "tk-1", status: "done" },
@@ -972,14 +972,14 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
     // rq-toolPlaceholderPolicy01.6: confirmationEvidence is contextually
     // validated (only when target_path present), blank normalizes to omitted.
     label: "blank target confirmation evidence normalizes to omitted",
-    toolName: "adv_change_update",
+    toolName: "determinus_change_update",
     rawArgs: { changeId: "c", proposal: "real", confirmationEvidence: " " },
     ok: true,
     normalizedArgs: { changeId: "c", proposal: "real" },
   },
   {
     label: "blank ops-run-evidence optional fields normalize to omitted",
-    toolName: "adv_ops_run_evidence_add",
+    toolName: "determinus_ops_run_evidence_add",
     rawArgs: {
       changeId: "c",
       runId: "r",
@@ -1009,7 +1009,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "non-blank ops-run-evidence optional fields are preserved",
-    toolName: "adv_ops_run_evidence_add",
+    toolName: "determinus_ops_run_evidence_add",
     rawArgs: {
       changeId: "c",
       runId: "r",
@@ -1044,7 +1044,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic create optional fields normalize to omitted",
-    toolName: "adv_epic_create",
+    toolName: "determinus_epic_create",
     rawArgs: {
       epic_id: "myEpic",
       title: "My Epic",
@@ -1064,7 +1064,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic show owner-routing fields normalize to omitted",
-    toolName: "adv_epic_show",
+    toolName: "determinus_epic_show",
     rawArgs: {
       epic_id: "myEpic",
       epic_owner_target_path: " ",
@@ -1076,7 +1076,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic list owner-routing fields normalize to omitted",
-    toolName: "adv_epic_list",
+    toolName: "determinus_epic_list",
     rawArgs: {
       epic_owner_target_path: " ",
       epic_owner_target_confirmed: " ",
@@ -1087,7 +1087,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic update title and narrative normalize to omitted",
-    toolName: "adv_epic_update",
+    toolName: "determinus_epic_update",
     rawArgs: {
       epic_id: "myEpic",
       expected_version: 3,
@@ -1102,7 +1102,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic add-shell optional fields normalize to omitted",
-    toolName: "adv_epic_add_shell",
+    toolName: "determinus_epic_add_shell",
     rawArgs: {
       epic_id: "myEpic",
       title: "Real shell title",
@@ -1122,7 +1122,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic promote-shell optional fields normalize to omitted",
-    toolName: "adv_epic_promote_shell",
+    toolName: "determinus_epic_promote_shell",
     rawArgs: {
       epic_id: "myEpic",
       entry_id: "entry-1",
@@ -1137,7 +1137,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic link-change optional fields normalize to omitted",
-    toolName: "adv_epic_link_change",
+    toolName: "determinus_epic_link_change",
     rawArgs: {
       epic_id: "myEpic",
       change_id: "c",
@@ -1162,7 +1162,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic unlink-change optional fields normalize to omitted",
-    toolName: "adv_epic_unlink_change",
+    toolName: "determinus_epic_unlink_change",
     rawArgs: {
       epic_id: "myEpic",
       unlink_evidence: "real evidence",
@@ -1180,7 +1180,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic move-change optional fields normalize to omitted",
-    toolName: "adv_epic_move_change",
+    toolName: "determinus_epic_move_change",
     rawArgs: {
       from_epic_id: "epicA",
       to_epic_id: "epicB",
@@ -1207,7 +1207,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic reorder owner-routing fields normalize to omitted",
-    toolName: "adv_epic_reorder",
+    toolName: "determinus_epic_reorder",
     rawArgs: {
       epic_id: "myEpic",
       entry_ids: ["e1"],
@@ -1225,7 +1225,7 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   },
   {
     label: "blank epic retire optional fields normalize to omitted",
-    toolName: "adv_epic_retire",
+    toolName: "determinus_epic_retire",
     rawArgs: {
       epic_id: "myEpic",
       expected_version: 4,
@@ -1246,56 +1246,56 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
   // non-zero value preserved (AC3/AC4).
   {
     label: "zero backlog-list tail limit normalizes to omitted",
-    toolName: "adv_backlog_list",
+    toolName: "determinus_backlog_list",
     rawArgs: { tail_limit: 0 },
     ok: true,
     normalizedArgs: {},
   },
   {
     label: "non-zero backlog-list tail limit preserved",
-    toolName: "adv_backlog_list",
+    toolName: "determinus_backlog_list",
     rawArgs: { tail_limit: 500 },
     ok: true,
     normalizedArgs: { tail_limit: 500 },
   },
   {
     label: "zero epic-list limit normalizes to omitted",
-    toolName: "adv_epic_list",
+    toolName: "determinus_epic_list",
     rawArgs: { limit: 0 },
     ok: true,
     normalizedArgs: {},
   },
   {
     label: "non-zero epic-list limit preserved",
-    toolName: "adv_epic_list",
+    toolName: "determinus_epic_list",
     rawArgs: { limit: 25 },
     ok: true,
     normalizedArgs: { limit: 25 },
   },
   {
     label: "zero wisdom-list maxEntries normalizes to omitted",
-    toolName: "adv_wisdom_list",
+    toolName: "determinus_wisdom_list",
     rawArgs: { maxEntries: 0 },
     ok: true,
     normalizedArgs: {},
   },
   {
     label: "non-zero wisdom-list maxEntries preserved",
-    toolName: "adv_wisdom_list",
+    toolName: "determinus_wisdom_list",
     rawArgs: { maxEntries: 10 },
     ok: true,
     normalizedArgs: { maxEntries: 10 },
   },
   {
     label: "zero reflection-list maxEntries normalizes to omitted",
-    toolName: "adv_reflection_list",
+    toolName: "determinus_reflection_list",
     rawArgs: { maxEntries: 0 },
     ok: true,
     normalizedArgs: {},
   },
   {
     label: "non-zero reflection-list maxEntries preserved",
-    toolName: "adv_reflection_list",
+    toolName: "determinus_reflection_list",
     rawArgs: { maxEntries: 8 },
     ok: true,
     normalizedArgs: { maxEntries: 8 },
@@ -1304,24 +1304,24 @@ const PLACEHOLDER_POLICY_REGRESSION_MATRIX: RegressionMatrixCase[] = [
 
 describe("tool arg preflight", () => {
   const removedFacadeTools = new Set([
-    "adv_backlog_add",
-    "adv_backlog_list",
-    "adv_backlog_show",
-    "adv_backlog_promote",
-    "adv_backlog_archive",
-    "adv_contract_mint",
-    "adv_followup_promote",
-    "adv_epic_create",
-    "adv_epic_show",
-    "adv_epic_list",
-    "adv_epic_update",
-    "adv_epic_add_shell",
-    "adv_epic_promote_shell",
-    "adv_epic_link_change",
-    "adv_epic_unlink_change",
-    "adv_epic_move_change",
-    "adv_epic_reorder",
-    "adv_epic_retire",
+    "determinus_backlog_add",
+    "determinus_backlog_list",
+    "determinus_backlog_show",
+    "determinus_backlog_promote",
+    "determinus_backlog_archive",
+    "determinus_contract_mint",
+    "determinus_followup_promote",
+    "determinus_epic_create",
+    "determinus_epic_show",
+    "determinus_epic_list",
+    "determinus_epic_update",
+    "determinus_epic_add_shell",
+    "determinus_epic_promote_shell",
+    "determinus_epic_link_change",
+    "determinus_epic_unlink_change",
+    "determinus_epic_move_change",
+    "determinus_epic_reorder",
+    "determinus_epic_retire",
   ]);
   describe("FIELD_POLICIES drift guards", () => {
     test("every audited placeholder/audit field has an explicit policy", () => {
@@ -1502,7 +1502,7 @@ describe("tool arg preflight", () => {
 
   test("returns normalized args for omission-equivalent placeholder policies", () => {
     const result = preflightToolArgs(
-      "adv_change_create",
+      "determinus_change_create",
       {
         summary: z.string(),
         scope_repos: z.array(z.object({ repo_id: z.string() })).optional(),
@@ -1520,7 +1520,7 @@ describe("tool arg preflight", () => {
 
   test("keeps reject-only placeholder policies out of normalized args", () => {
     const result = preflightToolArgs(
-      "adv_run_test",
+      "determinus_run_test",
       {
         taskId: z.string(),
         command: z.string(),
@@ -1537,14 +1537,14 @@ describe("tool arg preflight", () => {
   });
 
   test.each([
-    ["adv_task_add", { changeId: "c", content: " " }, "content"],
+    ["determinus_task_add", { changeId: "c", content: " " }, "content"],
     [
-      "adv_wisdom_add",
+      "determinus_wisdom_add",
       { changeId: "c", type: "pattern", content: " " },
       "content",
     ],
     [
-      "adv_change_close",
+      "determinus_change_close",
       {
         changeId: "c",
         reason: "cancelled",
@@ -1553,17 +1553,17 @@ describe("tool arg preflight", () => {
       },
       "approvalEvidence",
     ],
-    // T2: adv_gate_complete.target_path, adv_gate_complete.notes,
-    // adv_gate_complete.compatibilityReason flipped to blank: "omit".
-    // rq-toolPlaceholderPolicy01.6: adv_gate_complete.completedBy,
+    // T2: determinus_gate_complete.target_path, determinus_gate_complete.notes,
+    // determinus_gate_complete.compatibilityReason flipped to blank: "omit".
+    // rq-toolPlaceholderPolicy01.6: determinus_gate_complete.completedBy,
     // priorApprovalEvidence, confirmationEvidence also flipped to blank: "omit".
-    // adv_run_test.target_path, adv_status.target_path,
-    // adv_doctor.target_path, adv_contract_mint.{approvedAt,target_path}
+    // determinus_run_test.target_path, determinus_status.target_path,
+    // determinus_doctor.target_path, determinus_contract_mint.{approvedAt,target_path}
     // similarly flipped. Coverage of the omit semantics for these fields
     // lives in `normalizes representative blank placeholder` below.
-    ["adv_worktree_create", { branch: " " }, "branch"],
-    ["adv_worktree_delete", { branch: " " }, "branch"],
-    ["adv_worktree_cleanup", { reason: " " }, "reason"],
+    ["determinus_worktree_create", { branch: " " }, "branch"],
+    ["determinus_worktree_delete", { branch: " " }, "branch"],
+    ["determinus_worktree_cleanup", { reason: " " }, "reason"],
   ])(
     "rejects representative blank placeholder for %s.%s",
     (toolName, rawArgs, field) => {
@@ -1580,64 +1580,64 @@ describe("tool arg preflight", () => {
   // Coverage that these fields are NORMALIZED rather than rejected.
   test.each([
     [
-      "adv_gate_complete",
+      "determinus_gate_complete",
       { changeId: "c", gateId: "design", target_path: " " },
       "target_path",
     ],
     [
-      "adv_gate_complete",
+      "determinus_gate_complete",
       { changeId: "c", gateId: "design", notes: " " },
       "notes",
     ],
     [
-      "adv_gate_complete",
+      "determinus_gate_complete",
       { changeId: "c", gateId: "design", compatibilityReason: " " },
       "compatibilityReason",
     ],
     // rq-toolPlaceholderPolicy01.6: contextually-validated audit fields
     // now normalize to omitted so strict-mode providers don't deadlock.
     [
-      "adv_gate_complete",
+      "determinus_gate_complete",
       { changeId: "c", gateId: "design", completedBy: " " },
       "completedBy",
     ],
     [
-      "adv_gate_complete",
+      "determinus_gate_complete",
       { changeId: "c", gateId: "design", priorApprovalEvidence: " " },
       "priorApprovalEvidence",
     ],
     [
-      "adv_gate_complete",
+      "determinus_gate_complete",
       { changeId: "c", gateId: "design", confirmationEvidence: " " },
       "confirmationEvidence",
     ],
     [
-      "adv_change_update",
+      "determinus_change_update",
       { changeId: "c", proposal: "real", confirmationEvidence: " " },
       "confirmationEvidence",
     ],
     [
-      "adv_change_update",
+      "determinus_change_update",
       { changeId: "c", proposal: "real", priorApprovalEvidence: " " },
       "priorApprovalEvidence",
     ],
     [
-      "adv_run_test",
+      "determinus_run_test",
       { taskId: "tk-1", command: "test", confirmationEvidence: " " },
       "confirmationEvidence",
     ],
     [
-      "adv_task_update",
+      "determinus_task_update",
       { taskId: "tk-1", status: "done", confirmationEvidence: " " },
       "confirmationEvidence",
     ],
     [
-      "adv_task_add",
+      "determinus_task_add",
       { changeId: "c", content: "do thing", confirmationEvidence: " " },
       "confirmationEvidence",
     ],
     [
-      "adv_task_cancel",
+      "determinus_task_cancel",
       {
         taskIds: ["t"],
         approvedByUser: true,
@@ -1647,13 +1647,13 @@ describe("tool arg preflight", () => {
       "confirmationEvidence",
     ],
     [
-      "adv_run_test",
+      "determinus_run_test",
       { taskId: "tk-1", command: "test", target_path: " " },
       "target_path",
     ],
-    ["adv_status", { target_path: " " }, "target_path"],
+    ["determinus_status", { target_path: " " }, "target_path"],
     [
-      "adv_change_close",
+      "determinus_change_close",
       {
         changeId: "c",
         reason: "cancelled",
@@ -1665,12 +1665,12 @@ describe("tool arg preflight", () => {
     ],
 
     [
-      "adv_worktree_cleanup",
+      "determinus_worktree_cleanup",
       { reason: "archived branch cleanup", mode: " " },
       "mode",
     ],
     [
-      "adv_worktree_cleanup",
+      "determinus_worktree_cleanup",
       { reason: "archived branch cleanup", changeId: " " },
       "changeId",
     ],
@@ -1691,7 +1691,7 @@ describe("tool arg preflight", () => {
 
   test("rejects blank record values for task cancellation reasons", () => {
     const result = preflightToolArgs(
-      "adv_task_cancel",
+      "determinus_task_cancel",
       {},
       {
         taskIds: ["tk-1"],
@@ -1709,7 +1709,7 @@ describe("tool arg preflight", () => {
 
   test("reports nested field validation errors for present objects", () => {
     const result = validateToolArgsBeforeExecute(
-      "adv_change_show",
+      "determinus_change_show",
       {
         changeId: z.string(),
         include: z
@@ -1730,15 +1730,15 @@ describe("tool arg preflight", () => {
         payload: z.object({ required: z.string().min(1) }),
       });
     const result = validateToolArgsBeforeExecute(
-      "adv_subagent_report_submit",
+      "determinus_subagent_report_submit",
       {
         report: z.union([
-          branch("adv-engineer"),
-          branch("adv-reviewer"),
-          branch("adv-researcher"),
-          branch("adv-tron"),
-          branch("adv-scanner-bundle"),
-          branch("adv-verification-triage-bundle"),
+          branch("determinus-engineer"),
+          branch("determinus-reviewer"),
+          branch("determinus-researcher"),
+          branch("determinus-tron"),
+          branch("determinus-scanner-bundle"),
+          branch("determinus-verification-triage-bundle"),
         ]),
       },
       { report: { agent: "unknown", payload: {} } },
@@ -1757,7 +1757,7 @@ describe("tool arg preflight", () => {
   test("formats zero-arg required field failures without timeout language", () => {
     const output = JSON.parse(
       formatToolArgPreflightError(
-        "adv_wisdom_add",
+        "determinus_wisdom_add",
         {
           changeId: z.string(),
           type: z.enum([
@@ -1774,13 +1774,13 @@ describe("tool arg preflight", () => {
     );
 
     expect(output.code).toBe("INVALID_TOOL_ARGS");
-    expect(output.tool).toBe("adv_wisdom_add");
+    expect(output.tool).toBe("determinus_wisdom_add");
     expect(output.missing).toEqual(["changeId", "type", "content"]);
     expect(output.errorClass).toBeUndefined();
     expect(output.error).not.toContain("timeout");
   });
 
-  test("enforces adv_change_update artifact cross-field constraints (post-T2 omit semantics)", () => {
+  test("enforces determinus_change_update artifact cross-field constraints (post-T2 omit semantics)", () => {
     const schema = {
       changeId: z.string(),
       proposal: z.string().optional(),
@@ -1791,7 +1791,7 @@ describe("tool arg preflight", () => {
 
     // No operation provided at all → the operation-count guard fires.
     expect(
-      validateToolArgsBeforeExecute("adv_change_update", schema, {
+      validateToolArgsBeforeExecute("determinus_change_update", schema, {
         changeId: "abc",
       }).invalid[0]?.message,
     ).toContain("requires one operation");
@@ -1801,7 +1801,7 @@ describe("tool arg preflight", () => {
     // survived normalization. Result: same error as "nothing provided" —
     // semantically correct ("you didn't send anything to change").
     expect(
-      validateToolArgsBeforeExecute("adv_change_update", schema, {
+      validateToolArgsBeforeExecute("determinus_change_update", schema, {
         changeId: "abc",
         proposal: "",
         agreement: "   ",
@@ -1810,7 +1810,7 @@ describe("tool arg preflight", () => {
 
     // Valid case unchanged: real content → ok.
     expect(
-      validateToolArgsBeforeExecute("adv_change_update", schema, {
+      validateToolArgsBeforeExecute("determinus_change_update", schema, {
         changeId: "abc",
         proposal: "real content",
       }).ok,
@@ -1820,7 +1820,7 @@ describe("tool arg preflight", () => {
     // non-blank artifact remains. Result: ok: true with only the real
     // artifact in normalizedArgs.
     const mixedBlank = validateToolArgsBeforeExecute(
-      "adv_change_update",
+      "determinus_change_update",
       schema,
       {
         changeId: "abc",
@@ -1842,14 +1842,18 @@ describe("tool arg preflight", () => {
       executiveSummary: z.string().optional(),
     };
     expect(
-      validateToolArgsBeforeExecute("adv_change_update", schemaWithSummary, {
-        changeId: "abc",
-        executiveSummary: "post-acceptance narrative",
-      }).ok,
+      validateToolArgsBeforeExecute(
+        "determinus_change_update",
+        schemaWithSummary,
+        {
+          changeId: "abc",
+          executiveSummary: "post-acceptance narrative",
+        },
+      ).ok,
     ).toBe(true);
   });
 
-  describe("adv_change_update structural operations reach the handler", () => {
+  describe("determinus_change_update structural operations reach the handler", () => {
     const schema = {
       changeId: z.string(),
       proposal: z.string().optional(),
@@ -1861,7 +1865,7 @@ describe("tool arg preflight", () => {
 
     test("link_change alone passes preflight", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "someEpic",
@@ -1874,7 +1878,7 @@ describe("tool arg preflight", () => {
 
     test("unlink_change alone passes preflight", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "someEpic",
@@ -1886,7 +1890,7 @@ describe("tool arg preflight", () => {
 
     test("reorder_entries alone passes preflight", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "someEpic",
@@ -1898,7 +1902,7 @@ describe("tool arg preflight", () => {
 
     test("several artifacts together count as one operation", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "abc",
@@ -1911,7 +1915,7 @@ describe("tool arg preflight", () => {
 
     test("an empty reorder_entries normalizes out and is not an operation", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "someEpic",
@@ -1925,7 +1929,7 @@ describe("tool arg preflight", () => {
 
     test("a blank structural field normalizes out and is not an operation", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "someEpic",
@@ -1938,7 +1942,7 @@ describe("tool arg preflight", () => {
 
     test("no operation at all names both artifact and structural routes", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "abc",
@@ -1953,7 +1957,7 @@ describe("tool arg preflight", () => {
 
     test("mixing an artifact with a structural operation is refused", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "someEpic",
@@ -1967,7 +1971,7 @@ describe("tool arg preflight", () => {
 
     test("mixing two structural operations is refused", () => {
       const result = validateToolArgsBeforeExecute(
-        "adv_change_update",
+        "determinus_change_update",
         schema,
         {
           changeId: "someEpic",
@@ -1980,7 +1984,7 @@ describe("tool arg preflight", () => {
     });
   });
 
-  test("enforces adv_change_create artifact and origin linkage constraints", () => {
+  test("enforces determinus_change_create artifact and origin linkage constraints", () => {
     const schema = {
       summary: z.string(),
       proposal: z.string().optional(),
@@ -2001,7 +2005,7 @@ describe("tool arg preflight", () => {
     };
 
     expect(
-      validateToolArgsBeforeExecute("adv_change_create", schema, {
+      validateToolArgsBeforeExecute("determinus_change_create", schema, {
         summary: "Add rate limiting",
       }).ok,
     ).toBe(true);
@@ -2010,7 +2014,7 @@ describe("tool arg preflight", () => {
     // normalizes to omitted; create proceeds with only the non-blank
     // artifact persisted.
     const blankArtifacts = validateToolArgsBeforeExecute(
-      "adv_change_create",
+      "determinus_change_create",
       schema,
       {
         summary: "Add blank guard",
@@ -2028,7 +2032,7 @@ describe("tool arg preflight", () => {
     // origin_source_artifact normalizes to omitted. Triage origin recorded
     // with no source artifact metadata; cross-field validator accepts.
     const blankSource = validateToolArgsBeforeExecute(
-      "adv_change_create",
+      "determinus_change_create",
       schema,
       {
         summary: "Promote finding",
@@ -2044,7 +2048,7 @@ describe("tool arg preflight", () => {
 
     // Origin matrix violations (non-blank wrong-kind values) still reject.
     const invalidRoadmapSource = validateToolArgsBeforeExecute(
-      "adv_change_create",
+      "determinus_change_create",
       schema,
       {
         summary: "Promote roadmap item",
@@ -2060,7 +2064,7 @@ describe("tool arg preflight", () => {
     });
 
     const validTriage = validateToolArgsBeforeExecute(
-      "adv_change_create",
+      "determinus_change_create",
       schema,
       {
         summary: "Promote triage item",
@@ -2073,7 +2077,7 @@ describe("tool arg preflight", () => {
 
     // T2: blank target_path normalizes to omitted.
     const blankTargetPath = validateToolArgsBeforeExecute(
-      "adv_change_create",
+      "determinus_change_create",
       schema,
       { summary: "Add target path guard", target_path: "   " },
     );
@@ -2083,7 +2087,7 @@ describe("tool arg preflight", () => {
     });
 
     const sourceWithoutTarget = validateToolArgsBeforeExecute(
-      "adv_change_create",
+      "determinus_change_create",
       schema,
       { summary: "Add source guard", source_change_id: "abc" },
     );
@@ -2093,7 +2097,7 @@ describe("tool arg preflight", () => {
     });
 
     const placeholderParent = validateToolArgsBeforeExecute(
-      "adv_change_create",
+      "determinus_change_create",
       schema,
       { summary: "Add parent guard", parent_change_id: "none" },
     );
@@ -2104,20 +2108,20 @@ describe("tool arg preflight", () => {
     });
 
     expect(
-      validateToolArgsBeforeExecute("adv_change_create", schema, {
+      validateToolArgsBeforeExecute("determinus_change_create", schema, {
         summary: "Add scope guard",
         scope_repos: [],
       }).normalizedArgs,
     ).toEqual({ summary: "Add scope guard" });
   });
 
-  test("includes canonical minimal payload for adv_change_create repair", () => {
+  test("includes canonical minimal payload for determinus_change_create repair", () => {
     // T2: target_path: " " no longer errors (normalized out). Use a payload
     // that still errors — missing required `summary` — so the canonical
     // payload diagnostic surfaces.
     const output = JSON.parse(
       formatToolArgPreflightError(
-        "adv_change_create",
+        "determinus_change_create",
         { summary: z.string(), target_path: z.string().optional() },
         { target_path: " " },
       ) ?? "{}",
@@ -2168,7 +2172,7 @@ describe("tool arg preflight", () => {
     test("full GPT create payload normalizes to minimal valid", () => {
       // Real strict-mode fill: model emits every optional with default.
       const result = preflightToolArgs(
-        "adv_change_create",
+        "determinus_change_create",
         CREATE_FULL_SCHEMA,
         {
           summary: "Add rate limiting",
@@ -2207,7 +2211,7 @@ describe("tool arg preflight", () => {
         executiveSummary: z.string().optional(),
         target_path: z.string().optional(),
       };
-      const result = preflightToolArgs("adv_change_update", schema, {
+      const result = preflightToolArgs("determinus_change_update", schema, {
         changeId: "c",
         proposal: "",
         problemStatement: "",
@@ -2230,7 +2234,7 @@ describe("tool arg preflight", () => {
         agreement: z.string().optional(),
         design: z.string().optional(),
       };
-      const result = preflightToolArgs("adv_change_update", schema, {
+      const result = preflightToolArgs("determinus_change_update", schema, {
         changeId: "c",
         proposal: "real content",
         problemStatement: "",
@@ -2248,7 +2252,7 @@ describe("tool arg preflight", () => {
       // KD8: sentinels are agent-typed mistakes, not strict-mode artifacts.
       for (const sentinel of ["none", "n/a", "null", "transcript"]) {
         const result = preflightToolArgs(
-          "adv_change_create",
+          "determinus_change_create",
           CREATE_FULL_SCHEMA,
           { summary: "X", parent_change_id: sentinel },
         );
@@ -2263,9 +2267,9 @@ describe("tool arg preflight", () => {
     // rq-toolPlaceholderPolicy01.6: GPT-5/5.5 strict-mode sends ALL optional
     // fields as blank strings. This test reproduces the exact deadlock that
     // GPT-5.5 hit — every optional field blank, non-recovery gate.
-    test("full strict-mode adv_gate_complete payload normalizes to minimal valid", () => {
+    test("full strict-mode determinus_gate_complete payload normalizes to minimal valid", () => {
       const result = preflightToolArgs(
-        "adv_gate_complete",
+        "determinus_gate_complete",
         {},
         {
           changeId: "fixPcIdentityScope",
@@ -2297,11 +2301,11 @@ describe("tool arg preflight", () => {
   // protected set.
   describe("audit-and-required fields still reject blank (AC12)", () => {
     test.each([
-      ["adv_task_add", { content: " " }, "content"],
-      ["adv_wisdom_add", { content: " " }, "content"],
-      ["adv_run_test", { taskId: "tk-1", command: " " }, "command"],
+      ["determinus_task_add", { content: " " }, "content"],
+      ["determinus_wisdom_add", { content: " " }, "content"],
+      ["determinus_run_test", { taskId: "tk-1", command: " " }, "command"],
       [
-        "adv_change_close",
+        "determinus_change_close",
         {
           changeId: "c",
           reason: "cancelled",
@@ -2311,26 +2315,26 @@ describe("tool arg preflight", () => {
         "approvalEvidence",
       ],
       [
-        "adv_task_cancel",
+        "determinus_task_cancel",
         { taskIds: ["t"], approvedByUser: true, approvalEvidence: " " },
         "approvalEvidence",
       ],
-      // rq-toolPlaceholderPolicy01.6: adv_gate_complete.completedBy,
+      // rq-toolPlaceholderPolicy01.6: determinus_gate_complete.completedBy,
       // confirmationEvidence, priorApprovalEvidence moved from reject to omit
-      // — no longer here. adv_change_update.confirmationEvidence,
+      // — no longer here. determinus_change_update.confirmationEvidence,
       // priorApprovalEvidence also moved.
-      // adv_contract_mint.confirmationEvidence, priorApprovalEvidence moved.
-      // adv_contract_review_matrix_set.confirmationEvidence, priorApprovalEvidence moved.
-      // adv_doctor.confirmationEvidence moved (rq-doctorConsolidation01).
-      // adv_run_test.confirmationEvidence moved.
-      // adv_task_update confirmationEvidence moved.
-      // adv_task_add confirmationEvidence moved.
-      // adv_task_cancel confirmationEvidence moved.
-      // adv_task_reclassify_tdd confirmationEvidence moved.
-      ["adv_worktree_create", { branch: " " }, "branch"],
-      ["adv_worktree_create", { branch: "x", base: " " }, "base"],
-      ["adv_worktree_delete", { branch: " " }, "branch"],
-      ["adv_worktree_cleanup", { reason: " " }, "reason"],
+      // determinus_contract_mint.confirmationEvidence, priorApprovalEvidence moved.
+      // determinus_contract_review_matrix_set.confirmationEvidence, priorApprovalEvidence moved.
+      // determinus_doctor.confirmationEvidence moved (rq-doctorConsolidation01).
+      // determinus_run_test.confirmationEvidence moved.
+      // determinus_task_update confirmationEvidence moved.
+      // determinus_task_add confirmationEvidence moved.
+      // determinus_task_cancel confirmationEvidence moved.
+      // determinus_task_reclassify_tdd confirmationEvidence moved.
+      ["determinus_worktree_create", { branch: " " }, "branch"],
+      ["determinus_worktree_create", { branch: "x", base: " " }, "base"],
+      ["determinus_worktree_delete", { branch: " " }, "branch"],
+      ["determinus_worktree_cleanup", { reason: " " }, "reason"],
     ])("%s.%s blank still rejects", (toolName, rawArgs, field) => {
       const result = preflightToolArgs(toolName, {}, rawArgs);
       expect(result.invalid).toContainEqual({
@@ -2342,10 +2346,10 @@ describe("tool arg preflight", () => {
 
   // rq-toolPlaceholderPolicy01.5: zero-policy axis for strict-mode int placeholders.
   describe("zero policy axis", () => {
-    test("zero: 'omit' normalizes value === 0 to omitted (adv_change_create.origin_issue_number)", () => {
-      // adv_change_create.origin_issue_number has { zero: "omit" }.
+    test("zero: 'omit' normalizes value === 0 to omitted (determinus_change_create.origin_issue_number)", () => {
+      // determinus_change_create.origin_issue_number has { zero: "omit" }.
       const result = preflightToolArgs(
-        "adv_change_create",
+        "determinus_change_create",
         {
           summary: z.string(),
           origin_kind: z
@@ -2370,7 +2374,7 @@ describe("tool arg preflight", () => {
 
     test("zero: 'omit' policy does not affect non-zero numeric values", () => {
       const result = preflightToolArgs(
-        "adv_change_create",
+        "determinus_change_create",
         {
           summary: z.string(),
           origin_kind: z.enum(["triage"]).optional(),
@@ -2404,10 +2408,10 @@ describe("tool arg preflight", () => {
 
     test("zero policy only fires on numeric 0, not on string '0' or other falsy values", () => {
       // origin_kind: discovery rejects origin_issue_number (cross-field), so
-      // we'd need a clean path. Use adv_change_create with no origin_kind:
+      // we'd need a clean path. Use determinus_change_create with no origin_kind:
       // a literal 0 still gets normalized out; "0" is a string and stays.
       const stringZeroResult = preflightToolArgs(
-        "adv_change_create",
+        "determinus_change_create",
         {
           summary: z.string(),
           // Note: real schema is z.number().int().positive(); using union here
@@ -2429,11 +2433,11 @@ describe("tool arg preflight", () => {
   // rq-toolPlaceholderPolicy01.4: Zod reads normalizedArgs, not raw args.
   describe("Zod validation reads normalizedArgs", () => {
     test("optional field normalized out is invisible to Zod schema check", () => {
-      // adv_change_create has scope_repos: { emptyArray: "omit" } already.
+      // determinus_change_create has scope_repos: { emptyArray: "omit" } already.
       // Sending an empty array should normalize out, and Zod should not see
       // it (no validation error against the array schema).
       const result = preflightToolArgs(
-        "adv_change_create",
+        "determinus_change_create",
         {
           summary: z.string(),
           scope_repos: z
@@ -2459,11 +2463,11 @@ describe("tool arg preflight", () => {
       // a Zod-required field. Defensive: real config should never do this,
       // but if it did, the user-facing error should be `missing`, not silent.
       const result = preflightToolArgs(
-        // adv_change_create has parent_change_id: { blank: "reject", sentinels: "reject" }.
+        // determinus_change_create has parent_change_id: { blank: "reject", sentinels: "reject" }.
         // We exploit an OPTIONAL field that does have blank:"reject" today
         // (still strict) and confirm a TRULY missing required field surfaces
         // via the same code path.
-        "adv_change_create",
+        "determinus_change_create",
         {
           summary: z.string(), // required
           target_path: z.string().optional(),
@@ -2475,12 +2479,12 @@ describe("tool arg preflight", () => {
     });
 
     test("Zod validates normalized value, not raw value", () => {
-      // adv_change_create has scope_repos: { emptyArray: "omit" }.
+      // determinus_change_create has scope_repos: { emptyArray: "omit" }.
       // Pass scope_repos: [] (which would fail z.array().nonempty()) and a
       // valid summary. After normalization, scope_repos is omitted.
       // Zod validates remaining { summary } → passes.
       const result = preflightToolArgs(
-        "adv_change_create",
+        "determinus_change_create",
         {
           summary: z.string(),
           scope_repos: z

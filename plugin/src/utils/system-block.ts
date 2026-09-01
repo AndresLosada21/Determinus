@@ -1,4 +1,4 @@
-// rq-singleSystemBlock01 — at most one ADV-controlled system entry per turn
+// rq-singleSystemBlock01 — at most one determinus-controlled system entry per turn
 /**
  * System Block Assembler
  *
@@ -8,7 +8,7 @@
  * which broke OpenAI-compat providers (multiple system entries trigger
  * assistant-prefilling rejection on those providers).
  *
- * Architecture (per /adv-design decisions JC-2 and JC-3):
+ * Architecture (per /determinus-design decisions JC-2 and JC-3):
  *
  *   - Five fixed sections (hardcoded; no registry abstraction per JC-2).
  *     Each section returns `string | null`. Null sections are skipped.
@@ -140,10 +140,10 @@ export function formatDegradedBanner(
   return [
     `[ADV:DEGRADED] ADV plugin is running in degraded mode — ${stageMsg}.`,
     `Reason: ${error.message}`,
-    "Every `adv_*` tool is stubbed and will return ADV_PLUGIN_INIT_FAILED.",
+    "Every `determinus_*` tool is stubbed and will return determinus_PLUGIN_INIT_FAILED.",
     "× Do NOT proceed with any ADV workflow (proposal, discover, design, prep, apply, review, harden, archive). They will silently break.",
-    "✓ Allowed in this mode: read files, surface this diagnosis, recommend remediation, run /adv-idea or /adv-problem (no tool calls required).",
-    "× Forbidden in this mode: drafting markdown as substitute for adv_change_create, fabricating change-ids or gate transitions, declaring tools 'unavailable' without surfacing this banner verbatim.",
+    "✓ Allowed in this mode: read files, surface this diagnosis, recommend remediation, run /determinus-idea or /determinus-problem (no tool calls required).",
+    "× Forbidden in this mode: drafting markdown as substitute for determinus_change_create, fabricating change-ids or gate transitions, declaring tools 'unavailable' without surfacing this banner verbatim.",
     "Remediation: rebuild the plugin (`pnpm --filter @sharperflow/advance build`), confirm `~/.config/opencode/opencode.json` plugin path is current, then restart OpenCode.",
   ].join("\n");
 }
@@ -224,7 +224,7 @@ function worktreeSection(input: AssembleSystemBlockInput): string | null {
     `[ADV:WORKTREE_SESSION] You are working in a git worktree. ` +
     `Active change: ${activeChange.id}. ` +
     `All ADV state (changes, tasks, wisdom) is shared via external storage. ` +
-    `Use adv_change_show and adv_task_ready to pick up where the parent session left off.`
+    `Use determinus_change_show and determinus_task_ready to pick up where the parent session left off.`
   );
 }
 
@@ -268,7 +268,7 @@ function wisdomPromptSection(input: AssembleSystemBlockInput): string | null {
   return (
     `[ADV:WISDOM_DRAFTS] ${totalDrafts} wisdom draft(s) pending review across ${pending.length} task(s).\n` +
     `${taskLines}\n` +
-    `Promote via adv_wisdom_add from_draft_id, or dismiss explicitly. ` +
+    `Promote via determinus_wisdom_add from_draft_id, or dismiss explicitly. ` +
     `Unreviewed drafts will be auto-dismissed at checkpoint.`
   );
 }

@@ -169,7 +169,7 @@ export type InvalidWorkNodeRefError = z.infer<
 
 /**
  * Shell promotion refused because same-project prerequisites are nonterminal.
- * Emitted by `adv_epic_add_shell` / `adv_epic_promote_shell` (D3 enforcement).
+ * Emitted by `determinus_epic_add_shell` / `determinus_epic_promote_shell` (D3 enforcement).
  */
 export const ShellPrereqNonterminalErrorSchema = z.object({
   code: z.literal("SHELL_PREREQ_NONTERMINAL"),
@@ -181,7 +181,7 @@ export type ShellPrereqNonterminalError = z.infer<
 
 /**
  * Change creation refused because same-project prerequisites are nonterminal.
- * Emitted by `adv_change_create` (D3 enforcement).
+ * Emitted by `determinus_change_create` (D3 enforcement).
  */
 export const DepPrereqNonterminalErrorSchema = z.object({
   code: z.literal("DEP_PREREQ_NONTERMINAL"),

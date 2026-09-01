@@ -80,7 +80,7 @@ function activateArgs(root: string, overrides: Record<string, unknown> = {}) {
 
 describe("activateCutoverReceipt", () => {
   test("activates with full proofs and persists a schema-valid receipt", async () => {
-    const root = await tempDir("adv-receipt-activate-");
+    const root = await tempDir("determinus-receipt-activate-");
     const result = activateCutoverReceipt(activateArgs(root));
     expect(result.activated).toBe(true);
     const receipt = result.receipt!;
@@ -142,14 +142,14 @@ describe("activateCutoverReceipt", () => {
       { proofs: passingProofs({ buildIdentityDigest: DIGEST_B }) },
     ],
   ])("refuses activation when %s", async (_label, override) => {
-    const root = await tempDir("adv-receipt-refuse-");
+    const root = await tempDir("determinus-receipt-refuse-");
     const result = activateCutoverReceipt(activateArgs(root, override));
     expect(result.activated).toBe(false);
     expect(readCutoverReceipt({ migrationRoot: root }).receipt).toBeNull();
   });
 
   test("re-activation for the same build is idempotent", async () => {
-    const root = await tempDir("adv-receipt-idem-");
+    const root = await tempDir("determinus-receipt-idem-");
     const first = activateCutoverReceipt(activateArgs(root));
     const second = activateCutoverReceipt(activateArgs(root));
     expect(second.activated).toBe(true);
@@ -158,7 +158,7 @@ describe("activateCutoverReceipt", () => {
   });
 
   test("refuses activation for a different build while one is active", async () => {
-    const root = await tempDir("adv-receipt-conflict-");
+    const root = await tempDir("determinus-receipt-conflict-");
     activateCutoverReceipt(activateArgs(root));
     const result = activateCutoverReceipt(
       activateArgs(root, {
@@ -174,7 +174,7 @@ describe("activateCutoverReceipt", () => {
   });
 
   test("refuses to overwrite a malformed receipt", async () => {
-    const root = await tempDir("adv-receipt-malformed-");
+    const root = await tempDir("determinus-receipt-malformed-");
     writeFileSync(join(root, "cutover-receipt.json"), "{ corrupt");
     const result = activateCutoverReceipt(activateArgs(root));
     expect(result.activated).toBe(false);
@@ -182,7 +182,7 @@ describe("activateCutoverReceipt", () => {
   });
 
   test("appends an audit line to receipt-history.jsonl", async () => {
-    const root = await tempDir("adv-receipt-audit-");
+    const root = await tempDir("determinus-receipt-audit-");
     activateCutoverReceipt(activateArgs(root));
     const audit = readFileSync(join(root, "receipt-history.jsonl"), "utf8");
     const line = JSON.parse(audit.trim().split("\n")[0]);
@@ -193,7 +193,7 @@ describe("activateCutoverReceipt", () => {
 
 describe("disableCutoverReceipt (first rollback action, DDC7)", () => {
   test("flips status, retains the receipt and history, and audits", async () => {
-    const root = await tempDir("adv-receipt-disable-");
+    const root = await tempDir("determinus-receipt-disable-");
     const activated = activateCutoverReceipt(activateArgs(root));
     const result = disableCutoverReceipt({
       migrationRoot: root,
@@ -221,13 +221,13 @@ describe("disableCutoverReceipt (first rollback action, DDC7)", () => {
   });
 
   test("disabling with no receipt is a no-op", async () => {
-    const root = await tempDir("adv-receipt-disable-none-");
+    const root = await tempDir("determinus-receipt-disable-none-");
     const result = disableCutoverReceipt({ migrationRoot: root, reason: "x" });
     expect(result.disabled).toBe(false);
   });
 
   test("disabling a malformed receipt quarantines and retains it", async () => {
-    const root = await tempDir("adv-receipt-disable-corrupt-");
+    const root = await tempDir("determinus-receipt-disable-corrupt-");
     writeFileSync(join(root, "cutover-receipt.json"), "{ corrupt");
     const result = disableCutoverReceipt({
       migrationRoot: root,
@@ -246,7 +246,7 @@ describe("disableCutoverReceipt (first rollback action, DDC7)", () => {
 
 describe("isReceiptActiveForBuild", () => {
   test("true only for an active receipt bound to the same digest", async () => {
-    const root = await tempDir("adv-receipt-activefor-");
+    const root = await tempDir("determinus-receipt-activefor-");
     expect(isReceiptActiveForBuild(null, DIGEST_A)).toBe(false);
     activateCutoverReceipt(activateArgs(root));
     const { receipt } = readCutoverReceipt({ migrationRoot: root });
@@ -260,7 +260,7 @@ describe("isReceiptActiveForBuild", () => {
 
 describe("readCutoverReceipt", () => {
   test("malformed receipts surface as unknown state, never as active", async () => {
-    const root = await tempDir("adv-receipt-read-bad-");
+    const root = await tempDir("determinus-receipt-read-bad-");
     writeFileSync(
       join(root, "cutover-receipt.json"),
       JSON.stringify({ status: "active" }),

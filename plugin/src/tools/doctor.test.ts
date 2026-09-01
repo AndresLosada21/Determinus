@@ -93,11 +93,11 @@ function setHealthyProbes(): void {
   });
 }
 
-describe("adv_doctor disk diagnostics", () => {
+describe("determinus_doctor disk diagnostics", () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await mkdtemp(join(tmpdir(), "adv-doctor-test-"));
+    root = await mkdtemp(join(tmpdir(), "determinus-doctor-test-"));
     setHealthyProbes();
     targetStoreRef.current = null;
     mockWithTargetPathStore.mockClear();

@@ -84,7 +84,7 @@ function makeReport(overrides?: {
     change_id: "sourceChange",
     task_id: taskId,
     attempt: 1,
-    agent: overrides?.agent ?? "adv-engineer",
+    agent: overrides?.agent ?? "determinus-engineer",
     scope: overrides?.scope ?? { kind: "task", task_id: taskId },
     status: "complete",
     files_touched: [],
@@ -155,7 +155,7 @@ function makeStore(overrides?: { sourceChange?: Change }): Store {
   } as Store;
 }
 
-describe("adv_followup_promote", () => {
+describe("determinus_followup_promote", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -183,7 +183,7 @@ describe("adv_followup_promote", () => {
       } as Change,
     });
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "required_follow_up",
@@ -260,7 +260,7 @@ describe("adv_followup_promote", () => {
       } as Change,
     });
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "required_follow_up",
@@ -299,7 +299,7 @@ describe("adv_followup_promote", () => {
       } as Change,
     });
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "report_follow_up",
@@ -354,7 +354,7 @@ describe("adv_followup_promote", () => {
     // legacy compatibility (AC8) but the tool input enum does not. Since
     // execute() is invoked directly here (bypassing the SDK's tool()
     // Zod boundary), we assert against the input arg schema.
-    const argsSchema = followupTools.adv_followup_promote.args
+    const argsSchema = followupTools.determinus_followup_promote.args
       .source_kind as unknown as { options: string[] };
     expect(argsSchema.options).not.toContain("agenda");
     expect(argsSchema.options).toEqual([
@@ -367,7 +367,7 @@ describe("adv_followup_promote", () => {
   test("supports manual fallback source", async () => {
     const store = makeStore();
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "manual",
@@ -387,7 +387,7 @@ describe("adv_followup_promote", () => {
   test("rejects report source when report is not found on source change", async () => {
     const store = makeStore();
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "required_follow_up",
@@ -428,7 +428,7 @@ describe("adv_followup_promote", () => {
       } as Change,
     });
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "required_follow_up",
@@ -462,7 +462,7 @@ describe("adv_followup_promote", () => {
       } as Change,
     });
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "report_follow_up",
@@ -496,7 +496,7 @@ describe("adv_followup_promote", () => {
       } as Change,
     });
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "report_follow_up",
@@ -519,7 +519,7 @@ describe("adv_followup_promote", () => {
   test("rejects missing required args", async () => {
     const store = makeStore();
 
-    const output = await followupTools.adv_followup_promote.execute(
+    const output = await followupTools.determinus_followup_promote.execute(
       {
         source_change_id: "sourceChange",
         source_kind: "manual",

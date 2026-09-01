@@ -85,12 +85,12 @@ describe("compactToolPart — AC3/AC4 fallback durable sink (oversized protected
   let sinkDir: string;
 
   beforeEach(() => {
-    sinkDir = mkdtempSync(join(tmpdir(), "adv-sink-"));
-    process.env.ADV_FALLBACK_SINK_DIR = sinkDir;
+    sinkDir = mkdtempSync(join(tmpdir(), "determinus-sink-"));
+    process.env.determinus_FALLBACK_SINK_DIR = sinkDir;
   });
 
   afterEach(async () => {
-    delete process.env.ADV_FALLBACK_SINK_DIR;
+    delete process.env.determinus_FALLBACK_SINK_DIR;
     await rm(sinkDir, { recursive: true, force: true });
   });
 
@@ -157,14 +157,14 @@ describe("compactToolPart — AC3/AC4 fallback durable sink (oversized protected
     // A file cannot be used as a directory, so persistence returns null.
     // The replacement must still be an explicit full drop rather than an
     // exception or a retained oversized protected return.
-    process.env.ADV_FALLBACK_SINK_DIR = join(sinkDir, "not-a-directory");
+    process.env.determinus_FALLBACK_SINK_DIR = join(sinkDir, "not-a-directory");
     const part = toolPart({
       tool: "task",
       output: oversized(THRESHOLD + 3000),
     });
     // Make the configured sink path a file by persisting it through the
     // existing test helper's temporary directory.
-    const sinkPath = process.env.ADV_FALLBACK_SINK_DIR;
+    const sinkPath = process.env.determinus_FALLBACK_SINK_DIR;
     writeFileSync(sinkPath, "not a directory");
 
     expect(compactToolPart(part)).toBe(true);
@@ -311,8 +311,8 @@ describe("compactPromptMessages — SC1 count preservation (DC7)", () => {
   });
 
   test("oversized persisted protected content increments the count (DC7)", () => {
-    process.env.ADV_FALLBACK_SINK_DIR = mkdtempSync(
-      join(tmpdir(), "adv-sink-"),
+    process.env.determinus_FALLBACK_SINK_DIR = mkdtempSync(
+      join(tmpdir(), "determinus-sink-"),
     );
     try {
       const messages = [];
@@ -327,7 +327,7 @@ describe("compactPromptMessages — SC1 count preservation (DC7)", () => {
       // 2 old task outputs persisted (increment) + 6 recent protected.
       expect(result.compactedToolOutputs).toBe(2);
     } finally {
-      delete process.env.ADV_FALLBACK_SINK_DIR;
+      delete process.env.determinus_FALLBACK_SINK_DIR;
     }
   });
 
@@ -349,7 +349,7 @@ describe("persistFallbackContent + fallbackPersistedMarker — unit", () => {
   let sinkDir: string;
 
   beforeEach(() => {
-    sinkDir = mkdtempSync(join(tmpdir(), "adv-sink-"));
+    sinkDir = mkdtempSync(join(tmpdir(), "determinus-sink-"));
   });
 
   afterEach(async () => {

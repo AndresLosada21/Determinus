@@ -131,7 +131,7 @@ Each workflow step MUST name its allowed sub-agents and its inline-only safety b
 **Then:**
 - Phantom agents (librarian, mechanic, prioritizer) do not appear in allowed_subagents
 - Primary agents (adv, plan, build) do not appear in allowed_subagents
-- Only spawnable sub-agents (explore, general, adv-researcher, adv-engineer, adv-reviewer, adv-designer, adv-tron, adv-verifier) may appear
+- Only spawnable sub-agents (explore, general, determinus-researcher, determinus-engineer, determinus-reviewer, determinus-designer, determinus-tron, determinus-verifier) may appear
 
 **Specific agent assignments match design** (`rq-delDefaults03.4`)
 
@@ -141,11 +141,11 @@ Each workflow step MUST name its allowed sub-agents and its inline-only safety b
 **When:** Agent assignments are checked
 
 **Then:**
-- discovery allows: adv-researcher, explore
-- design allows: adv-researcher (mandatory for validation)
-- apply allows: adv-engineer, adv-designer, adv-verifier, general
-- review allows: adv-reviewer, adv-engineer, adv-researcher, explore
-- harden allows: adv-reviewer, adv-engineer, explore
+- discovery allows: determinus-researcher, explore
+- design allows: determinus-researcher (mandatory for validation)
+- apply allows: determinus-engineer, determinus-designer, determinus-verifier, general
+- review allows: determinus-reviewer, determinus-engineer, determinus-researcher, explore
+- harden allows: determinus-reviewer, determinus-engineer, explore
 - proposal, prep, archive, reflect allow: none
 
 ---
@@ -154,7 +154,7 @@ Each workflow step MUST name its allowed sub-agents and its inline-only safety b
 
 **ID:** `rq-delDefaults04` | **Priority:** **[MUST]**
 
-Discovery wide scans (Prior Research Extension, P25 Related-Pattern Scan) MUST be delegated to sub-agents (adv-researcher, explore) within the hybrid step. Prep is classified as inline_required — no wide scan delegation is applicable. This requirement ensures that evidence-gathering scans that would consume significant orchestrator context are delegated, while synthesis and decision-making remain inline.
+Discovery wide scans (Prior Research Extension, P25 Related-Pattern Scan) MUST be delegated to sub-agents (determinus-researcher, explore) within the hybrid step. Prep is classified as inline_required — no wide scan delegation is applicable. This requirement ensures that evidence-gathering scans that would consume significant orchestrator context are delegated, while synthesis and decision-making remain inline.
 
 **Tags:** `delegation`, `scans`, `discovery`
 
@@ -168,8 +168,8 @@ Discovery wide scans (Prior Research Extension, P25 Related-Pattern Scan) MUST b
 **When:** Wide scan sub-steps are evaluated
 
 **Then:**
-- Prior Research Extension is delegated to adv-researcher
-- P25 Related-Pattern Scan is delegated to explore or adv-researcher
+- Prior Research Extension is delegated to determinus-researcher
+- P25 Related-Pattern Scan is delegated to explore or determinus-researcher
 - These sub-steps are marked as subagent_primary within the hybrid step
 
 **Prep wide scans remain inline** (`rq-delDefaults04.2`)
@@ -190,7 +190,7 @@ Discovery wide scans (Prior Research Extension, P25 Related-Pattern Scan) MUST b
 
 **ID:** `rq-delDefaults05` | **Priority:** **[MUST]**
 
-Delegated worker lanes that produce ADV evidence MUST provide typed, ingest-validated, durable reports through sidecar report persistence. adv-engineer, adv-reviewer, and adv-designer task-scoped reports MUST be submitted through adv_subagent_report_submit and remain backward-compatible with task.subagent_reports[] readers; their payloads MUST include evidence references (sources, file:line, test output), scope/design/task impact assessment, blockers (with file/line and diagnosis), and recommended next action for the orchestrator. adv-researcher and adv-tron change-scoped optimized handoff reports MUST use the same strict tool-call transport with source metadata. Scanner lanes (for example explore review/harden scanners) are non-persisted scanner transport, without ADV tool access, and MUST NOT claim adv_subagent_report_submit or task.subagent_reports[] persistence. Only an orchestrator-submitted scanner bundle MAY persist scanner findings. Verify-Only Burst uses adv-verifier as the authority-free primary executor and general only as an unavailable-runtime fallback, with an orchestrator_submitted_verification_bundle transport; the worker returns structured JSON and the orchestrator submits adv-verification-triage-bundle evidence. Worker packet contracts MUST pin schema-derived strict identity anchors: WORKING DIRECTORY, CHANGE, scope identity, and ATTEMPT, plus PHASE where required. Worker packet contracts MUST also define warn-first scope/done/stop/verification anchors: TASK_SCOPE, IN_SCOPE, OUT_OF_SCOPE, DONE_WHEN, STOP_WHEN, and VERIFICATION. Future persisted worker additions MUST include these field categories and must not rely on LLM-parsed prose as the only ADV report transport.
+Delegated worker lanes that produce ADV evidence MUST provide typed, ingest-validated, durable reports through sidecar report persistence. determinus-engineer, determinus-reviewer, and determinus-designer task-scoped reports MUST be submitted through determinus_subagent_report_submit and remain backward-compatible with task.subagent_reports[] readers; their payloads MUST include evidence references (sources, file:line, test output), scope/design/task impact assessment, blockers (with file/line and diagnosis), and recommended next action for the orchestrator. determinus-researcher and determinus-tron change-scoped optimized handoff reports MUST use the same strict tool-call transport with source metadata. Scanner lanes (for example explore review/harden scanners) are non-persisted scanner transport, without ADV tool access, and MUST NOT claim determinus_subagent_report_submit or task.subagent_reports[] persistence. Only an orchestrator-submitted scanner bundle MAY persist scanner findings. Verify-Only Burst uses determinus-verifier as the authority-free primary executor and general only as an unavailable-runtime fallback, with an orchestrator_submitted_verification_bundle transport; the worker returns structured JSON and the orchestrator submits determinus-verification-triage-bundle evidence. Worker packet contracts MUST pin schema-derived strict identity anchors: WORKING DIRECTORY, CHANGE, scope identity, and ATTEMPT, plus PHASE where required. Worker packet contracts MUST also define warn-first scope/done/stop/verification anchors: TASK_SCOPE, IN_SCOPE, OUT_OF_SCOPE, DONE_WHEN, STOP_WHEN, and VERIFICATION. Future persisted worker additions MUST include these field categories and must not rely on LLM-parsed prose as the only ADV report transport.
 
 **Tags:** `delegation`, `reports`, `structured-output`
 
@@ -204,11 +204,11 @@ Delegated worker lanes that produce ADV evidence MUST provide typed, ingest-vali
 **When:** Report field coverage is validated
 
 **Then:**
-- adv-engineer (ENGINEER_REPORT via adv_subagent_report_submit) includes verification (evidence), scope, blockers, context_update_for_adv.suggested_next_action (next action), and persists through sidecar report storage with task.subagent_reports[] compatibility
-- adv-reviewer (REVIEWER_REPORT via adv_subagent_report_submit) includes verification (evidence), scope, blocking_findings (blockers), required_main_agent_actions (next action), and persists through sidecar report storage with task.subagent_reports[] compatibility
-- adv-designer (DESIGNER_REPORT via adv_subagent_report_submit) includes verification (evidence), scope, blockers, design_dimensions, neighboring_recommendations, required_main_agent_actions (next action), and persists through sidecar report storage with task.subagent_reports[] compatibility
-- adv-researcher optimized handoff includes SOURCES (evidence), ARCHITECTURE ASSESSMENT (impact), VALIDATION (blockers/assessment), RECOMMENDATION (next action), and source metadata
-- adv-tron optimized handoff includes Evidence: file:line (evidence), FINDINGS/HOTSPOTS/RISKS (impact), OPEN QUESTIONS (blockers), SUGGESTED NEXT COMMANDS (next action), and source metadata
+- determinus-engineer (ENGINEER_REPORT via determinus_subagent_report_submit) includes verification (evidence), scope, blockers, context_update_for_adv.suggested_next_action (next action), and persists through sidecar report storage with task.subagent_reports[] compatibility
+- determinus-reviewer (REVIEWER_REPORT via determinus_subagent_report_submit) includes verification (evidence), scope, blocking_findings (blockers), required_main_agent_actions (next action), and persists through sidecar report storage with task.subagent_reports[] compatibility
+- determinus-designer (DESIGNER_REPORT via determinus_subagent_report_submit) includes verification (evidence), scope, blockers, design_dimensions, neighboring_recommendations, required_main_agent_actions (next action), and persists through sidecar report storage with task.subagent_reports[] compatibility
+- determinus-researcher optimized handoff includes SOURCES (evidence), ARCHITECTURE ASSESSMENT (impact), VALIDATION (blockers/assessment), RECOMMENDATION (next action), and source metadata
+- determinus-tron optimized handoff includes Evidence: file:line (evidence), FINDINGS/HOTSPOTS/RISKS (impact), OPEN QUESTIONS (blockers), SUGGESTED NEXT COMMANDS (next action), and source metadata
 
 **Matrix pins scanner and worker packet contracts** (`rq-delDefaults05.2`)
 
@@ -219,10 +219,10 @@ Delegated worker lanes that produce ADV evidence MUST provide typed, ingest-vali
 
 **Then:**
 - task-scoped typed_persisted_worker packet contracts include strict identity anchors WORKING DIRECTORY, CHANGE, TASK, and ATTEMPT
-- adv-reviewer task-scoped typed_persisted_worker packet contracts also include strict PHASE
+- determinus-reviewer task-scoped typed_persisted_worker packet contracts also include strict PHASE
 - typed_persisted_worker packet contracts include warn-first anchors TASK_SCOPE, IN_SCOPE, OUT_OF_SCOPE, DONE_WHEN, STOP_WHEN, and VERIFICATION
 - change-scoped optimized handoff packet contracts include WORKING DIRECTORY, CHANGE, SCOPE KEY, and ATTEMPT
-- non_persisted_scanner packet contracts include WORKING DIRECTORY, CHANGE, and ATTEMPT without adv_subagent_report_submit persistence or ADV tool access
+- non_persisted_scanner packet contracts include WORKING DIRECTORY, CHANGE, and ATTEMPT without determinus_subagent_report_submit persistence or ADV tool access
 - orchestrator-submitted scanner bundle packet contracts include WORKING DIRECTORY, CHANGE, SCOPE KEY, PHASE, and ATTEMPT
 - orchestrator-submitted verification bundle packet contracts include WORKING DIRECTORY, CHANGE, SCOPE KEY, PHASE, and ATTEMPT
 
@@ -308,7 +308,7 @@ Tests MUST validate: (1) all 9 matrix steps are present with valid modes and gat
 
 **ID:** `rq-delDefaults07` | **Priority:** **[MUST]**
 
-Frontend-capable ADV worker agents MUST have browser verification capability when their assigned scope needs UI evidence. adv-designer and adv-reviewer MUST expose Playwright MCP tools through `playwright_*: true`, MUST expose skill loading through `skill: true`, and MUST instruct workers to load `skill("playwright-mcp")` before browser-driven UI verification or visual review. Playwright MCP is for local app UI verification, accessibility snapshots, visual review, and interactive reproduction; it is not for web research, docs lookup, or page scraping.
+Frontend-capable ADV worker agents MUST have browser verification capability when their assigned scope needs UI evidence. determinus-designer and determinus-reviewer MUST expose Playwright MCP tools through `playwright_*: true`, MUST expose skill loading through `skill: true`, and MUST instruct workers to load `skill("playwright-mcp")` before browser-driven UI verification or visual review. Playwright MCP is for local app UI verification, accessibility snapshots, visual review, and interactive reproduction; it is not for web research, docs lookup, or page scraping.
 
 **Tags:** `delegation`, `frontend`, `playwright`, `skills`, `visual-review`
 
@@ -317,27 +317,27 @@ Frontend-capable ADV worker agents MUST have browser verification capability whe
 **Frontend implementation worker can verify UI in browser** (`rq-delDefaults07.1`)
 
 **Given:**
-- ADV delegates frontend/component implementation to adv-designer
+- ADV delegates frontend/component implementation to determinus-designer
 
 **When:** The task benefits from browser-driven evidence
 
 **Then:**
-- adv-designer frontmatter includes playwright_*: true
-- adv-designer frontmatter includes skill: true
-- adv-designer prompt instructs loading skill("playwright-mcp") before Playwright MCP use
+- determinus-designer frontmatter includes playwright_*: true
+- determinus-designer frontmatter includes skill: true
+- determinus-designer prompt instructs loading skill("playwright-mcp") before Playwright MCP use
 - Playwright MCP is documented as not for web research
 
 **Reviewer can perform visual UI review when needed** (`rq-delDefaults07.2`)
 
 **Given:**
-- ADV delegates review or harden analysis to adv-reviewer for frontend/design scope
+- ADV delegates review or harden analysis to determinus-reviewer for frontend/design scope
 
 **When:** Visual review, accessibility snapshots, or interactive reproduction materially improves review confidence
 
 **Then:**
-- adv-reviewer frontmatter includes playwright_*: true
-- adv-reviewer frontmatter includes skill: true
-- adv-reviewer prompt instructs loading skill("playwright-mcp") before Playwright MCP use
+- determinus-reviewer frontmatter includes playwright_*: true
+- determinus-reviewer frontmatter includes skill: true
+- determinus-reviewer prompt instructs loading skill("playwright-mcp") before Playwright MCP use
 - Playwright MCP is documented as not for web research
 
 ---
@@ -346,7 +346,7 @@ Frontend-capable ADV worker agents MUST have browser verification capability whe
 
 **ID:** `rq-delDefaults08` | **Priority:** **[MUST]**
 
-When ADV delegates frontend/component implementation to adv-designer, the Designer Apply Context Packet MUST include a VISUAL_CONTEXT block with surface_type, existing_patterns, tokens_and_style_rules, viewport_targets, forbidden_patterns, and evidence_expectation entries. Each entry MUST either carry sourced context from agreement, design, task scope, project files, or preview discovery, or an explicit unavailable marker with a reason. The packet MUST preserve the backend boundary and apply-only role boundary, and MUST NOT fabricate style context or require Storybook as an Advance dependency.
+When ADV delegates frontend/component implementation to determinus-designer, the Designer Apply Context Packet MUST include a VISUAL_CONTEXT block with surface_type, existing_patterns, tokens_and_style_rules, viewport_targets, forbidden_patterns, and evidence_expectation entries. Each entry MUST either carry sourced context from agreement, design, task scope, project files, or preview discovery, or an explicit unavailable marker with a reason. The packet MUST preserve the backend boundary and apply-only role boundary, and MUST NOT fabricate style context or require Storybook as an Advance dependency.
 
 **Tags:** `delegation`, `frontend`, `designer`, `visual-context`, `packets`
 
@@ -355,7 +355,7 @@ When ADV delegates frontend/component implementation to adv-designer, the Design
 **Designer packet includes visual context anchors** (`rq-delDefaults08.1`)
 
 **Given:**
-- ADV delegates a task to adv-designer because metadata.frontend is true
+- ADV delegates a task to determinus-designer because metadata.frontend is true
 
 **When:** The Designer Apply Context Packet is prepared
 
@@ -373,7 +373,7 @@ When ADV delegates frontend/component implementation to adv-designer, the Design
 
 **Then:**
 - The packet keeps backend logic, storage, APIs, Temporal behavior, business rules, review, and harden out of scope
-- The packet does not route review or harden work to adv-designer
+- The packet does not route review or harden work to determinus-designer
 - The packet does not require Storybook as an Advance plugin dependency
 
 ---
@@ -382,7 +382,7 @@ When ADV delegates frontend/component implementation to adv-designer, the Design
 
 **ID:** `rq-delDefaults09` | **Priority:** **[MUST]**
 
-When ADV presents formatted ready-task output (for example via adv_task_ready), the formatted projection MUST include bounded routing metadata keys needed for delegation decisions, specifically `delegation_hint` and `frontend` when those keys are present in task metadata. The projection MUST remain backward compatible when metadata is absent: missing keys are omitted rather than emitted as empty placeholders, and the raw ready[] payload is unchanged. Only bounded, delegation-relevant metadata keys are projected; arbitrary metadata MUST NOT be surfaced in the formatted chat output.
+When ADV presents formatted ready-task output (for example via determinus_task_ready), the formatted projection MUST include bounded routing metadata keys needed for delegation decisions, specifically `delegation_hint` and `frontend` when those keys are present in task metadata. The projection MUST remain backward compatible when metadata is absent: missing keys are omitted rather than emitted as empty placeholders, and the raw ready[] payload is unchanged. Only bounded, delegation-relevant metadata keys are projected; arbitrary metadata MUST NOT be surfaced in the formatted chat output.
 
 **Tags:** `delegation`, `routing`, `task-ready`, `metadata`, `bounded`
 
@@ -430,7 +430,7 @@ When ADV presents formatted ready-task output (for example via adv_task_ready), 
 
 **ID:** `rq-delDefaults10` | **Priority:** **[MUST]**
 
-For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to adv-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch adv-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select adv-designer first for classified frontend work. The matching implementation cycle MUST be bound under report.apply_context.implementation_cycle_id with a valid implementation_provenance (kind: engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected by the strict report schema. adv-designer remains apply-phase only and MUST NOT own review or harden; adv-reviewer retains review and harden ownership.
+For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to determinus-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch determinus-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select determinus-designer first for classified frontend work. The matching implementation cycle MUST be bound under report.apply_context.implementation_cycle_id with a valid implementation_provenance (kind: engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected by the strict report schema. determinus-designer remains apply-phase only and MUST NOT own review or harden; determinus-reviewer retains review and harden ownership.
 
 **Tags:** `delegation`, `frontend`, `engineer-first`, `designer-follow-up`, `apply-context-binding`
 
@@ -445,19 +445,19 @@ For delegated code tasks with metadata.frontend set to true, ADV MUST route init
 **When:** ADV selects an initial implementation lane
 
 **Then:**
-- ADV dispatches adv-engineer before adv-designer
-- ADV does not dispatch adv-designer as the initial implementation lane
+- ADV dispatches determinus-engineer before determinus-designer
+- ADV does not dispatch determinus-designer as the initial implementation lane
 
 **Matching implementation receipt drives designer follow-up** (`rq-delDefaults10.2`)
 
 **Given:**
 - A code task has metadata.frontend set to true
-- A same-task same-cycle adv-engineer report completed with passing verification and no blockers, or a classified inline implementation has bounded provenance
+- A same-task same-cycle determinus-engineer report completed with passing verification and no blockers, or a classified inline implementation has bounded provenance
 
 **When:** Initial implementation completes
 
 **Then:**
-- ADV dispatches a matching-cycle adv-designer follow-up
+- ADV dispatches a matching-cycle determinus-designer follow-up
 - Designer provenance references the engineer report or inline receipt
 - The implementation cycle is carried under report.apply_context.implementation_cycle_id with a valid implementation_provenance (engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected
 - Missing, stale, or mismatched provenance is rejected
@@ -470,8 +470,8 @@ For delegated code tasks with metadata.frontend set to true, ADV MUST route init
 **When:** The change reaches review or harden
 
 **Then:**
-- adv-designer does not own review or harden
-  - adv-reviewer retains review and harden ownership
+- determinus-designer does not own review or harden
+  - determinus-reviewer retains review and harden ownership
 
 ---
 
@@ -479,7 +479,7 @@ For delegated code tasks with metadata.frontend set to true, ADV MUST route init
 
 **ID:** `rq-delDefaults11` | **Priority:** **[MUST]**
 
-When `/adv-apply` marks a task `inline_required` because the task involves failing-test diagnosis or behavioral-authority diagnosis, ADV MUST NOT use delegation as the primary diagnosis or repair path. The inline-required routing decision takes precedence over any `delegate_allowed` or `delegate_preferred` hint for that task. The command asset MUST list failing-test diagnosis and behavioral-authority diagnosis as risk signals that force `inline_required`, and the delegation matrix MUST keep the apply step's implementation substeps as `delegate_allowed` so that the inline-required override is structurally meaningful rather than a no-op.
+When `/determinus-apply` marks a task `inline_required` because the task involves failing-test diagnosis or behavioral-authority diagnosis, ADV MUST NOT use delegation as the primary diagnosis or repair path. The inline-required routing decision takes precedence over any `delegate_allowed` or `delegate_preferred` hint for that task. The command asset MUST list failing-test diagnosis and behavioral-authority diagnosis as risk signals that force `inline_required`, and the delegation matrix MUST keep the apply step's implementation substeps as `delegate_allowed` so that the inline-required override is structurally meaningful rather than a no-op.
 
 **Tags:** `delegation`, `routing`, `diagnosis`, `execution`, `precedence`
 
@@ -488,7 +488,7 @@ When `/adv-apply` marks a task `inline_required` because the task involves faili
 **Failing-test diagnosis forces inline execution** (`rq-delDefaults11.1`)
 
 **Given:**
-- `/adv-apply` is evaluating a code task
+- `/determinus-apply` is evaluating a code task
 - The task title, `error_recovery`, or `failure_attribution` indicates failing-test diagnosis
 
 **When:** Delegation routing is evaluated
@@ -501,7 +501,7 @@ When `/adv-apply` marks a task `inline_required` because the task involves faili
 **Behavioral-authority diagnosis forces inline execution** (`rq-delDefaults11.2`)
 
 **Given:**
-- `/adv-apply` is evaluating a code task
+- `/determinus-apply` is evaluating a code task
 - The task requires deciding what the code should do (behavioral authority) rather than mechanical implementation
 
 **When:** Delegation routing is evaluated

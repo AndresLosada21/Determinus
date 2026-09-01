@@ -1,0 +1,96 @@
+# ADV Autonomy Compliance Matrix
+
+This document records the current ADV policy for **agent autonomy vs. user confirmation**.
+
+## Goal
+
+ADV should ask the user only for:
+- outcome/vision alignment
+- subjective tradeoffs
+- explicit approval or sign-off
+
+ADV should **not** ask the user for deterministic classifications the agent can derive from the conversation, specs, codebase, or prior ADV state.
+
+## Shared Policy
+
+Canonical sources:
+- `determinus_INSTRUCTIONS.md` → **Autonomy & Quality Ownership** + **Question Tool UX**
+- `docs/determinus-question-tool.md` → question-tool usage constraints
+
+### Agent decides by default
+
+- change type
+- affected specs / capabilities
+- whether a new capability/spec is required
+- likely spec deltas
+- cross-repo impact
+- obvious target change resolution
+- healthy worktree reuse
+- whether execution should begin once pre-implementation gates are complete
+
+### User confirms when intuition or approval is required
+
+- problem framing and intended outcome
+- objectives, constraints, avoidances, acceptance criteria
+- design direction when multiple valid approaches reflect product vision or taste
+- acceptance of delivered work
+- pre-existing out-of-scope debt documentation only
+- cancellation, archive sign-off, destructive approval
+- doom-loop recovery
+
+## Command Matrix
+
+| Command | Agent decides | User confirms |
+|---|---|---|
+| `/determinus-proposal` | summary derivation, overlap detection, change type, impacted specs, new-spec need, cross-repo scope, proposal quality refinement | problem statement matches intended outcome |
+| `/determinus-discover` | target auto-selection, discovery synthesis, open design questions from evidence, extraction of objectives/constraints, triage of open questions (technical questions resolved via LBP research), reframing tech questions as outcome questions | agreement contents and edits, user-facing open questions (priorities, behavior, downsides, AC boundaries), explicit deferral of any question |
+| `/determinus-design` | target auto-selection, design synthesis from research and code; mandatory independent validation via independent read-only validator (`rq-designval01`); concise design summary and validator verdict display (`rq-designval02`) | when design validator returns CONFLICT (`rq-designval03`) or when agent identifies contract-compromise risk (`rq-designval04`); otherwise auto-continue to planning |
+| `/determinus-prep` | target auto-selection, gap analysis, task graph synthesis | only when gaps are unresolvable without user intent |
+| `/determinus-apply` | target auto-selection, worktree reuse, execution start, task sequencing, TDD loop, cross-repo routing, **auto-continue across task boundaries without any "task complete / section complete / progress update / shall I continue?" pause** (`rq-autonomy01.4`), **no execution-start approval prompt once planning is complete** (`rq-autonomy01.5`) | only the enumerated `rq-autonomy01` checkpoints: doom-loop recovery, cancellations, re-entry for scope changes not reflected in the stored contract, environmental blocker |
+| `/determinus-review` | target auto-selection, review execution, remediation of blockers/issues, review synthesis, acceptance summary construction | whether delivered work satisfies the agreement |
+| `/determinus-harden` | target auto-selection, hardening analysis, default in-scope remediation | none by default; validated in-scope findings must be fixed |
+| `/determinus-archive` | target auto-selection, archive validation, spec application workflow | archive/sign-off approval |
+| `/determinus-audit` | spec drift detection and reporting | only if user wants remediation prioritization or debt acceptance |
+| `/determinus-task` | fast-track synthesis of contract + proposal/discovery/design/planning | quick-contract confirmation, conflicts with recommended direction |
+| `/determinus-refactor` | target auto-selection, drift analysis | whether implementation drift means “new requirement” vs “bug in code” |
+| `/determinus-tron` | target auto-resolution, fallback to nearest concrete/broad scope | only if multiple plausible investigations imply materially different intents |
+| `/determinus-clarify` | question sequencing and synthesis | answers to ambiguity the agent cannot derive |
+| `/determinus-validate` | target auto-selection, validation run | none |
+
+## Sequential Flow: Pause vs Auto-Continue
+
+ADV pauses for human input ONLY at these explicit checkpoints:
+
+| Checkpoint | Gate | Why |
+|---|---|---|
+| Proposal confirmation | `proposal` | User confirms problem framing |
+| Agreement sign-off | `discovery` | User approves objectives, AC, constraints |
+| Design approval (conditional) | `design` | When tradeoffs depend on user values, validator returns CONFLICT, or agent identifies contract-compromise risk; skip for straightforward deterministic designs with no compromise risk |
+| Acceptance | `acceptance` | User confirms delivered work satisfies agreement |
+| Archive sign-off | `release` | User approves final release |
+| Cancellation approval | any | Explicit user approval for task/change cancellation |
+| Re-entry / circle-back | any | Agent may reopen earliest invalidated gate autonomously (`rq-scopeReentry01`); cascade reset preserves existing tasks (`rq-scopeReentry02`) |
+| Doom-loop recovery | `execution` | 3 failed attempts, user guidance needed |
+
+**All other clean steps auto-continue:** discovery, deterministic design, prep, apply, review, and harden proceed without prompting the user when no unresolved user-value tradeoff or required approval exists. In particular, `/determinus-apply` runs a continuous ralph loop from execution-gate start through all ready tasks and final verification, pausing only at enumerated `rq-autonomy01` checkpoints — never at task/section boundaries, progress displays, or execution-phase start.
+
+## Audit Verdict
+
+**Status: compliant with the current intent.**
+
+The current command contracts no longer instruct agents to ask the user for:
+- impacted specs
+- whether a new spec is needed
+- change type
+- cross-repo scope
+- obvious single-target selection
+
+Those decisions are now explicitly agent-owned. Remaining user-input touchpoints are concentrated around **vision alignment, acceptance, and approval**.
+
+### Recent Spec Additions Relevant to Autonomy
+
+- **`rq-designval01`** — Design gate requires independent validation pass via a distinct read-only validator before completion; validator failure yields INCONCLUSIVE warning, not a block.
+- **`rq-designval02`** — Validator verdict (VALIDATED/CAUTION/CONFLICT/INCONCLUSIVE) must appear in `/determinus-design` output.
+- **`rq-designval03`** — CONFLICT verdict blocks silent auto-continue from design to planning.
+- **`rq-scopeReentry01`** — Scope expansions after gate progress must route back through the earliest invalidated gate via `determinus_change_reenter`; agents may do this autonomously.
+- **`rq-scopeReentry02`** — Re-entry cascade resets downstream gates while preserving existing tasks and appending audit history.

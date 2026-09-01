@@ -115,12 +115,12 @@ async function writeSummaryProjection(
   }
 }
 
-describe("adv_launcher_projection_rebuild", () => {
+describe("determinus_launcher_projection_rebuild", () => {
   let tempDir: string;
   let store: Store;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-launcher-rebuild-");
+    tempDir = await createTempDir("determinus-launcher-rebuild-");
     await initGitRepo(tempDir);
     const projectId = await getProjectId(tempDir);
     if (!projectId) {
@@ -171,7 +171,7 @@ describe("adv_launcher_projection_rebuild", () => {
     );
 
     const result =
-      await launcherProjectionTools.adv_launcher_projection_rebuild.execute(
+      await launcherProjectionTools.determinus_launcher_projection_rebuild.execute(
         {},
         store,
       );
@@ -240,7 +240,7 @@ describe("adv_launcher_projection_rebuild", () => {
     );
 
     const result =
-      await launcherProjectionTools.adv_launcher_projection_rebuild.execute(
+      await launcherProjectionTools.determinus_launcher_projection_rebuild.execute(
         {},
         store,
       );

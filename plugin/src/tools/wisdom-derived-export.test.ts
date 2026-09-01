@@ -38,7 +38,7 @@ vi.mock("./change-mutation-coordinator", () => ({
 
 import { wisdomTools } from "./wisdom";
 
-describe("adv_wisdom_add disk path", () => {
+describe("determinus_wisdom_add disk path", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.listProjectWisdom.mockResolvedValue([]);
@@ -67,7 +67,7 @@ describe("adv_wisdom_add disk path", () => {
       changes: { refresh: vi.fn(async () => undefined) },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "addFeature",
         type: "convention",
@@ -130,7 +130,7 @@ describe("adv_wisdom_add disk path", () => {
       },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "addFeature",
         type: "convention",
@@ -166,7 +166,7 @@ describe("adv_wisdom_add disk path", () => {
       changes: { refresh: vi.fn(async () => undefined) },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "addFeature",
         type: "convention",
@@ -182,13 +182,13 @@ describe("adv_wisdom_add disk path", () => {
   });
 });
 
-describe("adv_wisdom_list disk path", () => {
+describe("determinus_wisdom_list disk path", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("reads change-specific wisdom from the disk projection", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-wisdom-projection-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-wisdom-projection-"));
     const changes = join(root, "changes");
     await mkdir(changes, { recursive: true });
     const stateWisdom = [
@@ -224,7 +224,7 @@ describe("adv_wisdom_list disk path", () => {
       },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { changeId: "myChange", type: "pattern" },
       store,
     );
@@ -237,7 +237,7 @@ describe("adv_wisdom_list disk path", () => {
   });
 
   it("returns disk-projected wisdom without workflow state", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-wisdom-projection-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-wisdom-projection-"));
     const changes = join(root, "changes");
     await mkdir(changes, { recursive: true });
     await mkdir(join(changes, "myChange"), { recursive: true });
@@ -273,7 +273,7 @@ describe("adv_wisdom_list disk path", () => {
       },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { changeId: "myChange" },
       store,
     );
@@ -285,9 +285,9 @@ describe("adv_wisdom_list disk path", () => {
   });
 });
 
-describe("adv_wisdom_list project_only branch", () => {
+describe("determinus_wisdom_list project_only branch", () => {
   // consolidateAdvToolSurface2 (tk-11d902254d63): the removed
-  // adv_project_wisdom_list reader folded into adv_wisdom_list behind an
+  // determinus_project_wisdom_list reader folded into determinus_wisdom_list behind an
   // explicit project_only filter plus a bounded maxEntries limit. DDC6:
   // project filtering and product visibility filtering happen BEFORE the
   // bounded limit, so the limit never starves visible entries.
@@ -310,7 +310,7 @@ describe("adv_wisdom_list project_only branch", () => {
       paths: { root: "/repo", wisdom: "/ext/wisdom.jsonl" },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { project_only: true },
       store,
     );
@@ -340,7 +340,7 @@ describe("adv_wisdom_list project_only branch", () => {
       paths: { root: "/repo", wisdom: "/ext/wisdom.jsonl" },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { project_only: true },
       store,
     );
@@ -370,7 +370,7 @@ describe("adv_wisdom_list project_only branch", () => {
       paths: { root: "/repo", wisdom: "/ext/wisdom.jsonl" },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { project_only: true, type: "gotcha" },
       store,
     );
@@ -444,7 +444,7 @@ describe("adv_wisdom_list project_only branch", () => {
       },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { project_only: true, maxEntries: 2 },
       store,
     );
@@ -468,7 +468,7 @@ describe("adv_wisdom_list project_only branch", () => {
       paths: { root: "/repo", wisdom: "/ext/wisdom.jsonl" },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { project_only: true, changeId: "myChange" },
       store,
     );
@@ -483,7 +483,7 @@ describe("adv_wisdom_list project_only branch", () => {
       paths: { root: "/repo", wisdom: "/ext/wisdom.jsonl" },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { project_only: true, query: "validation" },
       store,
     );
@@ -501,7 +501,7 @@ describe("adv_wisdom_list project_only branch", () => {
       },
     } as any;
 
-    const result = await wisdomTools.adv_wisdom_list.execute(
+    const result = await wisdomTools.determinus_wisdom_list.execute(
       { maxEntries: 5 },
       store,
     );

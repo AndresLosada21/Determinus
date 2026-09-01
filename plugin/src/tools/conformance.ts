@@ -1,8 +1,8 @@
 /**
  * Conformance Tool
  *
- * Single multi-action `adv_conformance` tool. Pattern matches existing
- * `adv_spec` and other single-tool multi-action surfaces — one tool,
+ * Single multi-action `determinus_conformance` tool. Pattern matches existing
+ * `determinus_spec` and other single-tool multi-action surfaces — one tool,
  * action arg, multiple sub-behaviors.
  *
  * Actions:
@@ -16,7 +16,7 @@
  * Verdict shape (rq-confVerdict01): single structured `{verdict, run_id,
  * failed: [{rq_id, summary}]}`. Apply-phase agent has no tool path —
  * role guard in tool.execute.before blocks calls during the execution
- * gate. Orchestrator (in /adv-archive Phase 5.5) is the legitimate caller.
+ * gate. Orchestrator (in /determinus-archive Phase 5.5) is the legitimate caller.
  *
  * Drift triage on DRIFT (rq-confTriage01): the tool reports the verdict;
  * the agent halts and presents 3 user options. No auto-resolve.
@@ -329,7 +329,7 @@ export const conformanceHandler = async (
 ): Promise<string> => {
   const externalRoot = store.paths.external;
   if (!externalRoot)
-    return makeError("adv_conformance requires an external state root");
+    return makeError("determinus_conformance requires an external state root");
   const projectDir = store.paths.root;
   const args = ConformanceArgsSchema.parse(rawArgs);
   switch (args.action) {

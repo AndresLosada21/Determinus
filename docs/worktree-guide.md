@@ -6,40 +6,40 @@ publish to trunk through verified merge/archive flows.
 
 ## Worktree Location
 
-ADV-managed worktree paths are resolved by ADV tooling, not by agents. Use
-`adv_worktree_resume` for an existing change and `adv_worktree_create` only when
+determinus-managed worktree paths are resolved by ADV tooling, not by agents. Use
+`determinus_worktree_resume` for an existing change and `determinus_worktree_create` only when
 the ADV workflow explicitly needs a new worktree, then use the returned `workdir`
 for all reads, edits, tests, git operations, and sub-agent packets.
 
-Default ADV-managed worktrees live under the OpenCode data home:
+Default determinus-managed worktrees live under the OpenCode data home:
 
 ```text
 $XDG_DATA_HOME/opencode/worktree/{project-id}/{branch}
 ```
 
 Changing `XDG_DATA_HOME` changes the default worktree root. Set
-`ADV_WORKTREE_HOME` when worktree checkouts should stay outside that data-home
+`determinus_WORKTREE_HOME` when worktree checkouts should stay outside that data-home
 tree.
 
-Set an absolute `ADV_WORKTREE_HOME` to move only worktree checkouts while keeping
+Set an absolute `determinus_WORKTREE_HOME` to move only worktree checkouts while keeping
 ADV state under `$XDG_DATA_HOME/opencode/plugins/advance/{project-id}`:
 
 ```sh
-export ADV_WORKTREE_HOME="$HOME/dev/worktrees"
+export determinus_WORKTREE_HOME="$HOME/dev/worktrees"
 ```
 
 Then ADV creates worktrees at:
 
 ```text
-$ADV_WORKTREE_HOME/{project-id}/{branch}
+$determinus_WORKTREE_HOME/{project-id}/{branch}
 ```
 
 Agents must not create repo-specific paths such as `~/dev/<repo>-wt` for
-ADV-managed changes unless the process was intentionally launched with
-`ADV_WORKTREE_HOME` set to that parent. Manual `git worktree add` is only for
-non-ADV ad-hoc work and must stay separate from ADV-managed paths.
+determinus-managed changes unless the process was intentionally launched with
+`determinus_WORKTREE_HOME` set to that parent. Manual `git worktree add` is only for
+non-ADV ad-hoc work and must stay separate from determinus-managed paths.
 
-Use an absolute path. Relative `ADV_WORKTREE_HOME` values are rejected so cleanup
+Use an absolute path. Relative `determinus_WORKTREE_HOME` values are rejected so cleanup
 and namespace guards cannot accidentally target the wrong directory.
 
 ## Worktree Include (AC8)
@@ -98,7 +98,7 @@ Implementation refs:
 trunk write firewall enforcement is on by default: omitted or true blocks
 default-checkout file writes, classified destructive bash writes, and mutating
 execution task/gate calls with `WorktreeIsolationViolation`,
-`mainCheckoutPath`, and remediation. Use `adv_worktree_resume` and rerun from
+`mainCheckoutPath`, and remediation. Use `determinus_worktree_resume` and rerun from
 returned workdir. Git commands stay allowed so recovery and normal git
 operations are not routed through the firewall classifier.
 
@@ -109,7 +109,7 @@ exactly like same-project trunk writes, and writes into linked,
 non-prunable worktrees of any repository are allowed. Foreign-target defaults are conservative — an
 unprobable worktree topology evaluates the resolved git root as its own main
 checkout, and stale (prunable) topology entries never confer worktree
-eligibility. The ADV-generated artifact allowlist (`ROADMAP.md`,
+eligibility. The determinus-generated artifact allowlist (`ROADMAP.md`,
 `CHANGELOG.md`, `.adv/github-project.json`, `.adv/roadmap-snapshot.json`)
 applies only as exact root-relative paths at the target repository's main
 checkout root; nested paths are never exempt.
@@ -139,9 +139,9 @@ this block kept for clarity; omitting the flag has the same effect):
 
 Guarded examples:
 
-- `adv_gate_complete` for discovery/design/planning/execution/acceptance/release
-- `adv_task_add`
-- `adv_task_update` for `in_progress`, `done`, or `cancelled`
+- `determinus_gate_complete` for discovery/design/planning/execution/acceptance/release
+- `determinus_task_add`
+- `determinus_task_update` for `in_progress`, `done`, or `cancelled`
 
 Proposal gate stays exempt so a change can reach worktree creation. Read-only
 tools stay allowed.
@@ -178,7 +178,7 @@ or confirm the same resources, not create duplicates.
 
 When developing on WSL (Windows Subsystem for Linux), several Windows tools
 exposed via `$PATH` can cause Linux-side projects to behave unexpectedly. Any
-ADV-managed project on WSL should be aware of the patterns below.
+determinus-managed project on WSL should be aware of the patterns below.
 
 ### Browser auto-discovery (chrome-launcher, puppeteer, playwright)
 
@@ -251,7 +251,7 @@ path arguments. `husky install --version` creates a directory literally named
 
 ### Detection
 
-`/adv-tron` reconnaissance and `adv_status` worktree census don't currently
+`/determinus-tron` reconnaissance and `determinus_status` worktree census don't currently
 flag WSL-pollution directories specifically. If you see directories with `\`
 in their names or starting with `--`, treat them as WSL artifacts and
 investigate the source tool.

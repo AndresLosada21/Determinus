@@ -394,7 +394,7 @@ describe("dismissAllSuggestedDrafts", () => {
 });
 
 // -----------------------------------------------------------------------------
-// promoteDraft (used by adv_wisdom_add from_draft_id — DDC5)
+// promoteDraft (used by determinus_wisdom_add from_draft_id — DDC5)
 // -----------------------------------------------------------------------------
 
 describe("promoteDraft", () => {

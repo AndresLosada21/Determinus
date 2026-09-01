@@ -1,10 +1,10 @@
 # Snapshot Health Diagnostics
 
-`adv_snapshot_health` detects and remediates OpenCode snapshot-store corruption — stale locks, zero-byte git objects, fsck errors, orphan bare repos, oversized dirs, and legacy-layout artifacts that historically caused recurring agent freezes (notably example-web index.lock contention).
+`determinus_snapshot_health` detects and remediates OpenCode snapshot-store corruption — stale locks, zero-byte git objects, fsck errors, orphan bare repos, oversized dirs, and legacy-layout artifacts that historically caused recurring agent freezes (notably example-web index.lock contention).
 
 The tool is **read-only by default**. Repairs require explicit user approval, are restricted to a closed whitelist, and append durable audit entries to a purpose-specific snapshot-repair audit log.
 
-> **This does not fix the upstream OpenCode race.** That is OpenCode-core, tracked at Sharper-Flow/Advance#118 (open — discovery gate running in main checkout). `adv_snapshot_health` is defense-in-depth: detect degraded state, surface it, and provide a structured repair path.
+> **This does not fix the upstream OpenCode race.** That is OpenCode-core, tracked at Sharper-Flow/Advance#118 (open — discovery gate running in main checkout). `determinus_snapshot_health` is defense-in-depth: detect degraded state, surface it, and provide a structured repair path.
 
 ## What It Detects
 
@@ -25,8 +25,8 @@ Seven patterns, three severity levels:
 ### Scan (read-only)
 
 ```
-adv_snapshot_health()
-adv_snapshot_health({ scope: "global" })  // scan all OpenCode projects
+determinus_snapshot_health()
+determinus_snapshot_health({ scope: "global" })  // scan all OpenCode projects
 ```
 
 Default `scope` is `"project"` (caller-project only). `scope: "global"` reads directory metadata only (no object content reads).
@@ -34,7 +34,7 @@ Default `scope` is `"project"` (caller-project only). `scope: "global"` reads di
 ### Repair (approval-gated)
 
 ```
-adv_snapshot_health({
+determinus_snapshot_health({
   action: "repair",
   approvedByUser: true,
   approvalEvidence: "User approved cleanup of 3 stale locks after review",
@@ -52,8 +52,8 @@ Tool rejects the call if any required field is missing.
 ### Audit history (read-only)
 
 ```
-adv_snapshot_health({ action: "audit_history" })
-adv_snapshot_health({ action: "audit_history", limit: 50 })
+determinus_snapshot_health({ action: "audit_history" })
+determinus_snapshot_health({ action: "audit_history", limit: 50 })
 ```
 
 Returns the caller project's recent snapshot-repair audit entries from the purpose-specific audit log, newest first. `limit` defaults to 20 and is capped at 100. Project-scoped only: `scope: "global"` is rejected so no cross-project audit data is exposed. Entries carry only the strict audit-schema fields (`id`, `pattern`, `action`, `target_path`, `before_summary`, `after_summary`, `outcome`, `recorded_at`) — no secrets.
@@ -61,7 +61,7 @@ Returns the caller project's recent snapshot-repair audit entries from the purpo
 ### DryRun
 
 ```
-adv_snapshot_health({
+determinus_snapshot_health({
   action: "repair",
   dryRun: true,
   approvedByUser: true,
@@ -80,9 +80,9 @@ Returns `repair_preview` with `status: "success"` records and no filesystem muta
 4. **No history-altering ops** — `git gc`, `git prune`, `git filter-repo` are explicitly out of scope (constraint C3 from the change agreement).
 5. **Audit trail** — every successful repair appends a durable, append-only audit entry to the purpose-specific snapshot-repair audit log (`snapshot-repair-audit.jsonl`). Each entry records the finding pattern, repair action, target path, before/after summary, outcome, and an ISO-8601 timestamp. The audit log lives outside planning, gates, backlog, and Epic state; it is a read-only audit record only and is never consumed by task selection or change lifecycle logic. Failed, skipped, and dry-run repairs produce no audit entries.
 
-## adv_status Integration
+## determinus_status Integration
 
-The tool is also called automatically (TTL-cached, 60s) by `adv_status`. Summary line appears in `view: health`:
+The tool is also called automatically (TTL-cached, 60s) by `determinus_status`. Summary line appears in `view: health`:
 
 - `Snapshot: ok clean`
 - `Snapshot: ok clean (N info)` when only advisory findings

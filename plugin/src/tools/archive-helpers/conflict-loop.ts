@@ -1,5 +1,5 @@
 /**
- * Multi-conflict navigation UX for /adv-archive Phase 9 rebase.
+ * Multi-conflict navigation UX for /determinus-archive Phase 9 rebase.
  *
  * J3 SCOPE EXPANSION — T28c. Drives the resolution loop across N>1 conflicts.
  */

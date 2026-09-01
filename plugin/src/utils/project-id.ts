@@ -7,18 +7,18 @@
  *
  * Convention: $XDG_DATA_HOME/opencode/plugins/advance/{project-id}/
  * Worktrees default to $XDG_DATA_HOME/opencode/worktree/{project-id}/, with
- * ADV_WORKTREE_HOME as an absolute-path override for developer-visible
+ * determinus_WORKTREE_HOME as an absolute-path override for developer-visible
  * worktree roots.
  * Matches kdcokenny's worktree plugin pattern.
  *
  * Test-mode override:
- *   When `process.env.VITEST === "true"` or `process.env.ADV_TEST_MODE === "1"`,
+ *   When `process.env.VITEST === "true"` or `process.env.determinus_TEST_MODE === "1"`,
  *   `getProjectId` returns a path-derived synthetic ID via
  *   `synthesizeTestProjectId(directory)` so that vitest runs cannot leak
  *   fixture state into a real ADV project's external state directory AND
  *   so that fixtures using distinct target paths get isolated state dirs.
  *   `getDataHome` also redirects test-mode state under `os.tmpdir()` unless
- *   `ADV_TEST_DATA_HOME=0` explicitly opts out for XDG path assertions.
+ *   `determinus_TEST_DATA_HOME=0` explicitly opts out for XDG path assertions.
  *   Tests that need to verify the actual git resolution path call
  *   `getProjectIdFromGit` directly.
  *
@@ -43,7 +43,7 @@ import { createHash } from "crypto";
 export const SYNTHETIC_TEST_PROJECT_ID_PREFIX = "0000000000000000"; // 16 zeros
 
 const SHA40 = /^[0-9a-f]{40}$/;
-const TEST_DATA_HOME_ENV = "ADV_TEST_DATA_HOME";
+const TEST_DATA_HOME_ENV = "determinus_TEST_DATA_HOME";
 
 /**
  * Synthetic project identifier returned by `getProjectId` during vitest
@@ -61,7 +61,7 @@ export const SYNTHETIC_TEST_PROJECT_ID =
 /**
  * Build a deterministic synthetic project_id for a given directory in
  * test mode. The result is 40 hex chars: 16 leading zeros + 24-char
- * SHA-1 prefix of `"adv-test::" + directory`. Two distinct directories
+ * SHA-1 prefix of `"determinus-test::" + directory`. Two distinct directories
  * map to distinct synthetic IDs so cross-project tests stay isolated.
  *
  * Empty / falsy directory collapses to `SYNTHETIC_TEST_PROJECT_ID`.
@@ -69,7 +69,7 @@ export const SYNTHETIC_TEST_PROJECT_ID =
 export function synthesizeTestProjectId(directory: string): string {
   if (!directory) return SYNTHETIC_TEST_PROJECT_ID;
   const hash = createHash("sha1")
-    .update("adv-test::" + directory)
+    .update("determinus-test::" + directory)
     .digest("hex")
     .slice(0, 24);
   return SYNTHETIC_TEST_PROJECT_ID_PREFIX + hash;
@@ -82,7 +82,7 @@ export function synthesizeTestProjectId(directory: string): string {
 /**
  * Get a stable project identifier.
  *
- * In test mode (VITEST=true or ADV_TEST_MODE=1):
+ * In test mode (VITEST=true or determinus_TEST_MODE=1):
  *   - If `directory` is a real git repo with a root commit, return a
  *     path-derived synthetic ID via `synthesizeTestProjectId(directory)`.
  *     This prevents test runs from a real repo (e.g. the plugin's own
@@ -102,7 +102,10 @@ export function synthesizeTestProjectId(directory: string): string {
  * they share the same commit history.
  */
 export async function getProjectId(directory: string): Promise<string | null> {
-  if (process.env.VITEST === "true" || process.env.ADV_TEST_MODE === "1") {
+  if (
+    process.env.VITEST === "true" ||
+    process.env.determinus_TEST_MODE === "1"
+  ) {
     const realSha = await getProjectIdFromGit(directory);
     if (!realSha) return null;
     return synthesizeTestProjectId(directory);
@@ -285,7 +288,7 @@ async function resolveRootCommit(directory: string): Promise<string | null> {
  */
 export function getDataHome(): string {
   const testMode =
-    process.env.VITEST === "true" || process.env.ADV_TEST_MODE === "1";
+    process.env.VITEST === "true" || process.env.determinus_TEST_MODE === "1";
   if (testMode && process.env[TEST_DATA_HOME_ENV] !== "0") {
     return join(tmpdir(), "advance-test", String(process.pid));
   }
@@ -303,15 +306,15 @@ export function getDataHome(): string {
 /**
  * Resolve the optional user-facing worktree home.
  *
- * Empty / unset ADV_WORKTREE_HOME preserves the historical XDG worktree
+ * Empty / unset determinus_WORKTREE_HOME preserves the historical XDG worktree
  * location. Relative values are rejected because worktree creation/deletion
  * guards rely on absolute namespace boundaries.
  */
 export function getWorktreeHomeOverride(): string | null {
-  const configured = process.env.ADV_WORKTREE_HOME;
+  const configured = process.env.determinus_WORKTREE_HOME;
   if (configured === undefined || configured === "") return null;
   if (!isAbsolute(configured)) {
-    throw new Error(`ADV_WORKTREE_HOME must be absolute: ${configured}`);
+    throw new Error(`determinus_WORKTREE_HOME must be absolute: ${configured}`);
   }
   return resolve(configured);
 }
@@ -355,7 +358,7 @@ export function getExternalRootForProject(projectId: string): string {
  * Resolve the per-project worktree base directory.
  *
  * Default path: $XDG_DATA_HOME/opencode/worktree/{projectId}/
- * Override path: $ADV_WORKTREE_HOME/{projectId}/
+ * Override path: $determinus_WORKTREE_HOME/{projectId}/
  */
 export function getWorktreeBase(projectId: string): string {
   const override = getWorktreeHomeOverride();

@@ -8,7 +8,7 @@
 
 ## Context
 
-zlauncher (toolbox) displays ADV's active changes. Today it shells out to the standalone `adv status` / `adv epic list` CLI, which is Temporal-hard with no disk-fallback. When Temporal is unavailable, the launcher silently vanishes — even though agents keep working via the MCP `adv_change_list` layer, which has a disk-fallback. The validated fix is a producer-owned durable aggregate read-projection (`active-launcher-state.json`) that the launcher reads as a file.
+zlauncher (toolbox) displays ADV's active changes. Today it shells out to the standalone `adv status` / `adv epic list` CLI, which is Temporal-hard with no disk-fallback. When Temporal is unavailable, the launcher silently vanishes — even though agents keep working via the MCP `determinus_change_list` layer, which has a disk-fallback. The validated fix is a producer-owned durable aggregate read-projection (`active-launcher-state.json`) that the launcher reads as a file.
 
 The change must produce this projection in the advance plugin/store layer. Two natural-looking implementation options exist:
 
@@ -37,7 +37,7 @@ The aggregate is written inside the body of the already-called `writeChangeProje
 - **Host `Date.now()` is legal** in the activity body (freshness/degraded computation) — activities are not determinism-patched (unlike workflow code, where `Date.now()` is patched by the SDK sandbox).
 - **Multi-session convergence** via `atomicWriteFile` (temp + fsync + rename): concurrent writers produce deterministic, sorted content; last-writer-wins with no torn file.
 - **Best-effort aggregate**: a failure to write the aggregate must not fail the per-change projection write or the signal — the per-change projection remains authoritative, the aggregate is a downstream cache.
-- The CLI boundary stays intact: `bin/adv` remains a Bun-safe, storage-free, Temporal-live probe (`bin/lib/cli-source-boundary.test.ts`); the aggregate is consumed by file, not via the CLI. A separate producer-owned MCP tool (`adv_launcher_projection_rebuild`) provides drift recovery.
+- The CLI boundary stays intact: `bin/adv` remains a Bun-safe, storage-free, Temporal-live probe (`bin/lib/cli-source-boundary.test.ts`); the aggregate is consumed by file, not via the CLI. A separate producer-owned MCP tool (`determinus_launcher_projection_rebuild`) provides drift recovery.
 
 ## Alternatives considered
 

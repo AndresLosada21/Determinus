@@ -20,10 +20,10 @@ describe("git-binary resolution", () => {
     vi.unstubAllEnvs();
   });
 
-  it("honors ADV_GIT_PATH override when target is executable", () => {
+  it("honors determinus_GIT_PATH override when target is executable", () => {
     // Pick a guaranteed-executable file: process.execPath (node binary)
     const result = resolveGitBinary({
-      env: { ADV_GIT_PATH: process.execPath },
+      env: { determinus_GIT_PATH: process.execPath },
       forceRefresh: true,
     });
     expect(result).toBe(process.execPath);
@@ -58,7 +58,7 @@ describe("git-binary resolution", () => {
     const first = resolveGitBinary({ forceRefresh: true });
     const overrideTarget = process.execPath;
     const second = resolveGitBinary({
-      env: { ADV_GIT_PATH: overrideTarget },
+      env: { determinus_GIT_PATH: overrideTarget },
       forceRefresh: true,
     });
     expect(second).toBe(overrideTarget);

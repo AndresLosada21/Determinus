@@ -1,8 +1,8 @@
 /**
- * Backlog tools tests (rq-backlogCoord04: adv_wip_state aggregator).
+ * Backlog tools tests (rq-backlogCoord04: determinus_wip_state aggregator).
  *
  * rq-backlogCoord01-07 — see .adv/specs/backlog-coordination/spec.json.
- * adv_backlog_state was removed by consolidateAdvToolSurface2
+ * determinus_backlog_state was removed by consolidateAdvToolSurface2
  * (tk-f022bfadbd81); its TTL-freshness and O(1) Visibility annotation
  * retired roadmap-reader coverage moved to removal tombstone tests.
  */
@@ -35,7 +35,7 @@ function makeMockStore(
   } as unknown as Store;
 }
 
-describe("adv_wip_state (rq-backlogCoord04)", () => {
+describe("determinus_wip_state (rq-backlogCoord04)", () => {
   it("reads active changes from the summary projection and preserves terminal precedence", async () => {
     const store = makeMockStore([]);
     const summaryRows = [
@@ -62,7 +62,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       changes: summaryRows,
     } as never);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -108,7 +108,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -237,7 +237,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       } as any,
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -296,7 +296,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
   it("returns empty arrays when project has no in-flight state", async () => {
     const store = makeMockStore([]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -330,7 +330,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -392,7 +392,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -422,7 +422,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
   it("isolates failure: sessions unavailable → peer_sessions: [] + warning (rq-backlogCoord04.2)", async () => {
     const store = makeMockStore([]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -457,7 +457,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -519,7 +519,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
     controller.abort("caller aborted");
 
     let receivedBudget: InventoryBudget | undefined;
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       { store, signal: controller.signal },
       undefined,
@@ -548,7 +548,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
   it("maps live peer-session projection entries into peer_sessions", async () => {
     const store = makeMockStore([]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -595,7 +595,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
   it("uses live peer-session detection terminology when sessions are unavailable", async () => {
     const store = makeMockStore([]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -636,7 +636,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -679,7 +679,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -749,7 +749,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -796,7 +796,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       },
     ]);
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -850,7 +850,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
       created_at: "2026-05-11T00:00:00.000Z",
     })) as any[];
 
-    const result = await backlogTools.adv_wip_state.execute(
+    const result = await backlogTools.determinus_wip_state.execute(
       {},
       store,
       undefined,
@@ -904,7 +904,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         {},
         store,
         undefined,
@@ -967,7 +967,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         {},
         store,
         undefined,
@@ -1006,7 +1006,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         {},
         store,
         undefined,
@@ -1047,7 +1047,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         {},
         store,
         undefined,
@@ -1078,7 +1078,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         .fn()
         .mockRejectedValue(new Error("Visibility unreachable"));
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         {},
         store,
         undefined,
@@ -1138,7 +1138,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         {},
         store,
         undefined,
@@ -1196,7 +1196,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         {},
         store,
         undefined,
@@ -1250,7 +1250,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         { query: "auth" },
         store,
         undefined,
@@ -1299,7 +1299,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         { query: "REFRESH-001" },
         store,
         undefined,
@@ -1379,7 +1379,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         { query: "billing" },
         store,
         undefined,
@@ -1418,7 +1418,7 @@ describe("adv_wip_state (rq-backlogCoord04)", () => {
         },
       ]);
 
-      const result = await backlogTools.adv_wip_state.execute(
+      const result = await backlogTools.determinus_wip_state.execute(
         { query: "auth" },
         store,
         undefined,

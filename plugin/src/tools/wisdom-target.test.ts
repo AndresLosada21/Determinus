@@ -63,7 +63,7 @@ describe("wisdom target_path reads", () => {
   });
 
   test("project_only wisdom list reads target store and returns project context", async () => {
-    const output = await wisdomTools.adv_wisdom_list.execute(
+    const output = await wisdomTools.determinus_wisdom_list.execute(
       { project_only: true, maxEntries: 5, target_path: "/target/project" },
       { paths: { root: "/source/project" } } as unknown as Store,
     );
@@ -84,7 +84,7 @@ describe("wisdom target_path reads", () => {
   });
 
   test("aggregate wisdom list reads target store and returns project context", async () => {
-    const output = await wisdomTools.adv_wisdom_list.execute(
+    const output = await wisdomTools.determinus_wisdom_list.execute(
       { target_path: "/target/project" },
       { paths: { root: "/source/project" } } as unknown as Store,
     );
@@ -102,7 +102,7 @@ describe("wisdom target_path reads", () => {
   });
 
   test("change-specific target_path wisdom reads disk snapshot without Temporal lookup", async () => {
-    const root = await mkdtemp(join(tmpdir(), "adv-wisdom-target-"));
+    const root = await mkdtemp(join(tmpdir(), "determinus-wisdom-target-"));
     const changes = join(root, "changes");
     await mkdir(changes, { recursive: true });
     await mkdir(join(changes, "target-change"), { recursive: true });
@@ -144,7 +144,7 @@ describe("wisdom target_path reads", () => {
       },
     } as unknown as Store;
 
-    const output = await wisdomTools.adv_wisdom_list.execute(
+    const output = await wisdomTools.determinus_wisdom_list.execute(
       { changeId: "target-change", target_path: "/target/project" },
       { paths: { root: "/source/project" } } as unknown as Store,
     );

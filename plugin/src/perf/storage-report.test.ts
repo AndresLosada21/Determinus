@@ -19,7 +19,7 @@ describe("storage comparison report", () => {
         },
         {
           candidate: "legacy",
-          operation: "adv_status",
+          operation: "determinus_status",
           p50_ms: 103.7,
           p95_ms: 209,
           notes: "full tool path",
@@ -36,7 +36,7 @@ describe("storage comparison report", () => {
 
     expect(report).toContain("# Storage Comparison");
     expect(report).toContain("agenda.add.100");
-    expect(report).toContain("adv_status");
+    expect(report).toContain("determinus_status");
     expect(report).toContain("append-only audit trail");
     expect(report).toContain("needs compaction");
   });

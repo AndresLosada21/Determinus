@@ -66,7 +66,7 @@ let base: string;
 let dataHomeRoot: string;
 
 beforeAll(async () => {
-  base = await mkdtemp(join(tmpdir(), "adv-store-cleanup-parallel-"));
+  base = await mkdtemp(join(tmpdir(), "determinus-store-cleanup-parallel-"));
   dataHomeRoot = join(base, "xdg");
   for (let i = 0; i < N; i++) {
     await writeAgendaStore(

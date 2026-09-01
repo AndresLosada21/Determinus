@@ -37,8 +37,8 @@ export type ToolLookup = (name: string) => ToolLookupResult | undefined;
 /**
  * Names that may NOT be dispatched via the facade.
  *
- * - `adv_tool_invoke`: cannot self-invoke (infinite recursion).
- * - `adv_tool_catalog`, `adv_tool_describe`: read-only projections; must
+ * - `determinus_tool_invoke`: cannot self-invoke (infinite recursion).
+ * - `determinus_tool_catalog`, `determinus_tool_describe`: read-only projections; must
  *   not be reachable through the facade to keep facade surface minimal
  *   and to avoid a profile-bypass (the denial profile allows these, but
  *   allowing the facade to dispatch them would re-create the surface the
@@ -48,14 +48,14 @@ export type ToolLookup = (name: string) => ToolLookupResult | undefined;
  *   `ToolDefinition` registry entirely. Excluded explicitly per AC3.
  */
 const RECURSIVE_TOOL_NAMES: ReadonlySet<string> = new Set([
-  "adv_tool_invoke",
-  "adv_tool_catalog",
-  "adv_tool_describe",
+  "determinus_tool_invoke",
+  "determinus_tool_catalog",
+  "determinus_tool_describe",
   "execute",
 ]);
 
 /**
- * `adv_tool_invoke` facade.
+ * `determinus_tool_invoke` facade.
  *
  * Strict in-process dispatcher that wraps the SAME canonical `ToolDefinition.execute`
  * that direct calls use. Preserves `ToolContext`, the canonical Zod schema
@@ -72,7 +72,7 @@ const RECURSIVE_TOOL_NAMES: ReadonlySet<string> = new Set([
  * outer wrapper layer (the actual `ToolDefinition` registered with OpenCode).
  */
 export const advInvokeTools = {
-  adv_tool_invoke: {
+  determinus_tool_invoke: {
     description:
       "Invoke a canonical ADV tool by exact name with typed arguments. Dispatches through the same wrapped ToolDefinition.execute path used by direct calls, preserving ToolContext, validation, authorization, approvals, recovery restrictions, and timeouts.",
     args: {
@@ -80,7 +80,7 @@ export const advInvokeTools = {
         .string()
         .min(1)
         .describe(
-          "Exact canonical ADV tool name to invoke (e.g. adv_change_show)",
+          "Exact canonical ADV tool name to invoke (e.g. determinus_change_show)",
         ),
       args: z
         .record(z.string(), z.unknown())
@@ -144,7 +144,7 @@ export const advInvokeTools = {
       // Audit mirror: add the target-tool breakdown without incrementing the
       // global call count. The outer `tool.execute.after` hook already records
       // this one facade invocation; counting it again here would inflate
-      // `adv_tool_calls` for every facaded operation.
+      // `determinus_tool_calls` for every facaded operation.
       recordFacadedAdvToolTarget(args.name);
 
       // Normalise the dispatch result into a string. Every registered ADV

@@ -1,7 +1,7 @@
 /**
  * Branch Integration Gate (T29)
  *
- * 3-condition check before deleting an ADV-managed worktree branch:
+ * 3-condition check before deleting an determinus-managed worktree branch:
  *   1. Terminal — corresponding ADV change has status: "archived" or "closed"
  *   2. Merged   — branch appears in `git branch --merged <defaultBranch>`
  *   3. Clean    — worktree path has empty `git status --porcelain`
@@ -9,7 +9,7 @@
  * All three must pass. No `opts.force` bypass — this is an integrity contract.
  *
  * "Terminal" widens the historical archived-only check so that changes ended
- * via /adv-cancel (status="closed" with cancelled/superseded/not_planned
+ * via /determinus-cancel (status="closed" with cancelled/superseded/not_planned
  * reasons) also free their worktree. Merged-into-default and clean-tree
  * requirements stay intact: closed ≠ unmerged-OK.
  */
@@ -329,7 +329,7 @@ export async function verifyBranchIntegration(
     return fail(
       "branch_not_in_registry",
       `Branch "${branch}" not found in worktree registry.`,
-      "The branch may not be ADV-managed. Only registered worktree branches can be deleted through this gate.",
+      "The branch may not be determinus-managed. Only registered worktree branches can be deleted through this gate.",
     );
   }
 
@@ -394,7 +394,7 @@ export async function verifyBranchIntegration(
     return fail(
       "change_not_terminal",
       `Change "${changeId}" has status "${changeStatus ?? "undefined"}" (expected "archived" or "closed").`,
-      "Archive or close the change via /adv-archive or /adv-cancel before deleting its worktree.",
+      "Archive or close the change via /determinus-archive or /determinus-cancel before deleting its worktree.",
     );
   }
 
@@ -414,7 +414,7 @@ export async function verifyBranchIntegration(
 
   // Normalize branch names: git may prefix with "* " for the current branch,
   // or "+ " for branches checked out in another worktree. The latter is the
-  // canonical case for ADV-managed worktrees at delete time, so both prefixes
+  // canonical case for determinus-managed worktrees at delete time, so both prefixes
   // must be stripped before the merged-set membership check.
   const normalizedMerged = merged.map((b) => b.replace(/^[*+]\s*/, "").trim());
   if (!normalizedMerged.includes(branch)) {

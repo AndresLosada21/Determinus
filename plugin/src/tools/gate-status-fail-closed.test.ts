@@ -1,5 +1,5 @@
 /**
- * adv_gate_status fail-closed plan routing (AC9, C5, DONT4, DONT5).
+ * determinus_gate_status fail-closed plan routing (AC9, C5, DONT4, DONT5).
  *
  * Before an active build-bound receipt, a derivation failure keeps the
  * legacy gate-derived next-action fallback (AC9 first sentence). After
@@ -167,7 +167,7 @@ function createMockStore(
   } as Store;
 }
 
-describe("adv_gate_status fail-closed plan routing (AC9)", () => {
+describe("determinus_gate_status fail-closed plan routing (AC9)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.deriveDirectiveSafe.mockReturnValue(undefined);
@@ -175,12 +175,12 @@ describe("adv_gate_status fail-closed plan routing (AC9)", () => {
   });
 
   afterEach(() => {
-    delete process.env.ADV_PLAN_ROUTING_FAIL_CLOSED;
+    delete process.env.determinus_PLAN_ROUTING_FAIL_CLOSED;
   });
 
   test("pre-cutover: derivation failure keeps legacy gate-derived routing", async () => {
     const store = createMockStore();
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );
@@ -194,9 +194,9 @@ describe("adv_gate_status fail-closed plan routing (AC9)", () => {
   });
 
   test("post-cutover fail-closed: degraded plan stops routing with typed diagnostics", async () => {
-    process.env.ADV_PLAN_ROUTING_FAIL_CLOSED = "1";
+    process.env.determinus_PLAN_ROUTING_FAIL_CLOSED = "1";
     const store = createMockStore();
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );
@@ -219,7 +219,7 @@ describe("adv_gate_status fail-closed plan routing (AC9)", () => {
   });
 
   test("post-cutover fail-closed: healthy derivation still routes normally", async () => {
-    process.env.ADV_PLAN_ROUTING_FAIL_CLOSED = "1";
+    process.env.determinus_PLAN_ROUTING_FAIL_CLOSED = "1";
     const { deriveWorkflowDirective } =
       await import("../utils/workflow-directive");
     mocks.deriveDirectiveSafe.mockImplementation((state, epoch) => {
@@ -230,7 +230,7 @@ describe("adv_gate_status fail-closed plan routing (AC9)", () => {
       }
     });
     const store = createMockStore();
-    const result = await gateTools.adv_gate_status.execute(
+    const result = await gateTools.determinus_gate_status.execute(
       { changeId: "test-change" },
       store,
     );

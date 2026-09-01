@@ -1,5 +1,5 @@
 /**
- * Tests for ADV-safe worktree create flow (T10 — KD-13, peer-review F3, R14).
+ * Tests for determinus-safe worktree create flow (T10 — KD-13, peer-review F3, R14).
  *
  * Uses ephemeral git fixtures (mkdtempSync + git init + git worktree add)
  * to verify the 5 scenarios:
@@ -56,7 +56,7 @@ import { getWorktreePath } from "./state";
 const isLinux = process.platform === "linux";
 
 function createGitRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), "adv-wt-create-"));
+  const dir = mkdtempSync(join(tmpdir(), "determinus-wt-create-"));
   execSync("git init", { cwd: dir });
   execSync("git config user.email 'test@test.com'", { cwd: dir });
   execSync("git config user.name 'Test'", { cwd: dir });
@@ -102,7 +102,7 @@ function createContentionDeps(): NonNullable<
 }
 
 describe.skipIf(!isLinux)(
-  "ADV-safe worktree create (T10)",
+  "determinus-safe worktree create (T10)",
   { sequence: { concurrent: false } },
   () => {
     let repoRoot: string;
@@ -132,7 +132,9 @@ describe.skipIf(!isLinux)(
     });
 
     it("reuses an existing change worktree before creating a duplicate", async () => {
-      const existingPath = mkdtempSync(join(tmpdir(), "adv-wt-existing-"));
+      const existingPath = mkdtempSync(
+        join(tmpdir(), "determinus-wt-existing-"),
+      );
       rmSync(existingPath, { recursive: true, force: true });
       cleanupPaths.push(existingPath);
       execSync(`git worktree add -b change/existing ${existingPath} main`, {
@@ -169,7 +171,7 @@ describe.skipIf(!isLinux)(
     });
 
     it("blocks an existing git worktree when another active change owns the branch", async () => {
-      const existingPath = mkdtempSync(join(tmpdir(), "adv-wt-owned-"));
+      const existingPath = mkdtempSync(join(tmpdir(), "determinus-wt-owned-"));
       rmSync(existingPath, { recursive: true, force: true });
       cleanupPaths.push(existingPath);
       execSync(`git worktree add -b change/owned ${existingPath} main`, {
@@ -202,7 +204,7 @@ describe.skipIf(!isLinux)(
     });
 
     it("prunes stale worktree metadata before fresh create", async () => {
-      const stalePath = mkdtempSync(join(tmpdir(), "adv-wt-stale-"));
+      const stalePath = mkdtempSync(join(tmpdir(), "determinus-wt-stale-"));
       rmSync(stalePath, { recursive: true, force: true });
       cleanupPaths.push(stalePath);
       execSync(`git worktree add -b change/stale ${stalePath} main`, {
@@ -299,7 +301,7 @@ describe.skipIf(!isLinux)(
 
     it("clean create with default base — resolves base from origin/HEAD", async () => {
       // Create a repo with origin/HEAD pointing to trunk
-      const remoteDir = mkdtempSync(join(tmpdir(), "adv-wt-remote-"));
+      const remoteDir = mkdtempSync(join(tmpdir(), "determinus-wt-remote-"));
       execSync("git init --bare", { cwd: remoteDir });
       execSync(`git remote add origin ${remoteDir}`, { cwd: repoRoot });
 

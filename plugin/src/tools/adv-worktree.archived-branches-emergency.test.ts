@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { advWorktreeTools } from "./adv-worktree";
+import { advWorktreeTools } from "./determinus-worktree";
 import type { Store } from "../storage/store-types";
 
 // rq-archivedBranchCleanupInversion01 AC4: the handler keeps a last-resort
@@ -34,9 +34,9 @@ function mockStore(): Store {
   return { paths: { root: "/tmp/main" }, changes: {} } as unknown as Store;
 }
 
-describe("adv_worktree_cleanup archived_branches emergency guard", () => {
+describe("determinus_worktree_cleanup archived_branches emergency guard", () => {
   test("returns a typed timedOut result when the helper hangs past the budget", async () => {
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -58,7 +58,7 @@ describe("adv_worktree_cleanup archived_branches emergency guard", () => {
   // forwards `discover`, so the flag is a no-op here. Naming it would recreate
   // the very defect AC1 forbids — advising an action that cannot succeed.
   test("clamped remediation names a reachable action and never skipDiscovery", async () => {
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -72,12 +72,12 @@ describe("adv_worktree_cleanup archived_branches emergency guard", () => {
     expect(parsed.timedOut).toBe(true);
     expect(parsed.remediation).not.toContain("larger timeoutMs");
     expect(parsed.remediation).not.toContain("skipDiscovery");
-    expect(parsed.remediation).toMatch(/changeId|adv_worktree_triage/);
+    expect(parsed.remediation).toMatch(/changeId|determinus_worktree_triage/);
   }, 50_000);
 
   // AC2 (archived_branches variant): unclamped may still offer a larger value.
   test("unclamped remediation may still offer a larger timeoutMs", async () => {
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -93,8 +93,8 @@ describe("adv_worktree_cleanup archived_branches emergency guard", () => {
   }, 10_000);
 
   // AC3 (archived_branches variant).
-  test("does not assert a poisoned workflow or refer to adv_doctor", async () => {
-    const result = await advWorktreeTools.adv_worktree_cleanup.execute(
+  test("does not assert a poisoned workflow or refer to determinus_doctor", async () => {
+    const result = await advWorktreeTools.determinus_worktree_cleanup.execute(
       {
         reason: "archived branch cleanup",
         mode: "archived_branches",
@@ -106,8 +106,8 @@ describe("adv_worktree_cleanup archived_branches emergency guard", () => {
 
     const parsed = JSON.parse(result);
     expect(parsed.error).not.toMatch(/poison/i);
-    expect(parsed.error).not.toContain("adv_doctor");
+    expect(parsed.error).not.toContain("determinus_doctor");
     expect(parsed.remediation).not.toMatch(/poison/i);
-    expect(parsed.remediation).not.toContain("adv_doctor");
+    expect(parsed.remediation).not.toContain("determinus_doctor");
   }, 10_000);
 });

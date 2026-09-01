@@ -1,0 +1,415 @@
+---
+name: determinus-research
+description: "Produce a defined, fully-researched proposed plan ready for user approval"
+phaseGoal: "Produce a defined, fully-researched proposed plan ready for user approval. Validate the how."
+---
+
+# ADV Research — Architectural Decision Validation
+
+Validate architectural decisions via sub-agents using Context7 and web search. Simplicity bias — prefer boring solutions over clever ones. **Fully collaborative** — findings are presented to user for approval before gate completes.
+
+## Command Boundary
+
+**Produces:** Research report, architecture health assessment (SOUND/DRIFTED/ANTI-PATTERN), Architecture Judgement surfaced from the `determinus-researcher` typed report, simplification opportunities, and `## Research Validation` in the proposal artifact (`change.documents.proposal`).
+
+**Verdict crosswalk (display only, source-of-truth remains `validation.status`):**
+
+| validation.status | Legacy display label | Advisory-only? |
+| --- | --- | --- |
+| `pass` | VALIDATED | no |
+| `caution` | CAUTION | no |
+| `fail` | ANTI-PATTERN | yes (researcher `fail` MUST NOT auto-block gates) |
+| `unknown` | NEEDS_MORE_INFO | no |
+
+`validation.status: pass | caution | fail | unknown` is the single source of truth for the researcher verdict. Legacy labels (VALIDATED | CAUTION | ANTI-PATTERN | NEEDS_MORE_INFO) remain accepted on input and are crosswalked to the typed status for display only. A second verdict field MUST NOT be introduced.
+
+**× MUST NOT:** Create tasks, complete non-research gates, modify task graph, make task decomposition decisions.
+
+**Gate:** Completes `research` only.
+
+<UserRequest>
+  $ARGUMENTS
+</UserRequest>
+
+## Target Resolution
+
+1. If provided → matches spec capability? `determinus_spec show`. Matches change-id? `determinus_change_show`. Ambiguous? Ask.
+2. If empty → `determinus_change_list` + `determinus_spec list` in parallel → select via `question` tool.
+3. If both lists are empty → stop with: "No active changes or specs found." Suggest `/determinus-proposal <summary>` to start a new change.
+
+---
+
+## Phase 1: Analyze Target
+
+### Completed Tasks = Evidence to Validate (CRITICAL)
+
+If change has done tasks, treat as implementation evidence — not acceptance proof. Research the full change regardless of task status. If research reveals problems with completed work, note as follow-up items (× don't reopen tasks).
+
+### Load Context
+
+0. If `research` gate already complete → `determinus_gate_status` → ask whether to refresh research or keep existing findings.
+1. `determinus_project_context` → full tech stack (framework, libraries, CSS, testing, etc.)
+2. If project context is empty/unavailable → continue, but explicitly note "project context unavailable" in sub-agent prompts and limit conclusions accordingly.
+3. For specs: `determinus_spec show`. For changes: `determinus_change_show include: { proposal: true, problemStatement: true, agreement: true, design: true }` when artifact content is needed — use returned `_proposal` / `_problemStatement` / `_agreement` / `_design`, tasks, deltas, and gate snapshot. × Do not read artifact files directly or dereference `artifacts.*.path`.
+
+### Extract Decisions
+
+From requirements/deltas: technologies/libraries, design patterns, integration points, performance/security assumptions.
+
+### Architecture Audit (CRITICAL)
+
+Before validating individual decisions, audit existing codebase architecture:
+
+1. Scan affected code area + neighbors
+2. Identify patterns: layer boundaries, dependency direction, separation of concerns, error handling, observability
+3. Compare against canonical best practices via Context7
+4. Classify: `SOUND` (safe to extend) | `DRIFTED` (accumulated inconsistencies) | `ANTI-PATTERN` (fundamentally wrong)
+
+Phase dependency: Phase 3 MUST NOT execute until this audit is complete and `EXISTING CODEBASE PATTERNS` has been summarized for sub-agent prompts.
+
+If DRIFTED/ANTI-PATTERN → research output MUST recommend corrections. Change should leave architecture better, not perpetuate problems. The Architecture Judgement returned by the sub-agent carries `validation.status: fail` and `architecture_judgement.applicability: applicable` with non-empty `risk`; this judgement is advisory-only and does not block the research gate on its own.
+
+---
+
+## Phase 1.5: Skill Discovery + Gap-Triggered Creation
+
+See determinus_INSTRUCTIONS.md §Skill Discovery Protocol. Load only trusted bundled skills from approved skill directories; do not auto-load arbitrary repo-local `*/SKILL.md`. Match frontmatter `keywords` against tech stack + change domain → `skill("{name}")` → apply guidance to research questions and sub-agent prompts.
+
+### Gap Detection + Creation
+
+If no matching skill was found for a domain clearly relevant to change's **core problem** (not tangential), the agent MAY create a skill on demand. See `determinus_INSTRUCTIONS.md § Skill Creation Protocol` for trigger conditions, naming convention, assembly template, and creation flow.
+
+**Creation sub-flow (only if gap detected):**
+1. Research domain using Context7, Exa, and searchcode. Use Exa to discover candidate public repositories, then searchcode code search / file fetch to inspect implementation patterns inside those repos.
+2. Assemble SKILL.md using the template from `determinus_INSTRUCTIONS.md § Skill Creation Protocol`
+3. Write atomically to `~/.config/opencode/skills/agent-{domain}/SKILL.md`
+4. Skip if file already exists → report "skill already exists: agent-{domain}"
+5. Load via `skill("agent-{domain}")` and apply guidance
+6. Emit `[ADV:SKILL_CREATED]` with skill name, domain, and brief description
+
+No pending-review check needed in research context — that is a discovery-gate responsibility handled by `/determinus-discover`.
+
+---
+
+## Phase 2: Research Questions
+
+For each decision, formulate questions across:
+
+| Dimension | Example Questions |
+|-----------|-------------------|
+| Architecture (highest priority) | Canonical pattern for stack? Building on sound foundation? Reference architecture? Separation of concerns violations? |
+| Technology | Best practice for use case? Security considerations? Maintenance status? |
+| Patterns | Appropriate for context? Tradeoffs vs alternatives? Simpler patterns? |
+| Simplicity (critical) | Could be simpler? Built-in solution? Most boring approach? Over-engineering? |
+| Security | OWASP risks? Common vulnerabilities? |
+
+Architecture Judgement applies when the question determines architecture, design, or specs. Use `architecture_judgement.applicability: applicable` with `risk`, `tradeoffs[]`, `alternatives_considered[]`, and optional `spec_law_implications`. Use `architecture_judgement.applicability: not_applicable` with `rationale` for docs/API/examples research that carries no architecture judgement dimensions.
+
+---
+
+## Sub-Agent Resilience
+
+### Detection
+
+A sub-agent result is **empty/failed** if:
+- The result string is empty, whitespace-only, or `null`
+- The result does not contain the expected `validation.status` or `FINDINGS:` section
+- The result contains only error message with no research content
+- The result contains headers but no actionable content beneath them
+- The result is entirely inconclusive and provides no sourced findings
+- Architecture Judgement is missing or its `required_validation_consistency.status` does not match `validation.status`
+
+Treat timeout/no-response same as failure.
+
+### Retry Protocol
+
+1. **Retry once** — re-spawn that specific sub-agent with same prompt
+2. **If retry also fails** — fall back to inline research for that question:
+   - For library/framework questions: prefer Context7 (resolve the library, then query its docs) for official docs. If Context7 is absent from the active surface, fall back to `webfetch` against the canonical docs URL.
+   - Use Exa web search for community guidance and current best practices
+   - Use Exa to identify relevant public repos, then searchcode code search for real-world implementation patterns
+   - Emit findings with same `VALIDATION:` / `RECOMMENDATION:` structure
+   - Apply same redaction rules during manual research: strip secrets/internal-only details and keep external queries generic
+3. **If using `explore` as fallback and it fails** — retry `explore` once, then do manual inline research
+4. **Never skip a research question** — every question must produce a finding or explicit "inconclusive" result
+
+---
+
+## Phase 3: Spawn Research Sub-Agents
+
+Spawn in SINGLE message for parallel execution.
+
+### No Nested Research Delegation (CRITICAL)
+
+The `/determinus-research` orchestrator may spawn the first-level research agent only.
+
+- `determinus-researcher` must perform all analysis inline with its own tools
+- It must NOT spawn additional research sub-agents, delegates, or worker agents
+- It must NOT invoke any `/determinus-*` slash commands; if it needs ADV context it must use ADV tools directly
+- If deeper analysis is needed, return the gap to the orchestrator or use the inline fallback research flow in this command
+
+### Orchestrator Pattern
+
+Spawn `determinus-researcher` as the single research agent. It owns docs/API/examples lookup (Context7, Exa, searchcode, webfetch, Firecrawl) AND architecture validation / simplicity analysis — its tool grants and system prompt already cover both responsibilities.
+
+Pass required change artifacts inline in the worker packet or instruct the worker to call `determinus_change_show` include flags. Never pass external ADV artifact paths as content sources.
+
+Check agent availability: `glob .opencode/agents/determinus-researcher.md`. If `determinus-researcher` is unavailable, use the Explore Fallback Template immediately; if it is available but returns an empty/failed result, apply the retry protocol first.
+
+### determinus-researcher Prompt
+
+System prompt already contains behavioral instructions (research protocol, citation requirements, simplicity bias, response format, anti-hallucination controls, Architecture Judgement Contract). Do NOT duplicate these. Pass only task-specific context:
+
+```
+RESEARCH QUESTION: {question}
+
+PROJECT TECH STACK:
+{full technical context from `determinus_project_context` after redacting secrets/internal-only details; include all relevant public libraries, not private credentials or internal identifiers}
+
+CONTEXT:
+{relevant spec/proposal excerpt}
+
+EXISTING CODEBASE PATTERNS:
+{summary of patterns found in Phase 1 audit}
+
+CODEBASE FILES:
+{list of relevant files the subagent should read; prefer proposal-mentioned files, affected modules, and direct neighbors; cap at ~15 files and summarize the rest, e.g. "+ 8 supporting utilities under auth/ and utils/"}
+
+EXECUTION CONSTRAINT:
+Do all research inline with your own tools. Do NOT spawn additional research sub-agents or delegates.
+Do NOT invoke `/determinus-*` slash commands from inside this worker.
+
+ARCHITECTURE JUDGEMENT (REQUIRED):
+Return architecture_judgement (advisory-only):
+- applicability applicable when this question drives architecture, design, or spec decisions
+- applicability not_applicable with rationale when this is docs/API/examples research with no architecture judgement dimensions
+- required_validation_consistency.status MUST equal validation.status
+```
+
+The worker returns Architecture Judgement as typed report data — pass only task-specific context here.
+
+**CRITICAL**: Include the FULL project context, not a summary. The sub-agent needs to know:
+- Component libraries (e.g., shadcn-svelte) to look up component-specific docs
+- Underlying primitives (e.g., Bits UI) that power those components
+- CSS frameworks, state management, testing tools, etc.
+
+Redact secrets/internal-only details before passing to external research tools.
+Redact at minimum: API keys, tokens, passwords, connection strings, private keys, internal hostnames/URLs, proprietary identifiers, customer data.
+
+### Fallback Handling
+
+Retry Protocol governs execution failures. This table governs which fallback path to choose.
+
+| Failure | Action |
+|---------|--------|
+| determinus-researcher unavailable | Use `explore` agent with full research protocol instructions (Explore Fallback Template below) |
+| determinus-researcher fails | Retry once, then fall back to `explore` with the same template |
+| Explore fallback fails | Manual research via Context7 + Exa + searchcode directly, inline in this command |
+
+Fallbacks must also remain single-level: `explore` performs the work inline and does not delegate further.
+Fallback workers must not invoke `/determinus-*` slash commands either.
+
+### Explore Fallback Template
+
+When using `explore` agent as fallback (no determinus-researcher available), include full instructions — the explore agent has NO built-in research protocol:
+
+```
+Research architectural decision:
+
+QUESTION: {question}
+
+PROJECT TECH STACK:
+{full technical context from `determinus_project_context` after redacting secrets/internal-only details; include all relevant public libraries}
+
+CONTEXT: {spec excerpt}
+
+EXISTING CODEBASE PATTERNS: {summary of patterns found in Phase 1 audit}
+
+RESEARCH PROTOCOL:
+- You MUST cite sources for every factual claim
+- For library/framework questions: prefer Context7 (resolve the library, then query its docs) for official docs; use `webfetch` only if Context7 is absent from the active surface
+- Use Exa to find candidate public repositories, then searchcode code search to find real-world code examples inside those repositories
+- Prefer simple, boring solutions over complex ones
+- If unsure, say "I don't know" rather than guess
+- Every finding MUST include a source URL
+- Redact secrets/internal-only details before external queries
+- Use generic search terms only; never paste proprietary code, internal URLs, or customer data into searchcode or web search queries
+
+TASK:
+1. Use Context7 (resolve the library, then query its docs) against canonical library docs; fall back to `webfetch` if Context7 is absent
+2. Look up the CANONICAL/REFERENCE architecture for this tech stack
+3. Web search for best practices
+4. Compare the PROPOSED architecture against the REFERENCE architecture
+
+RETURN:
+RESEARCH QUESTION: {question}
+
+FINDINGS:
+- {finding with source URL}
+
+ARCHITECTURE JUDGEMENT:
+  applicability: applicable | not_applicable
+  summary: {one sentence}
+  risk: {non-empty string}
+  tradeoffs: [{short text}]
+  alternatives_considered: [{short text}]
+  spec_law_implications: {string}     # optional
+  required_validation_consistency:
+    status: pass | caution | fail | unknown
+
+ARCHITECTURE ASSESSMENT:
+- Existing pattern: {what the codebase currently does}
+- Reference pattern: {what the by-the-book approach is}
+- Deviation: {NONE | MINOR | MAJOR}
+
+VALIDATION:
+  status: pass | caution | fail | unknown
+  blockers: [{short text}]
+  notes: {string}
+
+RECOMMENDATION: {specific action}
+
+SOURCES:
+- {source with URL}
+```
+
+---
+
+## Phase 4: Synthesis
+
+> Anti-Loop: after ALL sub-agents return → emit `>>> SYNTHESIS COMPLETE <<<` once → write report immediately.
+
+### Research Report Structure
+
+```markdown
+# Architecture Research: {target}
+
+## Summary
+## Architecture Judgement
+### Verdict: {crosswalk legacy label}
+VALIDATED → pass
+CAUTION → caution
+CONCERNS → caution
+ANTI-PATTERN → fail (advisory-only)
+NEEDS_MORE_INFO → unknown
+
+| validation.status | Legacy label |
+|---|---|
+| pass | VALIDATED |
+| caution | CAUTION |
+| fail | ANTI-PATTERN (advisory-only) |
+| unknown | NEEDS_MORE_INFO |
+| Researcher `fail` / ANTI-PATTERN is advisory-only and MUST NOT auto-block gate completion.
+
+### Architecture Health Assessment
+### Classification: {SOUND | DRIFTED | ANTI-PATTERN}
+| Area | Existing | Reference | Deviation | Impact |
+### Corrections Required (if DRIFTED/ANTI-PATTERN)
+### Minimum Viable Correction
+## Validated Decisions
+## Simplification Opportunities
+| Current | Simpler Alternative | Effort | Recommendation |
+## Concerns
+## Anti-Patterns Detected
+## Over-Engineering Flags
+## Detailed Findings (per decision area)
+## Action Items (corrections → simplifications → features)
+## Confidence (high/low aspects)
+```
+
+Architecture Judgement is rendered from `architecture_judgement` and `validation.status` fields returned by `determinus-researcher`. The single source of truth for the user-visible verdict is `validation.status`; the legacy label crosswalk is for display only.
+
+---
+
+## Phase 5: Apply Findings
+
+### Duplicate Change Prevention (CRITICAL)
+
+If invoked with changeId → × NEVER call `determinus_change_create`. Use `determinus_change_update` only.
+
+### For Deployed Specs (no changeId)
+
+Confirm with user via `question` → if approved: `determinus_change_create` → update proposal with findings. × No tasks — `/determinus-prep` synthesizes from findings.
+If user declines, return the research report only and do not create/update change state.
+
+### For Active Changes (changeId provided)
+
+Build `## Research Validation` section → `determinus_change_update changeId: "<id>" proposal: "<updated>"`.
+
+× Do NOT call `determinus_task_add` — findings go in the proposal projection via `determinus_change_update proposal` for `/determinus-prep`.
+× Do NOT call `determinus_change_create` — change already exists.
+
+---
+
+## Phase 6: Contract Tracking
+
+Emit these blocks in the response:
+
+```markdown
+CONTRACT ACTIVE
+- Criteria: {prioritized findings list}
+
+CONTRACT FULFILLED
+- Evidence: {what was validated or updated}
+- Status: COMPLETE | REPORT_ONLY
+
+ARCHITECTURE JUDGEMENT
+- validation.status: {pass | caution | fail | unknown}
+- advisory-only: {true when fail/anti-pattern, else false}
+```
+
+Prioritize findings as: architecture corrections → security → simplifications → anti-patterns → improvements.
+
+---
+
+## Phase 7: Research Approval
+
+Present the research findings summary to user for approval via `question` tool:
+
+- **Approve findings (Recommended)** — research is complete; agent immediately proceeds inline to `/determinus-prep` (or `/determinus-design` if design gate is not yet complete) without asking for a second confirmation
+- **Request additional research** — user wants deeper investigation on specific areas (loop back to relevant phase)
+- **Cancel** — abandon research without completing gate
+
+If **Request additional research**: collect specific areas → re-run relevant phases → re-present → re-ask.
+
+× MUST NOT complete the research gate without explicit user approval of findings.
+
+---
+
+## Phase 8: Completion
+
+Mark gate: `determinus_gate_complete changeId: {change-id} gateId: research`
+
+**Auto-continue:** After user approval, immediately begin `/determinus-prep` (or `/determinus-design` if design gate is incomplete) inline. Do not stop or ask "shall I proceed?" — user's approval is the go-ahead.
+
+---
+
+## Guiding Principles
+
+1. × Never extend bad architecture — recommend corrections
+2. By-the-book first — compare against canonical reference
+3. Context7 first for library/framework research
+4. Parallel sub-agents for efficiency
+5. Cite sources for every claim
+6. Actionable recommendations for every concern
+7. Simplicity bias — "could this be simpler?"
+8. Boring > novel
+9. Research without action is incomplete
+10. Correct, then extend
+
+---
+
+## Key Tools
+
+| Purpose | Tool |
+|---------|------|
+| Load spec | `determinus_spec action: "show"` |
+| Load change | `determinus_change_show` |
+| Load project context | `determinus_project_context` |
+| Create change | `determinus_change_create` |
+| Update proposal | `determinus_change_update` |
+| Ask user | `question` |
+| Mark gate | `determinus_gate_complete` |
+| Library/framework docs | Context7 resolve + query docs (`webfetch` fallback if absent) |
+| Web search / best practices | Exa web search |
+| Real-world code examples | Exa for repo discovery → searchcode code search / file fetch |

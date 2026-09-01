@@ -4,7 +4,7 @@
  * Tool-layer only; do not import from runtime adapters.
  * The workflow-bundle-boundary test enforces this boundary.
  *
- * Extracts structured output from `<adv-output>` tags in agent task
+ * Extracts structured output from `<determinus-output>` tags in agent task
  * completion text. Non-blocking: all failures log warnings and return null.
  */
 
@@ -17,16 +17,16 @@ import {
 
 const logger = createLogger("extract-structured-output");
 
-// Regex: non-greedy match for <adv-output>...</adv-output>
+// Regex: non-greedy match for <determinus-output>...</determinus-output>
 // Uses lazy *? with fixed-width delimiters — no ReDoS risk
-const TAG_REGEX = /<adv-output>([\s\S]*?)<\/adv-output>/g;
+const TAG_REGEX = /<determinus-output>([\s\S]*?)<\/determinus-output>/g;
 
 // Fence patterns: opening ```json or ``` followed by newline
 const OPENING_FENCE = /^\s*```(?:json)?\s*\n?/;
 const CLOSING_FENCE = /\n?\s*```\s*$/;
 
 /**
- * Extract structured output from text containing `<adv-output>` tags.
+ * Extract structured output from text containing `<determinus-output>` tags.
  *
  * Takes the LAST occurrence of the tag (Sandcastle convention).
  * Strips markdown fences, parses JSON, validates schema.
@@ -37,7 +37,7 @@ export function extractStructuredOutput(
 ): TaskStructuredOutput | null {
   if (!text) return null;
 
-  // 1. Find last <adv-output>...</adv-output>
+  // 1. Find last <determinus-output>...</determinus-output>
   let lastMatch: string | null = null;
   let match: RegExpExecArray | null;
   TAG_REGEX.lastIndex = 0; // reset for safety

@@ -35,7 +35,9 @@ function fixture(): {
   cwd: string;
   cleanup: () => void;
 } {
-  const repository = mkdtempSync(join(tmpdir(), "adv-delete-executor-repo-"));
+  const repository = mkdtempSync(
+    join(tmpdir(), "determinus-delete-executor-repo-"),
+  );
   const worktree = join(repository, "linked");
   mkdirSync(worktree);
   writeFileSync(join(repository, "root"), "root\n");

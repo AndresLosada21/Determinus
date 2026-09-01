@@ -1,7 +1,7 @@
 /**
  * Consumer integration boundary tests (AC9, AC10, AC14).
  *
- * AC9: adv_status summary consumes the resume projection kernel
+ * AC9: determinus_status summary consumes the resume projection kernel
  *       (behavioral: verify recommendation source/kind includes "resume_projection").
  * AC10: bin/adv status, epic-list, and dashboard adapters call buildBinResumeProjection
  *        (static call-site + output-shape tests).
@@ -73,7 +73,7 @@ describe("AC9 — status consumes resume projection behaviorally", () => {
     expect(content).toContain('source: "resume_projection"');
   });
 
-  test("adv_status imports and calls appendResumeProjectionRecommendations", () => {
+  test("determinus_status imports and calls appendResumeProjectionRecommendations", () => {
     const content = readFile(STATUS_TOOL);
     expect(content).toContain("appendResumeProjectionRecommendations");
     expect(content).toContain("plan.resumeProjection");
@@ -179,8 +179,8 @@ describe("AC11 — next_entry_id authority boundary", () => {
 });
 
 describe("AC14 — boundary preservation (no new mutation verbs)", () => {
-  test("adv-coordinate.md does not add new mutation command definitions", () => {
-    const content = readCmd("adv-coordinate.md");
+  test("determinus-coordinate.md does not add new mutation command definitions", () => {
+    const content = readCmd("determinus-coordinate.md");
     // The command must remain read-first / approval-gated.
     expect(content).toMatch(/read-first|approval-gated|read-only/i);
     // Must NOT define new mutation slash commands (existing boundary text is OK).
@@ -192,19 +192,19 @@ describe("AC14 — boundary preservation (no new mutation verbs)", () => {
     expect(newCmdLines).toEqual([]);
   });
 
-  test("adv-status.md remains a read-only command", () => {
-    const content = readCmd("adv-status.md");
-    // adv-status is explicitly read-only.
+  test("determinus-status.md remains a read-only command", () => {
+    const content = readCmd("determinus-status.md");
+    // determinus-status is explicitly read-only.
     expect(content).toMatch(/Do not call ADV tools|read-only/i);
   });
 
-  test("adv-triage.md remains order-advisory", () => {
-    const content = readCmd("adv-triage.md");
+  test("determinus-triage.md remains order-advisory", () => {
+    const content = readCmd("determinus-triage.md");
     // Triage is advisory — must not gain mutation authority.
     expect(content).toMatch(/advisory|order-advisory|read-only|approval/i);
   });
 
-  test("adv_resume_projection is pure-read (no store mutation calls)", () => {
+  test("determinus_resume_projection is pure-read (no store mutation calls)", () => {
     const tool = readFile(RESUME_PROJECTION_TOOL);
     // The tool must not call mutation store methods or fire signals.
     expect(tool).not.toMatch(

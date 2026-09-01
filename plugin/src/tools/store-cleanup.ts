@@ -1,5 +1,5 @@
 /**
- * Store Cleanup Tool — `adv_store_cleanup` (legacy Agenda cleanup).
+ * Store Cleanup Tool — `determinus_store_cleanup` (legacy Agenda cleanup).
  *
  * Maintenance-only cleanup for legacy Agenda data across discoverable local
  * ADV stores. Supports scan → dry_run → approval-gated execute.
@@ -794,7 +794,7 @@ export const storeCleanupHandler = async (
   const dataHomeRoot = args.data_home_root ?? defaultDataHomeRoot();
   if (args.action === "scan") {
     return formatToolOutput(await scanStoresForCleanup({ dataHomeRoot }), {
-      tool: "adv_store_cleanup",
+      tool: "determinus_store_cleanup",
     });
   }
   if (args.action === "dry_run") {
@@ -806,7 +806,7 @@ export const storeCleanupHandler = async (
           limit: args.limit,
           outcome: args.outcome,
         }),
-        { tool: "adv_store_cleanup" },
+        { tool: "determinus_store_cleanup" },
       );
     } catch (error) {
       return formatToolOutput(
@@ -815,7 +815,7 @@ export const storeCleanupHandler = async (
           action: "dry_run",
           error: error instanceof Error ? error.message : String(error),
         },
-        { tool: "adv_store_cleanup" },
+        { tool: "determinus_store_cleanup" },
       );
     }
   }
@@ -827,7 +827,7 @@ export const storeCleanupHandler = async (
         approvalEvidence: args.approvalEvidence ?? "",
         dry_run_plan_hash: args.dry_run_plan_hash ?? "",
       }),
-      { tool: "adv_store_cleanup" },
+      { tool: "determinus_store_cleanup" },
     );
   } catch (error) {
     return formatToolOutput(
@@ -838,7 +838,7 @@ export const storeCleanupHandler = async (
           error instanceof StoreCleanupError ? error.code : "execute_failed",
         error: error instanceof Error ? error.message : String(error),
       },
-      { tool: "adv_store_cleanup" },
+      { tool: "determinus_store_cleanup" },
     );
   }
 };

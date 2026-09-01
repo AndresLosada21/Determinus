@@ -184,7 +184,7 @@ describe("preExecutionRebase", () => {
 
   describe("defaultIsWorktree", () => {
     it("returns false for main checkout, true for linked worktree, and false for non-git dir", async () => {
-      const root = mkdtempSync(join(tmpdir(), "adv-pre-rebase-"));
+      const root = mkdtempSync(join(tmpdir(), "determinus-pre-rebase-"));
       const main = join(root, "main");
       const linked = join(root, "linked");
       const nonGit = join(root, "non-git");
@@ -201,7 +201,7 @@ describe("preExecutionRebase", () => {
             "-c",
             "user.name=ADV Test",
             "-c",
-            "user.email=adv-test@example.invalid",
+            "user.email=determinus-test@example.invalid",
             "commit",
             "-m",
             "init",

@@ -307,32 +307,35 @@ describe("tmux rename-window safety", () => {
   });
 
   test("title with BEL and ESC is sanitized before debug logging", async () => {
-    const originalDebug = process.env.ADV_DEBUG;
-    const originalCacheDir = process.env.ADV_CACHE_DIR;
-    const tempDir = mkdtempSync(join(tmpdir(), "adv-terminal-log-"));
+    const originalDebug = process.env.determinus_DEBUG;
+    const originalCacheDir = process.env.determinus_CACHE_DIR;
+    const tempDir = mkdtempSync(join(tmpdir(), "determinus-terminal-log-"));
 
     try {
-      process.env.ADV_DEBUG = "1";
-      process.env.ADV_CACHE_DIR = tempDir;
+      process.env.determinus_DEBUG = "1";
+      process.env.determinus_CACHE_DIR = tempDir;
       vi.resetModules();
 
       const term = await import("./terminal");
       term._setTitle("Feature\x07\x1b]2;pwn\x1b\\Implementation");
 
-      const debugLog = readFileSync(join(tempDir, "adv-debug.log"), "utf8");
+      const debugLog = readFileSync(
+        join(tempDir, "determinus-debug.log"),
+        "utf8",
+      );
       expect(debugLog).not.toContain("\x07");
       expect(debugLog).not.toContain("\x1b");
       expect(debugLog).toContain("Feature ]2;pwn");
     } finally {
       if (originalDebug === undefined) {
-        delete process.env.ADV_DEBUG;
+        delete process.env.determinus_DEBUG;
       } else {
-        process.env.ADV_DEBUG = originalDebug;
+        process.env.determinus_DEBUG = originalDebug;
       }
       if (originalCacheDir === undefined) {
-        delete process.env.ADV_CACHE_DIR;
+        delete process.env.determinus_CACHE_DIR;
       } else {
-        process.env.ADV_CACHE_DIR = originalCacheDir;
+        process.env.determinus_CACHE_DIR = originalCacheDir;
       }
       rmSync(tempDir, { recursive: true, force: true });
     }

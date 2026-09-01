@@ -70,7 +70,7 @@ export function isWarnFirstEvidencePolicy(
 
 /**
  * Typed reference to a persisted task-scoped reviewer report. Written only by
- * the adv-reviewer report consumer; it is the completion-stage authority for
+ * the determinus-reviewer report consumer; it is the completion-stage authority for
  * non-test behavior-critical tasks. Legacy review_conclusion text remains
  * readable but is not authority for stage-v2 plans.
  */
@@ -91,7 +91,7 @@ export type ReviewEvidenceRef = z.infer<typeof ReviewEvidenceRefSchema>;
  *
  * - new: task was created under the normalized evidence-plan model.
  * - reclassified: task was materially reclassified after creation (e.g., TDD
- *   intent changed via adv_task_reclassify_tdd).
+ *   intent changed via determinus_task_reclassify_tdd).
  * - legacy: task predates the plan model; its plan is a compatibility
  *   normalization, not a structural declaration.
  */

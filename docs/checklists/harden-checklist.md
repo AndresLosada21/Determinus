@@ -1,6 +1,6 @@
 # Harden Checklist
 
-Referenced by `/adv-harden`. Enforces adversarial rigor to prevent shallow "all clear" hardening passes.
+Referenced by `/determinus-harden`. Enforces adversarial rigor to prevent shallow "all clear" hardening passes.
 
 ---
 
@@ -73,7 +73,7 @@ Checked dimensions:
 Why this is clean:
 - Change is small and well-scoped ({N} files, {M} lines changed)
 - All code follows established patterns (no novel architecture)
-- Full TDD cycle completed with red/green evidence via `adv_run_test`
+- Full TDD cycle completed with red/green evidence via `determinus_run_test`
 - No external dependencies added
 - No security surface changes
 ```
@@ -130,7 +130,7 @@ A change must own quality and test coverage for its touched scope:
 
 ## Validated In-Scope Remediation
 
-Validated in-scope findings from `/adv-review` and `/adv-harden` must be resolved before the release gate:
+Validated in-scope findings from `/determinus-review` and `/determinus-harden` must be resolved before the release gate:
 
 - [ ] All validated in-scope findings are fixed and verified
 - [ ] × No report-only, future-work, or accepted-debt path for validated in-scope findings

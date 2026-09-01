@@ -2,7 +2,7 @@
  * Task Structured Output Types
  *
  * Schema for structured output extracted from agent task completion text.
- * Agents MAY emit `<adv-output>` JSON blocks alongside prose summaries.
+ * Agents MAY emit `<determinus-output>` JSON blocks alongside prose summaries.
  * Extraction is optional and non-blocking.
  */
 
@@ -25,7 +25,7 @@ export const DecisionSchema = z.object({
 });
 
 /**
- * Schema for structured task output extracted from `<adv-output>` tags.
+ * Schema for structured task output extracted from `<determinus-output>` tags.
  *
  * All fields have safe defaults — agent emits what it knows.
  * Passthrough allows extra agent fields that survive extraction

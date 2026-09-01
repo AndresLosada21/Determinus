@@ -1,16 +1,16 @@
 {
-  "description": "Frozen effective assembled-prompt baseline for the mode-neutral MCP contract. Regenerated for hardenExecutionDiagnosis: adv-verifier prompt legitimately grew by the AC6 failure-attribution section and Verification Triage Result example added in b16fae15; adv prompt legitimately grew by the Command binding paragraph added in fc2d14cf; budget remains 400 and external MCP grants are unchanged.",
-  "frozenFrom": "change/hardenExecutionDiagnosis: legitimate adv-verifier growth from AC6 failure-attribution contract binding and adv growth from Command binding paragraph; budget unchanged at 400",
+  "description": "Frozen effective assembled-prompt baseline for the mode-neutral MCP contract. Regenerated for hardenExecutionDiagnosis: determinus-verifier prompt legitimately grew by the AC6 failure-attribution section and Verification Triage Result example added in b16fae15; adv prompt legitimately grew by the Command binding paragraph added in fc2d14cf; budget remains 400 and external MCP grants are unchanged.",
+  "frozenFrom": "change/hardenExecutionDiagnosis: legitimate determinus-verifier growth from AC6 failure-attribution contract binding and adv growth from Command binding paragraph; budget unchanged at 400",
   "frozenAt": "2026-07-31",
   "byteBudget": 400,
   "contractBytes": 305,
   "prompts": {
-    "adv-ci-waiter": {
+    "determinus-ci-waiter": {
       "bytes": 5060,
       "mcpCapable": false,
       "grants": []
     },
-    "adv-designer": {
+    "determinus-designer": {
       "bytes": 27245,
       "mcpCapable": true,
       "grants": [
@@ -31,7 +31,7 @@
         "searchcode_*=true"
       ]
     },
-    "adv-engineer": {
+    "determinus-engineer": {
       "bytes": 19549,
       "mcpCapable": true,
       "grants": [
@@ -52,7 +52,7 @@
         "searchcode_*=true"
       ]
     },
-    "adv-researcher": {
+    "determinus-researcher": {
       "bytes": 13557,
       "mcpCapable": true,
       "grants": [
@@ -71,7 +71,7 @@
         "searchcode_*=true"
       ]
     },
-    "adv-reviewer": {
+    "determinus-reviewer": {
       "bytes": 26201,
       "mcpCapable": true,
       "grants": [
@@ -92,7 +92,7 @@
         "searchcode_*=true"
       ]
     },
-    "adv-tron": {
+    "determinus-tron": {
       "bytes": 13155,
       "mcpCapable": true,
       "grants": [
@@ -112,7 +112,7 @@
         "searchcode_*=false"
       ]
     },
-    "adv-verifier": {
+    "determinus-verifier": {
       "bytes": 9818,
       "mcpCapable": true,
       "grants": [
@@ -124,7 +124,7 @@
         "lgrep_search_text=true"
       ]
     },
-    "adv-visual-review": {
+    "determinus-visual-review": {
       "bytes": 9506,
       "mcpCapable": true,
       "grants": [

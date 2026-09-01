@@ -60,7 +60,7 @@ function git(cwd: string, args: string[]): string {
 
 async function initRepo(root: string, defaultBranch = "trunk"): Promise<void> {
   git(root, ["init", "-q", "-b", defaultBranch]);
-  git(root, ["config", "user.email", "adv-test@example.invalid"]);
+  git(root, ["config", "user.email", "determinus-test@example.invalid"]);
   git(root, ["config", "user.name", "ADV Test"]);
   await writeFile(join(root, "README.md"), "initial\n");
   git(root, ["add", "README.md"]);
@@ -73,7 +73,7 @@ describe.skipIf(!BENCH_ENABLED)(
   "Phase 9 no-op archive bench (rq-optimizePhase9GitCalls SC1-4)",
   () => {
     it("measures finalizeRelease on no-op fixture; warns on SC regressions", async () => {
-      const tempRoot = await createTempDir("adv-finalize-bench-");
+      const tempRoot = await createTempDir("determinus-finalize-bench-");
       try {
         const main = join(tempRoot, "main");
         const worktree = join(tempRoot, "wt");

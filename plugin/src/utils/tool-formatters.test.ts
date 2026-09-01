@@ -205,7 +205,7 @@ describe("tool-formatters", () => {
         requirementCount: 67,
         activeChanges: [],
         archivedCount: 105,
-        recommendations: ["Run /adv-apply foo"],
+        recommendations: ["Run /determinus-apply foo"],
       });
       expect(result.specsSection).toContain("9");
       expect(result.specsSection).toContain("67");
@@ -225,8 +225,8 @@ describe("tool-formatters", () => {
           total: 4,
           omitted: 1,
           drilldown: {
-            changes: 'adv_status view:"changes"',
-            hygiene: 'adv_status view:"hygiene"',
+            changes: 'determinus_status view:"changes"',
+            hygiene: 'determinus_status view:"hygiene"',
           },
           groups: [
             {
@@ -261,7 +261,9 @@ describe("tool-formatters", () => {
       expect(result.nextActionsSection).toContain("health: 2");
       expect(result.nextActionsSection).toContain("Plugin freshness");
       expect(result.nextActionsSection).toContain("+1 omitted");
-      expect(result.nextActionsSection).toContain('adv_status view:"hygiene"');
+      expect(result.nextActionsSection).toContain(
+        'determinus_status view:"hygiene"',
+      );
     });
 
     it("formats OpenCode session debt diagnostics", () => {
@@ -679,7 +681,7 @@ describe("tool-formatters", () => {
         attempts: [10, 11, 12].map((attempt_number) => ({
           attempt_number,
           error: `blocker ${attempt_number}`,
-          strategy_label: `adv-reviewer-reported-blocker-${attempt_number}`,
+          strategy_label: `determinus-reviewer-reported-blocker-${attempt_number}`,
           outcome: "failed" as const,
           attempted_at: "2026-08-04T00:00:00Z",
           diagnosis: "",

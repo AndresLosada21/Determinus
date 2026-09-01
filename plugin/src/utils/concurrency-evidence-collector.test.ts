@@ -212,7 +212,9 @@ describe("concurrency-evidence-collector", () => {
           sessionId: "ses-orchestrator",
           timeCreatedMs: nowMs,
           timeUpdatedMs: nowMs + 60_000,
-          metadata: JSON.stringify({ toolHistory: ["adv_status", "bash"] }),
+          metadata: JSON.stringify({
+            toolHistory: ["determinus_status", "bash"],
+          }),
         },
       ],
       readGlobalSessionRows: async () => [],

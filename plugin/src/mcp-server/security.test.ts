@@ -2,7 +2,7 @@
  * DDC7 exhaustive rejection tests for the ADV MCP read surface.
  *
  * Verifies that every Tier-4 catalog tool (13 HANDSHAKE_TIER4_TOOLS) plus
- * adv_handshake rejects every mutation-shaped argument with the same typed
+ * determinus_handshake rejects every mutation-shaped argument with the same typed
  * error schema, while valid read args pass through unchanged.
  */
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
@@ -25,14 +25,14 @@ import {
   createTestProject,
 } from "../__tests__/setup.js";
 
-const ALL_TIER4_TOOLS = ["adv_handshake", ...HANDSHAKE_TIER4_TOOLS];
+const ALL_TIER4_TOOLS = ["determinus_handshake", ...HANDSHAKE_TIER4_TOOLS];
 
 /**
  * Valid read args for each tool. These must be accepted by the security
  * wrapper (they may still fail downstream with not-found/no-data errors).
  */
 const POSITIVE_ARGS: Record<string, Record<string, unknown>> = {
-  adv_handshake: {},
+  determinus_handshake: {},
   status: { view: "summary" },
   spec: { action: "list" },
   wisdom_list: { changeId: "ch-test" },
@@ -45,7 +45,7 @@ const POSITIVE_ARGS: Record<string, Record<string, unknown>> = {
   wip_state: {},
   worktree_triage: {},
   tool_catalog: { limit: 10 },
-  tool_describe: { name: "adv_status" },
+  tool_describe: { name: "determinus_status" },
 };
 
 interface RejectedCase {
@@ -95,7 +95,10 @@ async function connectToServer(): Promise<{
   await clientTransport.start();
   await serverTransport.start();
 
-  const client = new Client({ name: "adv-mcp-security", version: "1.0.0" });
+  const client = new Client({
+    name: "determinus-mcp-security",
+    version: "1.0.0",
+  });
   await client.connect(clientTransport);
 
   return {
@@ -122,7 +125,7 @@ describe("DDC7 mutation-shaped argument rejection", () => {
 
   beforeEach(async () => {
     originalCwd = process.cwd();
-    tempDir = await createTempDir("adv-mcp-security-");
+    tempDir = await createTempDir("determinus-mcp-security-");
     await createTestProject(tempDir, {
       withSpecs: false,
       withChanges: false,

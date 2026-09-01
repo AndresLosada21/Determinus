@@ -21,13 +21,13 @@ Deliberate non-scope: removing Temporal-side authoritative validation, reducing 
   - Evidence: `plugin/src/index.ts:906-966`; `plugin/src/tools/trunk-write-firewall.ts:158-268`.
   - Impact: each `write`, `edit`, or `morph_edit` invokes topology, repository-root, branch, default-branch, and repository-state resolution. The topology memo lasts only for one firewall call; `firewallDeps` is rebuilt for every tool hook. The scout counted five to seven git subprocesses per protected write, but did not benchmark elapsed time.
   - Recommendation: build immutable firewall dependencies once per plugin session; cache topology per repository and add a short, explicitly invalidated cache for mutable probes. Preserve fail-closed behavior whenever a trunk target cannot be verified.
-  - Follow-up: `/adv-proposal Reduce agent guard overhead`.
+  - Follow-up: `/determinus-proposal Reduce agent guard overhead`.
 
 - Severity: HIGH
   - Evidence: `plugin/src/tools/subagent-report.ts:210-237`.
   - Impact: every sub-agent report first parses against `reportAgentProbeSchema`, then parses the same payload against `ScopedSubagentReportSchema`. Reports are among the largest routine agent payloads.
   - Recommendation: parse once with `ScopedSubagentReportSchema`; derive the existing implementation-cycle hint from its failure issues. Add a regression test proving malformed reports retain the same `INVALID_REPORT` hint.
-  - Follow-up: `/adv-proposal Reduce agent guard overhead`.
+  - Follow-up: `/determinus-proposal Reduce agent guard overhead`.
 
 ### Code Quality
 
@@ -35,19 +35,19 @@ Deliberate non-scope: removing Temporal-side authoritative validation, reducing 
   - Evidence: `plugin/src/utils/tool-arg-preflight.ts:823-829`; exact-reference scan found production use of `preflightToolArgs` at the registry while `validateToolArgsBeforeExecute` has only test references.
   - Impact: no material runtime cost, but duplicate public entry points obscure the canonical validation route.
   - Recommendation: remove the passthrough or re-export the canonical function under one name; update tests to import that name.
-  - Follow-up: `/adv-proposal Reduce agent guard overhead`.
+  - Follow-up: `/determinus-proposal Reduce agent guard overhead`.
 
 - Severity: MEDIUM
   - Evidence: `plugin/src/tool-role-firewall.ts:115-132,142-172`.
-  - Impact: the asynchronous ancestry wrapper and the synchronous predicate repeat the `adv_` and blockable-set checks. This is minor latency but creates two authority paths to maintain.
+  - Impact: the asynchronous ancestry wrapper and the synchronous predicate repeat the `determinus_` and blockable-set checks. This is minor latency but creates two authority paths to maintain.
   - Recommendation: retain a single production check that resolves ancestry and evaluates authorization once; preserve a narrow synchronous, injected-set test seam if needed.
-  - Follow-up: `/adv-proposal Reduce agent guard overhead`.
+  - Follow-up: `/determinus-proposal Reduce agent guard overhead`.
 
 - Severity: LOW
   - Evidence: `plugin/src/tools/change/create-clarify.ts:368-403`; `plugin/src/utils/tool-arg-preflight.ts:838-879`.
-  - Impact: blank-artifact and origin-placeholder checks deliberately repeat preflight normalization for direct callers. They add small work to normal `adv_change_create` calls.
+  - Impact: blank-artifact and origin-placeholder checks deliberately repeat preflight normalization for direct callers. They add small work to normal `determinus_change_create` calls.
   - Recommendation: do not remove them until all direct callers are structurally proven to traverse preflight. If measured cost matters, pass a typed preflight-complete marker and retain the fallback checks only for bypass paths.
-  - Follow-up: `/adv-discover Reduce agent guard overhead`.
+  - Follow-up: `/determinus-discover Reduce agent guard overhead`.
 
 ### Reliability — Retain
 
@@ -88,7 +88,7 @@ The scan found no evidence that a framework change would solve the identified du
 3. Remove the dead preflight passthrough as adjacent cleanup, not as a performance claim.
 4. Keep Temporal payload validation and direct-caller fallback validation until a typed boundary proves normal callers cannot bypass the primary check.
 
-Active-change overlap could not be resolved through `adv_change_show` because the target read exceeded the host tool's 10-second deadline. `adv_change_list` showed a proposal-stage change named `removeCompensatingAntiPatterns`; assess its artifact and scope before creating another overlapping change.
+Active-change overlap could not be resolved through `determinus_change_show` because the target read exceeded the host tool's 10-second deadline. `determinus_change_list` showed a proposal-stage change named `removeCompensatingAntiPatterns`; assess its artifact and scope before creating another overlapping change.
 
 ## Open Questions for Research
 

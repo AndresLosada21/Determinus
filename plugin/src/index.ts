@@ -177,13 +177,13 @@ const dropToolOutput = (source: string, text: string): string =>
  * pre-approved for external directory access per AGENTS.md. Within-session
  * durability is sufficient; cross-session persistence is the separate
  * changelessReportPersistence change (D2, out of scope here). See KD1/DC2.
- * Overridable via ADV_FALLBACK_SINK_DIR for tests.
+ * Overridable via determinus_FALLBACK_SINK_DIR for tests.
  */
 const DEFAULT_FALLBACK_SINK_DIR = "/tmp/opencode";
 const FALLBACK_EXCERPT_CHARS = 500;
 
 const fallbackSinkDir = (): string =>
-  process.env.ADV_FALLBACK_SINK_DIR ?? DEFAULT_FALLBACK_SINK_DIR;
+  process.env.determinus_FALLBACK_SINK_DIR ?? DEFAULT_FALLBACK_SINK_DIR;
 
 /**
  * Persist oversized fallback content to the durable sink before the consumer
@@ -420,13 +420,13 @@ const hooksLogger = createLogger("hooks");
  *
  * Without this, OpenCode catches the factory throw and drops the entire
  * plugin from the session â€” agents see ADV operating protocol but have
- * ZERO `adv_*` tools in their function schema and no diagnostic of any
+ * ZERO `determinus_*` tools in their function schema and no diagnostic of any
  * kind. The pre-flight rule "verify by calling" then becomes mechanically
  * impossible.
  *
  * The returned hooks expose:
  *   - the same `createDegradedToolMap` stubs used for `tryInitStore`
- *     failures, so any tool call returns `ADV_PLUGIN_INIT_FAILED`
+ *     failures, so any tool call returns `determinus_PLUGIN_INIT_FAILED`
  *   - a `system.transform` hook that injects an `[ADV:DEGRADED]` banner
  *     on every turn, so the agent discovers the failure BEFORE making
  *     any tool call
@@ -458,7 +458,10 @@ function buildFactoryFailureHooks(error: Error, directory: string): any {
 const advancePluginImpl: Plugin = async (input) => {
   const { directory, worktree, project, experimental_workspace, client } =
     input;
-  experimental_workspace?.register?.("adv-worktree", buildAdvWorktreeAdapter());
+  experimental_workspace?.register?.(
+    "determinus-worktree",
+    buildAdvWorktreeAdapter(),
+  );
 
   const gitSession = resolveGitSessionContext(directory, worktree);
   const { isWorktree, isMainCheckout } = gitSession;
@@ -511,7 +514,7 @@ const advancePluginImpl: Plugin = async (input) => {
 
   // Initialize store. tryInitStore() never throws â€” if createStore or
   // store.init() fails, it returns { store: null, initError: Error } so we
-  // can register a degraded tool map rather than nuking every adv_* tool.
+  // can register a degraded tool map rather than nuking every determinus_* tool.
   //
   // Unstable identity (shallow/grafted repo) refuses store initialization
   // entirely: falling through to tryInitStore without an externalRoot would
@@ -684,17 +687,17 @@ const advancePluginImpl: Plugin = async (input) => {
   // not steal the caller's current tab title. Correctness is structural: this
   // explicit allow-list owns the decision, not tool-name suffix heuristics.
   const activeChangeRepointTools = new Set<string>([
-    "adv_task_add",
-    "adv_task_update",
-    "adv_task_cancel",
-    "adv_task_checkpoint",
-    "adv_run_test",
-    "adv_wisdom_add",
-    "adv_gate_complete",
-    "adv_change_reenter",
-    "adv_change_update",
-    "adv_contract_mint",
-    "adv_subagent_report_submit",
+    "determinus_task_add",
+    "determinus_task_update",
+    "determinus_task_cancel",
+    "determinus_task_checkpoint",
+    "determinus_run_test",
+    "determinus_wisdom_add",
+    "determinus_gate_complete",
+    "determinus_change_reenter",
+    "determinus_change_update",
+    "determinus_contract_mint",
+    "determinus_subagent_report_submit",
   ]);
 
   const shouldRepointActiveChange = (
@@ -705,23 +708,25 @@ const advancePluginImpl: Plugin = async (input) => {
 
   // rq-activeChangePointer01: session active-change pointer hygiene.
   // Related hooks: recordCreatedChange (set on create), recordTerminalChange
-  // (clear on close/archive). Phantom-pointer clearing is owned by adv_doctor
+  // (clear on close/archive). Phantom-pointer clearing is owned by determinus_doctor
   // (rq-doctorConsolidation01 option B) via the injected pointer-repair
-  // provider below â€” the former adv_change_forget tool was retired.
+  // provider below â€” the former determinus_change_forget tool was retired.
   // Reachability gate via isChangeReachable prevents phantom re-pointing.
   // Spec: .adv/specs/advance-meta/spec.json rq-activeChangePointer01
   //
   // rq-doctorConsolidation01 option B: inject the session pointer-repair
-  // provider so adv_doctor can clear a confirmed-phantom pointer. This is
+  // provider so determinus_doctor can clear a confirmed-phantom pointer. This is
   // the plugin-host wiring only; tests and the MCP server never set a
-  // provider, so their adv_doctor skips the phantom-pointer check.
+  // provider, so their determinus_doctor skips the phantom-pointer check.
   setDoctorPointerRepairProvider({
     getActivePointer: () => state.activeChange.id,
     clearActivePointer: () => {
       const prev = state.activeChange.id;
       state.activeChange.id = null;
       setActiveChange(null);
-      debugLog(`adv_doctor: cleared phantom session pointer (was ${prev})`);
+      debugLog(
+        `determinus_doctor: cleared phantom session pointer (was ${prev})`,
+      );
     },
   });
 
@@ -734,7 +739,7 @@ const advancePluginImpl: Plugin = async (input) => {
     // bundle, refuse ADV traffic before any read can answer from stale code.
     // Unknown freshness remains allowed so missing manifests are not conflated
     // with a generation mismatch.
-    if (toolName.startsWith("adv_")) {
+    if (toolName.startsWith("determinus_")) {
       const refusal = await getPluginBundleGenerationGuardError(
         pluginBundleDistDir,
         {
@@ -1084,7 +1089,7 @@ const advancePluginImpl: Plugin = async (input) => {
     state.activeChange.id = newChangeId;
     const ctx = await resolveChangeContext(newChangeId);
     setActiveChange(newChangeId, ctx);
-    debugLog(`adv_change_create: set activeChange to ${newChangeId}`);
+    debugLog(`determinus_change_create: set activeChange to ${newChangeId}`);
   };
 
   const recordTerminalChange = (toolName: string, rawOutput: string): void => {
@@ -1183,7 +1188,7 @@ const advancePluginImpl: Plugin = async (input) => {
   const { removeProcessListeners } = registerShutdownHandlers(store);
 
   return {
-    // MCP Tools â€” degraded map on init failure so agents see ADV_PLUGIN_INIT_FAILED
+    // MCP Tools â€” degraded map on init failure so agents see determinus_PLUGIN_INIT_FAILED
     tool:
       store && !initError
         ? createToolMap(store, directory, input.serverUrl, client)
@@ -1242,24 +1247,24 @@ const advancePluginImpl: Plugin = async (input) => {
       try {
         debugLog(`tool.execute.after: tool="${input.tool}"`);
 
-        // AC6: increment adv_tool_calls + adv_tool_call_count_by_name for
-        // any adv_* tool. Non-adv tools are ignored by recordAdvToolCall.
+        // AC6: increment determinus_tool_calls + determinus_tool_call_count_by_name for
+        // any determinus_* tool. Non-adv tools are ignored by recordAdvToolCall.
         recordAdvToolCall(input.tool);
 
         // Track new change creation (changeId only in output, not input args)
-        if (input.tool === "adv_change_create" && output.output) {
+        if (input.tool === "determinus_change_create" && output.output) {
           try {
             await recordCreatedChange(output.output);
           } catch (err) {
             // Outer parse error â€” unexpected if banner format changes
             hooksLogger.warn(
-              `Failed to parse adv_change_create output: ${(err as Error).message}`,
+              `Failed to parse determinus_change_create output: ${(err as Error).message}`,
             );
           }
         }
 
         // Track task status changes for wisdom prompt
-        if (input.tool === "adv_task_update" && output.output) {
+        if (input.tool === "determinus_task_update" && output.output) {
           try {
             recordCompletedTask(output.output);
           } catch {
@@ -1269,8 +1274,8 @@ const advancePluginImpl: Plugin = async (input) => {
 
         // Terminal transition pointer clear (AC2/AC3)
         if (
-          (input.tool === "adv_change_close" ||
-            input.tool === "adv_change_archive") &&
+          (input.tool === "determinus_change_close" ||
+            input.tool === "determinus_change_archive") &&
           output.output
         ) {
           try {
@@ -1282,7 +1287,7 @@ const advancePluginImpl: Plugin = async (input) => {
           }
         }
 
-        // Track active gate from adv_gate_complete output
+        // Track active gate from determinus_gate_complete output
 
         // Handle sub-agent completion
         if (input.tool === "task") {
@@ -1497,7 +1502,8 @@ const advancePluginImpl: Plugin = async (input) => {
           try {
             directive = deriveWorkflowDirective(
               changeToDirectiveState({
-                projectId: changeForDirective.adv_project_id ?? "unknown",
+                projectId:
+                  changeForDirective.determinus_project_id ?? "unknown",
                 change: changeForDirective,
                 gates: gates ?? undefined,
               }),
@@ -1600,7 +1606,7 @@ export default Plugin.define({
             description: (def as any).description ?? name,
             input: inputSchema,
             // ADV's direct surface is intentionally available through the
-            // Code Mode executor as `tools.adv_change_*`.  Be explicit: the
+            // Code Mode executor as `tools.determinus_change_*`.  Be explicit: the
             // SDK defaults this today, but an omitted option made this
             // migration depend on a host default and left the tools absent
             // from the Code Mode catalog in the beta runtime.

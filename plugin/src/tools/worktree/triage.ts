@@ -101,7 +101,7 @@ function targetArgsSuffix(repoRoot: string, targetProject: boolean): string {
 }
 
 function cleanupFix(repoRoot: string, targetProject: boolean): string {
-  return `adv_worktree_cleanup${targetArgsSuffix(repoRoot, targetProject)}`;
+  return `determinus_worktree_cleanup${targetArgsSuffix(repoRoot, targetProject)}`;
 }
 
 /**
@@ -268,7 +268,7 @@ async function collectTriage(
   for (const dw of diskList) {
     if (!dw.branch) continue;
     // Skip the main checkout — only flag named-branch worktrees we manage.
-    // (Convention: ADV-managed worktrees use `change/...` branches.)
+    // (Convention: determinus-managed worktrees use `change/...` branches.)
     if (!dw.branch || !inferChangeIdFromBranch(dw.branch)) continue;
     if (!admit("dirty_uncommitted_work")) {
       omitted.push({

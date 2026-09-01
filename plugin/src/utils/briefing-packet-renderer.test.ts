@@ -57,10 +57,10 @@ const baseInput: BriefingPacketRendererInput = {
       outcome: "unresolved_action",
       source_label: "required_main_agent_actions",
       source_ref: "report/1",
-      content: "Wire renderer into adv_change_show",
+      content: "Wire renderer into determinus_change_show",
     },
   ],
-  generated_by: "adv-engineer",
+  generated_by: "determinus-engineer",
 };
 
 function render(input: BriefingPacketRendererInput = baseInput) {
@@ -93,7 +93,7 @@ describe("renderBriefingPacket", () => {
       note: string;
     };
     expect(content.anchors).toEqual(
-      getSubagentReportPacketAnchors("adv-engineer"),
+      getSubagentReportPacketAnchors("determinus-engineer"),
     );
     // Self-documenting hint: anchor values must come from the orchestrator's
     // spawn prompt — the briefing packet only carries anchor NAMES. Without
@@ -224,7 +224,7 @@ describe("renderBriefingPacket", () => {
       change_id: "addBriefingPackets",
       title: "Add briefing packets",
       lane: "engineer",
-      generated_by: "adv-engineer",
+      generated_by: "determinus-engineer",
     });
     expect(packet.unavailable_markers.length).toBeGreaterThan(0);
     const unavailable = packet.sections.find(

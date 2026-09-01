@@ -4,7 +4,7 @@
  * Operator-explicit git-branch hygiene for archived ADV changes whose
  * `change/{id}` branch is fully merged into the default branch
  * (squash-merge-safe detection). This is git maintenance, not ADV recovery
- * state, so it lives behind `adv_worktree_cleanup mode=archived_branches`
+ * state, so it lives behind `determinus_worktree_cleanup mode=archived_branches`
  * rather than the retired archive-repair surface.
  *
  * Performance model (rq-archivedBranchCleanupInversion01): the archived-id

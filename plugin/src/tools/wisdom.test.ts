@@ -28,7 +28,7 @@ vi.mock("./change-mutation-coordinator", async () => {
 });
 
 function createMockStore(): Store {
-  const base = mkdtempSync(join(tmpdir(), "adv-wisdom-test-"));
+  const base = mkdtempSync(join(tmpdir(), "determinus-wisdom-test-"));
   const changes = join(base, "changes");
   const change = (id: string) => ({
     id,
@@ -65,7 +65,7 @@ function createMockStore(): Store {
   } as unknown as Store;
 }
 
-describe("adv_wisdom_add — rq-cacheRefresh01 contract", () => {
+describe("determinus_wisdom_add — rq-cacheRefresh01 contract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -73,7 +73,7 @@ describe("adv_wisdom_add — rq-cacheRefresh01 contract", () => {
   test("persists a wisdom entry through the disk projection", async () => {
     const store = createMockStore();
 
-    const output = await wisdomTools.adv_wisdom_add.execute(
+    const output = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-test",
         type: "pattern",
@@ -122,7 +122,7 @@ describe("adv_wisdom_add — rq-cacheRefresh01 contract", () => {
       missingPrimaryPolicy: "block",
     };
 
-    await wisdomTools.adv_wisdom_add.execute(
+    await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-test",
         type: "gotcha",
@@ -150,7 +150,7 @@ describe("adv_wisdom_add — rq-cacheRefresh01 contract", () => {
   });
 });
 
-describe("adv_wisdom_list — product-linked filtering", () => {
+describe("determinus_wisdom_list — product-linked filtering", () => {
   test("defaults to current repo plus legacy and promoted entries", async () => {
     const store = createMockStore();
     store.productContext = {
@@ -210,7 +210,7 @@ describe("adv_wisdom_list — product-linked filtering", () => {
     ]);
 
     const repoScoped = JSON.parse(
-      await wisdomTools.adv_wisdom_list.execute({}, store),
+      await wisdomTools.determinus_wisdom_list.execute({}, store),
     );
     expect(repoScoped.wisdom.map((entry: { id: string }) => entry.id)).toEqual([
       "ws-web",
@@ -219,7 +219,7 @@ describe("adv_wisdom_list — product-linked filtering", () => {
     ]);
 
     const productWide = JSON.parse(
-      await wisdomTools.adv_wisdom_list.execute(
+      await wisdomTools.determinus_wisdom_list.execute(
         { scope: "product" } as never,
         store,
       ),
@@ -234,14 +234,14 @@ describe("adv_wisdom_list — product-linked filtering", () => {
 // rq-wisdomAutoSurfacing01 — from_draft_id promotion (AC6 / DDC5)
 // ---------------------------------------------------------------------------
 
-describe("adv_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
+describe("determinus_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   test("rejects from_draft_id without sourceTask", async () => {
     const store = createMockStore();
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-1",
         type: "failure",
@@ -267,7 +267,7 @@ describe("adv_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
       changeId: "chg-1",
     });
 
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-1",
         type: "failure",
@@ -304,7 +304,7 @@ describe("adv_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
       changeId: "chg-1",
     });
 
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-1",
         type: "failure",
@@ -341,7 +341,7 @@ describe("adv_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
       changeId: "chg-1",
     });
 
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-1",
         type: "failure",
@@ -376,7 +376,7 @@ describe("adv_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
       changeId: "chg-1",
     });
 
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-1",
         type: "failure",
@@ -403,7 +403,7 @@ describe("adv_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
 
   test("without from_draft_id: behavior unchanged (backward-compat)", async () => {
     const store = createMockStore();
-    await wisdomTools.adv_wisdom_add.execute(
+    await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-1",
         type: "pattern",
@@ -434,7 +434,7 @@ describe("adv_wisdom_add — from_draft_id promotion (AC6 / DDC5)", () => {
       } as any,
       changeId: "chg-1",
     });
-    const result = await wisdomTools.adv_wisdom_add.execute(
+    const result = await wisdomTools.determinus_wisdom_add.execute(
       {
         changeId: "chg-1",
         type: "failure",

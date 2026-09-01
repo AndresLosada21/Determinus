@@ -555,7 +555,7 @@ async function writeReflectionMarkdown(
 // =============================================================================
 
 export const reflectionTools = {
-  adv_reflection_list: {
+  determinus_reflection_list: {
     description:
       "Read bounded reflection reports for the current project or target_path snapshot. " +
       "Returns source-backed reflection summaries, friction counts, suggestion counts, and omitted metadata.",
@@ -641,7 +641,7 @@ export const reflectionTools = {
     },
   },
 
-  adv_reflect: {
+  determinus_reflect: {
     description:
       "Produce a structured two-plane reflection report for an archived change. " +
       "Plane 1 covers project execution (efficiency, quality, process, wisdom). " +

@@ -6,7 +6,7 @@
  *     > **{change-id}**
  *     > {gate} ✓ → {next-gate}
  *     >
- *     > → `/adv-{next-command} {change-id}`
+ *     > → `/determinus-{next-command} {change-id}`
  *
  * Also asserts the prior prose-labeled footer (Current phase / Next phase /
  * Run when ready) is absent.
@@ -38,52 +38,52 @@ interface HandoffCommand {
 
 const handoffCommands: HandoffCommand[] = [
   {
-    file: "adv-proposal.md",
+    file: "determinus-proposal.md",
     currentPhase: "proposal",
     nextPhase: "discovery",
-    command: "adv-discover",
+    command: "determinus-discover",
   },
   {
-    file: "adv-discover.md",
+    file: "determinus-discover.md",
     currentPhase: "discovery",
     nextPhase: "design",
-    command: "adv-design",
+    command: "determinus-design",
   },
   {
-    file: "adv-design.md",
+    file: "determinus-design.md",
     currentPhase: "design",
     nextPhase: "planning",
-    command: "adv-prep",
+    command: "determinus-prep",
   },
   {
-    file: "adv-prep.md",
+    file: "determinus-prep.md",
     currentPhase: "planning",
     nextPhase: "execution",
-    command: "adv-apply",
+    command: "determinus-apply",
   },
   {
-    file: "adv-apply.md",
+    file: "determinus-apply.md",
     currentPhase: "execution",
     nextPhase: "acceptance",
-    command: "adv-review",
+    command: "determinus-review",
   },
   {
-    file: "adv-review.md",
+    file: "determinus-review.md",
     currentPhase: "acceptance",
     nextPhase: "release",
-    command: "adv-harden",
+    command: "determinus-harden",
   },
   {
-    file: "adv-harden.md",
+    file: "determinus-harden.md",
     currentPhase: "release",
     nextPhase: "archive",
-    command: "adv-archive",
+    command: "determinus-archive",
   },
   {
-    file: "adv-task.md",
+    file: "determinus-task.md",
     currentPhase: "task",
     nextPhase: "apply",
-    command: "adv-apply",
+    command: "determinus-apply",
   },
 ];
 
@@ -163,7 +163,7 @@ describe("handoff blockquote wayfinder contract", () => {
     expect(
       spineBlock,
       "Canonical spine must show blockquote arrow command row",
-    ).toMatch(/^> → `\/adv-\{next-command\} \{change-id\}`$/m);
+    ).toMatch(/^> → `\/determinus-\{next-command\} \{change-id\}`$/m);
   });
 
   test("command-voice-standard.md bans evidence dumps from the narrative spine", () => {
@@ -213,7 +213,7 @@ describe("handoff blockquote wayfinder contract", () => {
     expect(
       outputBlock,
       "adv.md Output Contract must show blockquote arrow command row",
-    ).toMatch(/^> → `\/adv-\{next-command\} \{change-id\}`$/m);
+    ).toMatch(/^> → `\/determinus-\{next-command\} \{change-id\}`$/m);
   });
 
   test("handoffCommands route to registered manifest commands", () => {
@@ -237,7 +237,7 @@ describe("handoff blockquote wayfinder contract", () => {
         /actionable (phase[- ]plan|directive)|directive command|registered command/i,
       );
       expect(content).toMatch(
-        /retired `\/adv-accept` wording|correct[^`]*`\/adv-accept`[^`]*`\/adv-review`/i,
+        /retired `\/determinus-accept` wording|correct[^`]*`\/determinus-accept`[^`]*`\/determinus-review`/i,
       );
       expect(content).toMatch(
         /no command.*arrow[- ]prefixed row|arrow[- ]prefixed row.*omitted|blocked\/recovery\/approval status line/i,
@@ -245,14 +245,14 @@ describe("handoff blockquote wayfinder contract", () => {
     }
   });
 
-  test("retired /adv-accept wording is corrected and not registered as a command", () => {
+  test("retired /determinus-accept wording is corrected and not registered as a command", () => {
     expect(
-      COMMAND_MANIFEST["adv-accept"],
-      "adv-accept must not be registered as a command",
+      COMMAND_MANIFEST["determinus-accept"],
+      "determinus-accept must not be registered as a command",
     ).toBeUndefined();
 
     const commandFiles = readdirSync(COMMANDS_DIR);
-    expect(commandFiles).not.toContain("adv-accept.md");
+    expect(commandFiles).not.toContain("determinus-accept.md");
 
     const agent = readFileSync(join(AGENTS_DIR, "adv.md"), "utf8");
     const voice = readFileSync(
@@ -261,8 +261,10 @@ describe("handoff blockquote wayfinder contract", () => {
     );
 
     for (const content of [agent, voice]) {
-      expect(content).toMatch(/retired `\/adv-accept`/i);
-      expect(content).toMatch(/correct[^`]*`\/adv-accept`[^`]*`\/adv-review`/i);
+      expect(content).toMatch(/retired `\/determinus-accept`/i);
+      expect(content).toMatch(
+        /correct[^`]*`\/determinus-accept`[^`]*`\/determinus-review`/i,
+      );
     }
   });
 
@@ -273,8 +275,8 @@ describe("handoff blockquote wayfinder contract", () => {
     );
     expect(handoff, "rq-handoffVoice01 must exist").toBeTruthy();
     expect(handoff.body).toMatch(/registered command/i);
-    expect(handoff.body).toMatch(/adv-accept/i);
-    expect(handoff.body).toMatch(/adv-review/i);
+    expect(handoff.body).toMatch(/determinus-accept/i);
+    expect(handoff.body).toMatch(/determinus-review/i);
 
     const scenarioIds = handoff.scenarios.map((s: { id: string }) => s.id);
     expect(scenarioIds).toContain("rq-handoffVoice01.6");
@@ -288,7 +290,7 @@ describe("handoff blockquote wayfinder contract", () => {
     const retiredScenario = handoff.scenarios.find(
       (s: { id: string }) => s.id === "rq-handoffVoice01.7",
     );
-    expect(retiredScenario.title).toMatch(/adv-accept|retired/i);
+    expect(retiredScenario.title).toMatch(/determinus-accept|retired/i);
   });
 
   test("Archive Shipped variant uses single-line blockquote terminal", () => {
@@ -397,41 +399,52 @@ describe("handoff blockquote wayfinder contract", () => {
 });
 
 describe("command-as-approval semantics", () => {
-  test("adv-prep.md treats /adv-apply as approval", () => {
-    const content = readFileSync(join(COMMANDS_DIR, "adv-prep.md"), "utf8");
+  test("determinus-prep.md treats /determinus-apply as approval", () => {
+    const content = readFileSync(
+      join(COMMANDS_DIR, "determinus-prep.md"),
+      "utf8",
+    );
 
     expect(
       content,
-      "adv-prep.md must describe /adv-apply as explicit approval",
+      "determinus-prep.md must describe /determinus-apply as explicit approval",
     ).toMatch(/Counts as explicit approval/);
 
     expect(
       content,
-      "adv-prep.md must mention userApproved: true for /adv-apply",
+      "determinus-prep.md must mention userApproved: true for /determinus-apply",
     ).toMatch(/userApproved:\s*true/);
   });
 
-  test("adv-apply.md handles planning pending as command-as-approval", () => {
-    const content = readFileSync(join(COMMANDS_DIR, "adv-apply.md"), "utf8");
+  test("determinus-apply.md handles planning pending as command-as-approval", () => {
+    const content = readFileSync(
+      join(COMMANDS_DIR, "determinus-apply.md"),
+      "utf8",
+    );
 
     expect(
       content,
-      "adv-apply.md must describe planning-pending command-as-approval",
+      "determinus-apply.md must describe planning-pending command-as-approval",
     ).toMatch(/Planning gate pending/);
 
     expect(
       content,
-      "adv-apply.md must mention completing planning with userApproved: true",
-    ).toMatch(/adv_gate_complete.*gateId:\s*planning.*userApproved:\s*true/);
+      "determinus-apply.md must mention completing planning with userApproved: true",
+    ).toMatch(
+      /determinus_gate_complete.*gateId:\s*planning.*userApproved:\s*true/,
+    );
   });
 
   test("Tier B archive sign-off does NOT allow command-as-approval", () => {
-    const content = readFileSync(join(COMMANDS_DIR, "adv-archive.md"), "utf8");
+    const content = readFileSync(
+      join(COMMANDS_DIR, "determinus-archive.md"),
+      "utf8",
+    );
 
     // Archive should remain whitelist-only, no slash-command bypass
     expect(
       content,
-      "adv-archive.md must NOT describe command-as-approval bypass",
+      "determinus-archive.md must NOT describe command-as-approval bypass",
     ).not.toMatch(/command-as-approval|counts as approval|invocation counts/);
   });
 

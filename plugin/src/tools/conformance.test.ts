@@ -1,7 +1,7 @@
 /**
  * Conformance Tool Tests
  *
- * Tests the multi-action `adv_conformance` tool: init, status, lock,
+ * Tests the multi-action `determinus_conformance` tool: init, status, lock,
  * unlock, override, run. Uses temp directories for isolation.
  */
 
@@ -29,7 +29,7 @@ let projectDir: string;
 let externalRoot: string;
 
 beforeEach(async () => {
-  tempDir = await mkdtemp(join(tmpdir(), "adv-conformance-tool-test-"));
+  tempDir = await mkdtemp(join(tmpdir(), "determinus-conformance-tool-test-"));
   projectDir = join(tempDir, "myrepo");
   externalRoot = join(tempDir, "external");
   await mkdir(projectDir, { recursive: true });
@@ -44,7 +44,7 @@ afterEach(async () => {
 });
 
 // Helper to construct a minimal Store-shaped object for the handler.
-// After centralizemutationcacherefresh T02, adv_conformance uses
+// After centralizemutationcacherefresh T02, determinus_conformance uses
 // bindTool (not bindToolSimple) and derives projectDir/externalRoot from
 // store.paths.{root,external}. The conformance tool only reads these
 // fields, so a minimal partial-store is sufficient for tests.
@@ -70,7 +70,7 @@ async function seedRequiredSpec(spec = "advance-workflow"): Promise<void> {
   );
 }
 
-describe("adv_conformance action: status", () => {
+describe("determinus_conformance action: status", () => {
   test("returns empty state when conformance.json is missing", async () => {
     const result = await conformanceHandler({ action: "status" }, makeStore());
     const parsed = JSON.parse(result);
@@ -102,7 +102,7 @@ describe("adv_conformance action: status", () => {
   });
 });
 
-describe("adv_conformance action: init", () => {
+describe("determinus_conformance action: init", () => {
   test("default mode scaffolds in-repo subfolder", async () => {
     const result = await conformanceHandler({ action: "init" }, makeStore());
     const parsed = JSON.parse(result);
@@ -159,7 +159,7 @@ describe("adv_conformance action: init", () => {
   });
 });
 
-describe("adv_conformance action: lock", () => {
+describe("determinus_conformance action: lock", () => {
   test("locks an existing spec entry and fires conformanceLockedSignal", async () => {
     await conformanceHandler({ action: "init" }, makeStore());
     // Seed a spec entry
@@ -205,7 +205,7 @@ describe("adv_conformance action: lock", () => {
   });
 });
 
-describe("adv_conformance action: unlock", () => {
+describe("determinus_conformance action: unlock", () => {
   test("unlocks a locked spec and records an override audit entry", async () => {
     await conformanceHandler({ action: "init" }, makeStore());
     const state = await loadConformanceState(externalRoot, projectDir);
@@ -279,7 +279,7 @@ describe("adv_conformance action: unlock", () => {
   });
 });
 
-describe("adv_conformance action: override", () => {
+describe("determinus_conformance action: override", () => {
   test("records an override entry and fires conformanceOverriddenSignal when changeId is known", async () => {
     await conformanceHandler({ action: "init" }, makeStore());
     const state = await loadConformanceState(externalRoot, projectDir);
@@ -389,7 +389,7 @@ describe("adv_conformance action: override", () => {
   });
 });
 
-describe("adv_conformance action: run", () => {
+describe("determinus_conformance action: run", () => {
   test("returns DRIFT verdict and fires conformanceVerdictSignal when changeId is known", async () => {
     await conformanceHandler({ action: "init" }, makeStore());
     await seedRequiredSpec();

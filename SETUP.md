@@ -11,7 +11,7 @@ Complete installation instructions for the ADV spec-driven development plugin.
 5. [Directory Structure](#directory-structure)
 6. [Creating Your First Spec](#creating-your-first-spec)
 7. [Verification](#verification)
-8. [ADV CLI (`bin/adv`)](#adv-cli-binadv)
+8. [ADV CLI (`bin/adv`)](#determinus-cli-binadv)
 9. [Migration from OpenSpec](#migration-from-openspec)
 10. [Troubleshooting](#troubleshooting)
 
@@ -39,7 +39,7 @@ new ADV worktrees.
 | Git               | Version control, change tracking                                                                                                        |
 | jq                | Required only for `deploy-local.sh --fix` (config patching)                                                                             |
 | rsync             | Required for `deploy-local.sh` runtime plugin deployment                                                                                |
-| GitHub CLI (`gh`) | Required for `/adv-triage` and any ADV command that reads/writes GitHub issues or Projects v2. See **GitHub CLI authentication** below. |
+| GitHub CLI (`gh`) | Required for `/determinus-triage` and any ADV command that reads/writes GitHub issues or Projects v2. See **GitHub CLI authentication** below. |
 
 ### Disk-backed storage
 
@@ -81,9 +81,9 @@ Required token scopes:
 | Scope      | Why ADV needs it                                                                             |
 | ---------- | -------------------------------------------------------------------------------------------- |
 | `repo`     | Read/write issues, comments, PRs across every repo ADV touches (incl. private)               |
-| `project`  | Read/write Projects v2 boards (`/adv-triage` storage of truth: typed Value/RROE/Effort/WSJF) |
+| `project`  | Read/write Projects v2 boards (`/determinus-triage` storage of truth: typed Value/RROE/Effort/WSJF) |
 | `read:org` | Resolve org membership, list org-owned projects, find ADV peer repos                         |
-| `workflow` | Inspect Actions workflow runs (used by external conformance gate during `/adv-archive`)      |
+| `workflow` | Inspect Actions workflow runs (used by external conformance gate during `/determinus-archive`)      |
 
 If you authenticated previously without one of these scopes, refresh in place:
 
@@ -97,7 +97,7 @@ gh auth refresh -s repo,project,read:org,workflow
 gh auth status
 ```
 
-Expected output includes a `gho_*` token line and a scopes line containing at minimum `'project', 'read:org', 'repo', 'workflow'`. ADV `/adv-triage` will refuse to run if any required scope is missing.
+Expected output includes a `gho_*` token line and a scopes line containing at minimum `'project', 'read:org', 'repo', 'workflow'`. ADV `/determinus-triage` will refuse to run if any required scope is missing.
 
 #### Token-coverage rule (critical)
 
@@ -114,7 +114,7 @@ The token MUST cover **all** projects ADV will operate on, not just the project 
 
 #### Org-access wall (common gotcha)
 
-If `/adv-triage` reports `gh: not found`, `403`, or `Resource not accessible by integration` when creating a project or adding an item, the token is fine but the **GitHub CLI app** is not approved for that org. Two fixes:
+If `/determinus-triage` reports `gh: not found`, `403`, or `Resource not accessible by integration` when creating a project or adding an item, the token is fine but the **GitHub CLI app** is not approved for that org. Two fixes:
 
 1. Org admin: GitHub web UI → Org → Settings → Third-party access → Approve `GitHub CLI`.
 2. If org approval is not possible: create the project under your **personal** account (`@me`) instead, and link the org repo to it via `gh project link <N> --owner @me --repo <org>/<repo>`.
@@ -141,10 +141,10 @@ service is needed.
 ## External Dependencies (MCP Servers and Sub-Agents)
 
 ADV ships the plugin, commands, overlays, and bundled ADV agents (`plan`,
-`build`, `adv-researcher`, `adv-engineer`, `adv-reviewer`, `adv-designer`). The `adv-researcher`,
-`adv-engineer`, `adv-reviewer`, and `adv-designer` agents are synced globally by `deploy-local.sh`
-as bundled global specialists. The `adv-tron` agent remains
-repo-local in `.opencode/agents/`. All ADV-shipped sub-agents use the `adv-<name>` naming convention. Several agents and commands
+`build`, `determinus-researcher`, `determinus-engineer`, `determinus-reviewer`, `determinus-designer`). The `determinus-researcher`,
+`determinus-engineer`, `determinus-reviewer`, and `determinus-designer` agents are synced globally by `deploy-local.sh`
+as bundled global specialists. The `determinus-tron` agent remains
+repo-local in `.opencode/agents/`. All determinus-shipped sub-agents use the `determinus-<name>` naming convention. Several agents and commands
 reference **external MCP servers** and **shared sub-agents** that are NOT part
 of ADV itself. If any of these are missing, ADV still runs — commands have
 fallback paths — but the user experience is degraded.
@@ -152,23 +152,23 @@ fallback paths — but the user experience is degraded.
 ### Required sub-agents (shared with OpenCode global config)
 
 These agents are expected to exist in `~/.config/opencode/agents/` as part of
-your OpenCode setup. Some are ADV-shipped bundled globals (`adv-engineer`); others
+your OpenCode setup. Some are determinus-shipped bundled globals (`determinus-engineer`); others
 are external shared agents supplied by your broader OpenCode install. If any
 are missing, commands fall back to inline execution or generic `explore`
 invocation, which is slower and less specialized.
 
 | Agent            | Used by                                                                       | What it does                                                                                                                                 |
 | ---------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `explore`        | `/adv-review`, `/adv-harden`, `/adv-audit`, `/adv-slop-scan`, `/adv-refactor` | Codebase navigation, scoped read-only scans                                                                                                  |
-| `adv-researcher` | `/adv-discover`, `/adv-design`, `/adv-research`, `/adv-task`, `/adv-review`   | Documentation, API, and code-example research (Context7, Exa, searchcode, webfetch) AND architecture validation                              |
-| `general`        | `/adv-review` (cross-cutting), overlay-managed                                | Multi-step verification                                                                                                                      |
-| `adv-engineer`   | `/adv-apply` code-writing delegation (backend/state/API/business logic), `/adv-review` remediation fixes | Structured ENGINEER_REPORT submitted via `adv_subagent_report_submit`                                                                        |
-| `adv-designer`   | `/adv-apply` matching-cycle frontend follow-up after successful engineer or inline implementation for `metadata.frontend == "true"` | Apply-phase frontend/component specialist (HTML/CSS/JS/TSX, a11y, responsive, polish, site-design match); write-only; never review/harden owner; structured DESIGNER_REPORT submitted via `adv_subagent_report_submit` |
-| `adv-reviewer`   | `/adv-review`, `/adv-harden`                                                  | Independent review/harden analysis with scoped repo-write remediation; structured REVIEWER_REPORT submitted via `adv_subagent_report_submit`. Reviewer Remediation Packet carries `FRONTEND DESIGN REVIEW SKILL` anchor for design-inclusive changes |
+| `explore`        | `/determinus-review`, `/determinus-harden`, `/determinus-audit`, `/determinus-slop-scan`, `/determinus-refactor` | Codebase navigation, scoped read-only scans                                                                                                  |
+| `determinus-researcher` | `/determinus-discover`, `/determinus-design`, `/determinus-research`, `/determinus-task`, `/determinus-review`   | Documentation, API, and code-example research (Context7, Exa, searchcode, webfetch) AND architecture validation                              |
+| `general`        | `/determinus-review` (cross-cutting), overlay-managed                                | Multi-step verification                                                                                                                      |
+| `determinus-engineer`   | `/determinus-apply` code-writing delegation (backend/state/API/business logic), `/determinus-review` remediation fixes | Structured ENGINEER_REPORT submitted via `determinus_subagent_report_submit`                                                                        |
+| `determinus-designer`   | `/determinus-apply` matching-cycle frontend follow-up after successful engineer or inline implementation for `metadata.frontend == "true"` | Apply-phase frontend/component specialist (HTML/CSS/JS/TSX, a11y, responsive, polish, site-design match); write-only; never review/harden owner; structured DESIGNER_REPORT submitted via `determinus_subagent_report_submit` |
+| `determinus-reviewer`   | `/determinus-review`, `/determinus-harden`                                                  | Independent review/harden analysis with scoped repo-write remediation; structured REVIEWER_REPORT submitted via `determinus_subagent_report_submit`. Reviewer Remediation Packet carries `FRONTEND DESIGN REVIEW SKILL` anchor for design-inclusive changes |
 
 ### Optional MCP servers (referenced by agent tool blocks)
 
-These MCP servers are granted to `plan`/`build`/`adv-researcher`
+These MCP servers are granted to `plan`/`build`/`determinus-researcher`
 via their `tools:` allowlists. OpenCode silently ignores tool grants for
 MCP servers that are not configured — the grants become no-ops. You can
 run ADV without any of these, but the following features degrade or become
@@ -176,14 +176,14 @@ unavailable:
 
 | MCP server                                     | Allowlist prefix / callable examples                                                          | Used by                                       | Degradation if missing                                                      |
 | ---------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
-| [lgrep](https://github.com/Sharper-Flow/lgrep) | `lgrep_*` grants; lgrep semantic/symbol/text search capabilities   | `plan`, `build`, `adv-researcher`, `adv-tron` | Code exploration falls back to `glob`/`grep`/`read` (slower, less semantic) |
+| [lgrep](https://github.com/Sharper-Flow/lgrep) | `lgrep_*` grants; lgrep semantic/symbol/text search capabilities   | `plan`, `build`, `determinus-researcher`, `determinus-tron` | Code exploration falls back to `glob`/`grep`/`read` (slower, less semantic) |
 | Firecrawl                                      | `firecrawl_*` grants; Firecrawl scrape/crawl capabilities          | `plan`, `build`                               | Web scraping unavailable; use `webfetch` instead                            |
-| Context7                                       | `context7_*` grants; Context7 resolve + query-docs capabilities                | `adv-researcher`                              | Library documentation lookup unavailable                                    |
-| Exa                                            | `exa_*` grants; Exa web-search/fetch capabilities | `adv-researcher`                              | Web search unavailable                                                      |
-| searchcode                                     | `searchcode_*` grants; searchcode code-search/file-fetch capabilities              | `adv-researcher`                              | Public-repo code example search unavailable                                 |
-| ADV MCP (`adv-advance`, port 6298)             | `tools.adv.*` grants; 13 Tier-4 read tools (status, spec, wisdom_list, tool_catalog, etc.)    | `plan`, `build`, `adv-researcher`, `adv-tron` | Tier-4 ADV read/query tools unavailable inside `execute`                    |
+| Context7                                       | `context7_*` grants; Context7 resolve + query-docs capabilities                | `determinus-researcher`                              | Library documentation lookup unavailable                                    |
+| Exa                                            | `exa_*` grants; Exa web-search/fetch capabilities | `determinus-researcher`                              | Web search unavailable                                                      |
+| searchcode                                     | `searchcode_*` grants; searchcode code-search/file-fetch capabilities              | `determinus-researcher`                              | Public-repo code example search unavailable                                 |
+| ADV MCP (`determinus-advance`, port 6298)             | `tools.adv.*` grants; 13 Tier-4 read tools (status, spec, wisdom_list, tool_catalog, etc.)    | `plan`, `build`, `determinus-researcher`, `determinus-tron` | Tier-4 ADV read/query tools unavailable inside `execute`                    |
 
-The ADV MCP server is a per-project Vision entry (`adv-advance` on port 6298) wired via `mcp.adv` in `.opencode/opencode.json`.
+The ADV MCP server is a per-project Vision entry (`determinus-advance` on port 6298) wired via `mcp.adv` in `.opencode/opencode.json`.
 
 Tool calls must use exact names from the active schema or generated catalog. Allowlist prefixes are grants only, not callable names; never normalize identifiers.
 
@@ -198,7 +198,7 @@ If you want to run ADV with the smallest possible footprint:
 1. OpenCode CLI
 2. Node.js 20+, pnpm 10+
 3. ADV plugin built (`plugin/dist/index.js` present)
-4. `~/.config/opencode/agents/` contains `explore` at minimum (plus `adv-researcher`, `adv-engineer`, `adv-reviewer`, `adv-designer` after `scripts/deploy-local.sh --fix`)
+4. `~/.config/opencode/agents/` contains `explore` at minimum (plus `determinus-researcher`, `determinus-engineer`, `determinus-reviewer`, `determinus-designer` after `scripts/deploy-local.sh --fix`)
 5. No external MCP servers required — agents fall back to built-in tools
 
 ADV itself will function. Research and review commands will be noticeably
@@ -222,11 +222,11 @@ The installer resolves the latest Release, downloads `advance-v*.tar.gz`, verifi
 artifact contains the plugin runtime, command contracts, bundled agents,
 overlays, skills, docs, and root metadata required for user installation.
 
-To pin a version, download the installer and set `ADV_VERSION=`:
+To pin a version, download the installer and set `determinus_VERSION=`:
 
 ```bash
 curl -fsSL https://github.com/AndresLosada21/Determinus/releases/latest/download/install.sh -o /tmp/advance-install.sh
-ADV_VERSION=v0.11.8 bash /tmp/advance-install.sh
+determinus_VERSION=v0.11.8 bash /tmp/advance-install.sh
 ```
 
 ### Manual release artifact install
@@ -325,12 +325,12 @@ The `--fix` flag will:
 - Rebuild `plugin/dist` when it is missing or older than plugin build inputs
 - Refuse to deploy stale dist if the build fails or freshness is still unproven
 - Sync `plugin/` to the stable runtime path `~/.local/share/Determinus/plugin/`
-- Copy all `adv-*.md` commands to `~/.config/opencode/command/`
+- Copy all `determinus-*.md` commands to `~/.config/opencode/command/`
 - Copy the repo-owned `adv` runtime agent as a full file and leave repo-local-only agents in-tree
 - Apply repo-owned managed overlay blocks to shared global agents like `general`, `build`, and `plan` without replacing the full file
-- Copy ADV skills to `~/.config/opencode/skills/` (the retained cross-cutting skills: `adv-slop-detection` and `adv-tron`)
+- Copy ADV skills to `~/.config/opencode/skills/` (the retained cross-cutting skills: `determinus-slop-detection` and `determinus-tron`)
 - Add the ADV plugin path to `opencode.json` `.plugin` array if missing
-- Remove legacy global `ADV_INSTRUCTIONS.md` entries from `opencode.json` `.instructions`; the lean `adv` runtime prompt carries runtime-critical protocol without a global instruction entry
+- Remove legacy global `determinus_INSTRUCTIONS.md` entries from `opencode.json` `.instructions`; the lean `adv` runtime prompt carries runtime-critical protocol without a global instruction entry
 - Back up `opencode.json` before any patches
 - Preserve all non-ADV settings (mcp, provider, permissions, etc.)
 
@@ -338,7 +338,7 @@ Top-level ADV slash commands are synced as entrypoint contracts only; they do no
 
 ### Step 2b: Install Git Hooks (Strongly Recommended for ADV Maintainers)
 
-If you are developing ADV itself (not just consuming it), install the tracked git hooks so commits that touch `.opencode/`, `ADV_INSTRUCTIONS.md`, `skills/`, `plugin/src/`, or `scripts/deploy-local.sh` automatically re-sync the global install:
+If you are developing ADV itself (not just consuming it), install the tracked git hooks so commits that touch `.opencode/`, `determinus_INSTRUCTIONS.md`, `skills/`, `plugin/src/`, or `scripts/deploy-local.sh` automatically re-sync the global install:
 
 ```bash
 ./scripts/install-git-hooks.sh            # sets core.hooksPath=.githooks, chmod +x
@@ -351,14 +351,14 @@ Hooks installed:
 - `post-commit` — runs `deploy-local.sh --fix` when the commit touched a mirrored path (idempotent, ~1s, never blocks).
 - `pre-push` — safety-net sync before pushing, in case a commit bypassed the post-commit hook.
 
-Without these, a commit that updates a command contract or plugin source will land in the repo but the global install keeps the old copy until `deploy-local.sh --fix` is run manually — which causes agents invoking `/adv-*` from other repos to run against stale contracts or stale runtime plugin code.
+Without these, a commit that updates a command contract or plugin source will land in the repo but the global install keeps the old copy until `deploy-local.sh --fix` is run manually — which causes agents invoking `/determinus-*` from other repos to run against stale contracts or stale runtime plugin code.
 
 Requires `jq` for config patching (`sudo apt-get install -y jq` or `brew install jq`) and `rsync` for runtime plugin deployment (`sudo apt-get install -y rsync` or `brew install rsync`).
 
 ### Step 2b: Manual Setup (Alternative)
 
 If you prefer manual setup, add the ADV plugin path to your `opencode.json`.
-Do **not** add `ADV_INSTRUCTIONS.md` to global `instructions[]`; `deploy-local.sh`
+Do **not** add `determinus_INSTRUCTIONS.md` to global `instructions[]`; `deploy-local.sh`
 keeps that protocol scoped to the ADV runtime agent so non-ADV agents do not pay
 the prompt cost.
 
@@ -369,13 +369,13 @@ the prompt cost.
 }
 ```
 
-Legacy migration: if your config already contains `/path/to/Determinus/ADV_INSTRUCTIONS.md`
-or `~/.config/opencode/instructions/ADV_INSTRUCTIONS.md`, run
+Legacy migration: if your config already contains `/path/to/Determinus/determinus_INSTRUCTIONS.md`
+or `~/.config/opencode/instructions/determinus_INSTRUCTIONS.md`, run
 `./scripts/deploy-local.sh --fix`. The script removes only ADV instruction paths,
 preserves unrelated global instructions, and syncs the lean `adv` runtime agent
 that carries runtime-critical ADV protocol. Manual setups that skip the sync
 script must copy `.opencode/agents/adv.md` themselves to install the supported
-ADV-agent runtime prompt.
+determinus-agent runtime prompt.
 
 Then copy slash commands manually:
 
@@ -874,7 +874,7 @@ Restart OpenCode after editing.
 
 ADV recommends a priority-9 anti-polling rule that forbids agents from
 looping on external-state checks (CI, PR checks, deployments, build status)
-from normal agent context. Dedicated wait sub-agents such as `adv-ci-waiter`
+from normal agent context. Dedicated wait sub-agents such as `determinus-ci-waiter`
 are the bounded exception.
 
 Like P29-P36, `rules.yaml` is **user-managed** so this change must be applied
@@ -892,7 +892,7 @@ P37:
     incomplete, tell the user the current status and that they should re-engage
     or re-run when ready. Do not sleep, wait, or re-check in the same agent
     turn or across sequential turns. Exception: dedicated wait agents such as
-    adv-ci-waiter may poll with bounded sleeps when the user explicitly asks to
+    determinus-ci-waiter may poll with bounded sleeps when the user explicitly asks to
     wait, or when a parent release/archive workflow needs terminal CI/PR status
     to complete the requested ship/archive end-state. This is not in tension
     with P31 (thoroughness) — normal-agent polling produces no new
@@ -913,10 +913,10 @@ priority-10 tier reserved for absolute constraints.
 **Why this rule exists:** agents naturally default to "check again in a few
 seconds" when an external system is in an indeterminate state. Across many
 turns this produces no new information (the external state has not changed)
-yet burns tokens and context. A dedicated wait sub-agent (`adv-ci-waiter`) is
+yet burns tokens and context. A dedicated wait sub-agent (`determinus-ci-waiter`) is
 the legitimate exception because it owns the polling primitive, rate-limit
 backoff, and bounded sleep semantics. Normal agent context must run one check,
-report, and hand back. This rule is paired with the `adv-ci-waiter` routing
+report, and hand back. This rule is paired with the `determinus-ci-waiter` routing
 policy in `~/.config/opencode/instructions/oc-ci-wait.md`.
 
 Restart OpenCode after editing.
@@ -1210,7 +1210,7 @@ GitHub enforces two separate rate-limit budgets:
 
 Projects v2 operations (`gh project item-list`, `gh api graphql` against ProjectV2 types) consume the **GraphQL** budget. Issue operations (`gh issue list`, `gh issue create`) consume the **REST** budget.
 
-`/adv-triage` uses batched GraphQL mutations (`updateProjectV2ItemFieldValue` with aliased fields) to minimize budget consumption: 4 field updates per HTTP request instead of 1. For N features needing scoring, the command issues approximately N batch requests + 2 reads.
+`/determinus-triage` uses batched GraphQL mutations (`updateProjectV2ItemFieldValue` with aliased fields) to minimize budget consumption: 4 field updates per HTTP request instead of 1. For N features needing scoring, the command issues approximately N batch requests + 2 reads.
 
 **Multi-session note:** All `opencode` sessions on the same machine share the same `gh auth` token and its GraphQL budget (rate limit is per-user, not per-token). Plan for N concurrent triage runs sharing one 5,000/hr pool.
 
@@ -1350,7 +1350,7 @@ Create `specs/user-auth/spec.json`:
 Start OpenCode in your project directory and run:
 
 ```
-/adv-status
+/determinus-status
 ```
 
 Expected output:
@@ -1371,7 +1371,7 @@ ACTIVE CHANGES
 No active changes.
 
 Suggestions:
-- Create a new change: /adv-proposal "summary"
+- Create a new change: /determinus-proposal "summary"
 
 ============================================================
 ```
@@ -1381,7 +1381,7 @@ Suggestions:
 1. **Create a proposal**:
 
    ```
-   /adv-proposal "Add email validation"
+   /determinus-proposal "Add email validation"
    ```
 
 2. **Check the created files**:
@@ -1393,7 +1393,7 @@ Suggestions:
 
 3. **Validate the change**:
    ```
-   /adv-validate {change-id}
+   /determinus-validate {change-id}
    ```
 
 ---
@@ -1421,7 +1421,7 @@ pnpm dlx tsx scripts/migrate-openspec.ts /path/to/your-project/openspec ./specs
 1. Verify migrated specs:
 
    ```
-   /adv-status
+   /determinus-status
    ```
 
 2. Review any conversion warnings
@@ -1488,10 +1488,10 @@ ADV consolidated `scout` into `plan` and `refine` into `build`. If your global `
 
 If you customized your global `plan.md` or `build.md`, the sync script only patches the overlay block — it does not edit the `tools:` frontmatter. To restore the new capabilities manually, add these to your customized files:
 
-**Note:** `adv-engineer.md` is synced by this repo as a repo-owned full-file global agent (not overlay-managed). Any local customization in `~/.config/opencode/agents/adv-engineer.md` will be overwritten on each sync. If you need custom behavior, extend via your own agent or overlay instead.
+**Note:** `determinus-engineer.md` is synced by this repo as a repo-owned full-file global agent (not overlay-managed). Any local customization in `~/.config/opencode/agents/determinus-engineer.md` will be overwritten on each sync. If you need custom behavior, extend via your own agent or overlay instead.
 
 - `plan.md` `tools:` — `webfetch: true`, `firecrawl_firecrawl_scrape: true`, `firecrawl_firecrawl_crawl: true`, `firecrawl_firecrawl_check_crawl_status: true`
-- `build.md` `tools:` — `adv_task_update: true`, `adv_run_test: true`, `adv_task_checkpoint: true`, `adv_wisdom_add: true`, plus `webfetch: true` and exact Firecrawl grants (`firecrawl_firecrawl_scrape: true`, `firecrawl_firecrawl_crawl: true`, `firecrawl_firecrawl_check_crawl_status: true`)
+- `build.md` `tools:` — `determinus_task_update: true`, `determinus_run_test: true`, `determinus_task_checkpoint: true`, `determinus_wisdom_add: true`, plus `webfetch: true` and exact Firecrawl grants (`firecrawl_firecrawl_scrape: true`, `firecrawl_firecrawl_crawl: true`, `firecrawl_firecrawl_check_crawl_status: true`)
 
 ### Permission Issues
 
@@ -1530,14 +1530,14 @@ needed.
 
 ### Stale Spec Rows After Deletion
 
-If you delete a spec from `.adv/specs/` but `adv_spec list` still shows it,
+If you delete a spec from `.adv/specs/` but `determinus_spec list` still shows it,
 restart OpenCode. Specs are read directly from disk; there is no cache to
 rebuild.
 
 **Fix:**
 
 1. Restart OpenCode (or reload the MCP server).
-2. Re-run `adv_spec list`.
+2. Re-run `determinus_spec list`.
 
 **Why restart is required:** The ADV plugin is a long-running server process.
 Restarting clears in-memory handles and reloads the current disk artifacts.
@@ -1558,10 +1558,10 @@ Or verify manually:
 
 ```bash
 # Check global commands
-ls ~/.config/opencode/command/adv-*.md
+ls ~/.config/opencode/command/determinus-*.md
 
 # Or check project commands
-ls .opencode/command/adv-*.md
+ls .opencode/command/determinus-*.md
 ```
 
 ### Plugin Not Loading
@@ -1582,9 +1582,9 @@ ls ~/.local/share/Determinus/plugin/dist/index.js
 
 | Variable                               | Default                      | Description                                                                                                                         |
 | -------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `ADV_DEBUG`                            | `"0"`                        | Set to `"1"` for debug logging                                                                                                      |
-| `ADV_PROFILE`                          | `"0"`                        | Set to `"1"` to write startup profile events to `$ADV_CACHE_DIR/adv-profile.log` (diagnostic-only; clean up after use)                |
-| `ADV_CACHE_DIR`                        | `$TMPDIR` (fallback: `/tmp`) | Directory used for ADV debug log when `ADV_DEBUG=1`                                                                                 |
+| `determinus_DEBUG`                            | `"0"`                        | Set to `"1"` for debug logging                                                                                                      |
+| `determinus_PROFILE`                          | `"0"`                        | Set to `"1"` to write startup profile events to `$determinus_CACHE_DIR/determinus-profile.log` (diagnostic-only; clean up after use)                |
+| `determinus_CACHE_DIR`                        | `$TMPDIR` (fallback: `/tmp`) | Directory used for ADV debug log when `determinus_DEBUG=1`                                                                                 |
 | `OPENCODE_EXPERIMENTAL_WORKSPACES`     | unset                        | Set to `true` and restart OpenCode to enable native workspace warp for ADV worktrees; otherwise ADV downgrades to terminal mode     |
 | `OPENCODE_EXPERIMENTAL`                | unset                        | Broader OpenCode experimental opt-in that also enables workspace warp; prefer `OPENCODE_EXPERIMENTAL_WORKSPACES=true` when possible |
 
@@ -1621,37 +1621,37 @@ New changes start directly in the 7-gate model.
 
 | Command                   | Purpose                                                                   |
 | ------------------------- | ------------------------------------------------------------------------- |
-| `/adv-status`             | Project overview                                                          |
-| `/adv-idea`               | Explore rough ideas before drafting a proposal                            |
-| `/adv-problem`            | Triage defects and unintended behavior before fixing or drafting a proposal |
-| `/adv-epic`               | Gather Epic goals before typed creation                                  |
-| `/adv-proposal <summary>` | Extract problem statement and confirm with user                           |
-| `/adv-discover <id>`      | Gather context, identify objectives, and confirm agreement                |
-| `/adv-design <id>`        | Validate architecture decisions, produce strategy, and present for review |
-| `/adv-prep <id>`          | Gap analysis and task shaping (from validated design)                     |
-| `/adv-apply <id>`         | Implement with TDD                                                        |
-| `/adv-review <id>`        | Review deliverables and record user sign-off                              |
-| `/adv-harden <id>`        | Release-stage quality hardening                                           |
-| `/adv-archive <id>`       | Archive completed change and apply spec deltas                            |
+| `/determinus-status`             | Project overview                                                          |
+| `/determinus-idea`               | Explore rough ideas before drafting a proposal                            |
+| `/determinus-problem`            | Triage defects and unintended behavior before fixing or drafting a proposal |
+| `/determinus-epic`               | Gather Epic goals before typed creation                                  |
+| `/determinus-proposal <summary>` | Extract problem statement and confirm with user                           |
+| `/determinus-discover <id>`      | Gather context, identify objectives, and confirm agreement                |
+| `/determinus-design <id>`        | Validate architecture decisions, produce strategy, and present for review |
+| `/determinus-prep <id>`          | Gap analysis and task shaping (from validated design)                     |
+| `/determinus-apply <id>`         | Implement with TDD                                                        |
+| `/determinus-review <id>`        | Review deliverables and record user sign-off                              |
+| `/determinus-harden <id>`        | Release-stage quality hardening                                           |
+| `/determinus-archive <id>`       | Archive completed change and apply spec deltas                            |
 
 **Fast-track and auxiliary**
 
 | Command                   | Purpose                                                                                                                            |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `/adv-task`               | Fast-track small changes: assess spec-law impact, prep, and hand off                                                               |
-| `/adv-validate <id>`      | Validate change against specs                                                                                                      |
-| `/adv-clarify`            | Clarify ambiguous requirements                                                                                                     |
-| `/adv-audit [capability]` | Spec/implementation drift check                                                                                                    |
-| `/adv-slop-scan [path]`   | Scan for AI slop patterns                                                                                                          |
-| `/adv-refactor [id]`      | Refresh a stale proposal — single change-id, or omit to batch-refresh the oldest 30% of active changes                             |
-| `/adv-cleanup`            | Triage stale, abandoned, duplicate, and ready-to-archive active changes                                                            |
-| `/adv-coordinate`         | Audit project changes, Epic alignment, sequencing, and membership health                                                           |
-| `/adv-improve`            | Analyze improvements across existing specs, implementation, and external landscape; persists a reusable research pack under `docs/*-prep.md` (consumed by `/adv-discover`) |
-| `/adv-tron [target]`      | Investigate codebase structure and suggest agenda candidates                                                                       |
+| `/determinus-task`               | Fast-track small changes: assess spec-law impact, prep, and hand off                                                               |
+| `/determinus-validate <id>`      | Validate change against specs                                                                                                      |
+| `/determinus-clarify`            | Clarify ambiguous requirements                                                                                                     |
+| `/determinus-audit [capability]` | Spec/implementation drift check                                                                                                    |
+| `/determinus-slop-scan [path]`   | Scan for AI slop patterns                                                                                                          |
+| `/determinus-refactor [id]`      | Refresh a stale proposal — single change-id, or omit to batch-refresh the oldest 30% of active changes                             |
+| `/determinus-cleanup`            | Triage stale, abandoned, duplicate, and ready-to-archive active changes                                                            |
+| `/determinus-coordinate`         | Audit project changes, Epic alignment, sequencing, and membership health                                                           |
+| `/determinus-improve`            | Analyze improvements across existing specs, implementation, and external landscape; persists a reusable research pack under `docs/*-prep.md` (consumed by `/determinus-discover`) |
+| `/determinus-tron [target]`      | Investigate codebase structure and suggest agenda candidates                                                                       |
 
 Tradeoff-heavy decisions inside ADV flows use inline analysis by default. For deeper analysis, agents can load the prioritizer skill via `skill("prioritizer")` which provides structured criteria question templates and decision map guidance.
 
-Parallel ADV scanners follow the same single-level delegation rule as other ADV orchestration: commands such as `/adv-slop-scan` may spawn first-level workers, but those workers must complete inline and must not spawn additional sub-agents or invoke `/adv-*` commands.
+Parallel ADV scanners follow the same single-level delegation rule as other ADV orchestration: commands such as `/determinus-slop-scan` may spawn first-level workers, but those workers must complete inline and must not spawn additional sub-agents or invoke `/determinus-*` commands.
 
 ### Available Tools
 
@@ -1661,56 +1661,56 @@ The read tools below are also available via the ADV MCP server as `tools.adv.*` 
 
 | Tool                  | Purpose                                                        |
 | --------------------- | -------------------------------------------------------------- |
-| `adv_status`          | Project overview: specs, active changes, recommendations       |
-| `adv_project_context` | Read project.md context file                                   |
-| `adv_spec`            | List, show, or search specs (`action: "list"/"show"/"search"`) |
+| `determinus_status`          | Project overview: specs, active changes, recommendations       |
+| `determinus_project_context` | Read project.md context file                                   |
+| `determinus_spec`            | List, show, or search specs (`action: "list"/"show"/"search"`) |
 
 **Changes**
 
 | Tool                       | Purpose                                                                                                           |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `adv_change_list`          | List active changes (with `includeArchived`/`includeClosed` filters)                                              |
-| `adv_change_show`          | Get full change details including tasks and deltas                                                                |
-| `adv_change_create`        | Create a new change proposal                                                                                      |
-| `adv_change_update`        | Update narrative artifacts (proposal/problem-statement/agreement/design/executive-summary) for an existing change |
-| `adv_change_validate`      | Validate change against specs and check for conflicts                                                             |
-| `adv_change_close`         | Close an active change (cancelled/superseded/not_planned)                                                         |
-| `adv_change_bulk_close`    | Bulk close changes with filter-aware selection (explicit IDs or filter)                                           |
-| `adv_change_archive`       | Archive a completed change (applies spec deltas)                                                                  |
-| `adv_change_update_issues` | Add/remove GitHub issue URLs linked to a change                                                                   |
+| `determinus_change_list`          | List active changes (with `includeArchived`/`includeClosed` filters)                                              |
+| `determinus_change_show`          | Get full change details including tasks and deltas                                                                |
+| `determinus_change_create`        | Create a new change proposal                                                                                      |
+| `determinus_change_update`        | Update narrative artifacts (proposal/problem-statement/agreement/design/executive-summary) for an existing change |
+| `determinus_change_validate`      | Validate change against specs and check for conflicts                                                             |
+| `determinus_change_close`         | Close an active change (cancelled/superseded/not_planned)                                                         |
+| `determinus_change_bulk_close`    | Bulk close changes with filter-aware selection (explicit IDs or filter)                                           |
+| `determinus_change_archive`       | Archive a completed change (applies spec deltas)                                                                  |
+| `determinus_change_update_issues` | Add/remove GitHub issue URLs linked to a change                                                                   |
 
 **Tasks**
 
 | Tool                      | Purpose                                                       |
 | ------------------------- | ------------------------------------------------------------- |
-| `adv_task_list`           | List tasks for a change (with optional status filter)         |
-| `adv_task_show`           | Get full task details by ID (includes parent changeId)        |
-| `adv_task_ready`          | Get unblocked pending tasks ready for work                    |
-| `adv_task_add`            | Add a new task to a change                                    |
-| `adv_task_update`         | Update task status (done is checkpoint/recovery-only)         |
-| `adv_task_cancel`         | Cancel tasks with required user approval                      |
-| `adv_task_reclassify_tdd` | Reclassify TDD intent after planning gate (requires approval) |
-| `adv_task_checkpoint`     | Create task checkpoint commit before completion/cancellation  |
+| `determinus_task_list`           | List tasks for a change (with optional status filter)         |
+| `determinus_task_show`           | Get full task details by ID (includes parent changeId)        |
+| `determinus_task_ready`          | Get unblocked pending tasks ready for work                    |
+| `determinus_task_add`            | Add a new task to a change                                    |
+| `determinus_task_update`         | Update task status (done is checkpoint/recovery-only)         |
+| `determinus_task_cancel`         | Cancel tasks with required user approval                      |
+| `determinus_task_reclassify_tdd` | Reclassify TDD intent after planning gate (requires approval) |
+| `determinus_task_checkpoint`     | Create task checkpoint commit before completion/cancellation  |
 
 **Gates**
 
 | Tool                | Purpose                                     |
 | ------------------- | ------------------------------------------- |
-| `adv_gate_status`   | Get gate status for a change (all 7 gates)  |
-| `adv_gate_complete` | Mark a gate as complete (enforces sequence) |
+| `determinus_gate_status`   | Get gate status for a change (all 7 gates)  |
+| `determinus_gate_complete` | Mark a gate as complete (enforces sequence) |
 
 **Testing**
 
 | Tool           | Purpose                                              |
 | -------------- | ---------------------------------------------------- |
-| `adv_run_test` | Run a test command and record result as TDD evidence |
+| `determinus_run_test` | Run a test command and record result as TDD evidence |
 
 **Wisdom**
 
 | Tool                      | Purpose                                               |
 | ------------------------- | ----------------------------------------------------- |
-| `adv_wisdom_add`          | Add a learning entry to a change (optionally promote) |
-| `adv_wisdom_list`         | List wisdom entries, optionally project-only          |
+| `determinus_wisdom_add`          | Add a learning entry to a change (optionally promote) |
+| `determinus_wisdom_list`         | List wisdom entries, optionally project-only          |
 
 **Agenda**
 
@@ -1719,4 +1719,4 @@ The read tools below are also available via the ADV MCP server as `tools.adv.*` 
 ## Support
 
 - **Issues**: https://github.com/AndresLosada21/Determinus/issues
-- **Documentation**: See README.md and ADV_INSTRUCTIONS.md
+- **Documentation**: See README.md and determinus_INSTRUCTIONS.md

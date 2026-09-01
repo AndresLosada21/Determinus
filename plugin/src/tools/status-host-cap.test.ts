@@ -1,6 +1,6 @@
-/** Host-cap and corpus-pressure tests for disk-backed adv_status. */
+/** Host-cap and corpus-pressure tests for disk-backed determinus_status. */
 
-process.env.ADV_TOOL_MAX_CHARS = "1000000";
+process.env.determinus_TOOL_MAX_CHARS = "1000000";
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -82,12 +82,12 @@ async function delayedStore(root: string): Promise<Store> {
   return store;
 }
 
-describe("adv_status host cap", () => {
+describe("determinus_status host cap", () => {
   let tempDir: string;
   let store: Store | undefined;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-status-host-cap-");
+    tempDir = await createTempDir("determinus-status-host-cap-");
     await createTestProject(tempDir, { withChanges: true, withSpecs: true });
   });
 
@@ -102,7 +102,7 @@ describe("adv_status host cap", () => {
       store = await delayedStore(tempDir);
       const startedAt = Date.now();
       const parsed = parseToolOutput(
-        await statusTools.adv_status.execute(
+        await statusTools.determinus_status.execute(
           { view, forceRefresh: true },
           store,
         ),
@@ -115,12 +115,12 @@ describe("adv_status host cap", () => {
   );
 });
 
-describe("adv_status corpus pressure", () => {
+describe("determinus_status corpus pressure", () => {
   let tempDir: string;
   let store: Store | undefined;
 
   beforeEach(async () => {
-    tempDir = await createTempDir("adv-status-corpus-");
+    tempDir = await createTempDir("determinus-status-corpus-");
     await createTestProject(tempDir, { withChanges: false, withSpecs: true });
     store = await createDiskStore(tempDir);
   });

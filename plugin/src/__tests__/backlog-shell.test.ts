@@ -39,9 +39,9 @@ describe("backlog-shell tools", () => {
     await cleanupTempDir(tempDir);
   });
 
-  test("adv_backlog_add creates an item", async () => {
+  test("determinus_backlog_add creates an item", async () => {
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "Feature A", success_hint: "Ship it" },
         store,
       ),
@@ -50,27 +50,27 @@ describe("backlog-shell tools", () => {
     expect(result.item.title).toBe("Feature A");
   });
 
-  test("adv_backlog_list returns added items", async () => {
-    await backlogShellTools.adv_backlog_add.execute(
+  test("determinus_backlog_list returns added items", async () => {
+    await backlogShellTools.determinus_backlog_add.execute(
       { title: "A", success_hint: "a" },
       store,
     );
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_list.execute({}, store),
+      await backlogShellTools.determinus_backlog_list.execute({}, store),
     );
     expect(result.success).toBe(true);
     expect(result.count).toBe(1);
   });
 
-  test("adv_backlog_show returns one item", async () => {
+  test("determinus_backlog_show returns one item", async () => {
     const added = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "A", success_hint: "a" },
         store,
       ),
     );
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_show.execute(
+      await backlogShellTools.determinus_backlog_show.execute(
         { id: added.item.id },
         store,
       ),
@@ -79,15 +79,15 @@ describe("backlog-shell tools", () => {
     expect(result.item.title).toBe("A");
   });
 
-  test("adv_backlog_promote records promotion target", async () => {
+  test("determinus_backlog_promote records promotion target", async () => {
     const added = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "A", success_hint: "a" },
         store,
       ),
     );
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_promote.execute(
+      await backlogShellTools.determinus_backlog_promote.execute(
         { id: added.item.id, kind: "change", target_id: "addFoo" },
         store,
       ),
@@ -100,19 +100,19 @@ describe("backlog-shell tools", () => {
     });
   });
 
-  test("adv_backlog_promote refuses archived items", async () => {
+  test("determinus_backlog_promote refuses archived items", async () => {
     const added = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "A", success_hint: "a" },
         store,
       ),
     );
-    await backlogShellTools.adv_backlog_archive.execute(
+    await backlogShellTools.determinus_backlog_archive.execute(
       { id: added.item.id },
       store,
     );
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_promote.execute(
+      await backlogShellTools.determinus_backlog_promote.execute(
         { id: added.item.id, kind: "change", target_id: "addFoo" },
         store,
       ),
@@ -121,15 +121,15 @@ describe("backlog-shell tools", () => {
     expect(result.code).toBe("archived");
   });
 
-  test("adv_backlog_archive soft-deletes an item", async () => {
+  test("determinus_backlog_archive soft-deletes an item", async () => {
     const added = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "A", success_hint: "a" },
         store,
       ),
     );
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_archive.execute(
+      await backlogShellTools.determinus_backlog_archive.execute(
         { id: added.item.id },
         store,
       ),
@@ -138,18 +138,18 @@ describe("backlog-shell tools", () => {
     expect(result.item.status).toBe("archived");
 
     const list = parseToolOutput(
-      await backlogShellTools.adv_backlog_list.execute({}, store),
+      await backlogShellTools.determinus_backlog_list.execute({}, store),
     );
     expect(list.count).toBe(0);
   });
 
-  test("adv_backlog_add persists a valid context_packet", async () => {
+  test("determinus_backlog_add persists a valid context_packet", async () => {
     const packet = {
       background: "Some background",
       constraints: ["Must be fast"],
     };
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "A", success_hint: "a", context_packet: packet },
         store,
       ),
@@ -158,9 +158,9 @@ describe("backlog-shell tools", () => {
     expect(result.item.context_packet).toEqual(packet);
   });
 
-  test("adv_backlog_add rejects an invalid context_packet", async () => {
+  test("determinus_backlog_add rejects an invalid context_packet", async () => {
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "A", success_hint: "a", context_packet: "not-an-object" },
         store,
       ),
@@ -169,12 +169,12 @@ describe("backlog-shell tools", () => {
     expect(result.code).toBe("invalid_context_packet");
 
     const list = parseToolOutput(
-      await backlogShellTools.adv_backlog_list.execute({}, store),
+      await backlogShellTools.determinus_backlog_list.execute({}, store),
     );
     expect(list.count).toBe(0);
   });
 
-  test("adv_backlog_add rejects an oversize context_packet", async () => {
+  test("determinus_backlog_add rejects an oversize context_packet", async () => {
     const packet = {
       background: "y".repeat(4096),
       design_seed: "x".repeat(6144),
@@ -182,7 +182,7 @@ describe("backlog-shell tools", () => {
       avoidances: Array.from({ length: 12 }, () => "w".repeat(512)),
     };
     const result = parseToolOutput(
-      await backlogShellTools.adv_backlog_add.execute(
+      await backlogShellTools.determinus_backlog_add.execute(
         { title: "A", success_hint: "a", context_packet: packet },
         store,
       ),
@@ -191,7 +191,7 @@ describe("backlog-shell tools", () => {
     expect(result.code).toBe("context_packet_too_large");
 
     const list = parseToolOutput(
-      await backlogShellTools.adv_backlog_list.execute({}, store),
+      await backlogShellTools.determinus_backlog_list.execute({}, store),
     );
     expect(list.count).toBe(0);
   });

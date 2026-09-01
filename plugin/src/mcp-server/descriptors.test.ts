@@ -3,7 +3,7 @@
  *
  * Gate for task tk-d1c59f0af2ca. Asserts every MCP tool descriptor carries
  * the expected structural shape and that the catalog is complete (13 Tier-4
- * tools + adv_handshake). Full inputSchema parity (ZodToJsonSchema projection
+ * tools + determinus_handshake). Full inputSchema parity (ZodToJsonSchema projection
  * matching PUBLIC_TOOL_ENTRIES[name].args) is partially covered here; the
  * remaining 10 tools currently use passthrough schemas and require descriptor
  * migration to use the canonical Zod args from PUBLIC_TOOL_ENTRIES.
@@ -25,8 +25,8 @@ import { startServer } from "./index.js";
 import { HANDSHAKE_TIER4_TOOLS } from "./handshake.js";
 
 const REMOVED_TOOL_NAMES = [
-  "adv_reflect",
-  "adv_project_metadata",
+  "determinus_reflect",
+  "determinus_project_metadata",
   "reflect",
   "project_metadata",
   "conformance",
@@ -54,7 +54,7 @@ async function closeClient(
 }
 
 describe("DDC4 — catalog completeness", () => {
-  it("tools/list returns exactly 14 entries (13 Tier-4 + adv_handshake)", async () => {
+  it("tools/list returns exactly 14 entries (13 Tier-4 + determinus_handshake)", async () => {
     const { client, clientTransport, serverTransport } =
       await connectToServer();
     const tools = await client.listTools();
@@ -62,7 +62,7 @@ describe("DDC4 — catalog completeness", () => {
     await closeClient(client, clientTransport, serverTransport);
   });
 
-  it("tools/list contains every Tier-4 name (unprefixed) + adv_handshake", async () => {
+  it("tools/list contains every Tier-4 name (unprefixed) + determinus_handshake", async () => {
     const { client, clientTransport, serverTransport } =
       await connectToServer();
     const tools = await client.listTools();
@@ -70,7 +70,7 @@ describe("DDC4 — catalog completeness", () => {
     for (const tier4 of HANDSHAKE_TIER4_TOOLS) {
       expect(names.has(tier4), `expected Tier-4 tool ${tier4}`).toBe(true);
     }
-    expect(names.has("adv_handshake")).toBe(true);
+    expect(names.has("determinus_handshake")).toBe(true);
     await closeClient(client, clientTransport, serverTransport);
   });
 

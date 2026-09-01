@@ -149,7 +149,7 @@ describe("experimental.session.compacting enrichment", () => {
     // Set active change via active-work mutator only after the change exists
     // on disk, so the reachability gate permits re-pointing.
     await hooks["tool.execute.before"]!(
-      { tool: "adv_task_update", sessionID: "test-session" } as any,
+      { tool: "determinus_task_update", sessionID: "test-session" } as any,
       { args: { changeId } } as any,
     );
 
@@ -194,7 +194,7 @@ describe("experimental.session.compacting enrichment", () => {
     const { changeId } = await store.changes.create("Progress test");
     // Set active change via active-work mutator.
     await hooks["tool.execute.before"]!(
-      { tool: "adv_task_update", sessionID: "test-session" } as any,
+      { tool: "determinus_task_update", sessionID: "test-session" } as any,
       { args: { changeId } } as any,
     );
 
@@ -258,7 +258,7 @@ describe("experimental.session.compacting enrichment", () => {
 
     const { changeId } = await store.changes.create("Long title test");
     await hooks["tool.execute.before"]!(
-      { tool: "adv_task_update", sessionID: "test-session" } as any,
+      { tool: "determinus_task_update", sessionID: "test-session" } as any,
       { args: { changeId } } as any,
     );
 

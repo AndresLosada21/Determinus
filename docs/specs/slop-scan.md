@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Capability: /adv-slop-scan command — detect AI-generated code quality issues including defensive overkill, deep nesting, and other slop patterns
+Capability: /determinus-slop-scan command — detect AI-generated code quality issues including defensive overkill, deep nesting, and other slop patterns
 
 ## Requirements
 
@@ -13,7 +13,7 @@ Capability: /adv-slop-scan command — detect AI-generated code quality issues i
 
 **ID:** `rq-ss001` | **Priority:** **[MUST]**
 
-/adv-slop-scan must attempt AST-based analysis before regex or heuristic methods. One primary AST tool per language is used; required detector degradation is a hard failure, not a fallback finding source.
+/determinus-slop-scan must attempt AST-based analysis before regex or heuristic methods. One primary AST tool per language is used; required detector degradation is a hard failure, not a fallback finding source.
 
 **Tags:** `detection`, `ast`, `phase1`
 
@@ -85,7 +85,7 @@ Detection thresholds must have smart defaults and support per-project overrides 
 **Given:**
 - project.json has no features.slop_scan block
 
-**When:** /adv-slop-scan runs
+**When:** /determinus-slop-scan runs
 
 **Then:**
 - nesting_depth_threshold defaults to 4
@@ -98,7 +98,7 @@ Detection thresholds must have smart defaults and support per-project overrides 
 **Given:**
 - project.json has features.slop_scan.nesting_depth_threshold: 6
 
-**When:** /adv-slop-scan runs
+**When:** /determinus-slop-scan runs
 
 **Then:**
 - nesting_depth_threshold is 6
@@ -123,7 +123,7 @@ Detection thresholds must have smart defaults and support per-project overrides 
 
 **ID:** `rq-ss003` | **Priority:** **[MUST]**
 
-/adv-slop-scan must detect overly defensive code patterns: redundant null/undefined guard chains, paranoid pre-condition checks on the same value, and unreachable fallback branches. These are reported as QUAL-011.
+/determinus-slop-scan must detect overly defensive code patterns: redundant null/undefined guard chains, paranoid pre-condition checks on the same value, and unreachable fallback branches. These are reported as QUAL-011.
 
 **Tags:** `detection`, `defensive`, `qual-011`
 
@@ -146,7 +146,7 @@ Detection thresholds must have smart defaults and support per-project overrides 
 **Given:**
 - A function has exactly one null check before using a value
 
-**When:** /adv-slop-scan runs
+**When:** /determinus-slop-scan runs
 
 **Then:**
 - No QUAL-011 finding is emitted for that function
@@ -229,7 +229,7 @@ knip must be the primary dead code analyzer for TypeScript/JavaScript projects. 
 
 **ID:** `rq-ss006` | **Priority:** **[MUST]**
 
-/adv-slop-scan must classify findings by confidence and actionability so known clean samples stay below the accepted false-positive threshold for actionable findings while true high-confidence slop remains reported.
+/determinus-slop-scan must classify findings by confidence and actionability so known clean samples stay below the accepted false-positive threshold for actionable findings while true high-confidence slop remains reported.
 
 **Tags:** `false-positive`, `confidence`, `actionability`
 
@@ -241,7 +241,7 @@ knip must be the primary dead code analyzer for TypeScript/JavaScript projects. 
 - A named clean regression sample containing ordinary guard clauses, public API boundary validation, example snippets, and test fixtures
 - The accepted false-positive target is 10 percent for actionable findings
 
-**When:** /adv-slop-scan runs on the sample
+**When:** /determinus-slop-scan runs on the sample
 
 **Then:**
 - High-confidence and medium-confidence actionable false positives are less than or equal to 10 percent of actionable findings
@@ -253,7 +253,7 @@ knip must be the primary dead code analyzer for TypeScript/JavaScript projects. 
 **Given:**
 - A named dirty regression sample containing redundant guard chains and deep nesting at or above configured thresholds
 
-**When:** /adv-slop-scan runs on the sample
+**When:** /determinus-slop-scan runs on the sample
 
 **Then:**
 - A QUAL-011 finding is emitted for redundant defensive checks
@@ -278,7 +278,7 @@ knip must be the primary dead code analyzer for TypeScript/JavaScript projects. 
 
 **ID:** `rq-ss007` | **Priority:** **[MUST]**
 
-/adv-slop-scan must preserve low-confidence findings for auditability while grouping them separately from actionable findings in human-readable output.
+/determinus-slop-scan must preserve low-confidence findings for auditability while grouping them separately from actionable findings in human-readable output.
 
 **Tags:** `output`, `confidence`, `json`
 
@@ -349,7 +349,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 
 **ID:** `rq-ss009` | **Priority:** **[MUST]**
 
-/adv-slop-scan must detect correctness-boundary overreach where heuristic inference, prose convention, fuzzy matching, or LLM/agent judgment is the sole authority for correctness, security, persistence, workflow state, gate completion, or spec compliance. Findings are reported as QUAL-012 and must distinguish advisory heuristics from heuristic-owned correctness boundaries.
+/determinus-slop-scan must detect correctness-boundary overreach where heuristic inference, prose convention, fuzzy matching, or LLM/agent judgment is the sole authority for correctness, security, persistence, workflow state, gate completion, or spec compliance. Findings are reported as QUAL-012 and must distinguish advisory heuristics from heuristic-owned correctness boundaries.
 
 **Tags:** `structural-correctness`, `heuristics`, `qual-012`, `p33`
 
@@ -361,7 +361,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 - Code uses fuzzy title/Jaccard/similarity matching or LLM judgment to suppress, create, mutate, or complete a persistent record
 - No exact ref, schema validation, typed field, validator result, or explicit user confirmation controls the mutation
 
-**When:** /adv-slop-scan runs
+**When:** /determinus-slop-scan runs
 
 **Then:**
 - A QUAL-012 finding is emitted
@@ -374,7 +374,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 - A heuristic only ranks, suggests, or labels a candidate for later confirmation
 - Exact refs, typed fields, validators, or explicit user confirmation own the final decision
 
-**When:** /adv-slop-scan runs
+**When:** /determinus-slop-scan runs
 
 **Then:**
 - No blocking QUAL-012 finding is emitted
@@ -385,7 +385,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 **Given:**
 - Code processes untrusted input in business logic before parser/schema/allowlist recognition and normalization
 
-**When:** /adv-slop-scan runs
+**When:** /determinus-slop-scan runs
 
 **Then:**
 - A QUAL-012 or security finding is emitted
@@ -397,7 +397,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 
 **ID:** `rq-ss010` | **Priority:** **[MUST]**
 
-/adv-slop-scan must define deletion-candidate subtypes under MAINT-003 for unused dependency, unused export, unused file, unreachable branch, uncallable private symbol, and impossible feature-flag path. These are findings and review inputs only, not automatic deletion actions.
+/determinus-slop-scan must define deletion-candidate subtypes under MAINT-003 for unused dependency, unused export, unused file, unreachable branch, uncallable private symbol, and impossible feature-flag path. These are findings and review inputs only, not automatic deletion actions.
 
 **Tags:** `dead-code`, `deletion-candidate`, `taxonomy`, `maint-003`
 
@@ -406,7 +406,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 **Deletion candidates use MAINT-003 subtypes** (`rq-ss010.1`)
 
 **Given:**
-- /adv-slop-scan evaluates dead-code, bloat, or reachability signals
+- /determinus-slop-scan evaluates dead-code, bloat, or reachability signals
 
 **When:** A candidate maps to unused dependency, unused export, unused file, unreachable branch, uncallable private symbol, or impossible feature-flag path
 
@@ -432,7 +432,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 
 **ID:** `rq-ss011` | **Priority:** **[MUST]**
 
-/adv-slop-scan must never treat heuristic-only, regex-only, text-only, or single-tool unused-code guesses as actionable removal proof. Uncertain deletion candidates must be grouped as low-confidence / user-review findings.
+/determinus-slop-scan must never treat heuristic-only, regex-only, text-only, or single-tool unused-code guesses as actionable removal proof. Uncertain deletion candidates must be grouped as low-confidence / user-review findings.
 
 **Tags:** `dead-code`, `actionability`, `false-positive`, `p33`
 
@@ -468,7 +468,7 @@ Phase 2 heuristic scanners must treat ADV context packets, examples, task summar
 
 **ID:** `rq-ss012` | **Priority:** **[MUST]**
 
-/adv-slop-scan must summarize run, skipped, degraded, failed, timed-out, unavailable, and externally covered detectors in normal text output, expose detailed scanner coverage in JSON metadata, and fail hard when applicable required detector coverage is degraded.
+/determinus-slop-scan must summarize run, skipped, degraded, failed, timed-out, unavailable, and externally covered detectors in normal text output, expose detailed scanner coverage in JSON metadata, and fail hard when applicable required detector coverage is degraded.
 
 **Tags:** `coverage`, `output`, `json`, `degraded`
 

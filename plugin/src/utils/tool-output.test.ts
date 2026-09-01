@@ -36,7 +36,7 @@ describe("resolveOutputMode", () => {
   });
 
   it("returns true when arg is omitted and env is pretty (env fallback)", async () => {
-    vi.stubEnv("ADV_TOOL_OUTPUT_MODE", "pretty");
+    vi.stubEnv("determinus_TOOL_OUTPUT_MODE", "pretty");
     vi.resetModules();
     const { resolveOutputMode: freshResolve } = await import("./tool-output");
     expect(freshResolve(undefined)).toBe(true);
@@ -45,7 +45,7 @@ describe("resolveOutputMode", () => {
   });
 
   it("returns false for explicit compact even when env is pretty (arg precedence)", async () => {
-    vi.stubEnv("ADV_TOOL_OUTPUT_MODE", "pretty");
+    vi.stubEnv("determinus_TOOL_OUTPUT_MODE", "pretty");
     vi.resetModules();
     const { resolveOutputMode: freshResolve } = await import("./tool-output");
     // This is the key case the validator flagged: arg MUST override env

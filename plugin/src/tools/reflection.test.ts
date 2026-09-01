@@ -94,7 +94,7 @@ describe("reflection tool", () => {
       paths: { root: tempDir, external: tempDir, reflections: reflectionsPath },
     } as unknown as Store;
 
-    const output = await reflectionTools.adv_reflection_list.execute(
+    const output = await reflectionTools.determinus_reflection_list.execute(
       { maxEntries: 1 },
       store,
     );
@@ -127,7 +127,10 @@ describe("reflection tool", () => {
       },
     } as unknown as Store;
 
-    const output = await reflectionTools.adv_reflection_list.execute({}, store);
+    const output = await reflectionTools.determinus_reflection_list.execute(
+      {},
+      store,
+    );
     const parsed = JSON.parse(output);
 
     expect(parsed).toMatchObject({
@@ -190,7 +193,7 @@ describe("reflection tool", () => {
       },
     } as unknown as Store;
 
-    const output = await reflectionTools.adv_reflect.execute(
+    const output = await reflectionTools.determinus_reflect.execute(
       { changeId: change.id },
       store,
     );
@@ -260,7 +263,7 @@ describe("reflection tool", () => {
       },
     } as unknown as Store;
 
-    const output = await reflectionTools.adv_reflect.execute(
+    const output = await reflectionTools.determinus_reflect.execute(
       { changeId: change.id },
       store,
     );
@@ -322,7 +325,7 @@ describe("reflection tool", () => {
       },
     } as unknown as Store;
 
-    const output = await reflectionTools.adv_reflect.execute(
+    const output = await reflectionTools.determinus_reflect.execute(
       { changeId: change.id },
       store,
     );

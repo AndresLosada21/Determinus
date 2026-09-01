@@ -1,5 +1,5 @@
 /**
- * adv_change_list / adv_change_show worker-free durable projection tests (AC3).
+ * determinus_change_list / determinus_change_show worker-free durable projection tests (AC3).
  *
  * Verifies that routine change reads render from the persisted projection and
  * never issue per-change workflow queries, and that archived/degraded summary
@@ -88,7 +88,7 @@ function createMockStore(
   } as unknown as Store;
 }
 
-describe("adv_change_list worker-free projection reads", () => {
+describe("determinus_change_list worker-free projection reads", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -119,7 +119,7 @@ describe("adv_change_list worker-free projection reads", () => {
       ],
     });
 
-    const result = await changeTools.adv_change_list.execute(
+    const result = await changeTools.determinus_change_list.execute(
       { includeArchived: true },
       store,
     );
@@ -146,7 +146,7 @@ describe("adv_change_list worker-free projection reads", () => {
       hydrationStats: { omitted: 1 },
     });
 
-    const result = await changeTools.adv_change_list.execute(
+    const result = await changeTools.determinus_change_list.execute(
       { includeArchived: true },
       store,
     );
@@ -169,7 +169,7 @@ describe("adv_change_list worker-free projection reads", () => {
         },
       ],
     });
-    const result = await changeTools.adv_change_list.execute({}, store);
+    const result = await changeTools.determinus_change_list.execute({}, store);
     const parsed = JSON.parse(result);
 
     expect(parsed.changes).toHaveLength(1);
@@ -177,7 +177,7 @@ describe("adv_change_list worker-free projection reads", () => {
   });
 });
 
-describe("adv_change_show worker-free projection reads", () => {
+describe("determinus_change_show worker-free projection reads", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -189,7 +189,7 @@ describe("adv_change_show worker-free projection reads", () => {
   test("AC3 — returns persisted change projection without issuing a workflow query", async () => {
     const store = createMockStore();
 
-    const result = await changeTools.adv_change_show.execute(
+    const result = await changeTools.determinus_change_show.execute(
       { changeId: "test-change" },
       store,
     );
@@ -206,7 +206,7 @@ describe("adv_change_show worker-free projection reads", () => {
       lifecycleState: "archived",
     });
 
-    const result = await changeTools.adv_change_show.execute(
+    const result = await changeTools.determinus_change_show.execute(
       { changeId: "test-change" },
       store,
     );

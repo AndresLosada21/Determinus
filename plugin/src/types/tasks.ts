@@ -159,7 +159,7 @@ export type FailureAttribution = z.infer<typeof FailureAttributionSchema>;
 // =============================================================================
 
 /**
- * Structured error recovery state for autonomous retry tracking in /adv-apply.
+ * Structured error recovery state for autonomous retry tracking in /determinus-apply.
  *
  * error_class values:
  * - TRANSIENT: Network timeout, flaky test — retry once with 5s delay
@@ -454,7 +454,7 @@ export const ProgressRoundSchema = z
   .object({
     /** Per-agent monotonic attempt counter from the source report. */
     attempt: z.number().int().min(0),
-    /** Submitting agent (e.g. "adv-reviewer"). */
+    /** Submitting agent (e.g. "determinus-reviewer"). */
     agent: z.string().trim().min(1),
     /** Human-readable joined blocker summary from the report. */
     summary: z.string(),
@@ -482,14 +482,14 @@ export function normalizeFindingText(text: string): string {
 // Advisory-only typed drafts auto-created when a task records a SEMANTIC
 // error_recovery attempt. Drafts are task-scoped (AC7) and follow a strict
 // lifecycle (AC4): suggested → promoted | dismissed. No revival path.
-// Promotion happens via adv_wisdom_add from_draft_id; auto-dismissal happens
-// at adv_task_checkpoint with dismiss_reason "auto_checkpoint"; explicit user
+// Promotion happens via determinus_wisdom_add from_draft_id; auto-dismissal happens
+// at determinus_task_checkpoint with dismiss_reason "auto_checkpoint"; explicit user
 // dismiss carries dismiss_reason "user_dismissed".
 
 /**
  * Lifecycle status for a WisdomDraft.
  * - suggested: newly created, awaiting review
- * - promoted:  terminal — promoted to a Wisdom entry via adv_wisdom_add
+ * - promoted:  terminal — promoted to a Wisdom entry via determinus_wisdom_add
  * - dismissed: terminal — auto-dismissed at checkpoint OR explicitly by user
  */
 export const WisdomDraftStatusSchema = z.enum([
@@ -500,7 +500,7 @@ export const WisdomDraftStatusSchema = z.enum([
 
 /**
  * Reason a draft entered the dismissed terminal state.
- * - auto_checkpoint: draft was unreviewed when adv_task_checkpoint completed
+ * - auto_checkpoint: draft was unreviewed when determinus_task_checkpoint completed
  * - user_dismissed:  user explicitly dismissed the draft
  */
 export const WisdomDraftDismissReasonSchema = z.enum([
@@ -517,7 +517,7 @@ export const WisdomDraftSuggestedTypeSchema = z.enum(["failure", "gotcha"]);
 /**
  * A single wisdom draft suggestion auto-created from a SEMANTIC error_recovery
  * attempt. The agent reviews the draft and either promotes it to a real Wisdom
- * entry (via adv_wisdom_add from_draft_id) or lets it auto-dismiss at checkpoint.
+ * entry (via determinus_wisdom_add from_draft_id) or lets it auto-dismiss at checkpoint.
  *
  * Lifecycle invariant: once status leaves "suggested", it never returns.
  */
@@ -543,7 +543,7 @@ export const WisdomDraftSchema = z.object({
   dismissed_at: z.string().optional(),
   /** Reason for dismissal — required when status === "dismissed" */
   dismiss_reason: WisdomDraftDismissReasonSchema.optional(),
-  /** Wisdom ID set when status === "promoted" via adv_wisdom_add from_draft_id */
+  /** Wisdom ID set when status === "promoted" via determinus_wisdom_add from_draft_id */
   promoted_wisdom_id: z.string().optional(),
 });
 
@@ -645,12 +645,12 @@ export const TaskSchema = z
     /**
      * Arbitrary key-value metadata for agent-driven filtering and routing.
      * All values are strings. Examples: { env: "production", target_repo: "backend" }
-     * Queryable via adv_task_list filter: "has_metadata_key:<key>" or "metadata:<key>=<value>"
+     * Queryable via determinus_task_list filter: "has_metadata_key:<key>" or "metadata:<key>=<value>"
      */
     metadata: z.record(z.string(), z.string()).optional(),
     /**
      * Structured error recovery state for autonomous retry tracking.
-     * Populated by /adv-apply when a task fails and is being retried.
+     * Populated by /determinus-apply when a task fails and is being retried.
      * Cleared when the task succeeds.
      */
     error_recovery: ErrorRecoverySchema.optional(),
@@ -674,19 +674,19 @@ export const TaskSchema = z
     last_blocking_fingerprints: z.array(z.string()).optional(),
     /**
      * Repo-relative paths of files changed by this task.
-     * Populated by adv_task_checkpoint after successful git commit.
+     * Populated by determinus_task_checkpoint after successful git commit.
      * Empty array when no files changed or on git failure.
      */
     touched_files: z.array(z.string()).optional(),
     /**
-     * Structured output extracted from `<adv-output>` tags in task completion text.
-     * Populated by adv_task_update / adv_task_checkpoint when agent emits structured output.
+     * Structured output extracted from `<determinus-output>` tags in task completion text.
+     * Populated by determinus_task_update / determinus_task_checkpoint when agent emits structured output.
      * Optional — most tasks won't have this. Non-blocking extraction.
      */
     structured_output: TaskStructuredOutputSchema.optional(),
     /**
      * Typed, durable sub-agent reports submitted through
-     * adv_subagent_report_submit. These replace ADV worker fenced-JSON report
+     * determinus_subagent_report_submit. These replace ADV worker fenced-JSON report
      * extraction while preserving structured_output for legacy callers.
      * Task records intentionally keep the task-scoped report schema; independent
      * review/research/scanner sidecars persist on change.subagent_reports[].

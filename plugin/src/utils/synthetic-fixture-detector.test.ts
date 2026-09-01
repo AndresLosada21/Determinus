@@ -3,7 +3,7 @@
  *
  * Pins the patterns that match ADV's automated validation/parity/latency/
  * roundtrip workflow IDs and summaries. These records leak ADV state when
- * tests don't clean up, so the patterns are guarded at both adv_change_create
+ * tests don't clean up, so the patterns are guarded at both determinus_change_create
  * and the storage save path.
  *
  * Spec ref: rq-synthstate01 (Synthetic Validation Draft Isolation)

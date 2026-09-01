@@ -140,9 +140,9 @@ describe("MCP invocation runtime matrix", () => {
     ).toBe(true);
   });
 
-  test("matrix rows bind to the real corpus: adv and adv-researcher are MCP-capable contract carriers", () => {
+  test("matrix rows bind to the real corpus: adv and determinus-researcher are MCP-capable contract carriers", () => {
     const effective = effectiveAgentPrompts();
-    for (const name of ["adv", "adv-researcher"]) {
+    for (const name of ["adv", "determinus-researcher"]) {
       const prompt = effective.find((candidate) => candidate.name === name);
       expect(prompt, `effective prompt ${name} missing`).toBeDefined();
       expect(prompt!.mcpCapable, `${name} must grant external MCP`).toBe(true);
@@ -203,7 +203,9 @@ describe("MCP runtime matrix live evidence (supplemental)", () => {
   });
 
   test("only an absent live-evidence fixture is optional", () => {
-    const directory = mkdtempSync(join(tmpdir(), "adv-mcp-live-evidence-"));
+    const directory = mkdtempSync(
+      join(tmpdir(), "determinus-mcp-live-evidence-"),
+    );
     const malformedPath = join(directory, "malformed.json");
     try {
       expect(loadLiveEvidence(join(directory, "missing.json"))).toBeNull();

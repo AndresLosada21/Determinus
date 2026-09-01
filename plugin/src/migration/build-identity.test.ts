@@ -54,7 +54,7 @@ const BASE_FILES: Record<string, string> = {
 
 describe("computeBuildIdentity", () => {
   test("digest is deterministic and covers every dist file recursively", async () => {
-    const root = await tempDir("adv-bid-compute-");
+    const root = await tempDir("determinus-bid-compute-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     const a = computeBuildIdentity(pluginRoot);
     const b = computeBuildIdentity(pluginRoot);
@@ -68,7 +68,7 @@ describe("computeBuildIdentity", () => {
   });
 
   test("any content change changes the digest (immutability)", async () => {
-    const root = await tempDir("adv-bid-mutate-");
+    const root = await tempDir("determinus-bid-mutate-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     const before = computeBuildIdentity(pluginRoot);
     writeFileSync(
@@ -80,7 +80,7 @@ describe("computeBuildIdentity", () => {
   });
 
   test("throws when dist is absent", async () => {
-    const root = await tempDir("adv-bid-nodist-");
+    const root = await tempDir("determinus-bid-nodist-");
     expect(() => computeBuildIdentity(join(root, "empty-plugin"))).toThrow(
       /dist/,
     );
@@ -89,7 +89,7 @@ describe("computeBuildIdentity", () => {
 
 describe("writeBuildIdentityFile / readBuildIdentityFile", () => {
   test("writes a schema-valid identity file that round-trips", async () => {
-    const root = await tempDir("adv-bid-write-");
+    const root = await tempDir("determinus-bid-write-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     const identity = writeBuildIdentityFile(pluginRoot, {
       now: new Date("2026-07-16T00:00:00.000Z"),
@@ -103,7 +103,7 @@ describe("writeBuildIdentityFile / readBuildIdentityFile", () => {
   });
 
   test("identity file excludes itself from the digest", async () => {
-    const root = await tempDir("adv-bid-self-");
+    const root = await tempDir("determinus-bid-self-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     const first = writeBuildIdentityFile(pluginRoot);
     const second = writeBuildIdentityFile(pluginRoot);
@@ -111,7 +111,7 @@ describe("writeBuildIdentityFile / readBuildIdentityFile", () => {
   });
 
   test("returns null for missing or malformed identity files", async () => {
-    const root = await tempDir("adv-bid-malformed-");
+    const root = await tempDir("determinus-bid-malformed-");
     expect(readBuildIdentityFile(join(root, "nope.json"))).toBeNull();
     const bad = join(root, "bad.json");
     writeFileSync(bad, "{ not json");
@@ -123,7 +123,7 @@ describe("writeBuildIdentityFile / readBuildIdentityFile", () => {
 
 describe("verifyDeployedBuildIdentity", () => {
   test("match when recorded identity equals recomputed content", async () => {
-    const root = await tempDir("adv-bid-verify-");
+    const root = await tempDir("determinus-bid-verify-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     const written = writeBuildIdentityFile(pluginRoot);
     const result = verifyDeployedBuildIdentity(pluginRoot);
@@ -132,7 +132,7 @@ describe("verifyDeployedBuildIdentity", () => {
   });
 
   test("stale when deployed content drifted after identity was written", async () => {
-    const root = await tempDir("adv-bid-verify-stale-");
+    const root = await tempDir("determinus-bid-verify-stale-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     writeBuildIdentityFile(pluginRoot);
     writeFileSync(join(pluginRoot, "dist", "index.js"), "/* patched */");
@@ -141,13 +141,13 @@ describe("verifyDeployedBuildIdentity", () => {
   });
 
   test("missing when no identity file exists", async () => {
-    const root = await tempDir("adv-bid-verify-missing-");
+    const root = await tempDir("determinus-bid-verify-missing-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     expect(verifyDeployedBuildIdentity(pluginRoot).status).toBe("missing");
   });
 
   test("malformed when identity file fails validation", async () => {
-    const root = await tempDir("adv-bid-verify-malformed-");
+    const root = await tempDir("determinus-bid-verify-malformed-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     writeFileSync(
       join(pluginRoot, "dist", BUILD_IDENTITY_FILENAME),
@@ -159,14 +159,14 @@ describe("verifyDeployedBuildIdentity", () => {
 
 describe("resolveOwnPluginRoot", () => {
   test("resolves from a bundled dist/index.js module URL", async () => {
-    const root = await tempDir("adv-bid-ownroot-");
+    const root = await tempDir("determinus-bid-ownroot-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     const url = new URL(`file://${join(pluginRoot, "dist", "index.js")}`).href;
     expect(resolveOwnPluginRoot(url)).toBe(pluginRoot);
   });
 
   test("resolves from a src/migration module URL in a dev checkout", async () => {
-    const root = await tempDir("adv-bid-ownroot-src-");
+    const root = await tempDir("determinus-bid-ownroot-src-");
     const pluginRoot = makePluginTree(root, BASE_FILES);
     const url = new URL(
       `file://${join(pluginRoot, "src", "migration", "build-identity.ts")}`,
@@ -175,7 +175,7 @@ describe("resolveOwnPluginRoot", () => {
   });
 
   test("returns null when no dist tree is discoverable", async () => {
-    const root = await tempDir("adv-bid-ownroot-none-");
+    const root = await tempDir("determinus-bid-ownroot-none-");
     const url = new URL(`file://${join(root, "src", "x.ts")}`).href;
     expect(resolveOwnPluginRoot(url)).toBeNull();
   });
