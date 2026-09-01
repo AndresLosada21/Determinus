@@ -106,5 +106,17 @@ tool.schema = {
     z.record(key, value),
 };
 
+// Plugin.define for v2 (promise/effect) compatibility
+export const Plugin = {
+  define: (plugin: {
+    id: string;
+    setup: (ctx: unknown) => unknown;
+    vcs?: unknown;
+  }) => plugin,
+};
+
+// Named export for `import { Plugin } from "@opencode-ai/plugin"` (used in v2)
+export { Plugin as default };
+
 // Re-export types
 export type { z };

@@ -1,7 +1,7 @@
 {
-    "name":  "determinus",
-    "version":  "8.0.0",
-    "description":  "Determinus - Spec-driven engineering infrastructure for OpenCode v2 (rebranded from Advance, Determinus 8.0.0, opencode2-native)",
+    "name":  "@andreslosada21/determinus",
+    "version":  "1.0.0",
+    "description":  "Determinus - Spec-driven development plugin for OpenCode where specs become enforceable laws",
     "type":  "module",
     "main":  "src/index.ts",
     "types":  "dist/index.d.ts",
@@ -14,7 +14,7 @@
     "bugs":  {
                  "url":  "https://github.com/AndresLosada21/Determinus/issues"
              },
-    "author":  "Determinus (AndresLosada21) - based on Advance by SharperFlow",
+    "author":  "Anomaly",
     "scripts":  {
                     "build":  "tsx scripts/build-plugin.ts \u0026\u0026 pnpm run build:identity",
                     "build:mcp-server":  "tsup src/mcp-server/index.ts src/reconcile-cli.ts --format esm --out-dir dist --no-splitting",
@@ -42,7 +42,8 @@
                 },
     "dependencies":  {
                          "@modelcontextprotocol/sdk":  "^1.29.0",
-                         "@opencode-ai/plugin":  "^1.18.4",
+                         "@opencode-ai/plugin":  "0.0.0-beta-18743",
+                         "effect":  "^3.19.0",
                          "jsonc-parser":  "^3.3.1",
                          "lru-cache":  "^11.3.6",
                          "nanoid":  "^5.1.16",

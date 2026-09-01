@@ -6,14 +6,14 @@
 
 <p align="center">
   <a href="https://github.com/AndresLosada21/Determinus">
-    <img src="assets/header.svg" alt="Advance banner with a simplified spec-driven workflow summary" width="640" />
+    <img src="assets/header.svg" alt="Determinus banner with a simplified spec-driven workflow summary" width="640" />
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/AndresLosada21/Determinus/actions"><img src="https://img.shields.io/github/actions/workflow/status/Sharper-Flow/Advance/ci.yml?label=CI" alt="CI"></a>
+  <a href="https://github.com/AndresLosada21/Determinus/actions"><img src="https://img.shields.io/github/actions/workflow/status/AndresLosada21/Determinus/ci.yml?label=CI" alt="CI"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
-  <a href="https://github.com/AndresLosada21/Determinus"><img src="https://img.shields.io/github/stars/Sharper-Flow/Advance?style=social" alt="GitHub stars"></a>
+  <a href="https://github.com/AndresLosada21/Determinus"><img src="https://img.shields.io/github/stars/AndresLosada21/Determinus?style=social" alt="GitHub stars"></a>
 </p>
 
 <p align="center">
@@ -29,26 +29,26 @@
 ---
 
 > [!NOTE]
-> Advance targets OpenCode. 
+> Determinus targets OpenCode.
 
-## What Advance is
+## What Determinus is
 
-Advance is an [OpenCode](https://github.com/anomalyco/opencode) plugin that turns AI coding into a governed engineering system.
+Determinus is an [OpenCode](https://github.com/anomalyco/opencode) plugin that turns AI coding into a governed engineering system.
 
 It combines:
 
-- **Spec law** â€” durable capability requirements in `.adv/specs/`
-- **7-gate delivery** â€” proposal â†’ discovery â†’ design â†’ planning â†’ execution â†’ acceptance â†’ release
-- **Disk-backed persistence** â€” transactional change/task/gate projections that survive process and context loss
-- **MCP tool surface** â€” structured state mutation and inspection, not hidden chat memory
-- **Context engineering** â€” one coherent orchestrator, focused sub-agent packets for deep work
-- **TDD evidence capture** â€” red/green proof recorded on tasks
-- **Worktree isolation** â€” branch-local specs, shared external change state, safe parallel implementation
-- **Task checkpoint commits** â€” local rollback/audit commits before task completion
-- **Review + hardening loops** â€” explicit correctness, security, architecture, test, and slop checks
-- **Wisdom accumulation** â€” reusable project learnings promoted from completed work
-- **Runtime guardrails** â€” bash safety, sub-agent nesting limits, cancellation policy, doom-loop detection
-- **External conformance hooks** â€” optional black-box CI verification for spec drift
+- **Spec law** — durable capability requirements in `.adv/specs/`
+- **7-gate delivery** — proposal → discovery → design → planning → execution → acceptance → release
+- **Disk-backed persistence** — transactional change/task/gate projections that survive process and context loss
+- **MCP tool surface** — structured state mutation and inspection, not hidden chat memory
+- **Context engineering** — one coherent orchestrator, focused sub-agent packets for deep work
+- **TDD evidence capture** — red/green proof recorded on tasks
+- **Worktree isolation** — branch-local specs, shared external change state, safe parallel implementation
+- **Task checkpoint commits** — local rollback/audit commits before task completion
+- **Review + hardening loops** — explicit correctness, security, architecture, test, and slop checks
+- **Wisdom accumulation** — reusable project learnings promoted from completed work
+- **Runtime guardrails** — bash safety, sub-agent nesting limits, cancellation policy, doom-loop detection
+- **External conformance hooks** — optional black-box CI verification for spec drift
 
 The result: AI agents can move fast without losing the engineering contract.
 
@@ -58,26 +58,26 @@ AI coding tools are powerful, but raw chat has weak guarantees:
 
 | Failure mode       | What usually happens                                |
 | ------------------ | --------------------------------------------------- |
-| Scope drift        | â€œAdd OAuthâ€ becomes unrelated refactors             |
+| Scope drift        | “Add OAuth” becomes unrelated refactors             |
 | Context loss       | Compaction or new sessions drop critical decisions  |
-| Fake verification  | â€œTests passâ€ means no evidence was captured         |
+| Fake verification  | “Tests pass” means no evidence was captured         |
 | Shallow review     | Generic comments replace systematic review          |
 | Infinite retries   | Agents repeat failing strategies without escalation |
 | Half-finished work | No archive, no spec update, no durable handoff      |
 
-Advance treats these as infrastructure problems, not prompt problems.
+Determinus treats these as infrastructure problems, not prompt problems.
 
-## Why Advance is different
+## Why Determinus is different
 
 Many tools solve one slice of this problem. Some provide durable workflows. Some enforce test commands. Some add memory. Some add review bots. Some add task plans.
 
-Advance is different because it balances all of those parts in one loop.
+Determinus is different because it balances all of those parts in one loop.
 
 The efficiency comes from **context engineering**. The user works with one primary `adv` agent that carries the full change contract. Deeper work is shed to sequential, bounded sub-agents with their own focused instructions, tool access, and output schemas. The orchestrator keeps the state, gates, user checkpoints, and final decisions.
 
 That is the harness engineering layer: not a bigger prompt, but a stronger operating harness around the agent.
 
-| Single-aspect approach               | What it helps with             | What it still misses                                              | Advance adds                                                         |
+| Single-aspect approach               | What it helps with             | What it still misses                                              | Determinus adds                                                         |
 | ------------------------------------ | ------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- |
 | Durable state stores             | Process survival               | Requirements, review, TDD proof, acceptance, archive              | Disk projections bound to specs, gates, tasks, and evidence          |
 | Prompt checklists                    | Agent behavior hints           | Enforcement, persistence, machine-readable state                  | MCP tools, gate state, validators, guardrails                        |
@@ -86,7 +86,7 @@ That is the harness engineering layer: not a bigger prompt, but a stronger opera
 | Review bots                          | Post-hoc feedback              | Planning, implementation discipline, archival closure             | Review and harden as first-class gates                               |
 | Task managers                        | Work breakdown                 | Spec conformance, retries, checkpointing, cross-session execution | Task graph tied to specs, worktrees, evidence, commits               |
 
-Advance does not claim one mechanism is enough. It makes the mechanisms cooperate:
+Determinus does not claim one mechanism is enough. It makes the mechanisms cooperate:
 
 ```text
 specs define truth
@@ -102,11 +102,11 @@ archive promotes learnings back into law
 
 That combination is the product.
 
-## Inspirations and how Advance extends them
+## Inspirations and how Determinus extends them
 
-Advance is an original implementation, but it is not an isolated idea. It owes a lot to projects that made agentic engineering more structured, durable, and spec-driven.
+Determinus is an original implementation, but it is not an isolated idea. It owes a lot to projects that made agentic engineering more structured, durable, and spec-driven.
 
-| Inspo tool                                                          | Technique / idea                                                                                        | Upgrade with Advance                                                                                                                         |
+| Inspo tool                                                          | Technique / idea                                                                                        | Upgrade with Determinus                                                                                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Beads](https://github.com/steveyegge/beads)                        | Agent-friendly task memory, dependency graphs, ready-task discovery, structured issue state.            | Binds tasks to gates, contracts, TDD evidence, checkpoint commits, worktrees, and crash-safe disk recovery.                                 |
 | [Spec Kit](https://github.com/github/spec-kit)                      | Spec-driven flow: define, plan, task, implement.                                                        | Adds durable gates, user checkpoints, MCP tools, contract review matrices, spec promotion, and release governance.                           |
@@ -118,7 +118,7 @@ The pattern is deliberate: take strong primitives from each predecessor, then ve
 
 ## Unique technical stack
 
-Advance is intentionally unusual. It is not just commands around an LLM.
+Determinus is intentionally unusual. It is not just commands around an LLM.
 
 | Layer                 | Technology / system                                 | Why it matters                                                                     |
 | --------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -133,12 +133,12 @@ Advance is intentionally unusual. It is not just commands around an LLM.
 | Methodology reuse     | Skills                                              | Discovery, prep, review, harden, slop detection, and cost governance stay reusable |
 | Specialist execution  | Bounded sub-agents                                  | Research and implementation can be delegated without recursive agent sprawl        |
 | Isolation             | Git worktrees                                       | Implementation can happen away from the main checkout while sharing ADV state      |
-| Evidence              | TDD logs + task checkpoints                         | â€œDoneâ€ means auditable proof exists                                                |
+| Evidence              | TDD logs + task checkpoints                         | “Done” means auditable proof exists                                                |
 | Learning loop         | Wisdom + reflection                                 | Successful patterns and gotchas survive the change that produced them              |
 | Safety                | Bash guard, task nesting guard, doom-loop detection | Agent autonomy has hard limits                                                     |
-| Conformance           | External CI verdict ingestion                       | Specs can be checked by black-box tests outside the agentâ€™s reach                  |
+| Conformance           | External CI verdict ingestion                       | Specs can be checked by black-box tests outside the agent’s reach                  |
 
-This is why Advance is more than durable functions, more than a memory layer, more than a prompt pack, and more than a test wrapper.
+This is why Determinus is more than durable functions, more than a memory layer, more than a prompt pack, and more than a test wrapper.
 
 ## Core workflow
 
@@ -159,9 +159,9 @@ Every phase produces artifacts that later phases can verify.
 
 No gate is a vibe check. Each gate has a contract.
 
-## What â€œdoneâ€ means
+## What “done” means
 
-Advance narrows â€œdoneâ€ to evidence:
+Determinus narrows “done” to evidence:
 
 - Agreement exists and acceptance criteria are explicit.
 - Design has been validated before implementation.
@@ -184,7 +184,7 @@ Disk projections track changes, task runs, gates, evidence, and recovery state. 
 
 ### TDD evidence, not test theater
 
-For implementation tasks, Advance records red and green phases with command, output, test file, and exit code. If TDD is not applicable, the task must say why.
+For implementation tasks, Determinus records red and green phases with command, output, test file, and exit code. If TDD is not applicable, the task must say why.
 
 ### Checkpoint commits
 
@@ -195,11 +195,11 @@ Every `/adv-apply` task with file changes creates a local checkpoint through `ad
 Mutating work runs in per-change worktrees. ADV state is external and shared across worktrees; specs remain git-tracked and branch-local. That gives isolation without losing coordination.
 
 > [!TIP]
-> Use worktrees for any agent run that will edit files. Advance materializes or resumes a `change/<change-id>` worktree, routes mutating tools there, and leaves the main checkout available for review, merge, and release. This pattern is inspired by [opencode-worktree](https://github.com/kdcokenny/opencode-worktree), which showed how worktrees make OpenCode agent sessions safer and easier to parallelize. Advance adds gate ownership, shared disk projections, task checkpoints, branch-local specs, and archive finalization.
+> Use worktrees for any agent run that will edit files. Determinus materializes or resumes a `change/<change-id>` worktree, routes mutating tools there, and leaves the main checkout available for review, merge, and release. This pattern is inspired by [opencode-worktree](https://github.com/kdcokenny/opencode-worktree), which showed how worktrees make OpenCode agent sessions safer and easier to parallelize. Determinus adds gate ownership, shared disk projections, task checkpoints, branch-local specs, and archive finalization.
 
 ### Bounded autonomy
 
-Advance lets agents work autonomously only inside approved boundaries. It stops for human checkpoints, design conflicts, doom loops, cancellation approval, archive sign-off, and scope drift that changes the agreement.
+Determinus lets agents work autonomously only inside approved boundaries. It stops for human checkpoints, design conflicts, doom loops, cancellation approval, archive sign-off, and scope drift that changes the agreement.
 
 ### Accumulated wisdom
 
@@ -207,15 +207,15 @@ Patterns, successes, failures, conventions, and gotchas can be recorded per chan
 
 ### External conformance
 
-Optional CI-isolated conformance checks can verify specs from outside the agentâ€™s editable context. Drift blocks archive unless a human explicitly unlocks or overrides.
+Optional CI-isolated conformance checks can verify specs from outside the agent’s editable context. Drift blocks archive unless a human explicitly unlocks or overrides.
 
 ### Prioritizer protocol
 
-When 2+ viable approaches depend on user values, Advance runs the prioritizer before asking. The protocol runs inline by default: it researches tradeoffs, drafts criteria questions, and surfaces a concise choice through the orchestrator. Delegated sub-agents use the same protocol for task-level decisions.
+When 2+ viable approaches depend on user values, Determinus runs the prioritizer before asking. The protocol runs inline by default: it researches tradeoffs, drafts criteria questions, and surfaces a concise choice through the orchestrator. Delegated sub-agents use the same protocol for task-level decisions.
 
 ## Command + skill architecture
 
-Advance separates workflow ownership from reusable methodology.
+Determinus separates workflow ownership from reusable methodology.
 
 - **Commands** own user entry points, gate transitions, state mutation, and artifacts.
 - **Skills** own reusable guidance and checklists.
@@ -278,7 +278,7 @@ Then, inside an OpenCode project:
 /adv-proposal add OAuth login without breaking existing session flows
 ```
 
-Advance will move the change through discovery, agreement, design, planning, implementation, review, hardening, and archive.
+Determinus will move the change through discovery, agreement, design, planning, implementation, review, hardening, and archive.
 
 For setup details and troubleshooting, see [`SETUP.md`](SETUP.md).
 
@@ -300,7 +300,7 @@ Requires Node.js 24+ and pnpm 11.9.0. CI runs SDK parity, schema-drift, type, li
 
 OpenCode runs on Bun, while the plugin's build and test tooling runs on Node. No external database, server, worker, CLI service, or runtime environment variables are required.
 
-Mutable state is stored in per-project disk projections under `~/.local/share/opencode/plugins/advance/<projectId>/`. A change lives at `changes/<changeId>/change.json` as `{schemaVersion:2,state:{...}}`. Different changes do not block one another; writes for the same change serialize through a 15-second advisory file lock with jittered backoff and stale-PID reclaim. Commits use atomic temp-write/rename/fsync, in-lock readback, and revision/operation-identity proofs, failing closed as `operator_required` on any problem. Epic state uses `active-epics/<epicId>/active-projection.json` with expected-version optimistic concurrency.
+Mutable state is stored in per-project disk projections under `~/.local/share/opencode/plugins/determinus/<projectId>/`. A change lives at `changes/<changeId>/change.json` as `{schemaVersion:2,state:{...}}`. Different changes do not block one another; writes for the same change serialize through a 15-second advisory file lock with jittered backoff and stale-PID reclaim. Commits use atomic temp-write/rename/fsync, in-lock readback, and revision/operation-identity proofs, failing closed as `operator_required` on any problem. Epic state uses `active-epics/<epicId>/active-projection.json` with expected-version optimistic concurrency.
 
 ## Repository map
 

@@ -7,6 +7,7 @@ import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { existsSync, readFileSync } from "fs";
 import { mkdir, writeFile } from "fs/promises";
 import { join, resolve } from "path";
+import { fileURLToPath } from "url";
 import { z } from "zod";
 import {
   ADV_TOOL_NAMES,
@@ -32,7 +33,7 @@ import {
 type ToolArgsSchema = Record<string, z.ZodTypeAny>;
 
 describe("tool-registry module contract", () => {
-  const srcDir = resolve(new URL(".", import.meta.url).pathname);
+  const srcDir = fileURLToPath(new URL(".", import.meta.url));
 
   test("tool-registry.ts module exists", () => {
     expect(existsSync(resolve(srcDir, "tool-registry.ts"))).toBe(true);
@@ -47,7 +48,7 @@ describe("tool-registry functional contract", () => {
 
   test("index.ts delegates tool registration to tool-registry helpers", () => {
     const src = readFileSync(
-      resolve(new URL(".", import.meta.url).pathname, "index.ts"),
+      resolve(fileURLToPath(new URL(".", import.meta.url)), "index.ts"),
       "utf8",
     );
     expect(src).toContain("createToolMap");
@@ -558,7 +559,7 @@ describe("safeExecute timeout overrides for slow-subprocess tools", () => {
   // Outer wrapper must allow at least the inner budget plus modest
   // headroom so the subprocess is the authoritative timeout source.
   const registrySrc = readFileSync(
-    resolve(new URL(".", import.meta.url).pathname, "tool-registry.ts"),
+    resolve(fileURLToPath(new URL(".", import.meta.url)), "tool-registry.ts"),
     "utf8",
   );
 

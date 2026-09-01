@@ -16,8 +16,47 @@
  * identity — a single structural cast, not a version bridge.
  */
 
-import { tool, type ToolContext, type ToolResult } from "@opencode-ai/plugin";
+import * as OpencodePlugin from "@opencode-ai/plugin";
 import { z } from "zod";
+
+// Compatibility: old SDK exported `tool`, new SDK (v2) does not. Use fallback.
+const sdkTool = (OpencodePlugin as unknown as { tool?: typeof localTool }).tool;
+type ToolContext = {
+  sessionID?: string;
+  messageID?: string;
+  agent?: string;
+  directory?: string;
+  worktree?: string;
+  abort?: AbortSignal;
+  metadata?: (input: {
+    title?: string;
+    metadata?: Record<string, unknown>;
+  }) => void;
+  progress?: (update: Record<string, unknown>) => Promise<void>;
+  [key: string]: unknown;
+};
+type ToolResult =
+  | string
+  | {
+      title?: string;
+      output: string;
+      metadata?: Record<string, unknown>;
+      content?: string | readonly unknown[];
+    };
+
+// Local fallback for `tool` when SDK does not provide it (v2)
+function localTool(def: {
+  description: string;
+  args: Record<string, z.ZodType>;
+  execute: (args: unknown, ctx: unknown) => Promise<ToolResult>;
+}): {
+  description: string;
+  args: Record<string, z.ZodType>;
+  execute: (args: unknown, ctx: unknown) => Promise<ToolResult>;
+} {
+  return def;
+}
+const tool = sdkTool ?? localTool;
 import { safeExecute } from "./utils/safe-execute";
 import {
   formatToolArgPreflightError,
@@ -213,7 +252,9 @@ export function registerTool(
   });
 }
 
-function isToolContext(value: unknown): value is ToolContext {
+function isToolContext(
+  value: unknown,
+): value is ToolContext & { metadata: NonNullable<ToolContext["metadata"]> } {
   return (
     !!value &&
     typeof value === "object" &&
@@ -750,7 +791,11 @@ export function createFullToolMap(
               const def = (
                 baseToolMap as Record<
                   string,
-                  import("@opencode-ai/plugin").ToolDefinition
+                  {
+                    description: string;
+                    args: Record<string, unknown>;
+                    execute: (a: unknown, b: unknown) => Promise<unknown>;
+                  }
                 >
               )[name];
               if (!entry || !def) return undefined;

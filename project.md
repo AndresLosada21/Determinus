@@ -1,4 +1,4 @@
-# Advance (ADV) — Project Context
+# Determinus (ADV) — Project Context
 
 > **Note:** This file is read by the `adv_project_context` tool to provide agents with project context. For developer-facing quick-reference with common pitfalls, see `AGENTS.md`.
 
@@ -77,7 +77,7 @@ CI order: schemas:check → typecheck → lint → format:check → test → bui
 Changes, archive, wisdom, reflections, and handoff live **outside the repo** at (legacy agenda data may also exist until cleaned by `adv_store_cleanup`):
 
 ```
-$XDG_DATA_HOME/opencode/plugins/advance/{project-id}/
+$XDG_DATA_HOME/opencode/plugins/determinus/{project-id}/
 ```
 
 `project-id` = root commit SHA (see `plugin/src/utils/project-id.ts`). All worktrees of the same repo share this external state. ADV worktrees live at `$XDG_DATA_HOME/opencode/worktree/{project-id}/{branch}`. `db_dir` / physical `db/` are legacy-only and should appear only in compatibility docs or dry-run hygiene reports.
@@ -88,7 +88,7 @@ Use host-plugin ADV tools (`adv_change_show`, `adv_task_list`, etc.) as top-leve
 
 ### Conformance state
 
-External CI-isolated spec conformance state lives at `~/.local/share/opencode/plugins/advance/{project-id}/conformance.json`. Conformance test source lives in `.adv/specs/_conformance/` (default, in-repo subfolder) or `{project-parent}/advance-conformance-{pid}/` (opt-in sibling repo). Use `adv_conformance` tool for all conformance operations.
+External CI-isolated spec conformance state lives at `~/.local/share/opencode/plugins/determinus/{project-id}/conformance.json`. Conformance test source lives in `.adv/specs/_conformance/` (default, in-repo subfolder) or `{project-parent}/advance-conformance-{pid}/` (opt-in sibling repo). Use `adv_conformance` tool for all conformance operations.
 
 ### Tool registration pattern
 

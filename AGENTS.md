@@ -1,10 +1,10 @@
-# Advance contributor notes
+# Determinus contributor notes
 
 ## Scope and entry points
 
 - This is an OpenCode plugin repository, not a monorepo. `plugin/` is the only buildable/released code. Root-level `bin/`, `scripts/`, `skills/`, `.opencode/` are tooling and deployed assets, not shipped packages.
 - Plugin entry: `plugin/src/index.ts`. Tool definitions live beside handlers under `plugin/src/tools/`; `tool-registry.ts` binds exported `*Tools` groups to the SDK. A second surface, `plugin/src/mcp-server/`, provides a stdio MCP server (deployed as Vision `adv-advance` on port 6298) that exposes 13 Tier-4 read tools as `tools.adv.*` under Code Mode, dispatching to the same `tool-registry.js` handlers via dynamic import.
-- `.adv/specs/` contains git-tracked, branch-local capability laws. Runtime change/task/gate state uses per-project disk projections under `~/.local/share/opencode/plugins/advance/<projectId>/changes/<changeId>/change.json`; writes are transactionally locked, crash-safe, and fail closed on verification problems.
+- `.adv/specs/` contains git-tracked, branch-local capability laws. Runtime change/task/gate state uses per-project disk projections under `~/.local/share/opencode/plugins/determinus/<projectId>/changes/<changeId>/change.json`; writes are transactionally locked, crash-safe, and fail closed on verification problems.
 - `project.md` is agent-facing project context. `ADV_INSTRUCTIONS.md` owns detailed ADV workflow protocol; do not duplicate either here.
 
 ## Commands
@@ -42,7 +42,7 @@ bin/oc-test full
 
 ## Deployment and local runtime
 
-- OpenCode loads the deployed `~/.local/share/Advance/plugin/dist/index.js` at session start. `plugin/` also ships `dist/mcp-server.js` (the ADV MCP server, run by Vision as `adv-advance` on port 6298) and `dist/reconcile-cli.js` (the disk-only handler loaded by `bin/adv reconcile`). Source edits do not change live `adv_*` behavior until `pnpm run build`, `./scripts/deploy-local.sh --fix`, and an OpenCode/plugin-host restart. There is no hot reload; OpenCode does not live-reload host-loaded plugin modules.
+- OpenCode loads the deployed `~/.local/share/Determinus/plugin/dist/index.js` at session start. `plugin/` also ships `dist/mcp-server.js` (the ADV MCP server, run by Vision as `adv-advance` on port 6298) and `dist/reconcile-cli.js` (the disk-only handler loaded by `bin/adv reconcile`). Source edits do not change live `adv_*` behavior until `pnpm run build`, `./scripts/deploy-local.sh --fix`, and an OpenCode/plugin-host restart. There is no hot reload; OpenCode does not live-reload host-loaded plugin modules.
 - `scripts/deploy-local.sh` publishes the plugin bundle manifest (`dist/plugin-bundle-manifest.json`) safely: it requires the manifest, excludes it from the payload rsync, validates the copied `dist/index.js`, `dist/mcp-server.js`, and `dist/reconcile-cli.js` SHA-256 hashes against the manifest, and copies the manifest last. The manifest generation/hash is the authoritative bundle identity; filesystem mtimes are advisory only.
 - `scripts/deploy-local.sh` mirrors supported plugin, command, agent, overlay, skill, and CLI assets. It needs `jq` to patch config and `rsync` for plugin deployment. Preview with `--dry-run --diff`.
 - The first deploy of this manifest-aware sequence requires one OpenCode restart to bootstrap the loaded plugin generation; after that, every system transform and health probe can report `PLUGIN_BUNDLE_STALE` when the deployed bundle is newer than the loaded one.

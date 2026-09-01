@@ -162,6 +162,10 @@ export async function atomicWriteFile(
  * for crash-recoverable archive publication.
  */
 export async function syncDir(dirPath: string): Promise<void> {
+  // Windows does not support opening a directory with "r" and fsyncing it;
+  // the POSIX durability guarantee is not needed there, and the call fails
+  // with EPERM. Skip on win32.
+  if (process.platform === "win32") return;
   const handle = await open(dirPath, "r");
   try {
     await handle.sync();

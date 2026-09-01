@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- The v1-to-v2 compatibility adapter is incrementally typed.
-// @ts-nocheck
 /**
  * Advance (ADV) Plugin
  *
@@ -13,7 +11,7 @@
  * - experimental.session.compacting: Change preservation during compaction
  */
 
-import { Plugin } from "@opencode-ai/plugin";
+import { type Plugin } from "@opencode-ai/plugin";
 import { isAbsolute, join, resolve } from "node:path";
 import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -89,7 +87,6 @@ import {
   PluginBundleGenerationMismatchError,
 } from "./plugin-bundle-manifest";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { z } from "zod";
 import { createHash } from "node:crypto";
 import { execGit, getDefaultBranch } from "./utils/git";
 import { resolveTargetProject } from "./tools/target-project";
@@ -161,7 +158,7 @@ const compactLargeText = (
 
 /**
  * Honest full-drop marker for oversized unprotected tool output (AC7).
- * Unlike `compactLargeText` (head/tail excerpt â€” retained for DIFF patches,
+ * Unlike `compactLargeText` (head/tail excerpt — retained for DIFF patches,
  * which have no durable sink), this names what was removed without
  * preserving a deceptive slice that reads as complete. Layer 2 (fallback
  * durable sink) extends oversized Task/skill returns with a persisted-content
@@ -187,7 +184,7 @@ const fallbackSinkDir = (): string =>
 
 /**
  * Persist oversized fallback content to the durable sink before the consumer
- * transform replaces it in the prompt (AC3). Idempotent by content hash â€”
+ * transform replaces it in the prompt (AC3). Idempotent by content hash —
  * repeated prompt builds for the same content do not re-write. Returns the
  * persisted file path, or null on write failure (caller falls back to an
  * honest full-drop marker with no path).
@@ -214,7 +211,7 @@ export const persistFallbackContent = (
 
 /**
  * Honest persisted-result marker (AC4). Names the source, the total chars,
- * the number elided, the durable path, and a small preview â€” never a
+ * the number elided, the durable path, and a small preview — never a
  * head-and-tail excerpt.
  */
 export const fallbackPersistedMarker = (
@@ -390,7 +387,7 @@ interface PluginState extends StatusFlags {
 /**
  * Resolve the current StatusMarker from plugin state flags.
  *
- * Precedence (highest â†’ lowest):
+ * Precedence (highest → lowest):
  *   ATTN (permission pending) > TOOLING (sub-agents/long tools) > IDLE (session idle) > WORK
  *
  * Markers:
@@ -419,7 +416,7 @@ const hooksLogger = createLogger("hooks");
  * before `tryInitStore` can run).
  *
  * Without this, OpenCode catches the factory throw and drops the entire
- * plugin from the session â€” agents see ADV operating protocol but have
+ * plugin from the session — agents see ADV operating protocol but have
  * ZERO `adv_*` tools in their function schema and no diagnostic of any
  * kind. The pre-flight rule "verify by calling" then becomes mechanically
  * impossible.
@@ -432,7 +429,10 @@ const hooksLogger = createLogger("hooks");
  *     any tool call
  *   - safe no-ops for all other hooks
  */
-function buildFactoryFailureHooks(error: Error, directory: string): any {
+function buildFactoryFailureHooks(
+  error: Error,
+  directory: string,
+): Awaited<ReturnType<Plugin>> {
   const banner = formatDegradedBanner(error, "factory");
   return {
     tool: createDegradedToolMap(error, directory),
@@ -477,7 +477,7 @@ const advancePluginImpl: Plugin = async (input) => {
     projectId: resolvedProjectId,
     identityError,
   } = await resolveProjectContext(directory, project, worktree);
-  // P2.7: legacy migration removed â€” disk-only store reads/writes the same
+  // P2.7: legacy migration removed — disk-only store reads/writes the same
   // on-disk paths. No migration step needed.
 
   let trunkWriteFirewallEnforced = false;
@@ -509,7 +509,7 @@ const advancePluginImpl: Plugin = async (input) => {
     );
   }
 
-  // Initialize store. tryInitStore() never throws â€” if createStore or
+  // Initialize store. tryInitStore() never throws — if createStore or
   // store.init() fails, it returns { store: null, initError: Error } so we
   // can register a degraded tool map rather than nuking every adv_* tool.
   //
@@ -548,12 +548,12 @@ const advancePluginImpl: Plugin = async (input) => {
     pendingWisdomDraftTasks: [],
   };
 
-  // AC6 â€” reset session-scoped metrics on every plugin init. JC-1 keeps
+  // AC6 — reset session-scoped metrics on every plugin init. JC-1 keeps
   // metrics in-memory only; no persistence across plugin restarts.
   resetMetrics();
   resetCacheTokenTelemetry();
   resetLaneProjectionsCache();
-  // AC1 â€” schema conversion is amortized at init; request hooks only read the
+  // AC1 — schema conversion is amortized at init; request hooks only read the
   // retained manifest through the status health surface.
   // Map PublicToolEntry (object form, consolidateAdvToolSurface2) to the
   // [name, args] tuple the telemetry module expects.
@@ -567,7 +567,7 @@ const advancePluginImpl: Plugin = async (input) => {
   // tool calls / status queries rather than consuming a sidecar JSON file.
 
   // Detect peer OpenCode sessions in this project (multi-session is supported;
-  // emit informational marker only â€” per-worktree git isolation eliminates
+  // emit informational marker only — per-worktree git isolation eliminates
   // working-tree races).
   // J4: Linux-only platform guard inside detectPeerSessions; gate the call.
   if (process.platform === "linux") {
@@ -607,7 +607,7 @@ const advancePluginImpl: Plugin = async (input) => {
     if (staleHead.stale) {
       debugLog(`Stale HEAD detected: ${staleHead.reason}`);
       hooksLogger.warn(
-        `[ADV:WARN] Stale HEAD: ${staleHead.reason} â€” ${staleHead.suggestion}`,
+        `[ADV:WARN] Stale HEAD: ${staleHead.reason} — ${staleHead.suggestion}`,
       );
     }
   } catch (err) {
@@ -707,7 +707,7 @@ const advancePluginImpl: Plugin = async (input) => {
   // Related hooks: recordCreatedChange (set on create), recordTerminalChange
   // (clear on close/archive). Phantom-pointer clearing is owned by adv_doctor
   // (rq-doctorConsolidation01 option B) via the injected pointer-repair
-  // provider below â€” the former adv_change_forget tool was retired.
+  // provider below — the former adv_change_forget tool was retired.
   // Reachability gate via isChangeReachable prevents phantom re-pointing.
   // Spec: .adv/specs/advance-meta/spec.json rq-activeChangePointer01
   //
@@ -777,7 +777,7 @@ const advancePluginImpl: Plugin = async (input) => {
     if (shouldRepointActiveChange(toolName, args)) {
       if (args.changeId === state.activeChange.id) {
         // Already pointing here; no-op (covers same-project AND cross-project
-        // repeat calls â€” if the caller's pointer already matches, no work).
+        // repeat calls — if the caller's pointer already matches, no work).
       } else if (args.target_path) {
         // rq-activeChangePointer01.7: cross-project active-work repoint.
         // For tools in activeChangeRepointTools, repoint the caller's pointer
@@ -791,7 +791,7 @@ const advancePluginImpl: Plugin = async (input) => {
             target_path: String(args.target_path),
           });
           const targetChangesDir = join(targetCtx.externalRoot, "changes");
-          // Cross-project uses disk-only check (KD3) â€” Visibility and
+          // Cross-project uses disk-only check (KD3) — Visibility and
           // The disk check is the authoritative signal that the change exists
           // in the target project.
           const reachable = await isDiskChangeReachable(
@@ -836,7 +836,7 @@ const advancePluginImpl: Plugin = async (input) => {
           );
         }
       } else {
-        // Same-project reachability gate (AC4/AC5) â€” check before re-pointing
+        // Same-project reachability gate (AC4/AC5) — check before re-pointing
         try {
           const reachable = store
             ? await isDiskChangeReachable(
@@ -1058,9 +1058,9 @@ const advancePluginImpl: Plugin = async (input) => {
   /**
    * Resolve the parent Epic ID for the active change from the project store.
    *
-   * The pane identity contract renders stable IDs only â€” display titles
+   * The pane identity contract renders stable IDs only — display titles
    * never enter the title path. Returns `epicId` when the change has
-   * Epic membership; otherwise an empty object. Falls back gracefully â€”
+   * Epic membership; otherwise an empty object. Falls back gracefully —
    * never blocks or fails the tool operation.
    */
   const resolveChangeContext = async (
@@ -1183,7 +1183,7 @@ const advancePluginImpl: Plugin = async (input) => {
   const { removeProcessListeners } = registerShutdownHandlers(store);
 
   return {
-    // MCP Tools â€” degraded map on init failure so agents see ADV_PLUGIN_INIT_FAILED
+    // MCP Tools — degraded map on init failure so agents see ADV_PLUGIN_INIT_FAILED
     tool:
       store && !initError
         ? createToolMap(store, directory, input.serverUrl, client)
@@ -1251,7 +1251,7 @@ const advancePluginImpl: Plugin = async (input) => {
           try {
             await recordCreatedChange(output.output);
           } catch (err) {
-            // Outer parse error â€” unexpected if banner format changes
+            // Outer parse error — unexpected if banner format changes
             hooksLogger.warn(
               `Failed to parse adv_change_create output: ${(err as Error).message}`,
             );
@@ -1306,7 +1306,7 @@ const advancePluginImpl: Plugin = async (input) => {
     //
     // Single ordered emit per AC1: assembles the entire ADV system-context
     // block in `applyAdvSystemBlock` and writes it to `output.system[0]`.
-    // No `output.system.push` calls here â€” multi-block emission breaks the
+    // No `output.system.push` calls here — multi-block emission breaks the
     // OpenAI-compat provider (assistant-prefilling rejection).
     //
     // Markers composed by `applyAdvSystemBlock` (defined in
@@ -1316,7 +1316,7 @@ const advancePluginImpl: Plugin = async (input) => {
     //   - [ADV:PLUGIN_BUNDLE_STALE]   (deployed plugin bundle newer than loaded)
     //   - [ADV:WORKTREE_SESSION]      (worktree marker)
     //   - [ADV] Active change         (active change line)
-    //   - [ADV:RECORD_WISDOM]         (wisdom recording prompt â€” append-only)
+    //   - [ADV:RECORD_WISDOM]         (wisdom recording prompt — append-only)
     //
     "experimental.chat.system.transform": async (
       input,
@@ -1435,7 +1435,7 @@ const advancePluginImpl: Plugin = async (input) => {
     // Session Compaction Hook
     //
     // Single combined context entry per AC2: composes a change-context
-    // snapshot (via buildChangeContextSnapshot â€” same formatter the live
+    // snapshot (via buildChangeContextSnapshot — same formatter the live
     // path uses), specs summary, and a resume-hint block sourced from
     // the in-progress task's durable run ledger. Stale-ledger detection
     // (AC7) replaces the resume hint with an explicit warning when the
@@ -1453,7 +1453,7 @@ const advancePluginImpl: Plugin = async (input) => {
 
         // Resolve change record. Tolerate a not-found / read-error result
         // by falling back to a minimal CompactionChangeLike sourced from
-        // active state â€” the snapshot still produces useful output.
+        // active state — the snapshot still produces useful output.
         let changeTitle = changeId;
         let changeForDirective: Change | undefined;
         try {
@@ -1491,7 +1491,7 @@ const advancePluginImpl: Plugin = async (input) => {
         // AC5: derive the authoritative directive from the full change
         // projection so the compacted snapshot renders the same `Next:`
         // orientation line the live context shows (fidelity parity). Best
-        // effort â€” a derivation failure must not break compaction output.
+        // effort — a derivation failure must not break compaction output.
         let directive: ReturnType<typeof deriveWorkflowDirective> | undefined;
         if (changeForDirective) {
           try {
@@ -1531,316 +1531,34 @@ const advancePluginImpl: Plugin = async (input) => {
   };
 };
 
-export default Plugin.define({
-  id: "determinus",
-  setup: async (ctx: any) => {
-    const directory: string = ctx.location.directory;
-    const worktree: string = directory;
-    const project: any = ctx.location.project
-      ? {
-          id: (ctx.location.project as any).id ?? directory,
-          worktree: directory,
-          vcsDir: (ctx.location.project as any).directory,
-          vcs: "git",
-          time: { created: Date.now() },
-        }
-      : { id: directory, worktree: directory, time: { created: Date.now() } };
+/**
+ * Top-level Plugin export.
+ *
+ * Wraps `advancePluginImpl` so that ANY throw originating outside
+ * `tryInitStore` (project-context resolve, terminal init, sub-helper
+ * imports, etc.) is caught and converted into a degraded hooks object.
+ *
+ * Without this wrapper, OpenCode catches the factory throw, drops the
+ * plugin from the session, and the agent ends up with zero `adv_*` tools
+ * in its function schema and zero diagnostic surface — the original
+ * "silent disappearance" failure mode.
+ *
+ * The wrapper preserves the existing happy path verbatim (impl is called
+ * directly; on success its hooks are returned unchanged) and only takes
+ * over when the factory throws.
+ */
+export const AdvancePlugin: Plugin = async (input) => {
+  try {
+    return await advancePluginImpl(input);
+  } catch (e) {
+    const error = e instanceof Error ? e : new Error(String(e));
+    debugLog(
+      `AdvancePlugin factory threw: ${error.message} — registering degraded hooks`,
+    );
+    return buildFactoryFailureHooks(error, input.directory);
+  }
+};
 
-    // Shim client for old code that expects @opencode-ai/plugin client
-    const shimClient: any = {
-      session: {
-        get: async ({ path: { id } }: { path: { id: string } }) => {
-          try {
-            const res: any = await ctx.session.get({ sessionID: id });
-            const data = res?.data ?? res;
-            // Ensure data has id and parentID
-            return { data };
-          } catch {
-            return { data: undefined };
-          }
-        },
-        fork: async () => ({ data: undefined }),
-        delete: async () => ({}),
-      },
-      app: {
-        log: async () => ({}),
-      },
-    };
-    const serverUrl: any = undefined;
-
-    const shimInput: any = {
-      directory,
-      worktree,
-      project,
-      experimental_workspace: undefined,
-      client: shimClient,
-      serverUrl,
-    };
-
-    let hooks: any;
-    try {
-      hooks = await (advancePluginImpl as any)(shimInput);
-    } catch (e) {
-      const err = e instanceof Error ? e : new Error(String(e));
-      debugLog(`advancePluginImpl threw in v2 wrapper: ${err.message}`);
-      hooks = buildFactoryFailureHooks(err, directory);
-    }
-
-    // Register tools via v2 transform
-    const toolMap: Record<string, any> = hooks.tool ?? {};
-    if (Object.keys(toolMap).length > 0) {
-      await ctx.tool.transform((draft: any) => {
-        for (const [name, def] of Object.entries(toolMap)) {
-          const rawArgs: Record<string, any> = (def as any).args ?? {};
-          const hasArgs = Object.keys(rawArgs).length > 0;
-          // Use zod schema for input; if no args, use empty object
-          const inputSchema = hasArgs ? z.object(rawArgs) : z.object({});
-          draft.add({
-            name,
-            description: (def as any).description ?? name,
-            input: inputSchema,
-            // ADV's direct surface is intentionally available through the
-            // Code Mode executor as `tools.adv_change_*`.  Be explicit: the
-            // SDK defaults this today, but an omitted option made this
-            // migration depend on a host default and left the tools absent
-            // from the Code Mode catalog in the beta runtime.
-            options: { codemode: true, pinned: true },
-            // Preserve original execute with proper wrapping
-            execute: async (input: unknown, toolCtx: any) => {
-              const ctxForTool: any = {
-                ...toolCtx,
-                // Provide metadata/progress compatibility
-                metadata: (meta: any) => {
-                  if (typeof toolCtx.progress === "function")
-                    return toolCtx.progress(meta);
-                  if (typeof toolCtx.metadata === "function")
-                    return toolCtx.metadata(meta);
-                },
-                sessionID: toolCtx.sessionID,
-                messageID: toolCtx.messageID,
-                agent: toolCtx.agent,
-                directory,
-                worktree,
-                abort: toolCtx.abort ?? new AbortController().signal,
-              };
-              const result: any = await (def as any).execute(input, ctxForTool);
-              if (typeof result === "string") {
-                return { content: result };
-              }
-              if (result && typeof result === "object") {
-                if (
-                  "output" in result &&
-                  typeof (result as any).output === "string" &&
-                  !("content" in result)
-                ) {
-                  return {
-                    content: (result as any).output,
-                    metadata: (result as any).metadata,
-                  };
-                }
-                if ("content" in result) {
-                  // Already in new shape
-                  if (typeof (result as any).content === "string")
-                    return {
-                      content: (result as any).content,
-                      metadata: (result as any).metadata,
-                    };
-                  return result;
-                }
-                // Fallback: stringify
-                return { content: JSON.stringify(result) };
-              }
-              return { content: String(result) };
-            },
-          });
-        }
-      });
-    }
-
-    // Register tool hooks
-    if (hooks["tool.execute.before"]) {
-      const beforeHook = hooks["tool.execute.before"];
-      await ctx.tool.hook("execute.before", async (event: any) => {
-        const input: any = {
-          tool: event.tool,
-          sessionID: event.sessionID,
-          callID: event.id,
-          agent: event.agent,
-          messageID: event.messageID,
-        };
-        const output: any = { args: event.input };
-        await beforeHook(input, output);
-        // Propagate mutations
-        if (output.args !== undefined) event.input = output.args;
-        if ((input as any).tool !== event.tool)
-          event.tool = (input as any).tool;
-      });
-    }
-    if (hooks["tool.execute.after"]) {
-      const afterHook = hooks["tool.execute.after"];
-      await ctx.tool.hook("execute.after", async (event: any) => {
-        const input: any = {
-          tool: event.tool,
-          sessionID: event.sessionID,
-          callID: event.id,
-          agent: event.agent,
-          messageID: event.messageID,
-          input: event.input,
-        };
-        let output: any;
-        if (event.status === "completed") {
-          const content = event.result?.content;
-          let outputStr: string | undefined;
-          if (typeof content === "string") outputStr = content;
-          else if (Array.isArray(content)) {
-            const texts = (content as any[])
-              .filter((c) => c?.type === "text" && typeof c.text === "string")
-              .map((c) => c.text)
-              .join("\n");
-            outputStr = texts || JSON.stringify(content);
-          } else if (event.result?.output !== undefined) {
-            outputStr =
-              typeof event.result.output === "string"
-                ? event.result.output
-                : JSON.stringify(event.result.output);
-          } else if (content !== undefined) {
-            outputStr =
-              typeof content === "string" ? content : JSON.stringify(content);
-          }
-          output = {
-            output: outputStr ?? "",
-            result: event.result,
-            ...event.result,
-          };
-        } else {
-          output = { error: event.error };
-        }
-        await afterHook(input, output);
-        // Propagate possible mutations: if old hook changed output, reflect in new event
-        if (event.status === "completed" && output) {
-          if (
-            typeof output.output === "string" &&
-            output.output !== event.result?.content
-          ) {
-            // If old hook provided new output string, update event.result.content
-            event.result = {
-              ...event.result,
-              content: [{ type: "text", text: output.output }],
-              metadata: output.metadata ?? event.result?.metadata,
-            };
-          } else if (output.metadata) {
-            event.result = { ...event.result, metadata: output.metadata };
-          } else if (output.result && output.result !== event.result) {
-            event.result = output.result;
-          }
-        }
-      });
-    }
-
-    // Register session context hook (system + messages)
-    const hasSystemTransform = !!hooks["experimental.chat.system.transform"];
-    const hasMessagesTransform =
-      !!hooks["experimental.chat.messages.transform"];
-    const hasCompacting = !!hooks["experimental.session.compacting"];
-    if (hasSystemTransform || hasMessagesTransform || hasCompacting) {
-      await ctx.session.hook("context", async (event: any) => {
-        // System transform
-        if (hasSystemTransform) {
-          try {
-            const existingSystem =
-              event.system.map((p: any) => p.text).join("\n\n") || "";
-            const output: any = {
-              system: existingSystem ? [existingSystem] : [],
-            };
-            const input: any = { sessionID: event.sessionID };
-            await hooks["experimental.chat.system.transform"](input, output);
-            const newSystem = output.system[0];
-            if (newSystem !== undefined && newSystem !== existingSystem) {
-              event.system.length = 0;
-              // Use SystemPart shape { type: "text", text }
-              event.system.push({ type: "text", text: newSystem } as any);
-            }
-          } catch (e) {
-            debugLog(`system.transform shim failed: ${e}`);
-          }
-        }
-        // Messages transform
-        if (hasMessagesTransform) {
-          try {
-            // The old transform expects output.messages as Array<{info, parts}>
-            // New event.messages is Array<Message> from @opencode-ai/ai
-            // We'll try calling it with a shallow cast; it will mutate in place if applicable
-            const output: any = { messages: event.messages as any };
-            await hooks["experimental.chat.messages.transform"](
-              {} as any,
-              output,
-            );
-            // If it mutated, event.messages is already mutated because same array
-          } catch (e) {
-            debugLog(`messages.transform shim failed: ${e}`);
-          }
-        }
-        // Compacting: old hook pushed to output.context; new has no direct equivalent
-        // We simulate by injecting compaction context into system if needed
-        if (hasCompacting) {
-          try {
-            const output: any = { context: [] as string[] };
-            await hooks["experimental.session.compacting"]({} as any, output);
-            if (Array.isArray(output.context) && output.context.length > 0) {
-              const compactionText = output.context.join("\n\n");
-              // Inject into system as additional part
-              event.system.push({ type: "text", text: compactionText } as any);
-            }
-          } catch (e) {
-            debugLog(`compacting shim failed: ${e}`);
-          }
-        }
-      });
-    }
-
-    // Event subscription loop for old event hook
-    let eventController: AbortController | undefined;
-    if (hooks.event) {
-      const eventHook = hooks.event;
-      eventController = new AbortController();
-      (async () => {
-        try {
-          for await (const ev of ctx.event.subscribe({
-            signal: eventController!.signal,
-          } as any)) {
-            const evAny: any = ev;
-            const type = evAny.type ?? evAny.event?.type ?? "unknown";
-            const properties = { ...evAny };
-            delete properties.type;
-            // Old handler signature: async ({ event }) => void where event.type and event.properties
-            try {
-              await eventHook({ event: { type, properties, ...evAny } } as any);
-            } catch (e) {
-              debugLog(`event hook failed for ${type}: ${e}`);
-            }
-          }
-        } catch (e: any) {
-          if (e?.name !== "AbortError")
-            debugLog(`event subscription loop ended: ${e}`);
-        }
-      })();
-    }
-
-    // Return cleanup
-    return async () => {
-      try {
-        eventController?.abort();
-      } catch {
-        // Best-effort shutdown.
-      }
-      try {
-        // Old plugin's shutdown handlers were registered globally; we can try to call cleanup if available
-        // The old impl's registerShutdownHandlers returned removeProcessListeners which we don't have reference to
-        // But we can call cleanupTerminal to clean status UI
-        cleanupTerminal();
-      } catch {
-        // Best-effort terminal cleanup.
-      }
-    };
-  },
-});
+// Default export for OpenCode
+/** @alias */
+export default AdvancePlugin;

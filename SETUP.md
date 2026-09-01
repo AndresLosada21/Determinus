@@ -1,4 +1,4 @@
-# ADV (Advance) Setup Guide
+# ADV (Determinus) Setup Guide
 
 Complete installation instructions for the ADV spec-driven development plugin.
 
@@ -43,9 +43,9 @@ new ADV worktrees.
 
 ### Disk-backed storage
 
-Advance requires no database, server, worker, or runtime service. Authoritative
+Determinus requires no database, server, worker, or runtime service. Authoritative
 change, task, gate, and artifact state is stored in per-project disk projections
-under `~/.local/share/opencode/plugins/advance/<projectId>/`; each change is a
+under `~/.local/share/opencode/plugins/determinus/<projectId>/`; each change is a
 `changes/<changeId>/change.json` document with `{schemaVersion:2,state:{...}}`.
 
 Writes use a per-change advisory lock with a 15-second budget, jittered backoff,
@@ -213,7 +213,7 @@ slower without lgrep and Context7, but they will not fail.
 Install the latest published GitHub Release into OpenCode:
 
 ```bash
-curl -fsSL https://github.com/Sharper-Flow/Advance/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/AndresLosada21/Determinus/releases/latest/download/install.sh | bash
 ```
 
 The installer resolves the latest Release, downloads `advance-v*.tar.gz`, verifies
@@ -225,7 +225,7 @@ overlays, skills, docs, and root metadata required for user installation.
 To pin a version, download the installer and set `ADV_VERSION=`:
 
 ```bash
-curl -fsSL https://github.com/Sharper-Flow/Advance/releases/latest/download/install.sh -o /tmp/advance-install.sh
+curl -fsSL https://github.com/AndresLosada21/Determinus/releases/latest/download/install.sh -o /tmp/advance-install.sh
 ADV_VERSION=v0.11.8 bash /tmp/advance-install.sh
 ```
 
@@ -235,23 +235,23 @@ Use this path when you want to inspect files before running the sync script:
 
 ```bash
 VERSION=v0.11.8
-curl -fsSLO "https://github.com/Sharper-Flow/Advance/releases/download/${VERSION}/advance-${VERSION}.tar.gz"
-curl -fsSLO "https://github.com/Sharper-Flow/Advance/releases/download/${VERSION}/SHA256SUMS.txt"
+curl -fsSLO "https://github.com/AndresLosada21/Determinus/releases/download/${VERSION}/determinus-${VERSION}.tar.gz"
+curl -fsSLO "https://github.com/AndresLosada21/Determinus/releases/download/${VERSION}/SHA256SUMS.txt"
 sha256sum --check --ignore-missing SHA256SUMS.txt
-tar -xzf "advance-${VERSION}.tar.gz"
-cd "advance-${VERSION}"
+tar -xzf "determinus-${VERSION}.tar.gz"
+cd "determinus-${VERSION}"
 bash scripts/deploy-local.sh --fix
 ```
 
 ### Maintainer/developer setup
 
-Use a source checkout when you are changing Advance itself or need local tests.
+Use a source checkout when you are changing Determinus itself or need local tests.
 
 #### Step 1: Clone the repository
 
 ```bash
-git clone https://github.com/Sharper-Flow/Advance.git
-cd Advance
+git clone https://github.com/AndresLosada21/Determinus.git
+cd Determinus
 ```
 
 #### Step 2: Install plugin dependencies
@@ -293,7 +293,7 @@ ADV is normally registered from the stable deployed runtime plugin path that
 ```json
 {
   "instructions": ["~/.config/opencode/identity.md"],
-  "plugin": ["~/.local/share/Advance/plugin"]
+  "plugin": ["~/.local/share/Determinus/plugin"]
 }
 ```
 
@@ -324,7 +324,7 @@ The `--fix` flag will:
 
 - Rebuild `plugin/dist` when it is missing or older than plugin build inputs
 - Refuse to deploy stale dist if the build fails or freshness is still unproven
-- Sync `plugin/` to the stable runtime path `~/.local/share/Advance/plugin/`
+- Sync `plugin/` to the stable runtime path `~/.local/share/Determinus/plugin/`
 - Copy all `adv-*.md` commands to `~/.config/opencode/command/`
 - Copy the repo-owned `adv` runtime agent as a full file and leave repo-local-only agents in-tree
 - Apply repo-owned managed overlay blocks to shared global agents like `general`, `build`, and `plan` without replacing the full file
@@ -365,11 +365,11 @@ the prompt cost.
 ```json
 {
   "instructions": ["~/.config/opencode/identity.md"],
-  "plugin": ["/path/to/Advance/plugin"]
+  "plugin": ["/path/to/Determinus/plugin"]
 }
 ```
 
-Legacy migration: if your config already contains `/path/to/Advance/ADV_INSTRUCTIONS.md`
+Legacy migration: if your config already contains `/path/to/Determinus/ADV_INSTRUCTIONS.md`
 or `~/.config/opencode/instructions/ADV_INSTRUCTIONS.md`, run
 `./scripts/deploy-local.sh --fix`. The script removes only ADV instruction paths,
 preserves unrelated global instructions, and syncs the lean `adv` runtime agent
@@ -382,11 +382,11 @@ Then copy slash commands manually:
 ```bash
 # For global availability (all projects)
 mkdir -p ~/.config/opencode/command
-cp -r /path/to/Advance/.opencode/command/* ~/.config/opencode/command/
+cp -r /path/to/Determinus/.opencode/command/* ~/.config/opencode/command/
 
 # Or for project-specific (in your project root)
 mkdir -p .opencode/command
-cp -r /path/to/Advance/.opencode/command/* .opencode/command/
+cp -r /path/to/Determinus/.opencode/command/* .opencode/command/
 ```
 
 ---
@@ -1403,8 +1403,8 @@ Suggestions:
 If you have an existing OpenSpec project, use the migration script:
 
 ```bash
-# From the Advance directory
-cd /path/to/Advance
+# From the Determinus directory
+cd /path/to/Determinus
 
 # Run migration
 pnpm dlx tsx scripts/migrate-openspec.ts /path/to/your-project/openspec ./specs
@@ -1446,7 +1446,7 @@ adv                                        # show status for current repo
 ```
 
 `deploy-local.sh --fix` syncs the whole CLI payload to
-`~/.local/share/Advance/bin/` and points `~/.local/bin/adv` at that stable
+`~/.local/share/Determinus/bin/` and points `~/.local/bin/adv` at that stable
 entrypoint. This avoids symlinks into temporary release extraction directories
 and keeps `bin/adv` sibling imports intact. `scripts/deploy-local.sh --check`
 reports missing installs, stale managed files, wrong symlink targets, unsafe
@@ -1469,7 +1469,7 @@ delegates to `bash scripts/deploy-local.sh --fix`. Common failures:
 | Error text                        | Fix                                                                                                                                                                                                        |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `jq not found`                    | Install jq (`sudo apt-get install -y jq`, `sudo dnf install jq`, or `brew install jq`) so `deploy-local.sh --fix` can patch `opencode.json`.                                                               |
-| `rsync not found`                 | Install rsync (`sudo apt-get install -y rsync`, `sudo dnf install rsync`, or `brew install rsync`) so the runtime plugin can sync to `~/.local/share/Advance/plugin/`.                                     |
+| `rsync not found`                 | Install rsync (`sudo apt-get install -y rsync`, `sudo dnf install rsync`, or `brew install rsync`) so the runtime plugin can sync to `~/.local/share/Determinus/plugin/`.                                     |
 | `pnpm not found`                  | Install pnpm (`corepack enable pnpm`, `npm install -g pnpm`, or your package manager). Release artifacts include built `plugin/dist`, but pnpm is still needed for source rebuilds and ADV worktree hooks. |
 | `sha256sum not found`             | Install GNU coreutils (`sudo apt-get install -y coreutils`, `sudo dnf install coreutils`, or `brew install coreutils`) so release checksums can be verified.                                               |
 | `Permission denied: ./install.sh` | Run `chmod +x install.sh`, or invoke it as `bash install.sh`.                                                                                                                                              |
@@ -1570,7 +1570,7 @@ Verify plugin path in `opencode.json`:
 
 ```bash
 # Check the deployed runtime path exists
-ls ~/.local/share/Advance/plugin/dist/index.js
+ls ~/.local/share/Determinus/plugin/dist/index.js
 
 # If missing or stale, rebuild and sync the runtime plugin
 ./scripts/deploy-local.sh --fix
@@ -1718,5 +1718,5 @@ The read tools below are also available via the ADV MCP server as `tools.adv.*` 
 
 ## Support
 
-- **Issues**: https://github.com/Sharper-Flow/Advance/issues
+- **Issues**: https://github.com/AndresLosada21/Determinus/issues
 - **Documentation**: See README.md and ADV_INSTRUCTIONS.md

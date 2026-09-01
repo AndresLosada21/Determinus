@@ -1,5 +1,5 @@
 {
-  "$id": "https://raw.githubusercontent.com/Sharper-Flow/Advance/trunk/plugin/schemas/task.schema.json",
+  "$id": "https://raw.githubusercontent.com/AndresLosada21/Determinus/trunk/plugin/schemas/task.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": {},
   "properties": {

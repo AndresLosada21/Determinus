@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Install the latest Advance GitHub Release by downloading the full release
+# Install the latest Determinus GitHub Release by downloading the full release
 # artifact, verifying its checksum, and delegating local sync to deploy-local.sh.
 
 set -euo pipefail
 
-REPO="Sharper-Flow/Advance"
+REPO="AndresLosada21/Determinus"
 BASE_URL="https://github.com/${REPO}"
 TMP_DIR=""
 
@@ -79,14 +79,14 @@ for cmd in curl tar sha256sum mktemp bash; do
 done
 
 ADV_VERSION="$(resolve_version)"
-ASSET="advance-${ADV_VERSION}.tar.gz"
+ASSET="determinus-${ADV_VERSION}.tar.gz"
 DOWNLOAD_BASE="${BASE_URL}/releases/download/${ADV_VERSION}"
 
 TMP_DIR="$(mktemp -d)"
 [ -n "${TMP_DIR}" ] && [ -d "${TMP_DIR}" ] || die "mktemp failed"
 cd "${TMP_DIR}"
 
-log "Downloading Advance ${ADV_VERSION}"
+log "Downloading Determinus ${ADV_VERSION}"
 curl -fsSLO "${DOWNLOAD_BASE}/${ASSET}" || die "Could not download ${ASSET}"
 curl -fsSLO "${DOWNLOAD_BASE}/SHA256SUMS.txt" || die "Could not download SHA256SUMS.txt"
 
@@ -114,7 +114,7 @@ validate_archive_paths
 log "Extracting ${ASSET}"
 tar -xzf "${ASSET}"
 
-RELEASE_ROOT="${TMP_DIR}/advance-${ADV_VERSION}"
+RELEASE_ROOT="${TMP_DIR}/determinus-${ADV_VERSION}"
 for required_path in \
 	scripts/deploy-local.sh \
 	bin/adv \
@@ -126,8 +126,8 @@ for required_path in \
 	fi
 done
 
-log "Installing Advance"
+log "Installing Determinus"
 cd "${RELEASE_ROOT}"
 bash scripts/deploy-local.sh --fix
 
-log "Advance ${ADV_VERSION} installed"
+log "Determinus ${ADV_VERSION} installed"

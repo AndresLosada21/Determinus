@@ -1,52 +1,38 @@
-# Changelog
-
-## [8.0.0] - 2026-09-01
-
-### Determinus - Rebrand & OpenCode v2 Native
-
-- **Rebrand**: `opencode-ai-driven-engineering` (ADE 6.1/7.1) + `Advance 1.22.2` → **Determinus 8.0.0**
-- **Repository**: `AndresLosada21/opencode-ai-driven-engineering` → `AndresLosada21/Determinus` (https://github.com/AndresLosada21/Determinus)
-- **Package**: `@sharperflow/advance` 1.22.2 → `determinus` 8.0.0 (`plugin/package.json`)
-- **Plugin ID**: `advance` → `determinus` (`plugin/src/index.ts` hybrid v1+v2, `id: ""determinus""`, `export default {id, setup}` for opencode2 strict schema)
-- **Runtime**: opencode2-native bridge via `ctx.location` + `ctx.tool.transform` (35 tools `adv_*` via `as any` Zod compat), `tool.execute.before/after`, `event`, `experimental` hooks bridged; fixes `SchemaError: Expected object at [""default""]`
-- **Storage**: git-initialized project (fixes `ADV_PLUGIN_INIT_FAILED: repo project id could not be resolved`), preserves `.adv` specs/changes
-- **Build**: `b28a00f62354` / `86ca7d31...` (determinus), `pnpm exec tsc --noEmit` 0, `pnpm run build` OK (1.98MB index.js)
-- **Install**: `~/.local/share/Advance/plugin` transitional, ADE 7.x agents/skills removed
 ## Unreleased
 
 ### Changed
 
-- **Recommended rule P29 rewritten as `yagni-scope-discipline`** in `SETUP.md` and `skills/adv-rule-rationale`. YAGNI now leads the rule affirmatively (build only what the accepted request requires now; record plausible future needs as named follow-ups), a new `scope` field binds the rule to solution design during delivery â€” never to accepting, questioning, or renegotiating the request â€” and an explicit non-license clause bars under-building, narrowing approved scope, skipping research/tests/verification, and refusing user-requested work (challenges route through clarification P08). The clarity-over-smallest-diff substance is retained, subordinated to the YAGNI lead, and the `(see P41)` cross-reference is restored at the closer. Replaces the `clean-not-minimal` framing whose headline pulled opposite its buried YAGNI clause. Origin: toolbox corpus rewrite `promoteYagniP29` (PR #255, 2026-08-29, independent-validator approved). `rules.yaml` stays user-managed.
-- **Disk-only runtime persistence** â€” Removed the historical Temporal runtime architecture. Advance now keeps authoritative change, task, gate, and Epic state in per-project disk projections with per-change locking, atomic crash-safe writes, optimistic version checks for Epics, and fail-closed transaction verification. No external runtime service is required.
+- **Recommended rule P29 rewritten as `yagni-scope-discipline`** in `SETUP.md` and `skills/adv-rule-rationale`. YAGNI now leads the rule affirmatively (build only what the accepted request requires now; record plausible future needs as named follow-ups), a new `scope` field binds the rule to solution design during delivery — never to accepting, questioning, or renegotiating the request — and an explicit non-license clause bars under-building, narrowing approved scope, skipping research/tests/verification, and refusing user-requested work (challenges route through clarification P08). The clarity-over-smallest-diff substance is retained, subordinated to the YAGNI lead, and the `(see P41)` cross-reference is restored at the closer. Replaces the `clean-not-minimal` framing whose headline pulled opposite its buried YAGNI clause. Origin: toolbox corpus rewrite `promoteYagniP29` (PR #255, 2026-08-29, independent-validator approved). `rules.yaml` stays user-managed.
+- **Disk-only runtime persistence** — Removed the historical Temporal runtime architecture. Advance now keeps authoritative change, task, gate, and Epic state in per-project disk projections with per-change locking, atomic crash-safe writes, optimistic version checks for Epics, and fail-closed transaction verification. No external runtime service is required.
 
 ### Added
 
-- **Recommended rule P32 `worktree-isolation`** backfilled in `SETUP.md` (sibling to P29-P31). Targets the agent failure mode of writing implementation changes into a shared trunk/default checkout or running deploy/rebuild from a worktree. P32 (priority 8) keeps the trunk on its default branch and routes all branch work â€” ADV changes and ad-hoc fixes â€” through isolated worktrees; the inverse clause forces deploy/rebuild/release/install/publish operations onto the merged default branch. Pairs structurally with the ADV plugin's trunk-write firewall and the `oc-worktree` helper. Like P29-P31, `rules.yaml` stays user-managed.
+- **Recommended rule P32 `worktree-isolation`** backfilled in `SETUP.md` (sibling to P29-P31). Targets the agent failure mode of writing implementation changes into a shared trunk/default checkout or running deploy/rebuild from a worktree. P32 (priority 8) keeps the trunk on its default branch and routes all branch work — ADV changes and ad-hoc fixes — through isolated worktrees; the inverse clause forces deploy/rebuild/release/install/publish operations onto the merged default branch. Pairs structurally with the ADV plugin's trunk-write firewall and the `oc-worktree` helper. Like P29-P31, `rules.yaml` stays user-managed.
 - **Recommended rule P34 `no-unverified-knowledge`** backfilled in `SETUP.md` (sibling to P29-P33). Targets the agent failure mode of presenting training recall as fact about external surfaces (libraries, frameworks, APIs, versions, syntax, vendor capabilities). P34 (priority 9) sets the default stance "I do not know," names the trigger phrases ("I think", "should be", "typically", "from memory", "probably") that fire stop-and-look-up, and routes lookups to Context7 (library/framework docs), Exa (current info/discovery), or official docs/source/probes. External-surfaces twin of P38. Like P29-P33, `rules.yaml` stays user-managed.
 - **Recommended rule P35 `architecture-over-hacks`** backfilled in `SETUP.md` (sibling to P29-P34). Targets the agent failure mode of reaching for workarounds (symlinks, env-var overrides, shell aliases, wrapper scripts, manual file shuffling, chmod/chown overrides, sed/awk rewrites, hand-edits to deployed artifacts) before identifying the architectural fix. P35 (priority 8) directs the agent to first identify and prefer the architectural fix; if too expensive, present both proper fix and temporary workaround explicitly. Legitimate symlinks remain allowed only when produced and repaired by the owning system. Like P29-P34, `rules.yaml` stays user-managed.
 - **Recommended rule P37 `no-polling-loops`** backfilled in `SETUP.md` (sibling to P29-P36). Targets the agent failure mode of looping on external-state checks (CI, PR checks, deployments, build status) from normal agent context, burning tokens without producing new information. P37 (priority 9) requires one-shot verification (run, report, hand back); dedicated wait sub-agents such as `adv-ci-waiter` are the bounded exception. Pairs with `~/.config/opencode/instructions/oc-ci-wait.md`. Like P29-P36, `rules.yaml` stays user-managed.
 - **Recommended rule P38 `declaration-is-not-behavior`** added in `SETUP.md` (sibling to P29-P37). Targets the agent failure mode of asserting what a project's own configuration, schema, or policy table DOES based only on reading the declaration, without tracing the value through its loader to its consuming call site. P38 (priority 9, parity with P34) is the internal-surfaces twin of P34: where P34 says "look it up", P38 says "a declaration is not the behavior". Names the silent-default join failure mode (`.get(key, default)`, `getattr(obj, name, fallback)`) that can leave declared keys matching nothing. Originates from RCA of a pokeedge incident where dead `language_bonuses` config keys were confidently described as policy. Like P29-P37, `rules.yaml` stays user-managed.
 - **Recommended rule P39 `population-identity`** added in `SETUP.md` (sibling to P29-P38). Targets the agent failure mode of asserting per-entity rates or ratios whose numerator and denominator are drawn from different populations. P39 (priority 8, parity with P07/P25) requires `COUNT(DISTINCT entity)` alongside `COUNT(*)` whenever claiming a per-entity rate, and rejects ratios whose numerator and denominator are filtered differently. A plausible-looking ratio from mismatched populations is more dangerous than an obviously wrong one because it survives review. Originates from RCA of the same pokeedge incident where a "3 passes per card" figure was derived from 12,280 work items / 4,225 cards with provider IDs, when the work items actually covered 12,056 distinct cards. Like P29-P38, `rules.yaml` stays user-managed.
 - **Design-gate lever-citation precondition** added to `.opencode/command/adv-design.md`. Phase 2 now requires the design author to cite the call site (not the declaration) for every mechanism the design proposes to change, and to confirm no earlier stage preempts scoring/ranking/policy levers (fixed bands, short circuits, hard filters, empty inputs that render the weight inert). Operationalizes P38 at the design gate so the gap is caught at drafting time rather than by a downstream validator. Mirrors the structured failure that prompted P38 (pokeedge `fixPricechartingRefresh`).
-- **addWorkflowDirectives** â€” single-source-of-truth workflow directive projection. `deriveWorkflowDirective(state, epoch)` derives one authoritative next-action (phase, per-gate status, `Next:` orientation command, approval/recovery/blocked/archived routing, `canArchive`, bucket) straight from durable `ChangeWorkflowState`. The workflow's `getDirectiveQuery` is the sole producer; gate completion/status, change show/create, status enrichment, and compaction all consume the same `WorkflowDirective` and render an identical `Next:` line. Terminal statuses (`archived` and `closed`) collapse to a safe archived directive, and tool-layer callers use `deriveDirectiveSafe` so a derivation failure degrades gracefully instead of breaking the response.
-- **Finding routing to backlog** â€” command contracts (`adv-prep` MoSCoW Won't path, `adv-design` risk-table framing, `adv-apply`/`adv-review`/`adv-harden` routing) now name `adv_backlog_add` as the durable middle-tier option for mid-lifecycle findings. Closes the claims-vs-facts defect class where findings that do not warrant immediate change creation had no friction-free durable home. Each claim carries a drift-guard asset-test anchor (`finding-routing-assets.test.ts`) that fails on removal.
-- **Respects-evidence authority enforcement (rq-respectsEvaluation01)** â€” `checkRespectsEvidenceAuthority` in `gate-readiness.ts` now blocks acceptance and release for any done task whose `contract_refs.respects` targets an avoidance (DONT) or out_of_scope (OOS) item without task-scoped `adv-reviewer` report authority. Self-asserted compliance alone fails with a typed `RESPECTS_EVIDENCE_AUTHORITY_MISSING` blocker. Applies to ALL done tasks (no grandfathering); existing recorded review is accepted, not re-litigated. Test-policy tasks are not exempt. Closes the gap where avoidance items declared `evidencePolicy: "review"` + `verificationRequired: true` but nothing enforced it.
-- **Portfolio state at change creation (rq-createPortfolioLine01)** â€” `adv_change_create` results now carry a bounded `portfolioState` field: non-terminal count, never-terminal share, and a soft nudge above both thresholds (open count â‰¥ 5 AND never-terminal share > 0.5). The read is deadline-capped (2 s, well under the store budget) and degrades to an explicit `{ available: false }` marker on failure â€” creation is never blocked by the portfolio read.
-- **Retry progress-vs-retry discrimination (rq-retryProgressAccounting01)** â€” the report-submission reducer now records a BLOCKED verdict with disjoint blocking findings as progress (`task.progress_rounds`), not a retry (`error_recovery`). Findings overlapping by id or file+what are retries. Progress rounds do not inflate the retry budget. Closes the residual from `clampDoomLoopAccumulator` where retry semantics counted every BLOCKED verdict identically.
-- **Visible budget-warning marker** â€” when the true attempt count (`total_attempts`) reaches or exceeds `max_retries`, the retention clamp now emits an explicit `budget_warning` string on `error_recovery` rather than silently dropping history. Report submission is never refused at/over budget. The doom-loop UX (`formatDoomLoopDiagnostics`) surfaces `budgetWarning` so the operator can see that the clamp fired.
+- **addWorkflowDirectives** — single-source-of-truth workflow directive projection. `deriveWorkflowDirective(state, epoch)` derives one authoritative next-action (phase, per-gate status, `Next:` orientation command, approval/recovery/blocked/archived routing, `canArchive`, bucket) straight from durable `ChangeWorkflowState`. The workflow's `getDirectiveQuery` is the sole producer; gate completion/status, change show/create, status enrichment, and compaction all consume the same `WorkflowDirective` and render an identical `Next:` line. Terminal statuses (`archived` and `closed`) collapse to a safe archived directive, and tool-layer callers use `deriveDirectiveSafe` so a derivation failure degrades gracefully instead of breaking the response.
+- **Finding routing to backlog** — command contracts (`adv-prep` MoSCoW Won't path, `adv-design` risk-table framing, `adv-apply`/`adv-review`/`adv-harden` routing) now name `adv_backlog_add` as the durable middle-tier option for mid-lifecycle findings. Closes the claims-vs-facts defect class where findings that do not warrant immediate change creation had no friction-free durable home. Each claim carries a drift-guard asset-test anchor (`finding-routing-assets.test.ts`) that fails on removal.
+- **Respects-evidence authority enforcement (rq-respectsEvaluation01)** — `checkRespectsEvidenceAuthority` in `gate-readiness.ts` now blocks acceptance and release for any done task whose `contract_refs.respects` targets an avoidance (DONT) or out_of_scope (OOS) item without task-scoped `adv-reviewer` report authority. Self-asserted compliance alone fails with a typed `RESPECTS_EVIDENCE_AUTHORITY_MISSING` blocker. Applies to ALL done tasks (no grandfathering); existing recorded review is accepted, not re-litigated. Test-policy tasks are not exempt. Closes the gap where avoidance items declared `evidencePolicy: "review"` + `verificationRequired: true` but nothing enforced it.
+- **Portfolio state at change creation (rq-createPortfolioLine01)** — `adv_change_create` results now carry a bounded `portfolioState` field: non-terminal count, never-terminal share, and a soft nudge above both thresholds (open count ≥ 5 AND never-terminal share > 0.5). The read is deadline-capped (2 s, well under the store budget) and degrades to an explicit `{ available: false }` marker on failure — creation is never blocked by the portfolio read.
+- **Retry progress-vs-retry discrimination (rq-retryProgressAccounting01)** — the report-submission reducer now records a BLOCKED verdict with disjoint blocking findings as progress (`task.progress_rounds`), not a retry (`error_recovery`). Findings overlapping by id or file+what are retries. Progress rounds do not inflate the retry budget. Closes the residual from `clampDoomLoopAccumulator` where retry semantics counted every BLOCKED verdict identically.
+- **Visible budget-warning marker** — when the true attempt count (`total_attempts`) reaches or exceeds `max_retries`, the retention clamp now emits an explicit `budget_warning` string on `error_recovery` rather than silently dropping history. Report submission is never refused at/over budget. The doom-loop UX (`formatDoomLoopDiagnostics`) surfaces `budgetWarning` so the operator can see that the clamp fired.
 
 ### Removed
 
-- **consolidateAdvToolSurface2 tool-surface consolidation** â€” five legacy or redundant agent-callable tools removed completely; no wrappers, aliases, or compatibility shims.
-  - `adv_backlog_state` â†’ use `adv_roadmap`, the sole backlog reader. It preserves `source: "file" | "live"`, carries TTL-bounded annotation freshness, and performs O(1) active-change annotation via batched `queryActiveChangesByIssueNumbers` (â‰¤100 issue numbers per call). When Temporal Visibility is unreachable it returns the requested roadmap data with a typed `annotations_unavailable` source-health state â€” never per-change fallback reads.
-  - `adv_project_wisdom_list` â†’ use `adv_wisdom_list` with `project_only: true`; `maxEntries` bounds the project-only listing and is applied after type and product-visibility filtering. `project_only` is mutually exclusive with `changeId` and `query`.
-  - `adv_gate_criteria`, `adv_epic_update_scope`, `adv_epic_merge` â†’ latent definitions removed (never registered, never reachable). No agent-callable replacement: gate criteria remain advisory checklists evaluated through the gate completion/status path (`adv_gate_status` / `adv_gate_complete`); audited Epic scope mutation and merge finalization remain Temporal storage/workflow behavior (`rq-epicMutableScope01`, `rq-epicMerge01`), not agent-callable tools.
+- **consolidateAdvToolSurface2 tool-surface consolidation** — five legacy or redundant agent-callable tools removed completely; no wrappers, aliases, or compatibility shims.
+  - `adv_backlog_state` → use `adv_roadmap`, the sole backlog reader. It preserves `source: "file" | "live"`, carries TTL-bounded annotation freshness, and performs O(1) active-change annotation via batched `queryActiveChangesByIssueNumbers` (≤100 issue numbers per call). When Temporal Visibility is unreachable it returns the requested roadmap data with a typed `annotations_unavailable` source-health state — never per-change fallback reads.
+  - `adv_project_wisdom_list` → use `adv_wisdom_list` with `project_only: true`; `maxEntries` bounds the project-only listing and is applied after type and product-visibility filtering. `project_only` is mutually exclusive with `changeId` and `query`.
+  - `adv_gate_criteria`, `adv_epic_update_scope`, `adv_epic_merge` → latent definitions removed (never registered, never reachable). No agent-callable replacement: gate criteria remain advisory checklists evaluated through the gate completion/status path (`adv_gate_status` / `adv_gate_complete`); audited Epic scope mutation and merge finalization remain Temporal storage/workflow behavior (`rq-epicMutableScope01`, `rq-epicMerge01`), not agent-callable tools.
 
 ### Changed
 
-- **Engineer-first classified UI delivery** â€” `metadata.frontend: "true"` now classifies work for initial `adv-engineer` implementation followed by a matching-cycle `adv-designer` UI/UX follow-up; it no longer directly routes initial implementation to `adv-designer`.
-- **`adv_delta_modify`** â€” narrow typed modification deltas can update an existing capability-local requirement through change-owned state; archive remains the sole global-spec writer, with remove, rename, full CRUD, and direct global writes excluded.
-- **Strict role-scoped tool visibility** â€” agent ADV-tool allowlists are now governed by an exhaustive code-owned role policy (`plugin/src/tool-role-policy.ts`) that mirrors `docs/tool-ownership.md`. CI fails when an agent manifest grants an unregistered, removed, or role-irrelevant ADV tool, or when the documented ownership matrix and the code policy diverge â€” including action-level dual-tool distinctions (`adv_snapshot_health#repair`, `adv_conformance#override`, `adv_status forceRefresh`, `adv_project_metadata write`).
+- **Engineer-first classified UI delivery** — `metadata.frontend: "true"` now classifies work for initial `adv-engineer` implementation followed by a matching-cycle `adv-designer` UI/UX follow-up; it no longer directly routes initial implementation to `adv-designer`.
+- **`adv_delta_modify`** — narrow typed modification deltas can update an existing capability-local requirement through change-owned state; archive remains the sole global-spec writer, with remove, rename, full CRUD, and direct global writes excluded.
+- **Strict role-scoped tool visibility** — agent ADV-tool allowlists are now governed by an exhaustive code-owned role policy (`plugin/src/tool-role-policy.ts`) that mirrors `docs/tool-ownership.md`. CI fails when an agent manifest grants an unregistered, removed, or role-irrelevant ADV tool, or when the documented ownership matrix and the code policy diverge — including action-level dual-tool distinctions (`adv_snapshot_health#repair`, `adv_conformance#override`, `adv_status forceRefresh`, `adv_project_metadata write`).
 
 ## 2026-05-28 (v1.0.0)
 
@@ -61,12 +47,12 @@ First 1.x release. ADV graduates from 0.12.x with a coherent architectural miles
 ### Added
 
 - `adv-designer` apply-phase, write-only, typed-persisted sub-agent for frontend/component implementation; routes from `metadata.frontend == "true"` at `/adv-prep` time into `/adv-apply` Priority 1.5 delegation.
-- `skills/adv-frontend-review/SKILL.md` â€” canonical 6-dimension frontend/design review methodology, referenced as Primary from `/adv-review` and `/adv-harden` reviewer packets.
+- `skills/adv-frontend-review/SKILL.md` — canonical 6-dimension frontend/design review methodology, referenced as Primary from `/adv-review` and `/adv-harden` reviewer packets.
 - Strict scoped report schemas for `adv-researcher`, `adv-tron`, and orchestrator-submitted `adv-scanner-bundle` reports (typed handoff).
 - `signal_rejections` bounded ring buffer + `signal_rejections_total` counter on `ChangeWorkflowState`; signal handlers record ordinary errors as state without failing the workflow.
 - ADR 0003: signal handlers must not throw ordinary errors (state-mutation rejection pattern).
-- `stateBackedArtifactEvidence` helper in `temporal/gate-readiness.ts` â€” proposal/discovery/design gate readiness validates Temporal `state.documents` instead of requiring active disk files.
-- Stuck proposal/discovery/design gate recovery guidance: deploy â†’ restart OpenCode â†’ re-enter gate, no manual disk artifact writes.
+- `stateBackedArtifactEvidence` helper in `temporal/gate-readiness.ts` — proposal/discovery/design gate readiness validates Temporal `state.documents` instead of requiring active disk files.
+- Stuck proposal/discovery/design gate recovery guidance: deploy → restart OpenCode → re-enter gate, no manual disk artifact writes.
 - `STATE_BACKED_GATE_ARTIFACT_PROOF_PATCH` Temporal patch marker for replay-safe command-sequence change.
 - OpenCode debt repair extended to stale `running`/`pending` tool parts (backup-gated, schema-compatible, conservative around live work).
 - `adv_status view:"summary"` and a summary-read path for `adv_change_list` that avoids per-change full hydration when memo/cache satisfies the response.
@@ -413,7 +399,7 @@ First 1.x release. ADV graduates from 0.12.x with a coherent architectural miles
 - regenerate via /adv-triage (docs: roadmap)
 - adopt mattpocock skills (chore: archive)
 - archive extendAdvAuditProjectWideSpec (chore)
-- regenerate ROADMAP.md â€” score #106-#110, 36 features ranked (chore: triage)
+- regenerate ROADMAP.md — score #106-#110, 36 features ranked (chore: triage)
 - archive optimizeAdvCommandTokenLoadVia (chore)
 - archive defaultLinkedIssueClosure (chore)
 - /adv-triage update 2026-05-11 (chore: roadmap)
@@ -430,7 +416,7 @@ First 1.x release. ADV graduates from 0.12.x with a coherent architectural miles
 - codify Change Origin Linkage Strategy (docs: adv-instructions)
 - /adv-triage update 2026-05-09 (chore: roadmap)
 - archive replacegitguardwithtrunkwritef (chore)
-- caveman-compress adv-atc agent overlay (354â†’310 lines) (refactor)
+- caveman-compress adv-atc agent overlay (354→310 lines) (refactor)
 - archive fixGitMutationGuardDeadlock (chore)
 - archive hardenPhaseValidatesImplements + harden/review findings workflow (chore)
 - archive addStructuralChangeContract (chore)
@@ -455,7 +441,7 @@ First 1.x release. ADV graduates from 0.12.x with a coherent architectural miles
 - archive refactorChangeWorkflowsSignal + reap migration disk leftovers (chore)
 - archive removeBunTypesMainTsconfig (chore)
 - archive makeAdvTaskEvidenceFallback + addagentmeshandinrepoarchive (chore)
-- add Section 9 â€” Removal & Test Strategy (docs: decisions)
+- add Section 9 — Removal & Test Strategy (docs: decisions)
 - record signal-driven change workflow architecture (docs: decisions)
 - use STSL singleton in probeStaleQueues, avoid fresh client overhead (perf)
 - record open issue solution plan (docs)
@@ -476,14 +462,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added â€” Persist Executive Summary as Communication-Only Narrative Artifact
+### Added — Persist Executive Summary as Communication-Only Narrative Artifact
 
 `executive-summary.md` is a new optional narrative artifact on every change, written at acceptance time by `/adv-review` Phase 7 and restated in the pre-archive Change Report by the Sign-Off Boundary. It complements (does NOT replace) trunk's `acceptance.md`: `acceptance.md` is the gate-enforcement projection verified by `inspectArtifactActivity`; `executive-summary.md` is a field-style artifact for release notes, changelogs, and user-facing communication. Artifact metadata is tracked in workflow state for freshness; it is not gate-coupled.
 
 **Tool surface (additive, backward-compatible):**
 - `adv_change_create` accepts new optional `executiveSummary` content field
 - `adv_change_update` accepts new optional `executiveSummary` content field (joins `proposal`/`problemStatement`/`agreement`/`design` in the at-least-one-of guard)
-- `adv_change_show` accepts new optional `include.executiveSummary` flag â†’ returns `_executiveSummary` markdown
+- `adv_change_show` accepts new optional `include.executiveSummary` flag → returns `_executiveSummary` markdown
 
 **Storage (additive):**
 - `createChangeScaffold` and `updateChangeArtifacts` in `storage/json.ts` accept a 5th optional `executiveSummaryContent` param; same threading through `store-types`, `store-disk`, and `store-temporal/changes.ts`, including workflow artifact metadata refresh when `adv_change_update` writes the artifact
@@ -493,16 +479,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sign-Off Boundary template in `.opencode/agents/adv.md` adds an `### Executive Summary` section sourced from `_executiveSummary` (no recomposition fallback)
 - `/adv-archive` Phase 1 reads via `adv_change_show include: { executiveSummary: true }`
 
-**Operational note â€” plugin rebuild required:** This change extends MCP tool schemas (`adv_change_create`/`update`/`show`). OpenCode caches `plugin/dist/index.js` at session startup; the new fields will not be recognized in a running session that started before this build. Run `pnpm run build` then restart OpenCode/plugin host before invoking the new field in live tools. Source-level changes are validated by the existing 2532-test suite immediately.
+**Operational note — plugin rebuild required:** This change extends MCP tool schemas (`adv_change_create`/`update`/`show`). OpenCode caches `plugin/dist/index.js` at session startup; the new fields will not be recognized in a running session that started before this build. Run `pnpm run build` then restart OpenCode/plugin host before invoking the new field in live tools. Source-level changes are validated by the existing 2532-test suite immediately.
 
 **What stays the same:**
 - `ARCHIVE_SUMMARY.md` generation (programmatic, unchanged)
-- Archive bundle copy logic (automatic â€” picks up `executive-summary.md` via existing readdir-all-files copy)
+- Archive bundle copy logic (automatic — picks up `executive-summary.md` via existing readdir-all-files copy)
 - `acceptance.md` gate-enforcement (trunk's pattern, untouched)
 
-### Fixed â€” 2026-05-09 ATC bug drain (19 bugs)
+### Fixed — 2026-05-09 ATC bug drain (19 bugs)
 
-ADV ATC autonomous pipeline drained the bug backlog, archiving 19 changes in a single session. All fixes verified via TDD with redâ†’green tests and `pnpm run check`.
+ADV ATC autonomous pipeline drained the bug backlog, archiving 19 changes in a single session. All fixes verified via TDD with red→green tests and `pnpm run check`.
 
 **Validator / archive correctness:**
 - `adv_change_validate` no longer treats warnings-only state as failure in strict mode (`strictWarnings: true` opt-in for warnings-as-errors) (#63)
@@ -530,7 +516,7 @@ ADV ATC autonomous pipeline drained the bug backlog, archiving 19 changes in a s
 - Worktree `WorkflowUpdateFailedError` after repair verified resolved (#48)
 - External-state hygiene leftovers + test-isolation leak detected/prevented via `check-test-isolation.ts` extension (#60)
 
-### Changed â€” /adv-triage Phase 3b UX improvement
+### Changed — /adv-triage Phase 3b UX improvement
 
 - Replaced Phase 3b text-only `Reply EXACTLY one of: assign 1=high 2=critical...` batch prompt with structured `question` tool calls
 - Two-stage flow: batch control question first (one-by-one / autofill all / defer all / stop), then per-item questions with context-specific options
@@ -541,13 +527,13 @@ ADV ATC autonomous pipeline drained the bug backlog, archiving 19 changes in a s
 
 ## [Unreleased] - retireInvestmentGovernanceDeadweight
 
-### Added â€” Structural correctness guidance
+### Added — Structural correctness guidance
 
 - Documented recommended `P33 structural-correctness` rule in `SETUP.md` and `ADV_INSTRUCTIONS.md`: structural sources of truth (types, schemas, parsers, state machines, validators, exact refs, explicit user assignments) own correctness; heuristics may assist discovery/ranking/triage only.
 - Tightened `/adv-triage` duplicate detection: exact stable-ref/body matches may mark backlog items represented, but title-similarity matches are only candidate duplicates and must remain in the user-confirmation list.
 - Added scanner coverage for P33: `/adv-arch-scan` now checks structural-correctness boundaries (`rq-archp33`), and `/adv-slop-scan` reports heuristic-owned correctness-boundary overreach as `QUAL-012` (`rq-ss009`).
 
-### Removed â€” Investment Governance v1 (retireInvestmentGovernanceDeadweight)
+### Removed — Investment Governance v1 (retireInvestmentGovernanceDeadweight)
 
 - Removed `/adv-prep` Phase J (judgment-call identification)
 - Removed `/adv-apply` Phase 1.5 (judgment-call surfacing)
@@ -592,7 +578,7 @@ ADV ATC autonomous pipeline drained the bug backlog, archiving 19 changes in a s
 
 ### Fixed
 
-- **Archive Phase 9 no longer switches branches anywhere.** `/adv-archive` Phase 9 used to run `git checkout {default-branch} && git merge --ff-only` from the current workdir, which (a) hard-failed from a worktree because the default branch is already checked out in the main checkout (`fatal: 'trunk' is already used by worktree at <main>`), and (b) violated the invariant that the main checkout always stays on the default branch. Phase 9 now resolves the main checkout path once via `MAIN="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`, hard-gates on a new Step 4.4 invariant check (main MUST be on default-branch and clean â€” ADV will not mutate main on the user's behalf), and runs all default-branch operations (fetch, merge, push, verify, hook detection) via `git -C "$MAIN" ...`. ADV never runs `git checkout` or `git switch` during archive. Companion fix to `~/.config/opencode/instructions/worktree-guide.md` mirrors the same pattern in the manual-cleanup guidance. Asset-test contract now enforces no-checkout in Phase 9.
+- **Archive Phase 9 no longer switches branches anywhere.** `/adv-archive` Phase 9 used to run `git checkout {default-branch} && git merge --ff-only` from the current workdir, which (a) hard-failed from a worktree because the default branch is already checked out in the main checkout (`fatal: 'trunk' is already used by worktree at <main>`), and (b) violated the invariant that the main checkout always stays on the default branch. Phase 9 now resolves the main checkout path once via `MAIN="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`, hard-gates on a new Step 4.4 invariant check (main MUST be on default-branch and clean — ADV will not mutate main on the user's behalf), and runs all default-branch operations (fetch, merge, push, verify, hook detection) via `git -C "$MAIN" ...`. ADV never runs `git checkout` or `git switch` during archive. Companion fix to `~/.config/opencode/instructions/worktree-guide.md` mirrors the same pattern in the manual-cleanup guidance. Asset-test contract now enforces no-checkout in Phase 9.
 - **OpenCode session debt is now visible and safely repairable.** `adv_status` reports stale blank assistant messages in the shared OpenCode database and emits a `[doctor]` recommendation only for rows older than the live-session threshold. `scripts/opencode-session-doctor.ts` provides dry-run-first repair and refuses deletion without `--apply --backup-dir <dir>`.
 - **Worktree plugin pending deletes are queued.** The installed `kdco/worktree` plugin now preserves multiple pending delete requests, retries them through guarded cleanup, and adds `worktree_cleanup` for explicit retry. The installed-artifact patch is committed in `~/.config/opencode` and should be promoted to the `kdco/worktree` registry source if the package is reinstalled or resynced.
 - **Execution-gate task-completion guard restored.** `adv_gate_complete(execution)` now rejects when any tasks are incomplete (status not `done` or `cancelled`). The guard regressed in v0.8.x during the Temporal migration. The restored check mirrors the planning-gate dispatch pattern and lists each incomplete task in the error response.
@@ -601,17 +587,17 @@ ADV ATC autonomous pipeline drained the bug backlog, archiving 19 changes in a s
 
 - **Session observability now includes same-worktree occupancy.** Startup emits `[ADV:WORKTREE_OCCUPANCY]` when multiple OpenCode sessions share one worktree, preserving privacy by reporting count only. `adv_session_list` entries now include `lastSeenAt` for freshness-aware operators while keeping full paths/PIDs private.
 - **Archive completeness validation at preflight.** `adv_change_archive` now calls `validateChange` between preflight checks and bundle creation. Validation errors block the archive; warnings are included in the response but do not block. Validation runs before the idempotent bundle-existence check so that retries also validate.
-- **Recommended rule P29 `clean-not-minimal`** documented in `SETUP.md` (sibling to P28). Replaces the earlier `smallest-reversible-solution` framing that pattern-matched to "minimize touch / minimize blast radius" and caused agents to suppress legitimate wider-architectural-change proposals. New wording instructs agents to optimize for clarity and surface bigger changes when they produce cleaner results, while preserving YAGNI/anti-speculation intent. Like P28, `rules.yaml` is user-managed â€” section documents the add-manually steps.
+- **Recommended rule P29 `clean-not-minimal`** documented in `SETUP.md` (sibling to P28). Replaces the earlier `smallest-reversible-solution` framing that pattern-matched to "minimize touch / minimize blast radius" and caused agents to suppress legitimate wider-architectural-change proposals. New wording instructs agents to optimize for clarity and surface bigger changes when they produce cleaner results, while preserving YAGNI/anti-speculation intent. Like P28, `rules.yaml` is user-managed — section documents the add-manually steps.
 - **Recommended rule P30 `docs-before-probing` + P16 strengthening** documented in `SETUP.md` (sibling to P28/P29). Targets the agent failure mode of probing external library behavior via test scripts, source reads, or extrapolation from existing repo usage when the official docs already answer the question authoritatively. P30 (priority 8) makes Context7 / official docs the mandatory first move when external API/framework/library behavior is unclear; probing is reserved as a fallback when docs are missing, ambiguous, or contradicted by observed behavior. P16 is broadened in scope from internal-only (repo docs/ADRs/workflows) to internal + external (library, framework, API, vendor docs) to set the broader "docs first" stance. Like P28/P29, `rules.yaml` stays user-managed; section documents both edits.
-- **Recommended rule P31 `thoroughness` + P19 reinforcement** documented in `SETUP.md` (sibling to P28-P30). Targets the agent failure mode of optimizing for minimum tokens / turns / time / effort at the cost of correctness. P31 (priority 9, parity with P05/P24/P27/P28) forbids decisions based on agent-effort minimization and lists concrete anti-patterns (skipping docs, skipping related-scan, accepting first-pass solutions, suppressing better ideas, declaring done prematurely, choosing cheap diagnosis over correct). P19 simplicity is reinforced with a carve-out: simplicity governs the SOLUTION, not the WORK INVESTED â€” do not invoke KISS/YAGNI to skip thorough-work obligations. Two reinforcing rules close the most common rationalization escape hatch agents use to cut corners. Like P28-P30, `rules.yaml` stays user-managed; section documents both edits.
-- **advance-meta v1.5.0 spec promotion** (`unifyWorktreeUnderAdvMultiSession` change): four new requirements promoted to law for the multi-session-as-design-center work â€” `rq-multiSessionCoordination01` (Temporal-serialized state writes across peer sessions), `rq-worktreeRegistry01` (worktree state authority lives in `ProjectWorkflowState.worktree_registry`, no SQLite/JSONL sidecar), `rq-multiSessionFraming01` (legacy Concurrent Session Hazard framing forbidden in production code; `[ADV:PEER_SESSIONS]` informational marker replaces `[ADV:WARN]`; ADV_INSTRUCTIONS.md must contain `Â§ Multi-Session Coordination`), and `rq-temporalConcurrentLoad01` (Temporal worker survives Nâ‰¥5 concurrent client load and worker-kill respawn-elect). Citation anchor for downstream task implementation; full enforcement paths land via subsequent tasks in this change.
-- **Closed T3 risk** (`unifyWorktreeUnderAdvMultiSession` change, T38â€“T39): Temporal multi-client load behavior validated via the new `--mode=concurrent-clients` benchmark mode. Stress scenarios cover 5+ concurrent clients with worker-lock contention, state-write race (5Ã—10 worktree register/remove cycles, monotonic source_version asserted), and worker-kill respawn-elect (rq-workerSingleton01.3 stale-PID reclaim). Linux-only per J4 SCOPE REDUCTION. Opt-in: `RUN_INTEGRATION_TESTS=1 pnpm test src/__tests__/temporal-concurrent-load.itest.ts`.
+- **Recommended rule P31 `thoroughness` + P19 reinforcement** documented in `SETUP.md` (sibling to P28-P30). Targets the agent failure mode of optimizing for minimum tokens / turns / time / effort at the cost of correctness. P31 (priority 9, parity with P05/P24/P27/P28) forbids decisions based on agent-effort minimization and lists concrete anti-patterns (skipping docs, skipping related-scan, accepting first-pass solutions, suppressing better ideas, declaring done prematurely, choosing cheap diagnosis over correct). P19 simplicity is reinforced with a carve-out: simplicity governs the SOLUTION, not the WORK INVESTED — do not invoke KISS/YAGNI to skip thorough-work obligations. Two reinforcing rules close the most common rationalization escape hatch agents use to cut corners. Like P28-P30, `rules.yaml` stays user-managed; section documents both edits.
+- **advance-meta v1.5.0 spec promotion** (`unifyWorktreeUnderAdvMultiSession` change): four new requirements promoted to law for the multi-session-as-design-center work — `rq-multiSessionCoordination01` (Temporal-serialized state writes across peer sessions), `rq-worktreeRegistry01` (worktree state authority lives in `ProjectWorkflowState.worktree_registry`, no SQLite/JSONL sidecar), `rq-multiSessionFraming01` (legacy Concurrent Session Hazard framing forbidden in production code; `[ADV:PEER_SESSIONS]` informational marker replaces `[ADV:WARN]`; ADV_INSTRUCTIONS.md must contain `§ Multi-Session Coordination`), and `rq-temporalConcurrentLoad01` (Temporal worker survives N≥5 concurrent client load and worker-kill respawn-elect). Citation anchor for downstream task implementation; full enforcement paths land via subsequent tasks in this change.
+- **Closed T3 risk** (`unifyWorktreeUnderAdvMultiSession` change, T38–T39): Temporal multi-client load behavior validated via the new `--mode=concurrent-clients` benchmark mode. Stress scenarios cover 5+ concurrent clients with worker-lock contention, state-write race (5×10 worktree register/remove cycles, monotonic source_version asserted), and worker-kill respawn-elect (rq-workerSingleton01.3 stale-PID reclaim). Linux-only per J4 SCOPE REDUCTION. Opt-in: `RUN_INTEGRATION_TESTS=1 pnpm test src/__tests__/temporal-concurrent-load.itest.ts`.
 
 ## [0.8.2] - 2026-05-01
 
 ### Added
 
-#### `/adv-cleanup` â€” Active State Triage Command (`addadvcleanupcommand`)
+#### `/adv-cleanup` — Active State Triage Command (`addadvcleanupcommand`)
 
 New slash command for triaging active ADV changes. Scans all active changes, categorizes each (Orphan, Duplicate, Stuck, Abandoned, Ready-to-archive, Healthy), and optionally applies per-bucket actions with Tier B approval.
 
@@ -628,19 +614,19 @@ New slash command for triaging active ADV changes. Scans all active changes, cat
 
 Post-completion reflection analysis for archived changes. `adv_reflect` produces a structured two-plane report persisted to `reflections.jsonl`.
 
-- **Plane 1 â€” Project Execution** â€” efficiency, quality, process adherence, wisdom captured
-- **Plane 2 â€” System Friction** â€” tool gaps, workarounds, missing capabilities, doc gaps, UX friction, provider-specific issues
+- **Plane 1 — Project Execution** — efficiency, quality, process adherence, wisdom captured
+- **Plane 2 — System Friction** — tool gaps, workarounds, missing capabilities, doc gaps, UX friction, provider-specific issues
 - Triggered automatically by `/adv-archive` Phase 8; manual via `/adv-reflect <change-id>`
 - New `adv_reflect` tool; retrieved via `adv_change_show` for archived changes
-- Informational â€” does not trigger autonomous process modification
+- Informational — does not trigger autonomous process modification
 
 #### Reflection Follow-Up Fixes (`fixthreereflectionfollowups`)
 
 Three targeted improvements surfaced by the reflection system:
 
-- **Archive Tier B sign-off** â€” removed confirmation-echo turn; single-turn execution after whitelist match
-- **Batch close ordering** â€” `adv_change_bulk_close` now processes IDs in deterministic order; per-id failure reporting; rollback to prior disk snapshot on Temporal failure
-- **Campsite-rule cleanups** â€” removed stale artifacts discovered during batch-ordering refactor
+- **Archive Tier B sign-off** — removed confirmation-echo turn; single-turn execution after whitelist match
+- **Batch close ordering** — `adv_change_bulk_close` now processes IDs in deterministic order; per-id failure reporting; rollback to prior disk snapshot on Temporal failure
+- **Campsite-rule cleanups** — removed stale artifacts discovered during batch-ordering refactor
 
 #### Per-Project Metadata Store and Scanner Integrations
 
@@ -667,7 +653,7 @@ ADV now verifies search attributes after registration and surfaces their health 
 - `adv_temporal_diagnose` includes `searchAttributesStatus`
 - Spec `rq-searchAttrHealth01` extended with scenarios `.3` (verification after registration) and `.4` (diagnose inclusion)
 
-#### `/adv-refactor` â€” Batch Mode
+#### `/adv-refactor` — Batch Mode
 
 `/adv-refactor` now supports batch mode: when no `change-id` is provided, it refreshes the oldest 30% of active changes instead of targeting a single change.
 
@@ -678,7 +664,7 @@ ADV now verifies search attributes after registration and surfaces their health 
 Monolithic `store-temporal.ts` decomposed into focused shard files for maintainability.
 
 - `store-temporal/changes.ts`, `tasks.ts`, `gates.ts`, `wisdom.ts`, `agenda.ts`, `index.ts`
-- `store-temporal/activities.ts` â€” 5 disk-artifact Temporal activities (legacy.status, legacy.specs, content-search, visibility enumeration, cross-repo validation)
+- `store-temporal/activities.ts` — 5 disk-artifact Temporal activities (legacy.status, legacy.specs, content-search, visibility enumeration, cross-repo validation)
 - Unified `runTemporal` + `wf.log` for all handlers
 - Replay-determinism tests for both project and change workflows
 - Purged retired SQLite legacy artifacts (`plugin/src/storage/sqlite.ts`, `plugin/src/storage/db.ts`, and 9 related test files)
@@ -686,7 +672,7 @@ Monolithic `store-temporal.ts` decomposed into focused shard files for maintaina
 
 #### Archive Merge Reliability (`archiveMergeReliability`)
 
-Hardened the archive â†’ merge â†’ worktree-delete sequence.
+Hardened the archive → merge → worktree-delete sequence.
 
 - `/adv-archive` Phase 9 merge verification: detects default branch, refreshes basis, chooses `--ff-only` / reconcile / PR path
 - Source-dir removal after close (`rq-archiveRetirement01.1`) with extended sweep for closed orphans
@@ -699,7 +685,7 @@ Reduced Temporal round-trips and improved observability.
 - Memo + Visibility + Disk union in `changes.list` for complete change enumeration
 - Observability metrics for Temporal operations
 - Worker health probe with bounded respawn budget
-- Orphan re-seed utility â€” `adv_orphan_sweep` re-seeds disk-only changes into Temporal
+- Orphan re-seed utility — `adv_orphan_sweep` re-seeds disk-only changes into Temporal
 - Zombie detection via composite worker health probe
 
 #### Tab Status Emoji Improvements (`alwaysShowTabStatusEmoji`)
@@ -716,7 +702,7 @@ Ambiguity taxonomy (11 categories: B/F/S/M/D/X/Q/I/E/C/T) hardened across docs, 
 
 - `/adv-proposal` B/F/S scan; `/adv-discover` B/F/S/M scan
 - Severity rubric (CRITICAL/HIGH/MEDIUM/LOW) with trigger thresholds
-- Anti-hallucination evidence rule â€” every finding must include verbatim source quote or absence marker
+- Anti-hallucination evidence rule — every finding must include verbatim source quote or absence marker
 - Coverage report per scan
 - Drift tests for taxonomy structure in command and instruction surfaces
 
@@ -738,17 +724,17 @@ Eliminated redundant pause-after-approval across all gate transitions. Tier A ap
 
 `SEARCH_ATTRIBUTE_TYPE_CODE` in `plugin/src/temporal/observability.ts` mapped `Keyword: 1, Bool: 4` instead of the canonical proto values `Keyword: 2, Bool: 5` (`temporal/api/enums/v1/common.proto INDEXED_VALUE_TYPE_KEYWORD = 2, INDEXED_VALUE_TYPE_BOOL = 5`). The wrong codes caused the operator service to register ADV search attributes as Text/Double rather than Keyword/Bool, which then failed `checkAdvSearchAttributes` wrong-type detection on every subsequent verification.
 
-- **Source fix** â€” `SEARCH_ATTRIBUTE_TYPE_CODE = { Keyword: 2, Bool: 5 }` with proto-source comment
-- **Drift-catch test** â€” new assertion in `observability.test.ts` pins canonical values; CI fails on future drift
-- **Fixture updates** â€” 5 test files rewritten to match (62+ literal-value updates): `observability.test.ts`, `service-reconnect.test.ts`, `service.test.ts`, `health-probe.test.ts`, `tools/temporal-ops.test.ts`. `replay-determinism.test.ts` unchanged â€” it derives values from `requiredAdvSearchAttributes()` dynamically and auto-tracks the source fix.
-- **Wrong-type test semantic preservation (KD-6)** â€” the `classifies present, missing, and wrong-type` test in `observability.test.ts` previously used `indexedValueType: 2` for `AdvChangeStatus` to simulate a wrong-type scenario. After the fix, value `2` matches the corrected Keyword code; mock changed to `indexedValueType: 3` (canonical INT) to keep the wrong-type assertion semantically valid.
-- **Log-level elevation** â€” `service.ts` registration failure path elevated from `logger.warn` to `logger.error` for non-AlreadyExists, non-unavailable failures only. AlreadyExists and operator-API-unavailable paths preserved at debug. Surfaces real registration failures without scraping debug logs.
-- **SETUP.md** â€” new "Persistent dev-server storage (recommended)" section explaining `--db-filename` for `temporal server start-dev` with cross-platform path conventions (Linux XDG / macOS Application Support).
-- **Recovery doc** â€” `docs/temporal-recovery.md` gains "Wrong-type ADV search attributes" section documenting manual CLI cleanup (`temporal operator search-attribute remove`) for servers with pre-existing wrong-type attrs from earlier sessions. Auto-cleanup intentionally not performed (avoidance recorded in agreement.md) because removal could affect attrs in use by in-flight workflows.
+- **Source fix** — `SEARCH_ATTRIBUTE_TYPE_CODE = { Keyword: 2, Bool: 5 }` with proto-source comment
+- **Drift-catch test** — new assertion in `observability.test.ts` pins canonical values; CI fails on future drift
+- **Fixture updates** — 5 test files rewritten to match (62+ literal-value updates): `observability.test.ts`, `service-reconnect.test.ts`, `service.test.ts`, `health-probe.test.ts`, `tools/temporal-ops.test.ts`. `replay-determinism.test.ts` unchanged — it derives values from `requiredAdvSearchAttributes()` dynamically and auto-tracks the source fix.
+- **Wrong-type test semantic preservation (KD-6)** — the `classifies present, missing, and wrong-type` test in `observability.test.ts` previously used `indexedValueType: 2` for `AdvChangeStatus` to simulate a wrong-type scenario. After the fix, value `2` matches the corrected Keyword code; mock changed to `indexedValueType: 3` (canonical INT) to keep the wrong-type assertion semantically valid.
+- **Log-level elevation** — `service.ts` registration failure path elevated from `logger.warn` to `logger.error` for non-AlreadyExists, non-unavailable failures only. AlreadyExists and operator-API-unavailable paths preserved at debug. Surfaces real registration failures without scraping debug logs.
+- **SETUP.md** — new "Persistent dev-server storage (recommended)" section explaining `--db-filename` for `temporal server start-dev` with cross-platform path conventions (Linux XDG / macOS Application Support).
+- **Recovery doc** — `docs/temporal-recovery.md` gains "Wrong-type ADV search attributes" section documenting manual CLI cleanup (`temporal operator search-attribute remove`) for servers with pre-existing wrong-type attrs from earlier sessions. Auto-cleanup intentionally not performed (avoidance recorded in agreement.md) because removal could affect attrs in use by in-flight workflows.
 
 #### Legacy Archive Bundles Invisible to `adv_change_list` Filter
 
-`adv_change_list({ status: "archived" })` and `includeArchived: true` returned only newly-archived changes (3 of 149 archive bundles on disk). After `fixStaleDraftShadowsArchiving` removes the active source dir post-archive (`rq-archiveRetirement01.1`), the Temporal store's `listResolvedChanges` had no way to discover archive-only IDs â€” Memo only tracks recently-touched changes, the Visibility API skips evicted workflows, and `diskIds` came from `paths.changes` only.
+`adv_change_list({ status: "archived" })` and `includeArchived: true` returned only newly-archived changes (3 of 149 archive bundles on disk). After `fixStaleDraftShadowsArchiving` removes the active source dir post-archive (`rq-archiveRetirement01.1`), the Temporal store's `listResolvedChanges` had no way to discover archive-only IDs — Memo only tracks recently-touched changes, the Visibility API skips evicted workflows, and `diskIds` came from `paths.changes` only.
 
 - `listResolvedChanges` (`store-temporal/index.ts`) now also lists `legacy.paths.archive` when callers request terminal statuses, merging archive IDs into the change set.
 - Per-change load loop falls through to `loadChange(legacy.paths.archive, id)` when both Temporal and active-disk lookup fail.
@@ -777,31 +763,31 @@ ADV storage now defends against stale active `change.json` shadows left behind a
 
 #### Consolidate Chat Output Display (`consolidatechatoutputdisplay`)
 
-Three previously divergent "where am I" surfaces â€” `context-display`, `task-status-report`, `gate-handoff-voice` â€” consolidated under a single `chat-output-display` capability with shared glyph vocabulary and emission policy. The `[ADV:ATTN]` marker is split into distinct `IDLE` and `ATTN` markers so the tab-strip glance can distinguish "agent finished" from "user must act". Transient task-state tools now emit a compact 1-line ticker instead of the full snapshot box.
+Three previously divergent "where am I" surfaces — `context-display`, `task-status-report`, `gate-handoff-voice` — consolidated under a single `chat-output-display` capability with shared glyph vocabulary and emission policy. The `[ADV:ATTN]` marker is split into distinct `IDLE` and `ATTN` markers so the tab-strip glance can distinguish "agent finished" from "user must act". Transient task-state tools now emit a compact 1-line ticker instead of the full snapshot box.
 
-**Status marker split** â€” `STATUS_MARKERS.IDLE = "[ADV:IDLE]"` (â¬œ) added; `resolveStatus` returns `IDLE` for `sessionIdle` and `ATTN` only for `permissionPending`; initial state changes from `ATTN` â†’ `IDLE` so a fresh session is no longer falsely flagged as needing attention.
+**Status marker split** — `STATUS_MARKERS.IDLE = "[ADV:IDLE]"` (⬜) added; `resolveStatus` returns `IDLE` for `sessionIdle` and `ATTN` only for `permissionPending`; initial state changes from `ATTN` → `IDLE` so a fresh session is no longer falsely flagged as needing attention.
 
-**Bell policy** â€” extends the existing debounce/armed state machine to cover IDLE: `WORKâ†’IDLE` and `TOOLINGâ†’IDLE` ring (debounced when armed, immediate otherwise); `IDLEâ†’IDLE`, `BLOCKEDâ†’IDLE`, and lateral `IDLEâ†”ATTN` are silent (recovery without user action / already user-visible state).
+**Bell policy** — extends the existing debounce/armed state machine to cover IDLE: `WORK→IDLE` and `TOOLING→IDLE` ring (debounced when armed, immediate otherwise); `IDLE→IDLE`, `BLOCKED→IDLE`, and lateral `IDLE↔ATTN` are silent (recovery without user action / already user-visible state).
 
-**Compact context ticker** â€” `formatTickerSnapshot` + `buildChangeContextTicker` produce a single-line `â•‘ {changeId-truncated} Â· {gateArrow} Â· {done}/{total} â•‘` (â‰¤80 cols) emitted by `adv_task_updateâ†’in_progress|done`, `adv_task_ready`, `adv_task_add`, `adv_task_cancel`, and the wisdom emit sites. Full-box snapshots still emit on `adv_change_show`, `adv_change_create`, `adv_gate_complete`, `adv_change_reenter`, and `adv_status`. New `formatGateArrow()` helper returns the compact `{prev} âœ“â†’{next}` form.
+**Compact context ticker** — `formatTickerSnapshot` + `buildChangeContextTicker` produce a single-line `║ {changeId-truncated} · {gateArrow} · {done}/{total} ║` (≤80 cols) emitted by `adv_task_update→in_progress|done`, `adv_task_ready`, `adv_task_add`, `adv_task_cancel`, and the wisdom emit sites. Full-box snapshots still emit on `adv_change_show`, `adv_change_create`, `adv_gate_complete`, `adv_change_reenter`, and `adv_status`. New `formatGateArrow()` helper returns the compact `{prev} ✓→{next}` form.
 
-**Cross-repo switch trim** â€” `formatCrossRepoSwitch` reduced from 4 to 3 content lines (header + merged `from â†’ to` + task) and capped at 80 cols with truncation when paths overflow.
+**Cross-repo switch trim** — `formatCrossRepoSwitch` reduced from 4 to 3 content lines (header + merged `from → to` + task) and capped at 80 cols with truncation when paths overflow.
 
-**Magic-constant cleanup** â€” `MIN_BOX_WIDTH = 55` retired in favor of a `MIN_BOX_WIDTH = 40` floor + `MAX_BOX_WIDTH = 78` cap (with `CONTEXT_LINE_PREFIX_RESERVED = 12` for change-id truncation). Compact surfaces (ticker, cross-repo) stay within 80 cols; the full snapshot box still grows naturally to fit the inline 7-gate progress row per `rq-ctxsnap1`.
+**Magic-constant cleanup** — `MIN_BOX_WIDTH = 55` retired in favor of a `MIN_BOX_WIDTH = 40` floor + `MAX_BOX_WIDTH = 78` cap (with `CONTEXT_LINE_PREFIX_RESERVED = 12` for change-id truncation). Compact surfaces (ticker, cross-repo) stay within 80 cols; the full snapshot box still grows naturally to fit the inline 7-gate progress row per `rq-ctxsnap1`.
 
-**Spec rename** â€” `.adv/specs/context-display/` â†’ `.adv/specs/chat-output-display/` (v1.2.0 â†’ v1.3.0, `supersedes: ["context-display"]`). Five new requirements: `rq-idleMarker01` (resolver split), `rq-idleMarker02` (IDLE marker constant + â¬œ emoji), `rq-idleMarker03` (IDLE bell policy), `rq-ctxticker1` (ticker content), `rq-ctxticker2` (ticker emission triggers). `rq-ctxformat` extended with `rq-ctxformat.4` (CONTEXT-line truncation) and `rq-ctxformat.3` clarified to apply only to compact surfaces. `rq-ctxswitch` updated with `.2` (â‰¤3 content lines).
+**Spec rename** — `.adv/specs/context-display/` → `.adv/specs/chat-output-display/` (v1.2.0 → v1.3.0, `supersedes: ["context-display"]`). Five new requirements: `rq-idleMarker01` (resolver split), `rq-idleMarker02` (IDLE marker constant + ⬜ emoji), `rq-idleMarker03` (IDLE bell policy), `rq-ctxticker1` (ticker content), `rq-ctxticker2` (ticker emission triggers). `rq-ctxformat` extended with `rq-ctxformat.4` (CONTEXT-line truncation) and `rq-ctxformat.3` clarified to apply only to compact surfaces. `rq-ctxswitch` updated with `.2` (≤3 content lines).
 
-**Doc retirement** â€” legacy task-report and context-agreement guidance moved into the new spec; the chat-output research pack was consumed.
+**Doc retirement** — legacy task-report and context-agreement guidance moved into the new spec; the chat-output research pack was consumed.
 
-**Drift test extension** â€” `plugin/src/handoff-footer-drift.test.ts` adds a `chat-output-display drift contract` describe block (6 tests: STATUS_MARKERS.IDLE, â¬œ/ðŸŸ¥ emoji distinction, ticker structure, ticker truncation, spec rename + new requirement IDs, legacy directory retired). All pre-existing 17 wayfinder assertions are preserved verbatim â€” no regression to `trimGateHandoffFooterSingle`.
+**Drift test extension** — `plugin/src/handoff-footer-drift.test.ts` adds a `chat-output-display drift contract` describe block (6 tests: STATUS_MARKERS.IDLE, ⬜/🟥 emoji distinction, ticker structure, ticker truncation, spec rename + new requirement IDs, legacy directory retired). All pre-existing 17 wayfinder assertions are preserved verbatim — no regression to `trimGateHandoffFooterSingle`.
 
-**Out of scope (separate proposals)** â€” wayfinder-first positioning (DX2), tab-title gate state (DX3), chat heartbeat (OBS1), agent-identity cue (OBS2), one-question-rule enforcement.
+**Out of scope (separate proposals)** — wayfinder-first positioning (DX2), tab-title gate state (DX3), chat heartbeat (OBS1), agent-identity cue (OBS2), one-question-rule enforcement.
 
 #### Prose-Load Reduction on ADV Control Surfaces
 
 ADV instruction surfaces (`ADV_INSTRUCTIONS.md`, `docs/command-voice-standard.md`, `.opencode/agents/adv.md`, `.opencode/command/adv-*.md`) now classify each section by enforcement class and apply matching compression templates. Reduces agent prompt-load on control-related prose by moving control mechanisms into code (drift tests, runtime guards, schema validators, tool formatters) and compressing the prose that duplicates them.
 
-**Methodology** â€” see `docs/command-voice-standard.md` Â§ Prose-Load Reduction Rules (new):
+**Methodology** — see `docs/command-voice-standard.md` § Prose-Load Reduction Rules (new):
 
 | Class                  | Compression target                                  |
 | ---------------------- | --------------------------------------------------- |
@@ -809,26 +795,26 @@ ADV instruction surfaces (`ADV_INSTRUCTIONS.md`, `docs/command-voice-standard.md
 | **partially-enforced** | Pointer + constraint table + 1-line gap rationale   |
 | **inherently-prose**   | Structured table/checklist/template (no paragraphs) |
 
-**Spec deltas** â€” 4 new MUST requirements in `.adv/specs/advance-meta/spec.json` (capability bumped 1.0.0 â†’ 1.1.0):
+**Spec deltas** — 4 new MUST requirements in `.adv/specs/advance-meta/spec.json` (capability bumped 1.0.0 → 1.1.0):
 
-- `rq-proseReduction01` â€” Code-Enforced Prose Deduplication
-- `rq-proseReduction02` â€” Drift Test Coverage for Compressed Prose
-- `rq-proseReduction03` â€” Category Classification Inventory
-- `rq-proseReduction04` â€” Inherently-Prose Constraint Templates
+- `rq-proseReduction01` — Code-Enforced Prose Deduplication
+- `rq-proseReduction02` — Drift Test Coverage for Compressed Prose
+- `rq-proseReduction03` — Category Classification Inventory
+- `rq-proseReduction04` — Inherently-Prose Constraint Templates
 
-**Drift test extension** â€” `plugin/src/manifest-doc-drift.test.ts` adds 7 structural assertions (methodology presence, inventory presence, spec-delta presence, structural caps); no content-based assertions.
+**Drift test extension** — `plugin/src/manifest-doc-drift.test.ts` adds 7 structural assertions (methodology presence, inventory presence, spec-delta presence, structural caps); no content-based assertions.
 
-**Asset-test cleanup** â€” `plugin/src/adv-autonomy-quality-assets.test.ts` consolidated from 414 â†’ 376 lines: removed heuristic heading-exact-match assertions; preserved value-enforcing canonical-list and anti-pattern Ã— assertions. `adv-improve-assets.test.ts` Research Pack regex broadened to match doc body (no longer requires removed COMPLETE-trailer line).
+**Asset-test cleanup** — `plugin/src/adv-autonomy-quality-assets.test.ts` consolidated from 414 → 376 lines: removed heuristic heading-exact-match assertions; preserved value-enforcing canonical-list and anti-pattern × assertions. `adv-improve-assets.test.ts` Research Pack regex broadened to match doc body (no longer requires removed COMPLETE-trailer line).
 
-**COMPLETE trailer removal** â€” 12 command docs (`adv-arch-scan`, `adv-audit`, `adv-clarify`, `adv-cleanup`, `adv-comp-scan`, `adv-coordinate`, `adv-idea`, `adv-improve`, `adv-problem`, `adv-refactor`, `adv-research`, `adv-slop-scan`) had their `/adv-X COMPLETE` code-block trailers removed.
+**COMPLETE trailer removal** — 12 command docs (`adv-arch-scan`, `adv-audit`, `adv-clarify`, `adv-cleanup`, `adv-comp-scan`, `adv-coordinate`, `adv-idea`, `adv-improve`, `adv-problem`, `adv-refactor`, `adv-research`, `adv-slop-scan`) had their `/adv-X COMPLETE` code-block trailers removed.
 
-**Inventory** â€” temporary prose-load classification captured per-section class, code reference, and gap rationale during execution; durable invariants live in spec deltas.
+**Inventory** — temporary prose-load classification captured per-section class, code reference, and gap rationale during execution; durable invariants live in spec deltas.
 
-**Net effect:** 12-task plan delivered â€” methodology + spec law + drift tests + asset-test cleanup + targeted compressions across 5 surfaces. Many `full`-classified sections (gate sequencing, sub-agent selection, checkpoint commits, context snapshot, cancellation policy) found already in KD2 template form post-prior refactors. Significant scannability improvement; raw line-count savings modest because prose conversion to tabular form sometimes adds structural lines. Stop condition (UD3) applied: only inherently-prose categories remain after compression passes.
+**Net effect:** 12-task plan delivered — methodology + spec law + drift tests + asset-test cleanup + targeted compressions across 5 surfaces. Many `full`-classified sections (gate sequencing, sub-agent selection, checkpoint commits, context snapshot, cancellation policy) found already in KD2 template form post-prior refactors. Significant scannability improvement; raw line-count savings modest because prose conversion to tabular form sometimes adds structural lines. Stop condition (UD3) applied: only inherently-prose categories remain after compression passes.
 
-#### Gate Handoff Footer â€” Blockquote Wayfinder Block
+#### Gate Handoff Footer — Blockquote Wayfinder Block
 
-The Gate Handoff Voice spine now ends with a blockquote-wrapped wayfinder block instead of a prose-labeled four-line footer. The arrow `{gate} âœ“ â†’ {next-gate}` already encoded the where-am-I / where-next signal; the labels (`Current phase:`, `Next phase:`, `Run when ready:`) below it were redundant and read as menu prose. The new format keeps the same information density in three visual rows inside a left-bordered callout â€” clearly the wayfinder, not menu options.
+The Gate Handoff Voice spine now ends with a blockquote-wrapped wayfinder block instead of a prose-labeled four-line footer. The arrow `{gate} ✓ → {next-gate}` already encoded the where-am-I / where-next signal; the labels (`Current phase:`, `Next phase:`, `Run when ready:`) below it were redundant and read as menu prose. The new format keeps the same information density in three visual rows inside a left-bordered callout — clearly the wayfinder, not menu options.
 
 **New format:**
 
@@ -836,37 +822,37 @@ The Gate Handoff Voice spine now ends with a blockquote-wrapped wayfinder block 
 ---
 
 > **{change-id}**
-> {gate} âœ“ â†’ {next-gate}
+> {gate} ✓ → {next-gate}
 >
-> â†’ `/adv-{next-command} {change-id}`
+> → `/adv-{next-command} {change-id}`
 ```
 
-**Archive terminal variant** â€” wrapped in single-line blockquote for visual consistency:
+**Archive terminal variant** — wrapped in single-line blockquote for visual consistency:
 
 ```
 ---
 
-> **{change-id}** Â· release âœ“ Â· Shipped.
+> **{change-id}** · release ✓ · Shipped.
 ```
 
-- **Spec law updated** â€” `rq-handoffVoice01` body and scenarios `.1`, `.4`, `.5` rewritten to describe the blockquote wayfinder block. Scenarios `.2` (no mechanics leakage) and `.3` (auto-continue unaffected) are unchanged.
-- **Spec-text consistency** â€” `rq-inlineApproval01.7` given-clause wording updated from "labeled footer block" to "blockquote wayfinder block". Semantics preserved; command-as-approval still works exactly the same way.
-- **All consumers updated** â€” `docs/command-voice-standard.md` canonical spine, fast-track variant, archive terminal variant, both BAD/GOOD pairs, Tier A pattern template, Tier B archive template, BAD/GOOD migration table; `.opencode/agents/adv.md` Output Contract and Sign-Off Boundary acceptance report; 10 command files (`adv-proposal`, `adv-discover`, `adv-design`, `adv-prep`, `adv-apply`, `adv-review`, `adv-harden`, `adv-task`, `adv-reflect`, `adv-archive`); spec mirror in `docs/specs/advance-meta.md`.
-- **Reply instructions stay outside the blockquote** â€” for approval-paired handoffs (Tier A/B), reply prose appears below the blockquote. Inline Approval Voice semantics, whitelist words, command-as-approval, and Tier B strictness are all unchanged.
-- **Drift test rewritten** â€” `plugin/src/handoff-footer-drift.test.ts` inverted: asserts blockquote rows present and prose labels absent across all 10 surfaces. The `command-as-approval semantics` describe block is preserved verbatim.
+- **Spec law updated** — `rq-handoffVoice01` body and scenarios `.1`, `.4`, `.5` rewritten to describe the blockquote wayfinder block. Scenarios `.2` (no mechanics leakage) and `.3` (auto-continue unaffected) are unchanged.
+- **Spec-text consistency** — `rq-inlineApproval01.7` given-clause wording updated from "labeled footer block" to "blockquote wayfinder block". Semantics preserved; command-as-approval still works exactly the same way.
+- **All consumers updated** — `docs/command-voice-standard.md` canonical spine, fast-track variant, archive terminal variant, both BAD/GOOD pairs, Tier A pattern template, Tier B archive template, BAD/GOOD migration table; `.opencode/agents/adv.md` Output Contract and Sign-Off Boundary acceptance report; 10 command files (`adv-proposal`, `adv-discover`, `adv-design`, `adv-prep`, `adv-apply`, `adv-review`, `adv-harden`, `adv-task`, `adv-reflect`, `adv-archive`); spec mirror in `docs/specs/advance-meta.md`.
+- **Reply instructions stay outside the blockquote** — for approval-paired handoffs (Tier A/B), reply prose appears below the blockquote. Inline Approval Voice semantics, whitelist words, command-as-approval, and Tier B strictness are all unchanged.
+- **Drift test rewritten** — `plugin/src/handoff-footer-drift.test.ts` inverted: asserts blockquote rows present and prose labels absent across all 10 surfaces. The `command-as-approval semantics` describe block is preserved verbatim.
 
 ### Removed
 
-#### Legacy Runtime Fallback â€” Temporal-Only Cutover
+#### Legacy Runtime Fallback — Temporal-Only Cutover
 
 ADV is now **Temporal-only** at runtime. The legacy JSON+SQLite backend remains as a non-runtime filesystem utility for tests, cross-repo operations, and migration/repair tools, but it is no longer a runtime fallback.
 
-- **`createStore` requires `temporalBundle`** â€” `plugin/src/storage/store.ts` now throws if `temporalBundle` is not provided. The previous legacy-first construction and optional Temporal overlay behavior is removed.
-- **Removed `ADV_DISABLE_TEMPORAL`** â€” The `ADV_DISABLE_TEMPORAL=1` environment flag is no longer recognized. Setting it has no effect.
-- **Removed `ADV_ALLOW_DEGRADED_FALLBACK`** â€” The `ADV_ALLOW_DEGRADED_FALLBACK=1` environment flag and the associated file-backed store fallback path are removed. Temporal init failures now surface as `ADV_PLUGIN_INIT_FAILED` with diagnostic payloads instead of silently degrading.
-- **`plugin-init.ts` simplified** â€” Removed `initStoreWithoutTemporal`, fallback catch blocks, and degraded-fallback profile events. Worker startup failure is now a hard error.
-- **`store-temporal.ts` fallback removal** â€” Removed catch-block fallbacks to `legacy.*` for workflow-owned domains (changes, tasks, gates, wisdom). Temporal errors now propagate instead of silently falling back to the filesystem backend.
-- **Tests updated** â€” All test files that previously called `createStore` without a `temporalBundle` now use `createLegacyStore` directly, reflecting the non-runtime nature of the legacy backend in test contexts.
+- **`createStore` requires `temporalBundle`** — `plugin/src/storage/store.ts` now throws if `temporalBundle` is not provided. The previous legacy-first construction and optional Temporal overlay behavior is removed.
+- **Removed `ADV_DISABLE_TEMPORAL`** — The `ADV_DISABLE_TEMPORAL=1` environment flag is no longer recognized. Setting it has no effect.
+- **Removed `ADV_ALLOW_DEGRADED_FALLBACK`** — The `ADV_ALLOW_DEGRADED_FALLBACK=1` environment flag and the associated file-backed store fallback path are removed. Temporal init failures now surface as `ADV_PLUGIN_INIT_FAILED` with diagnostic payloads instead of silently degrading.
+- **`plugin-init.ts` simplified** — Removed `initStoreWithoutTemporal`, fallback catch blocks, and degraded-fallback profile events. Worker startup failure is now a hard error.
+- **`store-temporal.ts` fallback removal** — Removed catch-block fallbacks to `legacy.*` for workflow-owned domains (changes, tasks, gates, wisdom). Temporal errors now propagate instead of silently falling back to the filesystem backend.
+- **Tests updated** — All test files that previously called `createStore` without a `temporalBundle` now use `createLegacyStore` directly, reflecting the non-runtime nature of the legacy backend in test contexts.
 
 ## [0.8.1] - 2026-04-23
 
@@ -882,11 +868,11 @@ ADV is now **Temporal-only** at runtime. The legacy JSON+SQLite backend remains 
 
 Fixes a release-blocking lifecycle bug where Temporal child processes inherited an ephemeral git worktree cwd, preventing `git worktree remove` after tests or worker startup.
 
-- **Stable test-environment cwd** â€” `plugin/src/temporal/__tests__/with-test-env.ts` now creates `TestWorkflowEnvironment` instances from `/tmp/advance-temporal-test-cwd` via new `createTestWorkflowEnvironment()`, then restores the caller cwd immediately after env creation.
-- **Harness adoption** â€” `withTestWorkflowEnvironment()` now uses the stable-cwd creator by default, and `plugin/src/temporal/out-of-process-worker.itest.ts` no longer calls `TestWorkflowEnvironment.createTimeSkipping()` directly from the current worktree cwd.
-- **Stable out-of-process worker cwd** â€” `plugin/src/temporal/out-of-process-worker.ts` now spawns Node children with explicit cwd `/tmp/advance-temporal-worker-cwd` instead of inheriting the OpenCode/plugin process cwd.
-- **Regression coverage** â€” new tests verify stable cwd creation/restoration and assert the out-of-process worker spawn options include the stable worker cwd.
-- **Operational effect** â€” leaked `temporal-test-server-sdk-typescript-*` processes from interrupted tests no longer pin deleted worktree plugin directories going forward; existing leaked processes still require manual kill/reap.
+- **Stable test-environment cwd** — `plugin/src/temporal/__tests__/with-test-env.ts` now creates `TestWorkflowEnvironment` instances from `/tmp/advance-temporal-test-cwd` via new `createTestWorkflowEnvironment()`, then restores the caller cwd immediately after env creation.
+- **Harness adoption** — `withTestWorkflowEnvironment()` now uses the stable-cwd creator by default, and `plugin/src/temporal/out-of-process-worker.itest.ts` no longer calls `TestWorkflowEnvironment.createTimeSkipping()` directly from the current worktree cwd.
+- **Stable out-of-process worker cwd** — `plugin/src/temporal/out-of-process-worker.ts` now spawns Node children with explicit cwd `/tmp/advance-temporal-worker-cwd` instead of inheriting the OpenCode/plugin process cwd.
+- **Regression coverage** — new tests verify stable cwd creation/restoration and assert the out-of-process worker spawn options include the stable worker cwd.
+- **Operational effect** — leaked `temporal-test-server-sdk-typescript-*` processes from interrupted tests no longer pin deleted worktree plugin directories going forward; existing leaked processes still require manual kill/reap.
 
 ### Added
 
@@ -894,14 +880,14 @@ Fixes a release-blocking lifecycle bug where Temporal child processes inherited 
 
 New `advance` spec requirement codifies how ADV-managed agents must gather evidence when answering unknown platform, architecture, or capability questions.
 
-- **Spec** â€” `rq-dueDiligence01` added to `.adv/specs/advance/spec.json` (advance spec bumped `1.10.0 â†’ 1.11.0`). Four scenarios:
+- **Spec** — `rq-dueDiligence01` added to `.adv/specs/advance/spec.json` (advance spec bumped `1.10.0 → 1.11.0`). Four scenarios:
   1. unknown capability question must gather source-appropriate evidence before answering, recommending, or deciding
   2. `"quick answer"`, `"from your knowledge"`, or `"don't research"` requests change brevity only, not the evidence bar
   3. blocked diligence must stop and surface the blockage instead of presenting an unverified direction
   4. guidance surfaces and drift tests must encode the rule
-- **Agents** â€” `.opencode/agents/adv.md` (Pre-change investigation row + Context-Optimal Execution) and `.opencode/agents/plan.md` (Investigation Mode + Workflow research) rewritten with due-diligence-first, source-appropriate evidence guidance.
-- **Overlays** â€” `.opencode/overlays/adv.overlay.md` and `.opencode/overlays/plan.overlay.md` synced-overlay blocks carry the same rule so provider-specific ADV variants pick it up via `scripts/deploy-local.sh --fix`.
-- **Drift tests** â€” `plugin/src/adv-command-routing-assets.test.ts` adds `LEGACY_CARVEOUT_FRAGMENTS` and `HIDDEN_CARVEOUT_PATTERNS` guards that fail if the prior carve-out-first wording or hidden context exemptions return.
+- **Agents** — `.opencode/agents/adv.md` (Pre-change investigation row + Context-Optimal Execution) and `.opencode/agents/plan.md` (Investigation Mode + Workflow research) rewritten with due-diligence-first, source-appropriate evidence guidance.
+- **Overlays** — `.opencode/overlays/adv.overlay.md` and `.opencode/overlays/plan.overlay.md` synced-overlay blocks carry the same rule so provider-specific ADV variants pick it up via `scripts/deploy-local.sh --fix`.
+- **Drift tests** — `plugin/src/adv-command-routing-assets.test.ts` adds `LEGACY_CARVEOUT_FRAGMENTS` and `HIDDEN_CARVEOUT_PATTERNS` guards that fail if the prior carve-out-first wording or hidden context exemptions return.
 
 ### Changed
 
@@ -912,14 +898,14 @@ Terminal status markers redesigned from 7 metaphor emojis to 3-color square syst
 **Breaking change:** All `[ADV:*]` chat tokens renamed. No compatibility shim provided.
 
 - **New marker set:**
-  - `ðŸŸ© [ADV:WORK]` â€” agent actively working (replaces `ðŸš€ [ADV:ROCKET]`)
-  - `ðŸŸ¨ [ADV:TOOLING]` â€” tool run or sub-agent in flight (replaces `ðŸ“¡ [ADV:MOON]`)
-  - `ðŸŸ¥ [ADV:ATTN]` â€” user needed: approval, question, or agent finished (replaces `ðŸŽ¤ [ADV:MIC]` and `ðŸŒ [ADV:EARTH]`)
-  - `ðŸŸ¥ðŸ’€ [ADV:BLOCKED]` â€” doom-loop / stuck / crash (replaces `ðŸ’€ [ADV:DOOM_LOOP]`)
-- **Removed:** `[ADV:TDD_RED]` and `[ADV:TDD_GREEN]` â€” TDD evidence remains in `adv_run_test`/`adv_task_evidence` tool calls
-- **IDLE semantics:** Agent finished = `ðŸŸ¥` (user must look). Green is reserved for active work only
-- **Bell policy preserved:** ATTN (permission pending) rings immediately; ATTN (armed idle) debounces; BLOCKEDâ†’ATTN debounces for recovery
-- **Long-tool yellow:** `adv_run_test` and `adv_task_evidence` opt into `ðŸŸ¨ TOOLING` status while running
+  - `🟩 [ADV:WORK]` — agent actively working (replaces `🚀 [ADV:ROCKET]`)
+  - `🟨 [ADV:TOOLING]` — tool run or sub-agent in flight (replaces `📡 [ADV:MOON]`)
+  - `🟥 [ADV:ATTN]` — user needed: approval, question, or agent finished (replaces `🎤 [ADV:MIC]` and `🌍 [ADV:EARTH]`)
+  - `🟥💀 [ADV:BLOCKED]` — doom-loop / stuck / crash (replaces `💀 [ADV:DOOM_LOOP]`)
+- **Removed:** `[ADV:TDD_RED]` and `[ADV:TDD_GREEN]` — TDD evidence remains in `adv_run_test`/`adv_task_evidence` tool calls
+- **IDLE semantics:** Agent finished = `🟥` (user must look). Green is reserved for active work only
+- **Bell policy preserved:** ATTN (permission pending) rings immediately; ATTN (armed idle) debounces; BLOCKED→ATTN debounces for recovery
+- **Long-tool yellow:** `adv_run_test` and `adv_task_evidence` opt into `🟨 TOOLING` status while running
 
 ## [0.8.0] - 2026-04-22
 
@@ -930,7 +916,7 @@ Terminal status markers redesigned from 7 metaphor emojis to 3-color square syst
 Introduces provider-specific ADV variants (`adv-claude`, `adv-gpt`, `adv-glm`, `adv-kimi`) generated from the canonical `adv.md`, with runtime visibility controlled by OpenCode's native `agent.<name>.disable` field.
 
 - **`scripts/deploy-local.sh`**: New `generate_provider_variants()` function copies canonical `adv.md`, patches frontmatter `name: adv-{provider}`, and injects a small behavioral hint block from `.opencode/agents/parts/providers/{provider}.md` after the `ADV_SYNC:END adv` marker.
-- **Provider hint files**: `.opencode/agents/parts/providers/{claude,gpt,glm,kimi}.md` â€” each â‰¤20 lines, behavioral-only, no vendor API terms.
+- **Provider hint files**: `.opencode/agents/parts/providers/{claude,gpt,glm,kimi}.md` — each ≤20 lines, behavioral-only, no vendor API terms.
 - **Drift check extension**: `check_tool_drift()` now accepts an agent file parameter; `check_provider_variant_drifts()` loops over all four variants. Tool allowlist mismatches are reported per-variant.
 - **Legacy `adv.md` gating**: Canonical `adv.md` is only removed from global agents when `opencode.json` contains `agent.adv-*` keys (`provider_adv_configured_in_json`). Prevents breaking existing setups before users opt into provider-ADV mode.
 - **Stale agent exclusion**: Generated variants are skipped by the stale-agent removal loop so they are not deleted on the next sync.
@@ -943,12 +929,12 @@ Introduces provider-specific ADV variants (`adv-claude`, `adv-gpt`, `adv-glm`, `
 
 Replaces the trailing `## Next stage` + `## Next` handoff sections with a single footer line so gate transitions scan faster without dropping the narrative sections.
 
-- **Canonical spine updated** â€” `docs/command-voice-standard.md` now defines a three-section handoff (`Problem` / `Chosen direction` / `Delivered`) followed by a footer line containing `{change-id} Â· {gate} âœ“ â†’ {next-gate} Â· /adv-{command}`.
-- **Archive + fast-track variants added** â€” archive output now uses the three-part structure (`Problem` / `Chosen direction` / `Delivered`) followed by the footer line `**{change-id}** Â· release âœ“ Â· Shipped.`, and `/adv-task` uses the fast-track footer `task âœ“ â†’ apply`.
-- **All handoff-emitting command docs updated** â€” `adv-proposal`, `adv-discover`, `adv-design`, `adv-prep`, `adv-apply`, `adv-review`, `adv-harden`, `adv-archive`, and `adv-task` now use the footer-based shape.
-- **ADV overlay updated** â€” `.opencode/agents/adv.md` now mirrors the canonical footer-based output contract.
-- **Spec law updated** â€” `rq-handoffVoice01` now describes the footer-based spine and adds `rq-handoffVoice01.4` to require that the footer replaces `Next` sections.
-- **Human-readable spec page synced** â€” `docs/specs/advance.md` now matches `spec.json` for the footer-based handoff requirement.
+- **Canonical spine updated** — `docs/command-voice-standard.md` now defines a three-section handoff (`Problem` / `Chosen direction` / `Delivered`) followed by a footer line containing `{change-id} · {gate} ✓ → {next-gate} · /adv-{command}`.
+- **Archive + fast-track variants added** — archive output now uses the three-part structure (`Problem` / `Chosen direction` / `Delivered`) followed by the footer line `**{change-id}** · release ✓ · Shipped.`, and `/adv-task` uses the fast-track footer `task ✓ → apply`.
+- **All handoff-emitting command docs updated** — `adv-proposal`, `adv-discover`, `adv-design`, `adv-prep`, `adv-apply`, `adv-review`, `adv-harden`, `adv-archive`, and `adv-task` now use the footer-based shape.
+- **ADV overlay updated** — `.opencode/agents/adv.md` now mirrors the canonical footer-based output contract.
+- **Spec law updated** — `rq-handoffVoice01` now describes the footer-based spine and adds `rq-handoffVoice01.4` to require that the footer replaces `Next` sections.
+- **Human-readable spec page synced** — `docs/specs/advance.md` now matches `spec.json` for the footer-based handoff requirement.
 
 #### Pre-Change Research Burst Defaults for Unknowns
 
@@ -956,23 +942,23 @@ Unknown architecture/platform/capability questions now default to a scoped resea
 
 - **`plan.md` Investigation Mode** now says to check carve-outs first, then spawn `explore` + `librarian` in parallel for unknowns.
 - **ADV + Plan overlays** now carry the same synced rule so top-level agents and shared overlays stay aligned.
-- **Asset coverage expanded** â€” `adv-command-routing-assets.test.ts` now verifies the carve-outs, burst-default wording, and synced overlay guidance.
+- **Asset coverage expanded** — `adv-command-routing-assets.test.ts` now verifies the carve-outs, burst-default wording, and synced overlay guidance.
 
-#### Tab Title â€” Smarter Shortname (Dictionary + 8-Char Cap)
+#### Tab Title — Smarter Shortname (Dictionary + 8-Char Cap)
 
 Improves the deterministic project shortname generator to restore meaning for concatenated single-token project names.
 
-- **`SHORTNAME_MAX_LEN` bumped `6 â†’ 8`.** Short-but-meaningful words now fit whole: `advance â†’ Advance`, `plugin â†’ Plugin`, `opencode â†’ Opencode`. Still well within typical tmux `status-*-length` defaults and terminal tab-strip widths.
-- **New inline dictionary** `SHORTNAME_DICTIONARY` (~160 lowercase tokens covering tech stack, common modifiers, and generic nouns). Derived once into `SHORTNAME_DICT_SET` for O(1) lookup. Bundled inline (~1-2 KB) â€” no new deps.
-- **New `segmentToken(token, dict)` helper** â€” dynamic-programming word-break segmentation. Returns `string[]` on full-character-cover success, `null` otherwise. The full-cover requirement is the correctness guard: names that can't be cleanly decomposed fall back to the existing truncate path.
-- **`generateProjectShortname` updated** to run segmentation when a single lowercase token â‰¥ 4 chars remains after prefix/suffix strip. On 2+ subwords success, those become the word list and feed the existing acronym/compact branches.
+- **`SHORTNAME_MAX_LEN` bumped `6 → 8`.** Short-but-meaningful words now fit whole: `advance → Advance`, `plugin → Plugin`, `opencode → Opencode`. Still well within typical tmux `status-*-length` defaults and terminal tab-strip widths.
+- **New inline dictionary** `SHORTNAME_DICTIONARY` (~160 lowercase tokens covering tech stack, common modifiers, and generic nouns). Derived once into `SHORTNAME_DICT_SET` for O(1) lookup. Bundled inline (~1-2 KB) — no new deps.
+- **New `segmentToken(token, dict)` helper** — dynamic-programming word-break segmentation. Returns `string[]` on full-character-cover success, `null` otherwise. The full-cover requirement is the correctness guard: names that can't be cleanly decomposed fall back to the existing truncate path.
+- **`generateProjectShortname` updated** to run segmentation when a single lowercase token ≥ 4 chars remains after prefix/suffix strip. On 2+ subwords success, those become the word list and feed the existing acronym/compact branches.
 - **New behaviour examples:**
-  - `advanceplugin â†’ AP` (segments `advance`+`plugin`, over cap â†’ acronym)
-  - `opencode â†’ Opencode` (segments `open`+`code`, at cap â†’ compact)
-  - `advance â†’ Advance` (previously `Advanc`)
-  - `example-product â†’ ExampleProduct` (segments `poke`+`edge`, at cap â†’ compact)
-  - `xyzzyabcdef â†’ Xyzzyabc` (opaque, truncate to 8)
-- **Unchanged behaviour:** names with explicit boundaries (`my-cool-project â†’ MCP`, `opencode-morph-fast-apply â†’ OMFA`, `morph-plugin â†’ Morph`). Acronym cap scaled from 6 to 8 along with the main limit.
+  - `advanceplugin → AP` (segments `advance`+`plugin`, over cap → acronym)
+  - `opencode → Opencode` (segments `open`+`code`, at cap → compact)
+  - `advance → Advance` (previously `Advanc`)
+  - `example-product → ExampleProduct` (segments `poke`+`edge`, at cap → compact)
+  - `xyzzyabcdef → Xyzzyabc` (opaque, truncate to 8)
+- **Unchanged behaviour:** names with explicit boundaries (`my-cool-project → MCP`, `opencode-morph-fast-apply → OMFA`, `morph-plugin → Morph`). Acronym cap scaled from 6 to 8 along with the main limit.
 - **Tests**: 9 new `segmentToken` unit tests, 5 new `SHORTNAME_DICTIONARY` invariant tests (lowercase / no-dupes / size), 7 new `generateProjectShortname` table-driven tests for segmentation + cap-bump cases. 3 existing assertions updated for new cap (111 total events tests pass).
 - **Complementary to planned AI-cached shortnames.** The v0.8.0 note about AI rescuing ugly truncations still stands; this change improves the deterministic fallback that will remain in place for cold-cache and offline paths.
 
@@ -990,66 +976,66 @@ Reduced ADV's shared overlay-managed agents from six to four by merging `scout` 
 
 Bundle of 8 validated quality gaps closed in one coherent hardening pass.
 
-- **Typed structured logger** (`plugin/src/utils/debug-log.ts`) â€” adds `LogLevel`, `LogMeta`, and `createLogger(scope)` returning `{ debug, info, warn, error }`. `debug` / `info` route to the `ADV_DEBUG=1` file sink only; `warn` / `error` emit to `console.warn` / `console.error` in normal runs and also land in the debug file sink. `appendDebugLog(scope, msg)` retained as a compatibility shim. ~15 `console.warn` / `console.error` call sites migrated across `plugin-init.ts`, `index.ts`, `storage/{json,store,store-sync,sqlite,health}.ts`, `archive/delta.ts`, `tools/change.ts`, `events/terminal.ts`.
-- **Bounded `adv_run_test` execution** (`plugin/src/tools/test.ts`) â€” new `DEFAULT_TEST_TIMEOUT_MS` (30 s) and `DEFAULT_TEST_MAX_BUFFER` (10 MB) constants with classification of `timedOut` / `maxBufferExceeded` / regular non-zero exit. Timeout responses include command + effective duration. Tool schema unchanged.
-- **Enriched tool error envelope** (`plugin/src/utils/safe-execute.ts`) â€” `formatErrorResponse` additively surfaces `errorClass` (via `deriveErrorClass`) and optional `workdir` / `path` / `operation` derived from call args (via `deriveContextFromArgs`). `safeExecute` / `safeExecuteSimple` accept optional context extractors; `tool-registry.ts::bindToolSimple` threads `dir` / `path` so agenda tools auto-enrich. Existing keys preserved.
-- **Per-step migration transactions** (`plugin/src/storage/sqlite.ts`) â€” new `runMigrationStep(db, name, fn)` helper wraps each migration body in `db.transaction(fn)()` for commit-on-success / rollback-on-failure. All 5 migrations (deltas-constraint, changes-constraint, tasks-type, tasks-cancellation-reason, drop-sync-meta) routed through the helper.
-- **Bounded corruption-recovery retry** (`plugin/src/storage/corruption-recovery.ts`) â€” new module; `recoverCorruptedDatabase({ maxAttempts, backoffMs, reset, attempt, log? })` runs up to 2 attempts with 100 ms backoff, logs every attempt, rethrows on exhaustion. `storage/store.ts::createStore` delegates to it; non-corruption errors still fail fast.
+- **Typed structured logger** (`plugin/src/utils/debug-log.ts`) — adds `LogLevel`, `LogMeta`, and `createLogger(scope)` returning `{ debug, info, warn, error }`. `debug` / `info` route to the `ADV_DEBUG=1` file sink only; `warn` / `error` emit to `console.warn` / `console.error` in normal runs and also land in the debug file sink. `appendDebugLog(scope, msg)` retained as a compatibility shim. ~15 `console.warn` / `console.error` call sites migrated across `plugin-init.ts`, `index.ts`, `storage/{json,store,store-sync,sqlite,health}.ts`, `archive/delta.ts`, `tools/change.ts`, `events/terminal.ts`.
+- **Bounded `adv_run_test` execution** (`plugin/src/tools/test.ts`) — new `DEFAULT_TEST_TIMEOUT_MS` (30 s) and `DEFAULT_TEST_MAX_BUFFER` (10 MB) constants with classification of `timedOut` / `maxBufferExceeded` / regular non-zero exit. Timeout responses include command + effective duration. Tool schema unchanged.
+- **Enriched tool error envelope** (`plugin/src/utils/safe-execute.ts`) — `formatErrorResponse` additively surfaces `errorClass` (via `deriveErrorClass`) and optional `workdir` / `path` / `operation` derived from call args (via `deriveContextFromArgs`). `safeExecute` / `safeExecuteSimple` accept optional context extractors; `tool-registry.ts::bindToolSimple` threads `dir` / `path` so agenda tools auto-enrich. Existing keys preserved.
+- **Per-step migration transactions** (`plugin/src/storage/sqlite.ts`) — new `runMigrationStep(db, name, fn)` helper wraps each migration body in `db.transaction(fn)()` for commit-on-success / rollback-on-failure. All 5 migrations (deltas-constraint, changes-constraint, tasks-type, tasks-cancellation-reason, drop-sync-meta) routed through the helper.
+- **Bounded corruption-recovery retry** (`plugin/src/storage/corruption-recovery.ts`) — new module; `recoverCorruptedDatabase({ maxAttempts, backoffMs, reset, attempt, log? })` runs up to 2 attempts with 100 ms backoff, logs every attempt, rethrows on exhaustion. `storage/store.ts::createStore` delegates to it; non-corruption errors still fail fast.
 
 ### Security
 
-- **Argv-based tmux rename** (`plugin/src/events/terminal.ts`) â€” replaced `execSync(\`tmux rename-window "${title}"\`, â€¦)` with `execFileSync("tmux", ["rename-window", title], { stdio: "ignore", timeout: 1000 })`. Backticks, `$`, backslashes, newlines, and quotes in change titles are now passed as data, not shell syntax. Dropped the inline escape regex.
+- **Argv-based tmux rename** (`plugin/src/events/terminal.ts`) — replaced `execSync(\`tmux rename-window "${title}"\`, …)` with `execFileSync("tmux", ["rename-window", title], { stdio: "ignore", timeout: 1000 })`. Backticks, `$`, backslashes, newlines, and quotes in change titles are now passed as data, not shell syntax. Dropped the inline escape regex.
 
 ### Tests
 
-- **Direct `storage/health.ts` coverage** â€” new `plugin/src/storage/health.test.ts` exercises `initDatabase` (healthy + integrity-check corrupt + malformed-disk throw), `checkpointWAL` (success + swallow-and-log), `getWALSize` (missing / present), `shouldCheckpoint` (below / at / above threshold), and `closeDatabase` (clean + force-close branch).
-- **Deterministic lock-contention assertions** (`plugin/src/storage/store.test.ts`) â€” replaced fixed `setTimeout(r, 100)` polling at both spec- and change-lock tests with a microtask-drain + `Promise.race(savePromise, Promise.resolve("pending"))` probe.
-- **Logger / bounded exec / enrichment / migration / retry / tmux tests** â€” focused test surfaces added alongside each implementation. Targeted run across 7 touched surfaces: 239/239 green.
+- **Direct `storage/health.ts` coverage** — new `plugin/src/storage/health.test.ts` exercises `initDatabase` (healthy + integrity-check corrupt + malformed-disk throw), `checkpointWAL` (success + swallow-and-log), `getWALSize` (missing / present), `shouldCheckpoint` (below / at / above threshold), and `closeDatabase` (clean + force-close branch).
+- **Deterministic lock-contention assertions** (`plugin/src/storage/store.test.ts`) — replaced fixed `setTimeout(r, 100)` polling at both spec- and change-lock tests with a microtask-drain + `Promise.race(savePromise, Promise.resolve("pending"))` probe.
+- **Logger / bounded exec / enrichment / migration / retry / tmux tests** — focused test surfaces added alongside each implementation. Targeted run across 7 touched surfaces: 239/239 green.
 
 ### Added
 
-#### Investment Check-In Governance (v1 â€” behavioral-only)
+#### Investment Check-In Governance (v1 — behavioral-only)
 
 Judgment-surfacing governance layer that proactively surfaces upcoming
-decisions requiring user intuition, preference, or context â€” **not** a
+decisions requiring user intuition, preference, or context — **not** a
 budget gate. When `/adv-prep` identifies judgment calls from the synthesized
 task graph, `/adv-apply` Phase 1.5 surfaces them in a single batched
 `question` tool call before the first task executes.
 
-- **`adv_investment_report` tool** (`plugin/src/tools/investment.ts`) â€” read-only, stateless report returning task counts, elapsed time, retry metrics, doom-loop state, per-gate durations, and threshold tier (`auto` / `escalate` / `hardstop`). Called by `/adv-prep`, `/adv-apply`, `/adv-discover`, `/adv-review`, `/adv-archive`.
-- **Schema extension** â€” `ChangeSchema` gains two optional fields: `judgment_calls[]` (populated by `/adv-prep` Phase J) and `batch_surfaced_at` (audit stamp recorded by `/adv-apply` Phase 1.5). New types: `JudgmentCallSchema`, `JudgmentCallCategorySchema`, `InvestmentReportSchema`, `ThresholdTierSchema`. Zero changes to `TaskSchema`.
-- **Methodology skill** â€” `skills/adv-cost-governance-methodology/SKILL.md` is the single source of truth for identification and surfacing protocols, 3 in-scope categories (`non_functional_tradeoff`, `extensibility`, `scope_boundary`), out-of-scope list (`defaults`, `naming`, `error_semantics`), composition rules, hard-stop advisory semantics, and `rq-autonomy01` escape-clause citation.
-- **Policy layer** â€” `.opencode/instructions/cost-governance.md` ships YAML-frontmatter thresholds (conservative defaults: auto â‰¤3/0/15min, escalate â‰¥8/2/60min, hardstop â‰¥15/5/180min) + scope + category enum. Tunable without code changes. Synced via `scripts/deploy-local.sh --fix` (new instruction block added alongside `ADV_INSTRUCTIONS.md`).
-- **Rule** â€” `P28: cost-governance` at priority 9 (parity with `P05`, `P24`, `P27`). User-managed in `~/.config/opencode/instructions/rules.yaml`; installation documented in `SETUP.md`.
-- **Command integration** â€” `/adv-prep` Phase J (identify judgment calls), `/adv-apply` Phase 1.5 (batch surfacing preamble), `/adv-discover`, `/adv-review`, `/adv-archive` display a one-line investment summary.
-- **ADV_INSTRUCTIONS.md** â€” new Investment Check-In subsection under "Autonomy & Quality Ownership" with explicit `rq-autonomy01` escape-clause citation: judgment calls are "unresolved user-value tradeoffs" under the existing contract, NOT a new enumerated human checkpoint. The 8 enumerated checkpoints remain the only enumerated pause points.
-- **Hard-stop semantics** â€” advisory in v1. Does NOT trigger `adv_change_reenter` (re-entry remains scope-expansion-driven per `rq-scopeReentry01`). Does NOT block at the tool level. v2 upgrade path preserved for hard enforcement and real token/cost telemetry.
-- **Retroactive policy** â€” new changes only. Existing drafts detected via `judgment_calls === undefined` skip surfacing silently. Running `/adv-prep` on a legacy draft opts it in.
+- **`adv_investment_report` tool** (`plugin/src/tools/investment.ts`) — read-only, stateless report returning task counts, elapsed time, retry metrics, doom-loop state, per-gate durations, and threshold tier (`auto` / `escalate` / `hardstop`). Called by `/adv-prep`, `/adv-apply`, `/adv-discover`, `/adv-review`, `/adv-archive`.
+- **Schema extension** — `ChangeSchema` gains two optional fields: `judgment_calls[]` (populated by `/adv-prep` Phase J) and `batch_surfaced_at` (audit stamp recorded by `/adv-apply` Phase 1.5). New types: `JudgmentCallSchema`, `JudgmentCallCategorySchema`, `InvestmentReportSchema`, `ThresholdTierSchema`. Zero changes to `TaskSchema`.
+- **Methodology skill** — `skills/adv-cost-governance-methodology/SKILL.md` is the single source of truth for identification and surfacing protocols, 3 in-scope categories (`non_functional_tradeoff`, `extensibility`, `scope_boundary`), out-of-scope list (`defaults`, `naming`, `error_semantics`), composition rules, hard-stop advisory semantics, and `rq-autonomy01` escape-clause citation.
+- **Policy layer** — `.opencode/instructions/cost-governance.md` ships YAML-frontmatter thresholds (conservative defaults: auto ≤3/0/15min, escalate ≥8/2/60min, hardstop ≥15/5/180min) + scope + category enum. Tunable without code changes. Synced via `scripts/deploy-local.sh --fix` (new instruction block added alongside `ADV_INSTRUCTIONS.md`).
+- **Rule** — `P28: cost-governance` at priority 9 (parity with `P05`, `P24`, `P27`). User-managed in `~/.config/opencode/instructions/rules.yaml`; installation documented in `SETUP.md`.
+- **Command integration** — `/adv-prep` Phase J (identify judgment calls), `/adv-apply` Phase 1.5 (batch surfacing preamble), `/adv-discover`, `/adv-review`, `/adv-archive` display a one-line investment summary.
+- **ADV_INSTRUCTIONS.md** — new Investment Check-In subsection under "Autonomy & Quality Ownership" with explicit `rq-autonomy01` escape-clause citation: judgment calls are "unresolved user-value tradeoffs" under the existing contract, NOT a new enumerated human checkpoint. The 8 enumerated checkpoints remain the only enumerated pause points.
+- **Hard-stop semantics** — advisory in v1. Does NOT trigger `adv_change_reenter` (re-entry remains scope-expansion-driven per `rq-scopeReentry01`). Does NOT block at the tool level. v2 upgrade path preserved for hard enforcement and real token/cost telemetry.
+- **Retroactive policy** — new changes only. Existing drafts detected via `judgment_calls === undefined` skip surfacing silently. Running `/adv-prep` on a legacy draft opts it in.
 
-Tool count: 40 â†’ 42 (`adv_investment_report` + `adv_change_reenter` â€” the latter was a latent registration bug surfaced by this change and landed on trunk independently; see `fix(tool-registry): register adv_change_reenter`).
+Tool count: 40 → 42 (`adv_investment_report` + `adv_change_reenter` — the latter was a latent registration bug surfaced by this change and landed on trunk independently; see `fix(tool-registry): register adv_change_reenter`).
 
 ### Fixed
 
 #### `adv_change_reenter` Registry Gap
 
-- `adv_change_reenter` was defined in `plugin/src/tools/change.ts` but never registered in `createToolMap` or `ADV_TOOL_NAMES` â€” silently hiding the scope-expansion re-entry mechanism (`rq-scopeReentry01`) from the MCP toolset. Fixed on trunk as a standalone commit, then the `addCostTimeInvestment` change also registers `adv_investment_report` in the same file.
+- `adv_change_reenter` was defined in `plugin/src/tools/change.ts` but never registered in `createToolMap` or `ADV_TOOL_NAMES` — silently hiding the scope-expansion re-entry mechanism (`rq-scopeReentry01`) from the MCP toolset. Fixed on trunk as a standalone commit, then the `addCostTimeInvestment` change also registers `adv_investment_report` in the same file.
 
 ### Changed
 
-#### Tab Title â€” Project Shortname Reintroduced (Deterministic)
+#### Tab Title — Project Shortname Reintroduced (Deterministic)
 
-- **Project shortname now appears in the terminal tab title.** Format is `<emoji> <shortname> Â· <change>` when a change is active, or `<emoji> <shortname>` when idle. Reverses the v0.6.x decision to drop the project name entirely â€” the project is now always visible as context.
-- **`generateProjectShortname(name)`** added to `plugin/src/events/terminal.ts` â€” pure deterministic function with a 6-char hard cap:
+- **Project shortname now appears in the terminal tab title.** Format is `<emoji> <shortname> · <change>` when a change is active, or `<emoji> <shortname>` when idle. Reverses the v0.6.x decision to drop the project name entirely — the project is now always visible as context.
+- **`generateProjectShortname(name)`** added to `plugin/src/events/terminal.ts` — pure deterministic function with a 6-char hard cap:
   - Strips common prefixes: `oc-`, `lib-`, `node-`
   - Strips common suffixes: `-plugin`, `-plugins`, `-app`, `-cli`, `-server`, `-client`, `-mcp`, `.js`, `.ts`
-  - Multi-word names with combined length > 6 â†’ acronym (e.g. `my-cool-project` â†’ `MCP`, `opencode-morph-fast-apply` â†’ `OMFA`)
-  - Single words â‰¤ 6 chars â†’ title-cased as-is (e.g. `plugin` â†’ `Plugin`)
-  - Single words > 6 chars â†’ truncate + title-case (e.g. `advance` â†’ `Advanc`, `example-product` â†’ `Example`)
+  - Multi-word names with combined length > 6 → acronym (e.g. `my-cool-project` → `MCP`, `opencode-morph-fast-apply` → `OMFA`)
+  - Single words ≤ 6 chars → title-cased as-is (e.g. `plugin` → `Plugin`)
+  - Single words > 6 chars → truncate + title-case (e.g. `advance` → `Advanc`, `example-product` → `Example`)
   - Case-insensitive prefix/suffix matching, only first match stripped
-- **`buildTabTitle(emoji, projectName, changeId)`** updated to thread `projectName` through `generateProjectShortname` and use the `Â·` separator. Previously ignored the project name argument.
+- **`buildTabTitle(emoji, projectName, changeId)`** updated to thread `projectName` through `generateProjectShortname` and use the `·` separator. Previously ignored the project name argument.
 - **Public exports** added from the events module: `generateProjectShortname`, `buildTabTitle`, `normalizeChangeCode`.
 - **Tests**: 26 new assertions covering shortname rules + 7 updated `buildTabTitle` assertions in `plugin/src/events/events.test.ts`.
-- **Note**: AI-generated shortnames with per-project caching are planned as a follow-up. The deterministic rules above are intentionally simple and may produce ugly truncations (`Advanc`) â€” the AI fallback will rescue these.
+- **Note**: AI-generated shortnames with per-project caching are planned as a follow-up. The deterministic rules above are intentionally simple and may produce ugly truncations (`Advanc`) — the AI fallback will rescue these.
 
 ## [0.7.0] - 2026-04-13
 
@@ -1066,7 +1052,7 @@ Tool count: 40 â†’ 42 (`adv_investment_report` + `adv_change_reenter` â€
 - **`skills/adv-tron/SKILL.md`**: Agent comparison table now describes `adv-researcher` as "Independent design validator".
 - **`.opencode/agents/adv.md`**: Orchestrator gate table and sub-agent selection table updated with bundled global classification.
 - **`docs/adv-autonomy-compliance-matrix.md`**: Updated validator reference to capability-based framing.
-- **Asset tests**: 3 new assertions lock the taxonomy â€” `deploy-local.test.ts` verifies `REPO_LOCAL_ONLY` excludes `adv-researcher`; `adv-autonomy-quality-assets.test.ts` verifies capability-based framing in `adv-design.md`; `adv-command-routing-assets.test.ts` verifies tier table classification in `ADV_INSTRUCTIONS.md`.
+- **Asset tests**: 3 new assertions lock the taxonomy — `deploy-local.test.ts` verifies `REPO_LOCAL_ONLY` excludes `adv-researcher`; `adv-autonomy-quality-assets.test.ts` verifies capability-based framing in `adv-design.md`; `adv-command-routing-assets.test.ts` verifies tier table classification in `ADV_INSTRUCTIONS.md`.
 
 ### Added
 
@@ -1074,8 +1060,8 @@ Tool count: 40 â†’ 42 (`adv_investment_report` + `adv_change_reenter` â€
 
 - **`plugin/src/tools/agenda.test.ts`**: 29 integration tests covering all 10 agenda MCP tools (`adv_agenda_list`, `adv_agenda_add`, `adv_agenda_start`, `adv_agenda_complete`, `adv_agenda_cancel`, `adv_agenda_prioritize`, `adv_agenda_next`, `adv_agenda_stats`, `adv_agenda_evidence`, `adv_agenda_compact`) plus lifecycle and blocked-item tests. Uses temp-dir isolation pattern consistent with existing tool tests.
 - **`project.md`**: New project context file read by `adv_project_context`. Documents tech stack, key directories, dev commands, architecture conventions (specs-are-laws, external state, no-direct-reads, tool registration, schema gen, overlay sync), testing conventions, and maintenance scripts.
-- **`docs/specs/advance.md`**: Regenerated from spec v1.8.0 â€” includes all 18 requirements (`rq-designval01/02/03`, `rq-scopeReentry01/02`).
-- **`docs/adv-autonomy-compliance-matrix.md`**: Explicit spec ID references added â€” `/adv-design` cites `rq-designval01/03`, `/adv-present` cites `rq-designval02`, re-entry checkpoint cites `rq-scopeReentry01/02`.
+- **`docs/specs/advance.md`**: Regenerated from spec v1.8.0 — includes all 18 requirements (`rq-designval01/02/03`, `rq-scopeReentry01/02`).
+- **`docs/adv-autonomy-compliance-matrix.md`**: Explicit spec ID references added — `/adv-design` cites `rq-designval01/03`, `/adv-present` cites `rq-designval02`, re-entry checkpoint cites `rq-scopeReentry01/02`.
 - **`scripts/recover-db.js`**: Added `--external` flag that auto-detects the external state dir from the project's root commit SHA, enabling one-command recovery for the default (external) storage layout. Fixed `--db-dir` to accept absolute paths correctly.
 - **`SETUP.md` troubleshooting**: Added "Stale Spec Rows After Deletion" section documenting the sync-only-adds behavior, 2-step fix (delete DB + restart), and why a server restart is required to clear in-memory SQLite state.
 
@@ -1084,8 +1070,8 @@ Tool count: 40 â†’ 42 (`adv_investment_report` + `adv_change_reenter` â€
 #### Automated Design Validation
 
 - **Mandatory validator pass in `/adv-design`**: Added Phase 3.5 (Validate Design) and Phase 3.6 (Handle Verdict) to the design command. Before the design gate can complete, `adv-researcher` (Gemini Flash) is spawned as an independent validator that assesses the design across 4 dimensions: correctness, simplicity, spec-law compliance, and key alternatives.
-- **Verdict-driven control flow**: VALIDATED/CAUTION â†’ proceed with notes; CONFLICT â†’ surface to user before planning; INCONCLUSIVE (failure/timeout) â†’ warn and proceed without blocking.
-- **Validator result in `/adv-present`**: Design presentation now includes the validator verdict â€” "Validator: clean pass âœ“" for VALIDATED, inline findings for CAUTION, conflict details with pause for CONFLICT, warning for INCONCLUSIVE.
+- **Verdict-driven control flow**: VALIDATED/CAUTION → proceed with notes; CONFLICT → surface to user before planning; INCONCLUSIVE (failure/timeout) → warn and proceed without blocking.
+- **Validator result in `/adv-present`**: Design presentation now includes the validator verdict — "Validator: clean pass ✓" for VALIDATED, inline findings for CAUTION, conflict details with pause for CONFLICT, warning for INCONCLUSIVE.
 - **3 new spec requirements**: `rq-designval01` (mandatory validation before design gate), `rq-designval02` (findings in presentation), `rq-designval03` (CONFLICT blocks silent auto-continue). Spec bumped to v1.8.0.
 - **Asset tests**: New "Design validation policy" describe block in `adv-autonomy-quality-assets.test.ts` enforces the validation contract across command files and instructions.
 - **Removes passive guidance**: Replaces the old "inform the user to have an additional frontier model validate" instruction with enforced automated orchestration.
@@ -1094,59 +1080,59 @@ Tool count: 40 â†’ 42 (`adv_investment_report` + `adv_change_reenter` â€
 
 ### Changed
 
-#### ADV Orchestrator â€” Replace Orca with Dedicated ADV Agent
+#### ADV Orchestrator — Replace Orca with Dedicated ADV Agent
 
 - **Replaced `orca.md` with `adv.md`** as the primary orchestrator for spec-driven development workflows. ADV is a pure ADV orchestrator with no generic workflow section.
-- **Collaborative workflow**: ADV respects user judgment at decision points â€” clarifies via the question tool, stops at boundaries requiring user confirmation, and treats collaborative gates as the actual workflow rather than obstacles to automate past.
+- **Collaborative workflow**: ADV respects user judgment at decision points — clarifies via the question tool, stops at boundaries requiring user confirmation, and treats collaborative gates as the actual workflow rather than obstacles to automate past.
 - **Context-optimal execution**: ADV works inline when maintaining understanding of the problem and progress matters, and delegates to specialists when work is genuinely independent.
 - **7-gate model**: ADV uses the correct gate names (proposal, discovery, design, planning, execution, acceptance, release) instead of the legacy 6-gate names.
 - **Temperature 0.2**: Lowered from Orca's 0.3 for more precise orchestration and inline work.
-- **Full Orca removal**: All Orca references removed from the Advance repo (docs, tests, scripts, overlays, instructions). The user's global `orca.md` is unaffected â€” Advance simply stops managing it.
+- **Full Orca removal**: All Orca references removed from the Advance repo (docs, tests, scripts, overlays, instructions). The user's global `orca.md` is unaffected — Advance simply stops managing it.
 - **Updated overlay and sync infrastructure**: `adv.overlay.md` replaces `orca.overlay.md`; `deploy-local.sh` syncs `adv.md` instead of applying an Orca overlay.
 
 ### Added
 
-#### Context Leak Surface Fixes â€” Close 13 Identified Context Gaps
+#### Context Leak Surface Fixes — Close 13 Identified Context Gaps
 
 Implemented all 13 identified context leak surfaces where ADV drops important context between workflow steps. All schema additions are backwards-compatible (`.optional()` + `.passthrough()`).
 
-- **New MCP tool `adv_project_wisdom_list`** â€” exposes project-level wisdom entries (previously write-only). Mirrors `adv_wisdom_list` response shape (`{ entries, count, byType }`).
-- **Compaction amnesia workaround** â€” `system.transform` hook now injects minimal active change context (~20 tokens: change ID + truncated objective) to survive session compaction. No bulk data, prompt-caching safe.
-- **Sub-agent context injection** â€” Added `CHANGE CONTEXT` block to sub-agent spawn prompts in `/adv-review`, `/adv-harden`, and `/adv-slop-scan`. Explore agents (which have no ADV tools) now receive change ID, objective, criteria count, and current gate.
-- **Wisdom in freshness protocol** â€” `adv_wisdom_list` added to the mandatory per-task context loading sequence in `ADV_INSTRUCTIONS.md` and `/adv-apply`.
-- **Enriched handoff state** â€” `HandoffState` now carries `proposalSummary`, `currentGate`, `successCriteriaCount`, and `wisdomEntries` for richer cross-session context.
-- **Task implementation summaries** â€” New `implementation_summary` field on `TaskSchema`, persisted via `adv_task_update`.
-- **Worktree spec divergence warning** â€” Validator emits `WORKTREE_SPEC_DIVERGENCE` warning when running inside a git worktree.
-- **Cancel-aware task readiness** â€” `adv_task_ready` now returns `cancelledBlockerContext` with cancellation reasons when blocked-by tasks were cancelled. SQL join extension in SQLite layer.
-- **Doom-loop attempt history** â€” New `AttemptSchema` and `attempts[]` on `ErrorRecoverySchema` for structured retry tracking. Wired through `adv_task_update` with `error_recovery` parameter.
-- **Archive wisdom preservation** â€” `createArchive()` now copies wisdom entries to archive directory as `wisdom.json`. `ARCHIVE_SUMMARY.md` includes implementation summaries per task and wisdom section.
-- **Gate notes** â€” `adv_gate_complete` accepts optional `notes` parameter for persisting key decisions at gate completion.
-- **Clarify finding persistence** â€” `adv_change_show` now persists clarify findings as append-only snapshots with resolution tracking via `ClarifyFindingSnapshotSchema`.
-- **Proposal-task drift detection** â€” Validator emits `PROPOSAL_TASK_DRIFT` warning when proposal section headers have no matching tasks. Keyword extraction, no embeddings.
-- **Validator wiring** â€” `adv_change_validate` now passes `proposalText` and `isWorktree` to `validateChange()` so drift and worktree warnings surface through the tool path.
+- **New MCP tool `adv_project_wisdom_list`** — exposes project-level wisdom entries (previously write-only). Mirrors `adv_wisdom_list` response shape (`{ entries, count, byType }`).
+- **Compaction amnesia workaround** — `system.transform` hook now injects minimal active change context (~20 tokens: change ID + truncated objective) to survive session compaction. No bulk data, prompt-caching safe.
+- **Sub-agent context injection** — Added `CHANGE CONTEXT` block to sub-agent spawn prompts in `/adv-review`, `/adv-harden`, and `/adv-slop-scan`. Explore agents (which have no ADV tools) now receive change ID, objective, criteria count, and current gate.
+- **Wisdom in freshness protocol** — `adv_wisdom_list` added to the mandatory per-task context loading sequence in `ADV_INSTRUCTIONS.md` and `/adv-apply`.
+- **Enriched handoff state** — `HandoffState` now carries `proposalSummary`, `currentGate`, `successCriteriaCount`, and `wisdomEntries` for richer cross-session context.
+- **Task implementation summaries** — New `implementation_summary` field on `TaskSchema`, persisted via `adv_task_update`.
+- **Worktree spec divergence warning** — Validator emits `WORKTREE_SPEC_DIVERGENCE` warning when running inside a git worktree.
+- **Cancel-aware task readiness** — `adv_task_ready` now returns `cancelledBlockerContext` with cancellation reasons when blocked-by tasks were cancelled. SQL join extension in SQLite layer.
+- **Doom-loop attempt history** — New `AttemptSchema` and `attempts[]` on `ErrorRecoverySchema` for structured retry tracking. Wired through `adv_task_update` with `error_recovery` parameter.
+- **Archive wisdom preservation** — `createArchive()` now copies wisdom entries to archive directory as `wisdom.json`. `ARCHIVE_SUMMARY.md` includes implementation summaries per task and wisdom section.
+- **Gate notes** — `adv_gate_complete` accepts optional `notes` parameter for persisting key decisions at gate completion.
+- **Clarify finding persistence** — `adv_change_show` now persists clarify findings as append-only snapshots with resolution tracking via `ClarifyFindingSnapshotSchema`.
+- **Proposal-task drift detection** — Validator emits `PROPOSAL_TASK_DRIFT` warning when proposal section headers have no matching tasks. Keyword extraction, no embeddings.
+- **Validator wiring** — `adv_change_validate` now passes `proposalText` and `isWorktree` to `validateChange()` so drift and worktree warnings surface through the tool path.
 
 ### Fixed
 
-- **Restored `gate-migration.ts`** â€” file was accidentally deleted in a prior archival commit while `store.ts` still imported it. Restored from git history and added `migrate` method to `store-gates.ts`.
+- **Restored `gate-migration.ts`** — file was accidentally deleted in a prior archival commit while `store.ts` still imported it. Restored from git history and added `migrate` method to `store-gates.ts`.
 
 ### Improved
 
-#### Agreement Clarification Loop â€” Mandatory Open Question Resolution in /adv-discover
+#### Agreement Clarification Loop — Mandatory Open Question Resolution in /adv-discover
 
-- **Added Phase 4.5 (Open Question Resolution Loop)** to `/adv-discover` â€” all open questions from discovery must now be explicitly resolved before the agreement is finalized. No question is silently deferred or assumed "no preference."
-- **Added question triage** â€” open questions are classified before reaching the user: technical/implementation questions are resolved autonomously via LBP research; only user-facing questions (priorities, behavior, downsides, AC boundaries) are presented to the user.
-- **Reframing rule** â€” technical questions with genuine LBP ambiguity must be reframed as the downstream outcome question (e.g., not "REST vs GraphQL?" but "Do you need clients to fetch partial data?").
-- **Updated agreement.md template** â€” replaced the generic "Open Questions" section with three explicit categories: User Decisions, Agent Decisions (LBP), and Deferred Questions.
-- **Updated autonomy compliance matrix** â€” `/adv-discover` row now reflects question triage and clarification loop responsibilities.
-- **Updated gate docs** â€” discovery gate description documents the mandatory clarification loop.
-- **Added `agree` command boundary row** to `ADV_INSTRUCTIONS.md` â€” previously missing from the boundary table.
+- **Added Phase 4.5 (Open Question Resolution Loop)** to `/adv-discover` — all open questions from discovery must now be explicitly resolved before the agreement is finalized. No question is silently deferred or assumed "no preference."
+- **Added question triage** — open questions are classified before reaching the user: technical/implementation questions are resolved autonomously via LBP research; only user-facing questions (priorities, behavior, downsides, AC boundaries) are presented to the user.
+- **Reframing rule** — technical questions with genuine LBP ambiguity must be reframed as the downstream outcome question (e.g., not "REST vs GraphQL?" but "Do you need clients to fetch partial data?").
+- **Updated agreement.md template** — replaced the generic "Open Questions" section with three explicit categories: User Decisions, Agent Decisions (LBP), and Deferred Questions.
+- **Updated autonomy compliance matrix** — `/adv-discover` row now reflects question triage and clarification loop responsibilities.
+- **Updated gate docs** — discovery gate description documents the mandatory clarification loop.
+- **Added `agree` command boundary row** to `ADV_INSTRUCTIONS.md` — previously missing from the boundary table.
 
 ### Changed
 
 #### Forward-Only Cleanup and Distribution Readiness
 
 - Removed the retired `adv-research` command/spec/test surface from the repo and manifest.
-- Deleted the dead 6â†’7 gate migration runtime and its dedicated tests.
+- Deleted the dead 6→7 gate migration runtime and its dedicated tests.
 - Removed stale investigation/exploration artifacts and consolidated setup guidance on `SETUP.md` by deleting `INSTALL.md`.
 - Trimmed legacy/retired wording from operational docs and prompt files to reduce context noise.
 
@@ -1166,40 +1152,40 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Fixed
 
-#### Harden ADV Compliance â€” TDD Evidence Validation and Execution Gate Guard
+#### Harden ADV Compliance — TDD Evidence Validation and Execution Gate Guard
 
-- **Added exit-code semantics validation for TDD evidence** â€” `adv_task_evidence` and `adv_run_test` now reject evidence where the exit code contradicts the declared phase (e.g., red phase with exitCode=0, green phase with exitCodeâ‰ 0). `exitCode: undefined` remains allowed for backward compatibility.
-- **Added execution-gate task-completion guard** â€” `adv_gate_complete` for the `execution` gate now verifies all non-cancelled tasks are `done` before completing. Previously the execution gate had zero checks and could complete with pending/in-progress tasks.
-- New `plugin/src/validator/evidence.ts` â€” pure validation function `validateEvidenceSemantics()` shared by both evidence-recording tools.
+- **Added exit-code semantics validation for TDD evidence** — `adv_task_evidence` and `adv_run_test` now reject evidence where the exit code contradicts the declared phase (e.g., red phase with exitCode=0, green phase with exitCode≠0). `exitCode: undefined` remains allowed for backward compatibility.
+- **Added execution-gate task-completion guard** — `adv_gate_complete` for the `execution` gate now verifies all non-cancelled tasks are `done` before completing. Previously the execution gate had zero checks and could complete with pending/in-progress tasks.
+- New `plugin/src/validator/evidence.ts` — pure validation function `validateEvidenceSemantics()` shared by both evidence-recording tools.
 - 18 new tests across 3 test files: 7 evidence validation unit tests, 7 tool integration tests (rejection + acceptance paths), 4 execution gate guard tests.
 
-#### Skill Duplication â€” Trim Restated Checklist Content Across All Methodology Skills
+#### Skill Duplication — Trim Restated Checklist Content Across All Methodology Skills
 
-- **Trimmed `skills/adv-discover-methodology/SKILL.md`** from 113â†’43 lines by removing per-step detail sections that duplicated `docs/checklists/discover-checklist.md`.
-- **Trimmed `skills/adv-harden-methodology/SKILL.md`** from 85â†’37 lines by removing severity scoring, tech debt quadrant, status determination, minimum findings, and documentation hygiene sections that duplicated `docs/checklists/harden-checklist.md`.
-- **Trimmed `skills/adv-review-methodology/SKILL.md`** from 71â†’55 lines by removing minimum findings threshold and verdict criteria sections that duplicated `docs/checklists/review-checklist.md`.
+- **Trimmed `skills/adv-discover-methodology/SKILL.md`** from 113→43 lines by removing per-step detail sections that duplicated `docs/checklists/discover-checklist.md`.
+- **Trimmed `skills/adv-harden-methodology/SKILL.md`** from 85→37 lines by removing severity scoring, tech debt quadrant, status determination, minimum findings, and documentation hygiene sections that duplicated `docs/checklists/harden-checklist.md`.
+- **Trimmed `skills/adv-review-methodology/SKILL.md`** from 71→55 lines by removing minimum findings threshold and verdict criteria sections that duplicated `docs/checklists/review-checklist.md`.
 - All three skills now follow the canonical-source pattern: framework overview table + constraints only, with explicit deferral to their checklist for detailed rules.
 
 ### Improved
 
-#### Discovery Phase Rigor â€” Enforce 9 Mandatory Protocol Steps in /adv-discover
+#### Discovery Phase Rigor — Enforce 9 Mandatory Protocol Steps in /adv-discover
 
 - **Migrated orphaned Phase 1.5 (Skill Discovery)** from retired `/adv-research` reference into actual implementation in `/adv-discover`. The protocol was documented in `ADV_INSTRUCTIONS.md` but never implemented in the command file after the 7-gate workflow refactor.
-- **Enhanced `/adv-discover`** (89â†’165 lines) with Phase 0 (methodology skill loading), Phase 1.5 (skill discovery), Phase 1.6 (conflict & related-work scan), Phase 1.7 (P25 related-pattern scan), and 11 required output sections including edge case investigation, design question depth, and draft spec delta shapes.
-- **Created `skills/adv-discover-methodology/SKILL.md`** â€” reusable discovery protocol skill following the command+skill pattern from `rationalizeCommandVsSkill`.
-- **Created `docs/checklists/discover-checklist.md`** â€” canonical checklist with 8 protocol steps, 13 edge case handling rules, and output section schema.
-- **Created `.adv/specs/adv-discover/spec.json`** â€” new capability spec with 9 requirements (rq-disc01..09) encoding discovery rigor as enforceable law.
-- **Updated `ADV_INSTRUCTIONS.md`** â€” moved `adv-discover` from command-only to command+skill list, corrected Phase 1.5 "Enabled" â†’ "Implemented" with cross-references.
+- **Enhanced `/adv-discover`** (89→165 lines) with Phase 0 (methodology skill loading), Phase 1.5 (skill discovery), Phase 1.6 (conflict & related-work scan), Phase 1.7 (P25 related-pattern scan), and 11 required output sections including edge case investigation, design question depth, and draft spec delta shapes.
+- **Created `skills/adv-discover-methodology/SKILL.md`** — reusable discovery protocol skill following the command+skill pattern from `rationalizeCommandVsSkill`.
+- **Created `docs/checklists/discover-checklist.md`** — canonical checklist with 8 protocol steps, 13 edge case handling rules, and output section schema.
+- **Created `.adv/specs/adv-discover/spec.json`** — new capability spec with 9 requirements (rq-disc01..09) encoding discovery rigor as enforceable law.
+- **Updated `ADV_INSTRUCTIONS.md`** — moved `adv-discover` from command-only to command+skill list, corrected Phase 1.5 "Enabled" → "Implemented" with cross-references.
 
 ### Fixed
 
-#### Gate Completion Instruction Audit â€” Ensure All Gate-Owning Commands Actually Complete Their Gates
+#### Gate Completion Instruction Audit — Ensure All Gate-Owning Commands Actually Complete Their Gates
 
-- **`adv-proposal`**: Removed contradictory `Ã— MUST NOT: complete gates` that prevented agents from calling `adv_gate_complete` for the command's own `proposal` gate. Changed to `complete non-owned gates`. Added explicit Step 9 with `adv_gate_complete changeId: ... gateId: proposal` call.
+- **`adv-proposal`**: Removed contradictory `× MUST NOT: complete gates` that prevented agents from calling `adv_gate_complete` for the command's own `proposal` gate. Changed to `complete non-owned gates`. Added explicit Step 9 with `adv_gate_complete changeId: ... gateId: proposal` call.
 - **`adv-design`**: Added `complete non-owned gates` to MUST NOT for consistency with the pattern established by `adv-discover` and `adv-prep`.
 - **`adv-accept`**: Added `complete non-owned gates` to MUST NOT for consistency.
 - **`adv-task`**: Added missing `adv_gate_complete` calls for `proposal` and `design` gates. The command claimed to complete all 4 pre-implementation gates but only had explicit calls for `discovery` and `planning`.
-- **`adv-review`**: Clarified ambiguous line 224 that could be misread as an instruction to call `adv_gate_complete`. Now explicitly states "Ã— Do NOT call `adv_gate_complete` here" and marks the `completedBy` text as a hint for the acceptance flow owned by `/adv-review`.
+- **`adv-review`**: Clarified ambiguous line 224 that could be misread as an instruction to call `adv_gate_complete`. Now explicitly states "× Do NOT call `adv_gate_complete` here" and marks the `completedBy` text as a hint for the acceptance flow owned by `/adv-review`.
 - **`ADV_INSTRUCTIONS.md`**: Updated command boundary summary table to match the corrected MUST NOT patterns in each command file.
 
 ### Added
@@ -1229,7 +1215,7 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Added
 
-#### `adv_change_update` Tool â€” Prevent Duplicate Change Creation
+#### `adv_change_update` Tool — Prevent Duplicate Change Creation
 
 - Added `adv_change_update` tool to update `proposal.md` and/or `problem-statement.md` for existing changes without creating duplicates
 - Added `updateChangeArtifacts()` to storage layer with atomic writes
@@ -1237,7 +1223,7 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 - Updated `/adv-proposal` (Step 7) and `/adv-research` (Phase 5) to use `adv_change_update` instead of re-calling `adv_change_create`
 - 19 new tests across 3 architectural layers (storage, store, tool)
 
-#### `/adv-harden` â€” Deployment & Operational Readiness Scanner
+#### `/adv-harden` — Deployment & Operational Readiness Scanner
 
 - Added Sub-Agent 6: Deployment & Operational Readiness Scanner to the hardening pass
 - Covers 7 deployment dimensions: environment variables & secrets, database migrations, external service dependencies, CI/CD pipeline, infrastructure & runtime, feature flags & rollout, documentation & runbooks
@@ -1249,9 +1235,9 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 #### Agent Tiering & Token Optimization
 
 - Introduced three-tier agent classification: Core (always loaded), Common (always loaded), Specialist (repo-scoped)
-- Core agents: `plan`, `build`, `refine`, `scout`, `orca` â€” available in all sessions
-- Common agents: `explore`, `librarian`, `general`, `mechanic` â€” available in all sessions
-- Specialist agents: `adv-researcher`, `tron` â€” repo-local, loaded only in ADV-enabled repos
+- Core agents: `plan`, `build`, `refine`, `scout`, `orca` — available in all sessions
+- Common agents: `explore`, `librarian`, `general`, `mechanic` — available in all sessions
+- Specialist agents: `adv-researcher`, `tron` — repo-local, loaded only in ADV-enabled repos
 - Removed 11 phantom agent registrations from `opencode.json` that were never spawned (consumed ~4-5k tokens with zero functional purpose)
 - Measured agent payload with `tiktoken` (o200k_base): 11,862 tokens in ADV repos, 9,572 in non-ADV repos (down from 14,600)
 - Added Agent Tiers table to `ADV_INSTRUCTIONS.md` documenting loading strategy
@@ -1259,10 +1245,10 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 #### Prioritizer Skill Conversion
 
 - Converted `prioritizer` from a global agent to an on-demand skill at `~/.config/opencode/skills/prioritizer/SKILL.md`
-- Skill provides criteria question templates, decision map format, and research protocol â€” loaded only when needed via `skill("prioritizer")`
+- Skill provides criteria question templates, decision map format, and research protocol — loaded only when needed via `skill("prioritizer")`
 - Updated `orca.md`, `criteria-prioritizer.md`, `ADV_INSTRUCTIONS.md`, `README.md`, and `SETUP.md` to reference the skill instead of the sub-agent
 
-#### `deploy-local.sh` â€” JSONC Config Support
+#### `deploy-local.sh` — JSONC Config Support
 
 - Config file resolution now matches OpenCode's own priority: `opencode.jsonc` > `opencode.json` > `config.json`
 - Added `jsonc_to_json` helper that strips `//` and `/* */` comments before passing to `jq`
@@ -1272,13 +1258,13 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Fixed
 
-#### `deploy-local.sh` â€” Repo-Local Agent Leak
+#### `deploy-local.sh` — Repo-Local Agent Leak
 
 - Fixed sync script unconditionally copying repo-local agents (`adv-researcher.md`, `tron.md`) to global config, undoing agent tiering
 - Added `REPO_LOCAL_ONLY` skip list to prevent repo-scoped agents from leaking into global
 - Stale-removal logic now actively cleans leaked repo-local agents from global
 
-#### `/adv-research` â€” Restored Sub-Agent Templates
+#### `/adv-research` — Restored Sub-Agent Templates
 
 - Restored over-compressed operational instructions lost in the 60% token reduction
 - Restored librarian prompt template, adv-researcher prompt template, sub-agent failure detection criteria, inline fallback procedure, and explore agent fallback template
@@ -1296,17 +1282,17 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Fixed
 
-#### `/adv-apply` â€” Restore Autonomous Task Loop
+#### `/adv-apply` — Restore Autonomous Task Loop
 
 - Phase 3 task flow now has an explicit `REPEAT/GOTO` loop construct with pseudocode, replacing the weak "continue with next ready task" language that was lost when `/adv-ralph` was consolidated
 - Added whitelist of valid loop exit conditions (no ready tasks, doom loop, environmental blocker, user cancel)
 - Added blacklist of invalid stop reasons ("completed one task", "made good progress", "context is getting long")
-- Step 3e renamed to "LOOP CONTINUATION â€” MANDATORY" with explicit branching: tasks remain â†’ go back to 3a; no tasks â†’ Phase 4/5; all blocked â†’ report
+- Step 3e renamed to "LOOP CONTINUATION — MANDATORY" with explicit branching: tasks remain → go back to 3a; no tasks → Phase 4/5; all blocked → report
 - Warning added that 3e is the most common point where agents incorrectly pause
 
 ### Added
 
-#### `/adv-research` â€” Skill Discovery Phase
+#### `/adv-research` — Skill Discovery Phase
 
 - Added Phase 1.5 (Skill Discovery) between Phase 1 (Analyze Target) and Phase 2 (Generate Research Questions)
 - Scans global and project-local skill directories for SKILL.md files with `keywords` in YAML frontmatter
@@ -1316,7 +1302,7 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 - Added Skill Discovery Protocol section to `ADV_INSTRUCTIONS.md` for cross-command adoption
 - Added reference `keywords` frontmatter to `skills/adv-tron/SKILL.md`
 
-#### `/adv-apply` â€” Worktree Reuse and Overlap Detection
+#### `/adv-apply` — Worktree Reuse and Overlap Detection
 
 - Phase 0 Step 3 now detects existing worktrees for the target change via `git worktree list --porcelain`
 - Healthy worktrees are offered for reuse; stale records (path deleted) are pruned automatically
@@ -1331,7 +1317,7 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Fixed
 
-#### `/adv-proposal` â€” Transcript Grounding
+#### `/adv-proposal` — Transcript Grounding
 
 - `/adv-proposal` now extracts prior discussion context (agreed facts, decisions, rejected approaches, open questions, constraints) from the conversation **before** synthesizing a problem statement
 - Problem Statement block now includes `PRIOR DECISIONS`, `REJECTED APPROACHES`, and `OPEN QUESTIONS` sections so the user can verify the agent faithfully carried forward what was discussed
@@ -1340,7 +1326,7 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 - Anti-fabrication rule: the agent is explicitly instructed not to invent decisions or constraints that were not discussed
 - Updated spec `rq-advprop02` from 3 to 5 scenarios covering extraction, grounding, drift detection, persistence, and abort
 
-#### `scripts/deploy-local.sh` â€” Config Validation and Patching
+#### `scripts/deploy-local.sh` — Config Validation and Patching
 
 - `deploy-local.sh` now validates `~/.config/opencode/opencode.json` for required ADV entries (plugin path, instruction path)
 - Added `--check` flag: report config issues without changing any files
@@ -1353,14 +1339,14 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Added
 
-#### `/adv-tron` â€” Codebase Reconnaissance
+#### `/adv-tron` — Codebase Reconnaissance
 
 - Added `/adv-tron [target]` as a read-only reconnaissance command for broad repo scans and target-scoped investigation
 - Added hidden `tron` sub-agent definition at `.opencode/agents/tron.md` for local codebase mapping, hotspot detection, and risk surfacing
 - Added bundled skill `skills/adv-tron/SKILL.md` and extended `scripts/deploy-local.sh` to sync ADV agents and skills into `~/.config/opencode/`
 - Added focused regression coverage in `plugin/src/adv-tron-assets.test.ts` for command, agent, skill, and sync wiring
 
-#### `/adv-harden` â€” Merge Compatibility Check
+#### `/adv-harden` — Merge Compatibility Check
 
 - Added non-destructive merge compatibility check to `/adv-harden` pre-flight
 - Runs `git merge --no-commit --no-ff` against the default branch before quality scanners
@@ -1374,7 +1360,7 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Changed
 
-#### Tradeoff Questioning â€” Prioritizer Protocol
+#### Tradeoff Questioning — Prioritizer Protocol
 
 - ADV instructions now route multi-approach, tradeoff-driven decisions through the `prioritizer` sub-agent before asking the user questions
 - The prioritizer drafts context-specific criteria questions plus a decision map so ADV agents can ask better tradeoff questions with less main-context overhead
@@ -1391,20 +1377,20 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Changed
 
-#### Terminal Tab Title â€” Normalized Change Code
+#### Terminal Tab Title — Normalized Change Code
 
-- Tab title now shows `<emoji> <normalized change code>` when a change is active (e.g. `ðŸš€ Feature X`)
-- Project name **dropped entirely** from the tab title â€” not needed as context
-- When no active change, tab shows bare emoji only (e.g. `ðŸŒ`)
-- Progress counter `[n/m]` removed â€” was broken and cluttered the title
+- Tab title now shows `<emoji> <normalized change code>` when a change is active (e.g. `🚀 Feature X`)
+- Project name **dropped entirely** from the tab title — not needed as context
+- When no active change, tab shows bare emoji only (e.g. `🌍`)
+- Progress counter `[n/m]` removed — was broken and cluttered the title
 - Change IDs are normalized to human-readable Title Case words:
-  - `addFeatureX` â†’ `Feature X`
-  - `fixAuthTimeout` â†’ `Auth Timeout`
-  - `improve-terminal-tab-title` â†’ `Terminal Tab Title`
+  - `addFeatureX` → `Feature X`
+  - `fixAuthTimeout` → `Auth Timeout`
+  - `improve-terminal-tab-title` → `Terminal Tab Title`
   - Handles camelCase, kebab-case, and snake_case
   - Strips common verb prefixes: `add`, `fix`, `update`, `improve`, `create`, `remove`, `refactor`, `change`
 - `normalizeChangeCode` and `buildTabTitle` exported from events module as public API
-- **MOON emoji changed**: ðŸŒ™ â†’ ðŸ“¡ (satellite) â€” clearly conveys "sub-agents running" rather than "idle"
+- **MOON emoji changed**: 🌙 → 📡 (satellite) — clearly conveys "sub-agents running" rather than "idle"
 - README and ADV_INSTRUCTIONS updated with tab emoji column and title format documentation
 
 ### Fixed
@@ -1413,17 +1399,17 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 - Status emoji now driven by a single `resolveStatus()` function with explicit precedence:
   `MIC > MOON > TDD_RED > TDD_GREEN > ROCKET > EARTH`
-- `ðŸ”´`/`ðŸŸ¢` (TDD_RED/TDD_GREEN) now actually appear â€” previously wired only in tests, never set at runtime
-- `ðŸ“¡` (MOON) no longer stomped by `session.status busy/idle` events firing while a sub-agent runs
-- `ðŸŽ¤` (MIC) from `permission.asked` correctly returns to `ðŸš€` (ROCKET) after `permission.replied`
-- TDD phase cleared on `session.status idle` â€” stale red/green can no longer linger after a tool completes
+- `🔴`/`🟢` (TDD_RED/TDD_GREEN) now actually appear — previously wired only in tests, never set at runtime
+- `📡` (MOON) no longer stomped by `session.status busy/idle` events firing while a sub-agent runs
+- `🎤` (MIC) from `permission.asked` correctly returns to `🚀` (ROCKET) after `permission.replied`
+- TDD phase cleared on `session.status idle` — stale red/green can no longer linger after a tool completes
 - Plugin state replaced scattered `setState({ status })` calls with `StatusFlags` interface + `setFlags()` helper
 
 ### Removed
 
-- `detectStatusFromChange()` â€” dead code, never called from production paths
-- `detectTddStatus()` â€” superseded by direct phase detection in `tool.execute.before`
-- `updateProgressFromChange()` â€” dead code, never called from production paths
+- `detectStatusFromChange()` — dead code, never called from production paths
+- `detectTddStatus()` — superseded by direct phase detection in `tool.execute.before`
+- `updateProgressFromChange()` — dead code, never called from production paths
 - Stale generated report files (`COMMAND_REPORT.html`, `COMMAND_REPORT.md`, `GOOST_VS_ADV_COMPARISON.html`)
 - Unused `_getModelName` helper in `terminal.ts` (35 lines of speculative/dead code)
 
@@ -1431,42 +1417,42 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 ### Fixed (post-release)
 
-- `/adv-quick` now always derives its contract from the recent conversation when called with no arguments â€” never asks "what do you want to build?"
-- `/adv-proposal` no longer stops with a usage error when called with no summary argument â€” derives title from conversation context instead
+- `/adv-quick` now always derives its contract from the recent conversation when called with no arguments — never asks "what do you want to build?"
+- `/adv-proposal` no longer stops with a usage error when called with no summary argument — derives title from conversation context instead
 
 ### Added
 
-#### `/adv-quick` â€” Fast-Track Contract Execution
+#### `/adv-quick` — Fast-Track Contract Execution
 
 - New command that turns a pre-discussed change into a fully-executed ADV change without the heavyweight proposal phase
 - Synthesizes a **Quick Contract** from the conversation (intent, LBP targets, scope, success criteria)
-- Chat-based confirmation via `question` tool â€” no file review required
-- Autonomous pipeline: Research (LBP validation) â†’ Prep (task generation) â†’ Implement (full `/adv-ralph` behavior)
+- Chat-based confirmation via `question` tool — no file review required
+- Autonomous pipeline: Research (LBP validation) → Prep (task generation) → Implement (full `/adv-ralph` behavior)
 - **LBP halt condition**: pauses with options if a best-practice conflict is detected before writing any code
 - Registered in command manifest with `gate: "implementation"`, successors `["adv-review", "adv-harden"]`
 
 #### BMAD-Inspired Quality Infrastructure
 
 - Adversarial review enforcement: minimum 3 non-nit findings or explicit genuinely-clean justification
-- `docs/checklists/review-checklist.md` â€” 12-dimension review coverage checklist
-- `docs/checklists/harden-checklist.md` â€” 6-scanner hardening checklist with severity scoring
-- `docs/checklists/prep-checklist.md` â€” INVEST-based requirement specificity and scenario completeness criteria
+- `docs/checklists/review-checklist.md` — 12-dimension review coverage checklist
+- `docs/checklists/harden-checklist.md` — 6-scanner hardening checklist with severity scoring
+- `docs/checklists/prep-checklist.md` — INVEST-based requirement specificity and scenario completeness criteria
 - Project-level wisdom JSONL store (`wisdom.jsonl`) with add, list, compact operations
 - `adv_wisdom_promote` tool to promote change-level entries to project wisdom with pruning criteria
 - Project wisdom injected into session context as `[ADV:PROJECT_WISDOM]` (max 10 entries, newest first)
 
 #### Worktree Integration
 
-- Phase 0 worktree assessment in `/adv-apply` and `/adv-ralph` â€” risk-based suggestion with user confirmation
+- Phase 0 worktree assessment in `/adv-apply` and `/adv-ralph` — risk-based suggestion with user confirmation
 - Inline worktree protocol: create worktree, switch `workdir`, continue in same session
 - External mutable state shared across all worktrees of the same repo via project-id (root commit SHA)
-- Worktree cleanup protocol documented: archive â‰  merge, must verify merge before `worktree_delete`
+- Worktree cleanup protocol documented: archive ≠ merge, must verify merge before `worktree_delete`
 - Graceful degradation when worktree tools unavailable (`[ADV:INFO]` marker, continues in-place)
 
 #### Cross-Repo Task Routing
 
 - Tasks with `target_repo` or `target_path` metadata execute in the target directory via `workdir` switching
-- `related_repos` config in `project.json` for generic repo routing (id â†’ absolute path)
+- `related_repos` config in `project.json` for generic repo routing (id → absolute path)
 - Prohibited cancellation reasons enforced: "different repo" and "out of scope" are invalid
 - Cross-repo protocol documented in `/adv-ralph` and `/adv-apply`
 
@@ -1479,23 +1465,23 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 
 #### Typed Delta Modifications
 
-- `modify` delta now type-checked against Requirement schema â€” unknown keys rejected at parse time
+- `modify` delta now type-checked against Requirement schema — unknown keys rejected at parse time
 - `rename` operation: update title and/or ID of existing requirement
 - Intra-delta conflict detection: rename + remove on same requirement, duplicate renames, ID collisions
-- Delta application order enforced: rename â†’ remove â†’ modify â†’ add
+- Delta application order enforced: rename → remove → modify → add
 
 #### Tools
 
-- `adv_task_show` â€” get full task details by task ID (includes parent changeId)
-- `adv_run_test` â€” run test command and record TDD evidence in one call
-- `adv_task_cancel` â€” cancel tasks with mandatory user approval and per-task reasons
-- `adv_change_add_issue` / `adv_change_remove_issue` â€” link/unlink GitHub issue URLs to changes
+- `adv_task_show` — get full task details by task ID (includes parent changeId)
+- `adv_run_test` — run test command and record TDD evidence in one call
+- `adv_task_cancel` — cancel tasks with mandatory user approval and per-task reasons
+- `adv_change_add_issue` / `adv_change_remove_issue` — link/unlink GitHub issue URLs to changes
 - Wisdom tools: `adv_wisdom_add`, `adv_wisdom_list`, `adv_wisdom_promote`
 - Gate tools: `adv_gate_status`, `adv_gate_complete`
 
 #### Performance & Reliability
 
-- Lazy sync on startup â€” reduced cold-start latency
+- Lazy sync on startup — reduced cold-start latency
 - All 36 tools switched to compact JSON output with pagination support
 - Auto-truncation on tool outputs to protect context window
 - SQLite: WAL mode, auto-recovery, checkpointing to prevent corruption
@@ -1517,15 +1503,15 @@ Implemented all 13 identified context leak surfaces where ADV drops important co
 - `/adv-harden` doc scanner replaced with aggressive documentation hygiene (stale content detection, orphan files)
 - `/adv-review` enforces minimum findings threshold with genuinely-clean justification template
 - Change ID format: `camelCase` (e.g., `fixLoginBug`) with short-form partial matching
-- `adv_task_update` rejects `status: "cancelled"` â€” use `adv_task_cancel` instead
+- `adv_task_update` rejects `status: "cancelled"` — use `adv_task_cancel` instead
 - Archive workflow validates all 6 gates complete (or legacy) before proceeding
 - Plugin context window optimized: reduced injected system context size
 
 ### Fixed
 
 - Archive tests failing on Bun due to `access()` resolving to `null`
-- `change.json` corruption under concurrent writes â€” strict locking + fsync
-- SQLite corruption â€” WAL checkpointing and auto-recovery
+- `change.json` corruption under concurrent writes — strict locking + fsync
+- SQLite corruption — WAL checkpointing and auto-recovery
 - Bell/chime now debounces `EARTH` notifications, rings `MIC` immediately, and cancels transient idle alerts during sub-agent teardown (was firing spuriously)
 - SQLite store now closes cleanly on session exit (memory leak)
 - Schema errors returned to AI instead of silently logged to console

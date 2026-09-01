@@ -80,7 +80,7 @@ export function buildAdvWorktreeAdapter(): WorkspaceAdapter {
   return {
     name: "adv-worktree",
     description: "ADV-managed git worktree (per-change isolation)",
-    async configure(info) {
+    async configure(info: WorkspaceInfo) {
       return {
         ...info,
         directory: getAdvWorktreeDirectory(info),
@@ -92,7 +92,7 @@ export function buildAdvWorktreeAdapter(): WorkspaceAdapter {
     async remove() {
       // Git worktree deletion is owned by adv_worktree_delete.
     },
-    async target(info) {
+    async target(info: WorkspaceInfo) {
       if (typeof info.directory !== "string" || info.directory.length === 0) {
         throw new Error("adv-worktree adapter target requires info.directory");
       }

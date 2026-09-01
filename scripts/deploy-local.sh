@@ -2,7 +2,7 @@
 # deploy-local.sh
 #
 # Deploys this repo's ADV assets to the local machine:
-#   - Runtime plugin -> ~/.local/share/Advance/plugin
+#   - Runtime plugin -> ~/.local/share/Determinus/plugin
 #   - Slash commands, agents, skills -> ~/.config/opencode/
 #   - Stale ADV instruction registrations are removed from opencode.json
 #   - Archived ACP companion binaries are intentionally not deployed
@@ -21,7 +21,7 @@
 #   ./scripts/deploy-local.sh --diff    # Show overlay diffs when managed blocks change
 #
 # What it does:
-#   0. Ensures plugin/dist is fresh, then syncs plugin/ -> ~/.local/share/Advance/plugin
+#   0. Ensures plugin/dist is fresh, then syncs plugin/ -> ~/.local/share/Determinus/plugin
 #   1. Copies .opencode/command/*.md  -> ~/.config/opencode/command/
 #   2. Removes stale commands from global that no longer exist in repo
 #   3. Removes legacy non-ADV commands
@@ -161,7 +161,7 @@ fi
 # ADV entries that must exist in opencode.json(c). OpenCode must load the
 # stable deployed plugin copy, not the mutable dev checkout. The pre-push hook
 # runs this script so the deployed copy is refreshed before publication.
-LOCAL_DEPLOY_ROOT="${ADV_LOCAL_DEPLOY_ROOT:-$HOME/.local/share/Advance}"
+LOCAL_DEPLOY_ROOT="${ADV_LOCAL_DEPLOY_ROOT:-$HOME/.local/share/Determinus}"
 ADV_SOURCE_PLUGIN_PATH="$ASSET_ROOT/plugin"
 ADV_RUNTIME_PLUGIN_PATH="$LOCAL_DEPLOY_ROOT/plugin"
 ADV_SOURCE_BIN_PATH="$ASSET_ROOT/bin"
@@ -729,14 +729,14 @@ is_recognized_adv_cli_target() {
 			return 0
 			;;
 		esac
-		if [ -f "$resolved" ] && grep -Eq 'adv — ADV|ADV \(Advance\)|Sharper-Flow/Advance|Live Status' "$resolved" 2>/dev/null; then
+		if [ -f "$resolved" ] && grep -Eq 'adv — ADV|ADV \(Advance\)|AndresLosada21/Determinus|Live Status' "$resolved" 2>/dev/null; then
 			return 0
 		fi
 		return 1
 	fi
 
 	if [ -f "$target" ]; then
-		if grep -Eq 'adv — ADV|ADV \(Advance\)|Sharper-Flow/Advance|Live Status' "$target" 2>/dev/null; then
+		if grep -Eq 'adv — ADV|ADV \(Advance\)|AndresLosada21/Determinus|Live Status' "$target" 2>/dev/null; then
 			return 0
 		fi
 	fi
