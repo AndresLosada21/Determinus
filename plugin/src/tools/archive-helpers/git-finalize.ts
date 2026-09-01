@@ -416,6 +416,7 @@ function defaultRunGit(
     cwd,
     encoding: "utf8",
     timeout: timeoutMs,
+    windowsHide: process.platform === "win32",
     env: {
       ...process.env,
       // git-binary helper already sets GIT_TERMINAL_PROMPT=0 and scrubs
@@ -460,6 +461,7 @@ function defaultRunGh(
     cwd,
     encoding: "utf8",
     timeout: timeoutMs,
+    windowsHide: process.platform === "win32",
     env: {
       ...process.env,
       GIT_TERMINAL_PROMPT: "0",

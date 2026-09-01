@@ -94,7 +94,10 @@ async function defaultLsofCheck(
   path: string,
 ): Promise<string | null | "unknown_no_lsof"> {
   return new Promise((resolve) => {
-    const proc = spawn("lsof", ["-t", path], { timeout: 3000 });
+    const proc = spawn("lsof", ["-t", path], {
+      timeout: 3000,
+      windowsHide: process.platform === "win32",
+    });
     let stdout = "";
     proc.stdout.on("data", (data) => {
       stdout += data.toString();

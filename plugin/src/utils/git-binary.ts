@@ -152,6 +152,7 @@ export function resolveGitBinary(opts: ResolveGitBinaryOptions = {}): string {
       env: lookupEnv,
       encoding: "utf8",
       timeout: 3000,
+      windowsHide: platform === "win32",
     });
     if (result.status === 0 && typeof result.stdout === "string") {
       const firstMatch = result.stdout
@@ -301,6 +302,7 @@ function spawnWithRemainingTimeout(
       ...rest,
       signal,
       env: mergeGitEnv(options),
+      windowsHide: process.platform === "win32",
     });
   }
 
@@ -314,6 +316,7 @@ function spawnWithRemainingTimeout(
     ...rest,
     signal: controller.signal,
     env: mergeGitEnv(options),
+    windowsHide: process.platform === "win32",
   });
   const cleanup = (): void => {
     clearTimeout(timeout);
@@ -347,6 +350,7 @@ export function spawnSyncGit(
   return spawnSync(bin, [...args], {
     ...options,
     env: mergeGitEnv(options),
+    windowsHide: process.platform === "win32",
   });
 }
 
@@ -366,6 +370,7 @@ export function execFileGitCb(
     {
       ...normalizeGitExecOptions(options),
       env: mergeGitEnv(options),
+      windowsHide: process.platform === "win32",
     },
     (err, stdout, stderr) => {
       callback(
@@ -385,6 +390,7 @@ export async function execFileGitAsync(
   const result = await execFileAsync(bin, [...args], {
     ...normalizeGitExecOptions(options),
     env: mergeGitEnv(options),
+    windowsHide: process.platform === "win32",
   });
   return {
     stdout:

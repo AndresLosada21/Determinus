@@ -70,8 +70,11 @@ describe("ensureAugmentedPath", () => {
   it("returns existing PATH augmented with system bin dirs on posix", () => {
     const result = ensureAugmentedPath("/some/user/bin", "linux");
     expect(result).toContain("/some/user/bin");
-    // At least one common system bin dir should be present on a posix host
-    expect(result.split(":").some((p) => p === "/usr/bin")).toBe(true);
+    // The synthetic Linux input runs on every CI host. Only assert that an
+    // actual POSIX host contributes its existing system directories.
+    if (process.platform !== "win32") {
+      expect(result.split(":").some((p) => p === "/usr/bin")).toBe(true);
+    }
   });
 
   it("dedupes entries idempotently", () => {

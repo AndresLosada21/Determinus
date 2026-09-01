@@ -69,6 +69,7 @@ export function execGh(
         signal,
         maxBuffer: DEFAULT_MAX_BUFFER,
         env: { ...process.env, ...GH_ENV },
+        windowsHide: process.platform === "win32",
       },
       (error, stdout, stderr) => {
         if (error) {

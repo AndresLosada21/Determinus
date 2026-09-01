@@ -45,7 +45,11 @@ async function resolveLanePermissions(
     const { stdout } = await execFileAsync(
       "opencode",
       ["debug", "agent", lane],
-      { timeout: 5_000, encoding: "utf8" },
+      {
+        timeout: 5_000,
+        encoding: "utf8",
+        windowsHide: process.platform === "win32",
+      },
     );
     return parseAgentToolPermissions(stdout);
   } catch {

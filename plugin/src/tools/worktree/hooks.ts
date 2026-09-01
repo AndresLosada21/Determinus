@@ -191,6 +191,7 @@ async function execOneHookCommand(
         // Cap captured output so a runaway hook can't OOM us.
         maxBuffer: 1024 * 1024,
         killSignal: "SIGKILL",
+        windowsHide: process.platform === "win32",
       },
       (error, stdout, stderr) => {
         const durationMs = Date.now() - startedAt;

@@ -69,6 +69,22 @@ describe("execGh", () => {
     await execGh(["issue", "list"], "/my/repo");
   });
 
+  test("hides the child window on Windows", async () => {
+    mockExecFile.mockImplementation(
+      (
+        cmd: string,
+        args: string[],
+        opts: Record<string, unknown>,
+        cb: (err: null, stdout: string, stderr: string) => void,
+      ) => {
+        expect(opts.windowsHide).toBe(process.platform === "win32");
+        cb(null, "", "");
+      },
+    );
+
+    await execGh(["issue", "list"], "/repo");
+  });
+
   test("resolves with stderr and exitCode on failure", async () => {
     const error = new Error("Command failed");
     (error as NodeJS.ErrnoException).code = "1";

@@ -37,9 +37,10 @@ describe("tool-lane-projection", () => {
       (
         _cmd: string,
         args: string[],
-        _opts: unknown,
+        opts: Record<string, unknown>,
         callback: (err: Error | null, stdout: string, stderr: string) => void,
       ) => {
+        expect(opts.windowsHide).toBe(process.platform === "win32");
         const lane = args[2];
         if (lane === "adv-ci-waiter") {
           callback(
