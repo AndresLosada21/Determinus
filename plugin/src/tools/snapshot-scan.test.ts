@@ -279,7 +279,7 @@ describe("scanSnapshotHealth", () => {
     expect(f.severity).toBe("info");
     expect(f.remediation).toBe("delete_orphan_bare_repos");
     expect(f.bare_repo_path).toBe(pidDir);
-    expect(f.metadata).toMatchObject({ layout: "legacy" });
+    expect(f.metadata).toMatchObject({ layout: "determinus" });
   });
 
   it("detects oversized dir as info", async () => {

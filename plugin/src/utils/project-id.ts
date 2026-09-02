@@ -5,7 +5,7 @@
  * Used to key external mutable state per-project so that all worktrees
  * of the same repo share the same state directory.
  *
- * Convention: $XDG_DATA_HOME/opencode/plugins/advance/{project-id}/
+ * Convention: $XDG_DATA_HOME/opencode/plugins/determinus/{project-id}/
  * Worktrees default to $XDG_DATA_HOME/opencode/worktree/{project-id}/, with
  * determinus_WORKTREE_HOME as an absolute-path override for developer-visible
  * worktree roots.
@@ -22,7 +22,6 @@
  *   Tests that need to verify the actual git resolution path call
  *   `getProjectIdFromGit` directly.
  *
- *   See `rq-testFixtureProjectId01` in `.adv/specs/advance-meta`.
  */
 
 import { execFileGitCb } from "./git-binary";
@@ -52,7 +51,7 @@ const TEST_DATA_HOME_ENV = "determinus_TEST_DATA_HOME";
  * `synthesizeTestProjectId` and remains distinguishable from any real SHA.
  *
  * Routes test external state into
- * `~/.local/share/opencode/plugins/advance/0000…000/` which is clearly
+ * `~/.local/share/opencode/plugins/determinus/0000…000/` which is clearly
  * identifiable as test-only and easy to bulk-clean.
  */
 export const SYNTHETIC_TEST_PROJECT_ID =
@@ -290,7 +289,7 @@ export function getDataHome(): string {
   const testMode =
     process.env.VITEST === "true" || process.env.determinus_TEST_MODE === "1";
   if (testMode && process.env[TEST_DATA_HOME_ENV] !== "0") {
-    return join(tmpdir(), "advance-test", String(process.pid));
+    return join(tmpdir(), "determinus-test", String(process.pid));
   }
 
   const configured = process.env.XDG_DATA_HOME;
@@ -322,12 +321,12 @@ export function getWorktreeHomeOverride(): string | null {
 /**
  * Resolve the external state directory for a given project ID.
  *
- * Path: $XDG_DATA_HOME/opencode/plugins/advance/{projectId}/
+ * Path: $XDG_DATA_HOME/opencode/plugins/determinus/{projectId}/
  *
  * If XDG_DATA_HOME is not set, defaults to ~/.local/share.
  */
 export function getExternalRoot(projectId: string): string {
-  return join(getDataHome(), "opencode/plugins/advance", projectId);
+  return join(getDataHome(), "opencode/plugins/determinus", projectId);
 }
 
 /**
@@ -348,7 +347,12 @@ export function getExternalRootForProject(projectId: string): string {
     basename(shardParent) === "opencode-projects" &&
     /^[0-9a-f]{40}$/.test(currentShard)
   ) {
-    return join(shardParent, projectId, "opencode/plugins/advance", projectId);
+    return join(
+      shardParent,
+      projectId,
+      "opencode/plugins/determinus",
+      projectId,
+    );
   }
 
   return getExternalRoot(projectId);

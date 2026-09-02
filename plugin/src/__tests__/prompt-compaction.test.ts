@@ -23,11 +23,12 @@ import { join } from "node:path";
 import {
   compactPromptMessages,
   compactToolPart,
+  compactV2ToolResultPart,
   persistFallbackContent,
   fallbackPersistedMarker,
 } from "../index";
 
-const THRESHOLD = 24_000;
+const THRESHOLD = 8_000;
 const oversized = (n: number): string => "x".repeat(n);
 
 interface ToolPart {
@@ -236,13 +237,13 @@ describe("compactPromptMessages — AC5 recency skip", () => {
     }
     const result = compactPromptMessages(messages);
 
-    // Default recency window = 6 → indices 2-7 protected; 0-1 compacted.
-    expect(result.compactedToolOutputs).toBe(2);
+    // Default recency window = 2 → indices 6-7 protected; 0-5 compacted.
+    expect(result.compactedToolOutputs).toBe(6);
     expect((messages[7].parts[0] as ToolPart).output).toBe(
       oversized(THRESHOLD + 1000),
     );
-    expect((messages[2].parts[0] as ToolPart).output).toBe(
-      oversized(THRESHOLD + 1000),
+    expect((messages[2].parts[0] as ToolPart).output).toMatch(
+      /\[ADV:OUTPUT_DROPPED\]/,
     );
     expect((messages[0].parts[0] as ToolPart).output).toMatch(
       /\[ADV:OUTPUT_DROPPED\]/,
@@ -284,15 +285,48 @@ describe("compactPromptMessages — AC5 recency skip", () => {
 
     const result = compactPromptMessages(messages);
 
-    // Six non-blank messages remain protected; the seventh is compacted.
+    // Two non-blank messages remain protected; the other five are compacted.
     expect(result.droppedBlank).toBe(1);
-    expect(result.compactedToolOutputs).toBe(1);
+    expect(result.compactedToolOutputs).toBe(5);
     expect((messages[0].parts[0] as ToolPart).output).toMatch(
       /\[ADV:OUTPUT_DROPPED\]/,
     );
-    expect((messages[1].parts[0] as ToolPart).output).toBe(
-      oversized(THRESHOLD + 1000),
+    expect((messages[1].parts[0] as ToolPart).output).toMatch(
+      /\[ADV:OUTPUT_DROPPED\]/,
     );
+  });
+});
+
+describe("compactV2ToolResultPart", () => {
+  test("bounds native OpenCode 2 tool-result content", () => {
+    const part: any = {
+      type: "tool-result",
+      name: "determinus_change_show",
+      result: { type: "text", value: oversized(THRESHOLD + 1) },
+    };
+    expect(compactV2ToolResultPart(part)).toBe(true);
+    expect(part.result.value).toMatch(/\[ADV:OUTPUT_DROPPED\]/);
+  });
+});
+
+describe("compactPromptMessages — OpenCode 2 native shape", () => {
+  test("compacts older v2 tool results while preserving the recent tail", () => {
+    const messages: any[] = Array.from({ length: 3 }, () => ({
+      role: "tool",
+      content: [
+        {
+          type: "tool-result",
+          name: "determinus_change_show",
+          result: { type: "text", value: oversized(THRESHOLD + 1) },
+        },
+      ],
+    }));
+    const result = compactPromptMessages(messages);
+    expect(result.compactedToolOutputs).toBe(1);
+    expect(messages[0].content[0].result.value).toMatch(
+      /\[ADV:OUTPUT_DROPPED\]/,
+    );
+    expect(messages[2].content[0].result.value).toHaveLength(THRESHOLD + 1);
   });
 });
 
@@ -307,7 +341,7 @@ describe("compactPromptMessages — SC1 count preservation (DC7)", () => {
       );
     }
     const result = compactPromptMessages(messages);
-    expect(result.compactedToolOutputs).toBe(2);
+    expect(result.compactedToolOutputs).toBe(6);
   });
 
   test("oversized persisted protected content increments the count (DC7)", () => {
@@ -324,8 +358,8 @@ describe("compactPromptMessages — SC1 count preservation (DC7)", () => {
         );
       }
       const result = compactPromptMessages(messages);
-      // 2 old task outputs persisted (increment) + 6 recent protected.
-      expect(result.compactedToolOutputs).toBe(2);
+      // 6 old task outputs persisted (increment) + 2 recent protected.
+      expect(result.compactedToolOutputs).toBe(6);
     } finally {
       delete process.env.determinus_FALLBACK_SINK_DIR;
     }

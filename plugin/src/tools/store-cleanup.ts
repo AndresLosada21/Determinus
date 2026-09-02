@@ -95,7 +95,7 @@ export const StoreCleanupStoreSchema = z
   .object({
     project_id: z.string(),
     path: z.string(),
-    layout: z.enum(["legacy", "shard"]),
+    layout: z.enum(["determinus", "shard"]),
     agenda: StoreCleanupAgendaSummarySchema,
     worker_lock: StoreCleanupWorkerLockSchema,
     consolidation_ledger: StoreCleanupConsolidationLedgerSchema,

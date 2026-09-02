@@ -14,6 +14,15 @@ import type { PrTitlePolicy } from "../../types/project";
 
 export type ArchiveMode = "direct" | "pr";
 
+/** Windows can return the same worktree path with different slash and drive
+ * casing through `realpathSync` and `git rev-parse`. Compare identity, not the
+ * raw presentation, before rejecting a valid archive worktree. */
+const sameRepoRoot = (left: string, right: string): boolean => {
+  const canonical = (value: string) =>
+    normalize(realpathSync(value)).replace(/\\/g, "/").toLowerCase();
+  return canonical(left) === canonical(right);
+};
+
 export interface GitFinalizeOutcome {
   status: "shipped" | "blocked" | "pending_merge";
   /** Project git root (main checkout or bare repository) used for remote-first isolated finalization. */
@@ -826,7 +835,9 @@ export function resolveRepoRoot(
     ["rev-parse", "--path-format=absolute", "--git-common-dir"],
     deps,
   );
-  return dirname(gitCommonDir);
+  // Git for Windows may emit C:/ while realpathSync returns C:\\.
+  // Normalize at the boundary as well as in sameRepoRoot().
+  return normalize(dirname(normalize(gitCommonDir)));
 }
 
 export function detectDefaultBranch(
@@ -3296,7 +3307,7 @@ export function validateArchiveDeltaRepairWorktree(
   let repoRoot: string;
   try {
     repoRoot = resolveRepoRoot(workdir, deps);
-    if (realpathSync(repoRoot) !== realpathSync(expectedRepoRoot)) {
+    if (!sameRepoRoot(repoRoot, expectedRepoRoot)) {
       return {
         valid: false,
         repoRoot,
@@ -3701,7 +3712,7 @@ export async function finalizeRelease(
   }
 
   const repoRoot = worktreeValidation.repoRoot;
-  if (ctx.expectedRepoRoot && repoRoot !== ctx.expectedRepoRoot) {
+  if (ctx.expectedRepoRoot && !sameRepoRoot(repoRoot, ctx.expectedRepoRoot)) {
     return {
       status: "blocked",
       repoRoot,

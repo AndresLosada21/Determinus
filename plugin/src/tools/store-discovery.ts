@@ -11,12 +11,12 @@ export const CONSOLIDATION_LEDGER_FILENAME = "consolidation-ledger.jsonl";
 export interface StoreDirRef {
   projectId: string;
   path: string;
-  layout: "legacy" | "shard";
+  layout: "determinus" | "shard";
   shard: string | null;
 }
 
 export interface LayoutWalk {
-  layout: "legacy" | "shard";
+  layout: "determinus" | "shard";
   root: string;
   exists: boolean;
 }
@@ -52,7 +52,7 @@ export function defaultDataHomeRoot(): string {
   return dataHome;
 }
 
-/** Enumerate discoverable ADV stores without mutating or requiring them. */
+/** Enumerate discoverable Determinus stores without mutating or requiring them. */
 export async function walkStoreDirs(dataHomeRoot: string): Promise<{
   stores: StoreDirRef[];
   layouts: LayoutWalk[];
@@ -60,18 +60,18 @@ export async function walkStoreDirs(dataHomeRoot: string): Promise<{
   const stores: StoreDirRef[] = [];
   const layouts: LayoutWalk[] = [];
 
-  const legacyRoot = join(dataHomeRoot, "opencode/plugins/advance");
-  const legacyNames = await readdirSafe(legacyRoot);
+  const determinusRoot = join(dataHomeRoot, "opencode/plugins/determinus");
+  const determinusNames = await readdirSafe(determinusRoot);
   layouts.push({
-    layout: "legacy",
-    root: legacyRoot,
-    exists: await pathExists(legacyRoot),
+    layout: "determinus",
+    root: determinusRoot,
+    exists: await pathExists(determinusRoot),
   });
-  for (const name of legacyNames) {
+  for (const name of determinusNames) {
     stores.push({
       projectId: name,
-      path: join(legacyRoot, name),
-      layout: "legacy",
+      path: join(determinusRoot, name),
+      layout: "determinus",
       shard: null,
     });
   }
@@ -83,11 +83,15 @@ export async function walkStoreDirs(dataHomeRoot: string): Promise<{
     exists: await pathExists(shardsRoot),
   });
   for (const shard of await readdirSafe(shardsRoot)) {
-    const advanceRoot = join(shardsRoot, shard, "opencode/plugins/advance");
-    for (const name of await readdirSafe(advanceRoot)) {
+    const determinusRoot = join(
+      shardsRoot,
+      shard,
+      "opencode/plugins/determinus",
+    );
+    for (const name of await readdirSafe(determinusRoot)) {
       stores.push({
         projectId: name,
-        path: join(advanceRoot, name),
+        path: join(determinusRoot, name),
         layout: "shard",
         shard,
       });

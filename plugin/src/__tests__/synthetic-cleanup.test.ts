@@ -12,15 +12,15 @@ describe("synthetic ADV cleanup guard", () => {
     try {
       const stale = join(
         dataHome,
-        "opencode/plugins/advance/0000000000000000stalestalestalest",
+        "opencode/plugins/determinus/0000000000000000stalestalestalest",
       );
       const created = join(
         dataHome,
-        "opencode/plugins/advance/0000000000000000createdcreatedcreat",
+        "opencode/plugins/determinus/0000000000000000createdcreatedcreat",
       );
       const real = join(
         dataHome,
-        "opencode/plugins/advance/bdf259aa162ae192af5b18899ccdc653b085528d",
+        "opencode/plugins/determinus/bdf259aa162ae192af5b18899ccdc653b085528d",
       );
 
       await mkdir(stale, { recursive: true });
@@ -43,11 +43,11 @@ describe("synthetic ADV cleanup guard", () => {
     try {
       const staleOwned = join(
         dataHome,
-        "opencode/plugins/advance/0000000000000000staleownedownedown",
+        "opencode/plugins/determinus/0000000000000000staleownedownedown",
       );
       const staleUnowned = join(
         dataHome,
-        "opencode/plugins/advance/0000000000000000staleunownunownun",
+        "opencode/plugins/determinus/0000000000000000staleunownunownun",
       );
 
       await mkdir(staleOwned, { recursive: true });

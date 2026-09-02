@@ -28,6 +28,7 @@
                     "format":  "prettier --write src/",
                     "format:check":  "prettier --check src/",
                     "test":  "vitest run",
+                    "test:opencode2":  "vitest run src/__tests__/prompt-compaction.test.ts --project unit --maxWorkers=1 && vitest run src/tools/archive-helpers/git-finalize.test.ts --project unit --maxWorkers=1 --testNamePattern=worktree",
                     "test:watch":  "vitest",
                     "test:coverage":  "vitest run --coverage",
                     "dead-code:check":  "bun ../bin/dead-code-check.ts",

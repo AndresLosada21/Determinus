@@ -1092,7 +1092,7 @@ export function createDegradedToolMap(
         "Run `pnpm --filter @sharperflow/advance build` from the repo root (or `pnpm build` in plugin/) to ensure plugin/dist/ is current",
         "Check ~/.config/opencode/opencode.json — the .plugin array must point to the built plugin directory",
         "If project.json is present, verify it is valid JSON and matches the ADV ProjectConfig schema",
-        "Check the ADV external state dir (~/.local/share/opencode/plugins/advance/{project-id}/) for malformed change/spec JSON; repair the artifact, then restart OpenCode",
+        "Check the Determinus external state dir (~/.local/share/opencode/plugins/determinus/{project-id}/) for malformed change/spec JSON; repair the artifact, then restart OpenCode",
         "Set determinus_DEBUG=1 in your shell and restart OpenCode to capture init errors in $determinus_CACHE_DIR/determinus-debug.log",
       ],
       readinessHint:

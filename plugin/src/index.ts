@@ -110,8 +110,11 @@ import { worktreeExistsForChange } from "./tools/worktree/state";
 
 export { resolveGitSessionContext } from "./utils/git-session";
 
-const MAX_PROMPT_TOOL_OUTPUT_CHARS = 24_000;
-const MAX_PROMPT_DIFF_CHARS = 24_000;
+// OpenCode v2 replays completed tool results in every following model request.
+// Keep the prompt-facing form deliberately small; the full, durable result is
+// preserved by the tool/store rather than by conversational history.
+const MAX_PROMPT_TOOL_OUTPUT_CHARS = 8_000;
+const MAX_PROMPT_DIFF_CHARS = 8_000;
 const PROMPT_EXCERPT_CHARS = 2_000;
 
 /**
@@ -119,7 +122,7 @@ const PROMPT_EXCERPT_CHARS = 2_000;
  * truncation (AC5 recency skip). Mirrors the host prune turn-protection
  * discipline (~3 turns). See boundSubAgentReportContract KD2/DC1.
  */
-const RECENCY_PROTECTED_MESSAGES = 6;
+const RECENCY_PROTECTED_MESSAGES = 2;
 
 /**
  * Tool types whose outputs are sub-agent (task) or skill returns and must
@@ -273,6 +276,23 @@ export const compactToolPart = (part: unknown): boolean => {
   return compacted;
 };
 
+/**
+ * OpenCode 2 message shape is `{ role, content }`, not the v1
+ * `{ info, parts }` shape used by the original ADV hook.  The compatibility
+ * adapter used to shallow-cast v2 messages, silently making output compaction
+ * a no-op.  Compact the native ToolResultPart in place as well.
+ */
+export const compactV2ToolResultPart = (part: unknown): boolean => {
+  if (!isRecord(part) || part.type !== "tool-result") return false;
+  if (!isRecord(part.result) || part.result.type !== "text") return false;
+  if (typeof part.result.value !== "string") return false;
+  const output = part.result.value;
+  if (output.length <= MAX_PROMPT_TOOL_OUTPUT_CHARS) return false;
+  const toolName = typeof part.name === "string" ? part.name : "tool result";
+  part.result.value = dropToolOutput(toolName, output);
+  return true;
+};
+
 const compactSummaryDiffs = (info: unknown): number => {
   if (!isRecord(info) || !isRecord(info.summary)) return 0;
   const diffs = info.summary.diffs;
@@ -300,7 +320,12 @@ const isBlankUnfinishedAssistantMessage = (message: {
 };
 
 export const compactPromptMessages = (
-  messages: Array<{ info?: unknown; parts?: unknown[] }>,
+  messages: Array<{
+    info?: unknown;
+    parts?: unknown[];
+    role?: unknown;
+    content?: unknown[];
+  }>,
 ): {
   droppedBlank: number;
   compactedToolOutputs: number;
@@ -332,6 +357,11 @@ export const compactPromptMessages = (
     if (Array.isArray(message.parts)) {
       for (const part of message.parts) {
         if (compactToolPart(part)) compactedToolOutputs++;
+      }
+    }
+    if (Array.isArray(message.content)) {
+      for (const part of message.content) {
+        if (compactV2ToolResultPart(part)) compactedToolOutputs++;
       }
     }
   }
@@ -1747,8 +1777,7 @@ export default Plugin.define({
     const hasSystemTransform = !!hooks["experimental.chat.system.transform"];
     const hasMessagesTransform =
       !!hooks["experimental.chat.messages.transform"];
-    const hasCompacting = !!hooks["experimental.session.compacting"];
-    if (hasSystemTransform || hasMessagesTransform || hasCompacting) {
+    if (hasSystemTransform || hasMessagesTransform) {
       await ctx.session.hook("context", async (event: any) => {
         // System transform
         if (hasSystemTransform) {
@@ -1786,21 +1815,12 @@ export default Plugin.define({
             debugLog(`messages.transform shim failed: ${e}`);
           }
         }
-        // Compacting: old hook pushed to output.context; new has no direct equivalent
-        // We simulate by injecting compaction context into system if needed
-        if (hasCompacting) {
-          try {
-            const output: any = { context: [] as string[] };
-            await hooks["experimental.session.compacting"]({} as any, output);
-            if (Array.isArray(output.context) && output.context.length > 0) {
-              const compactionText = output.context.join("\n\n");
-              // Inject into system as additional part
-              event.system.push({ type: "text", text: compactionText } as any);
-            }
-          } catch (e) {
-            debugLog(`compacting shim failed: ${e}`);
-          }
-        }
+        // Do not emulate the v1 `experimental.session.compacting` hook here.
+        // `context` runs before *every* OpenCode v2 model request, whereas the
+        // old hook ran only while creating a compaction summary. Injecting it
+        // here added a mutable change/task/spec snapshot to every prompt and
+        // invalidated otherwise reusable cache prefixes. OpenCode v2 already
+        // owns compaction and serializes the active transcript safely.
       });
     }
 
