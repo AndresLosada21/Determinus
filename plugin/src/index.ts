@@ -113,16 +113,16 @@ export { resolveGitSessionContext } from "./utils/git-session";
 // OpenCode v2 replays completed tool results in every following model request.
 // Keep the prompt-facing form deliberately small; the full, durable result is
 // preserved by the tool/store rather than by conversational history.
-const MAX_PROMPT_TOOL_OUTPUT_CHARS = 8_000;
-const MAX_PROMPT_DIFF_CHARS = 8_000;
-const PROMPT_EXCERPT_CHARS = 2_000;
+const MAX_PROMPT_TOOL_OUTPUT_CHARS = 1_200;
+const MAX_PROMPT_DIFF_CHARS = 1_200;
+const PROMPT_EXCERPT_CHARS = 400;
 
 /**
- * Number of most-recent non-blank messages protected from any content
- * truncation (AC5 recency skip). Mirrors the host prune turn-protection
- * discipline (~3 turns). See boundSubAgentReportContract KD2/DC1.
+ * Number of most-recent non-blank messages exempt from containment. This is
+ * zero deliberately: OpenCode replays a just-completed tool result on the
+ * next request, which makes a single large task report break prompt caching.
  */
-const RECENCY_PROTECTED_MESSAGES = 2;
+const RECENCY_PROTECTED_MESSAGES = 0;
 
 /**
  * Tool types whose outputs are sub-agent (task) or skill returns and must
@@ -1774,7 +1774,10 @@ export default Plugin.define({
     }
 
     // Register session context hook (system + messages)
-    const hasSystemTransform = !!hooks["experimental.chat.system.transform"];
+    // Never mutate the leading system message after a session begins. Provider
+    // prompt caches key on that prefix; status/wisdom banners here caused full
+    // 200k+ context cache misses after otherwise small tool calls.
+    const hasSystemTransform = false;
     const hasMessagesTransform =
       !!hooks["experimental.chat.messages.transform"];
     if (hasSystemTransform || hasMessagesTransform) {

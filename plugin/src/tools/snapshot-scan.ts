@@ -468,7 +468,7 @@ export async function scanSnapshotHealth(
         bare_repo_path: pidDir,
         detail: "Legacy layout: bare repo at project root",
         remediation: "delete_orphan_bare_repos",
-        metadata: { layout: "determinus" },
+        metadata: { layout: "legacy" },
       });
       const repoFindings = await scanBareRepo(pidDir, pid, {
         lsofCheck,

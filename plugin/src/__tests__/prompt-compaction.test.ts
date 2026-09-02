@@ -28,7 +28,7 @@ import {
   fallbackPersistedMarker,
 } from "../index";
 
-const THRESHOLD = 8_000;
+const THRESHOLD = 1_200;
 const oversized = (n: number): string => "x".repeat(n);
 
 interface ToolPart {
@@ -75,7 +75,7 @@ describe("compactToolPart — AC6 tool-type protection (conforming returns)", ()
   });
 
   test("task state.output under threshold is protected", () => {
-    const original = oversized(2000);
+    const original = oversized(THRESHOLD - 100);
     const part = toolPart({ tool: "task", state: { output: original } });
     expect(compactToolPart(part)).toBe(false);
     expect(part.state?.output).toBe(original);
@@ -225,8 +225,8 @@ describe("compactToolPart — AC7 honest full-drop (oversized unprotected conten
   });
 });
 
-describe("compactPromptMessages — AC5 recency skip", () => {
-  test("most recent N messages are protected from tool-output truncation", () => {
+describe("compactPromptMessages — prompt containment", () => {
+  test("all historical tool messages are compacted, including the latest one", () => {
     const messages = [];
     for (let i = 0; i < 8; i++) {
       messages.push(
@@ -237,10 +237,9 @@ describe("compactPromptMessages — AC5 recency skip", () => {
     }
     const result = compactPromptMessages(messages);
 
-    // Default recency window = 2 → indices 6-7 protected; 0-5 compacted.
-    expect(result.compactedToolOutputs).toBe(6);
-    expect((messages[7].parts[0] as ToolPart).output).toBe(
-      oversized(THRESHOLD + 1000),
+    expect(result.compactedToolOutputs).toBe(8);
+    expect((messages[7].parts[0] as ToolPart).output).toMatch(
+      /\[ADV:OUTPUT_DROPPED\]/,
     );
     expect((messages[2].parts[0] as ToolPart).output).toMatch(
       /\[ADV:OUTPUT_DROPPED\]/,
@@ -253,8 +252,7 @@ describe("compactPromptMessages — AC5 recency skip", () => {
     );
   });
 
-  test("recency protection applies even to oversized protected tool types in the recent window", () => {
-    // A recent oversized task output is protected by recency and NOT persisted.
+  test("oversized protected task output is persisted even when it is latest", () => {
     const messages = [];
     for (let i = 0; i < 6; i++) {
       messages.push(messageWithParts([]));
@@ -265,13 +263,13 @@ describe("compactPromptMessages — AC5 recency skip", () => {
       ]),
     );
     const result = compactPromptMessages(messages);
-    expect(result.compactedToolOutputs).toBe(0);
-    expect((messages[6].parts[0] as ToolPart).output).toBe(
-      oversized(THRESHOLD + 5000),
+    expect(result.compactedToolOutputs).toBe(1);
+    expect((messages[6].parts[0] as ToolPart).output).toMatch(
+      /\[ADV:(FALLBACK_RESULT_PERSISTED|OUTPUT_DROPPED)\]/,
     );
   });
 
-  test("blank-message splicing does not consume a recency-protected slot", () => {
+  test("blank-message splicing does not suppress containment", () => {
     const messages = [];
     for (let i = 0; i < 7; i++) {
       messages.push(
@@ -285,9 +283,8 @@ describe("compactPromptMessages — AC5 recency skip", () => {
 
     const result = compactPromptMessages(messages);
 
-    // Two non-blank messages remain protected; the other five are compacted.
     expect(result.droppedBlank).toBe(1);
-    expect(result.compactedToolOutputs).toBe(5);
+    expect(result.compactedToolOutputs).toBe(7);
     expect((messages[0].parts[0] as ToolPart).output).toMatch(
       /\[ADV:OUTPUT_DROPPED\]/,
     );
@@ -310,7 +307,7 @@ describe("compactV2ToolResultPart", () => {
 });
 
 describe("compactPromptMessages — OpenCode 2 native shape", () => {
-  test("compacts older v2 tool results while preserving the recent tail", () => {
+  test("compacts every v2 tool result in the prompt", () => {
     const messages: any[] = Array.from({ length: 3 }, () => ({
       role: "tool",
       content: [
@@ -322,11 +319,13 @@ describe("compactPromptMessages — OpenCode 2 native shape", () => {
       ],
     }));
     const result = compactPromptMessages(messages);
-    expect(result.compactedToolOutputs).toBe(1);
+    expect(result.compactedToolOutputs).toBe(3);
     expect(messages[0].content[0].result.value).toMatch(
       /\[ADV:OUTPUT_DROPPED\]/,
     );
-    expect(messages[2].content[0].result.value).toHaveLength(THRESHOLD + 1);
+    expect(messages[2].content[0].result.value).toMatch(
+      /\[ADV:OUTPUT_DROPPED\]/,
+    );
   });
 });
 
@@ -341,7 +340,7 @@ describe("compactPromptMessages — SC1 count preservation (DC7)", () => {
       );
     }
     const result = compactPromptMessages(messages);
-    expect(result.compactedToolOutputs).toBe(6);
+    expect(result.compactedToolOutputs).toBe(8);
   });
 
   test("oversized persisted protected content increments the count (DC7)", () => {
@@ -358,8 +357,7 @@ describe("compactPromptMessages — SC1 count preservation (DC7)", () => {
         );
       }
       const result = compactPromptMessages(messages);
-      // 6 old task outputs persisted (increment) + 2 recent protected.
-      expect(result.compactedToolOutputs).toBe(6);
+      expect(result.compactedToolOutputs).toBe(8);
     } finally {
       delete process.env.determinus_FALLBACK_SINK_DIR;
     }
@@ -450,6 +448,6 @@ describe("compactPromptMessages — edge cases", () => {
       ]),
     ];
     const result = compactPromptMessages(messages);
-    expect(result.compactedToolOutputs).toBe(0); // 1 message, recency-protected
+    expect(result.compactedToolOutputs).toBe(1);
   });
 });

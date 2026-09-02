@@ -15,8 +15,8 @@
 const ENV_MAX_CHARS = parseInt(process.env.determinus_TOOL_MAX_CHARS || "", 10);
 const ENV_OUTPUT_MODE = process.env.determinus_TOOL_OUTPUT_MODE;
 
-/** Hard character cap. Approximate ~6k tokens at 3.5 chars/token. */
-export const DEFAULT_MAX_CHARS = 5000;
+/** Hard character cap for a model-visible tool result. */
+export const DEFAULT_MAX_CHARS = 1200;
 
 /** Use compact JSON unless env says "pretty" */
 const OUTPUT_MODE: "compact" | "pretty" =

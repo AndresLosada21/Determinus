@@ -3,7 +3,7 @@
  *
  * Worktree records are a projection of the local Git worktree/branch facts.
  * Pending deletes remain durable external state under
- * `$XDG_DATA_HOME/opencode/plugins/determinus/{projectId}/`.
+ * `$XDG_DATA_HOME/opencode/plugins/advance/{projectId}/`.
  */
 
 import { mkdir, readFile } from "node:fs/promises";

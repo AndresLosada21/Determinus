@@ -16,12 +16,12 @@ if (errors.length > 0) {
 }
 
 const normalize = (value) => String(value).replace(/\\/g, "/").toLowerCase()
-const legacyPlugin = (value) => {
+const managedPlugin = (value) => {
   const path = normalize(value)
   return path.endsWith("/.local/share/advance/plugin") || path.endsWith("/.local/share/determinus/plugin")
 }
 const existingPlugins = Array.isArray(config.plugin) ? config.plugin : config.plugin ? [config.plugin] : []
-const plugins = [...existingPlugins.filter((value) => !legacyPlugin(value)), pluginPath]
+const plugins = [...existingPlugins.filter((value) => !managedPlugin(value)), pluginPath]
   .filter((value, index, all) => all.findIndex((candidate) => normalize(candidate) === normalize(value)) === index)
 
 const legacyInstruction = (value) => /(?:^|[/\\])(ADV_INSTRUCTIONS|cost-governance)\.md$/i.test(String(value))

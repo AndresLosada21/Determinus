@@ -22,6 +22,7 @@
  *   Tests that need to verify the actual git resolution path call
  *   `getProjectIdFromGit` directly.
  *
+ *   See `rq-testFixtureProjectId01` in `.adv/specs/advance-meta`.
  */
 
 import { execFileGitCb } from "./git-binary";
@@ -347,12 +348,7 @@ export function getExternalRootForProject(projectId: string): string {
     basename(shardParent) === "opencode-projects" &&
     /^[0-9a-f]{40}$/.test(currentShard)
   ) {
-    return join(
-      shardParent,
-      projectId,
-      "opencode/plugins/determinus",
-      projectId,
-    );
+    return join(shardParent, projectId, "opencode/plugins/determinus", projectId);
   }
 
   return getExternalRoot(projectId);

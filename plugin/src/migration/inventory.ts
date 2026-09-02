@@ -43,12 +43,12 @@ const PROJECT_ID_PATTERN = /^[0-9a-f]{40}$/;
  */
 export function listProjectInventoryRoots(homeDir: string): string[] {
   const share = join(homeDir, ".local", "share");
-  const roots: string[] = [join(share, "opencode", "plugins", "determinus")];
+  const roots: string[] = [join(share, "opencode", "plugins", "advance")];
   const shardsDir = join(share, "opencode-projects");
   try {
     for (const shard of readdirSync(shardsDir)) {
       if (!PROJECT_ID_PATTERN.test(shard)) continue;
-      roots.push(join(shardsDir, shard, "opencode", "plugins", "determinus"));
+      roots.push(join(shardsDir, shard, "opencode", "plugins", "advance"));
     }
   } catch {
     // No shard layout on this machine.

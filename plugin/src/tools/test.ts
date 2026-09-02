@@ -30,8 +30,8 @@ import { coordinateChangeMutation } from "./change-mutation-coordinator";
  */
 export const DEFAULT_TEST_TIMEOUT_MS = 30_000;
 export const DEFAULT_TEST_MAX_BUFFER = 10 * 1024 * 1024;
-const DEFAULT_OUTPUT_MAX_LENGTH = 2000;
-const TEST_RUN_RING_BUFFER_LIMIT = 20;
+const DEFAULT_OUTPUT_MAX_LENGTH = 900;
+const TEST_RUN_RING_BUFFER_LIMIT = 8;
 const TRUNCATION_SUFFIX = "... (truncated)";
 const determinus_RUN_TEST_PHASES = ["red", "green", "verify"] as const;
 type AdvRunTestPhase = (typeof determinus_RUN_TEST_PHASES)[number];
@@ -92,6 +92,14 @@ const SUMMARY_LINE =
 const DIRECT_TEST_WORKFLOW =
   /\b(?:pnpm|npm|bun|yarn)\s+(?:test|run\s+(?:test|check|lint|build|validate)|exec\s+(?:vitest|playwright))\b|\b(?:vitest|playwright)\s+(?:run|test)\b/;
 const OC_TEST_WRAPPER_COMMAND = /(^|\s)(?:\.\.?\/)?(?:bin\/)?oc-test\b/;
+const EVIDENCE_COMMAND = new RegExp(
+  [
+    DIRECT_TEST_WORKFLOW.source,
+    "\\b(?:phpunit|pytest|go\\s+test|mvn\\s+test|gradlew?\\s+test)\\b",
+    "\\b(?:tsc\\s+--noEmit|git\\s+diff\\s+--check)\\b",
+  ].join("|"),
+  "i",
+);
 
 const appendUnique = (target: string[], seen: Set<string>, lines: string[]) => {
   for (const line of lines) {
@@ -444,6 +452,15 @@ export const testTools = {
       }
 
       const cwd = args.workdir || defaultWorkdir;
+      if (!EVIDENCE_COMMAND.test(args.command)) {
+        return formatToolOutput({
+          success: false,
+          error: "invalid_evidence_command",
+          message:
+            "determinus_run_test accepts test/build/validation commands only. Use bash, read, grep, or glob for discovery, file reads, git inspection, and container logs.",
+          command: args.command,
+        });
+      }
       const advisories = buildTestWorkflowAdvisories(args.command, cwd);
       // rq-TDD010qual: compute advisory quality signals by static-parsing
       const testFilePath = extractTestFilePath(args.command);

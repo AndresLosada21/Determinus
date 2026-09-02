@@ -265,14 +265,14 @@ describe("getExternalRoot", () => {
   test("uses XDG_DATA_HOME when set", () => {
     process.env.XDG_DATA_HOME = "/custom/data";
     const root = getExternalRoot("abc123");
-    expect(root).toBe("/custom/data/opencode/plugins/determinus/abc123");
+    expect(root).toBe("/custom/data/opencode/plugins/advance/abc123");
   });
 
   test("falls back to ~/.local/share when XDG_DATA_HOME unset", () => {
     delete process.env.XDG_DATA_HOME;
     const root = getExternalRoot("abc123");
     expect(root).toBe(
-      join(homedir(), ".local/share/opencode/plugins/determinus/abc123"),
+      join(homedir(), ".local/share/opencode/plugins/advance/abc123"),
     );
   });
 
@@ -280,7 +280,7 @@ describe("getExternalRoot", () => {
     process.env.XDG_DATA_HOME = "";
     expect(getDataHome()).toBe(join(homedir(), ".local/share"));
     expect(getExternalRoot("abc123")).toBe(
-      join(homedir(), ".local/share/opencode/plugins/determinus/abc123"),
+      join(homedir(), ".local/share/opencode/plugins/advance/abc123"),
     );
   });
 
@@ -296,9 +296,7 @@ describe("getExternalRoot", () => {
     delete process.env.XDG_DATA_HOME;
     const root = getExternalRoot("");
     // Should still return a path (caller is responsible for null-checking projectId)
-    expect(root).toBe(
-      join(homedir(), ".local/share/opencode/plugins/determinus"),
-    );
+    expect(root).toBe(join(homedir(), ".local/share/opencode/plugins/advance"));
   });
 });
 
@@ -387,7 +385,7 @@ describe("getExternalRootForProject", () => {
     process.env.XDG_DATA_HOME = `/tmp/opencode-projects/${sourceProjectId}`;
 
     expect(getExternalRootForProject(targetProjectId)).toBe(
-      `/tmp/opencode-projects/${targetProjectId}/opencode/plugins/determinus/${targetProjectId}`,
+      `/tmp/opencode-projects/${targetProjectId}/opencode/plugins/advance/${targetProjectId}`,
     );
   });
 
@@ -395,7 +393,7 @@ describe("getExternalRootForProject", () => {
     process.env.XDG_DATA_HOME = "/custom/data";
 
     expect(getExternalRootForProject(targetProjectId)).toBe(
-      `/custom/data/opencode/plugins/determinus/${targetProjectId}`,
+      `/custom/data/opencode/plugins/advance/${targetProjectId}`,
     );
   });
 
@@ -403,7 +401,7 @@ describe("getExternalRootForProject", () => {
     process.env.XDG_DATA_HOME = "/tmp/opencode-projects/path-abcdef123456";
 
     expect(getExternalRootForProject(targetProjectId)).toBe(
-      `/tmp/opencode-projects/path-abcdef123456/opencode/plugins/determinus/${targetProjectId}`,
+      `/tmp/opencode-projects/path-abcdef123456/opencode/plugins/advance/${targetProjectId}`,
     );
   });
 
