@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "digest": "sha256:34ab397092621bb1cd0fb8fdb2e6863ff2c2cf90d11ff9da6afee3053e151320",
+  "digest": "sha256:565ed413e7d31814421c79a6ccb916dbea0757b17f6c535dd9763d24da35b20c",
   "files": [
     {
       "path": "doctor-cli.d.ts",
@@ -34,7 +34,7 @@
     },
     {
       "path": "plugin-bundle-manifest.json",
-      "sha256": "e285c9fe75474a9e807e30b020d80db2546591b08432da3f6a1851a265d93a4a",
+      "sha256": "9d3b3d06378be62f0df6e331621e30e708165458365b39bf6ccaf98d932b1523",
       "bytes": 510
     },
     {
@@ -58,6 +58,6 @@
       "bytes": 724968
     }
   ],
-  "computedAt": "2026-09-05T14:56:18.726Z",
+  "computedAt": "2026-09-05T15:16:53.814Z",
   "pluginRoot": "C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus\\plugin"
 }
