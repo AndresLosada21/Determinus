@@ -135,6 +135,7 @@ const LANE_SECTIONS: Record<BriefingPacketLane, SectionKind[]> = {
     "scope",
     "contract",
     "tasks",
+    "active_slice",
     "affected_files",
     "epic_context",
     "verification_expectations",
@@ -156,6 +157,7 @@ const LANE_SECTIONS: Record<BriefingPacketLane, SectionKind[]> = {
     "scope",
     "contract",
     "tasks",
+    "active_slice",
     "affected_files",
     "epic_context",
     "verification_expectations",
@@ -382,6 +384,24 @@ function buildTasksSection(
   });
 }
 
+function buildActiveSliceSection(
+  input: BriefingPacketRendererInput,
+): BriefingPacketSection | undefined {
+  // ST-13: renders the slice projection produced by buildSliceContext
+  // (helpers.ts). Absent input (older producers) renders nothing — never an
+  // unavailable marker, since the slice is progressive enhancement.
+  const slice = input.active_slice;
+  if (!slice || !isNonEmptyString(slice.active_slice)) return undefined;
+  return section("active_slice", "slice.projection", {
+    active_slice: slice.active_slice,
+    scenario: slice.scenario,
+    tdd_state: slice.tdd_state,
+    allowed: slice.allowed,
+    forbidden: slice.forbidden,
+    target: slice.target,
+  });
+}
+
 function buildAffectedFilesSection(
   input: BriefingPacketRendererInput,
 ): BriefingPacketSection | undefined {
@@ -555,6 +575,7 @@ export function renderBriefingPacket(
     scope: buildScopeSection,
     contract: buildContractSection,
     tasks: buildTasksSection,
+    active_slice: buildActiveSliceSection,
     affected_files: buildAffectedFilesSection,
     epic_context: buildEpicContextSection,
     verification_expectations: buildVerificationExpectationsSection,

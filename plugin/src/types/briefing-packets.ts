@@ -135,6 +135,10 @@ export const BriefingPacketSectionKindSchema = z.enum([
   "scope",
   "contract",
   "tasks",
+  // ST-13: additive kind — old readers never see it because packets are
+  // rendered live per version, never persisted across releases. No schema
+  // version bump: existing kinds and their positions are untouched.
+  "active_slice",
   "affected_files",
   "epic_context",
   "verification_expectations",
