@@ -198,7 +198,7 @@ function verifyRelease(root) {
   const manifest = JSON.parse(
     readFileSync(join(root, "release-manifest.json"), "utf8")
   );
-  if (manifest.version !== "3.0.4" || !manifest.files || typeof manifest.files !== "object")
+  if (manifest.version !== "3.5.0" || !manifest.files || typeof manifest.files !== "object")
     throw Error("Unsupported release manifest");
   for (const [name, hash] of Object.entries(manifest.files)) {
     const file = resolve(root, name), rel = relative(root, file);
@@ -240,7 +240,7 @@ try {
   const reports = files.flatMap((name) => {
     try {
       const r = JSON.parse(readFileSync2(join2(dir, name), "utf8"));
-      if (r.version !== "3.0.4" || r.generation !== receipt.generation || !r.active || Date.parse(r.startedAt) < Date.parse(receipt.installedAt))
+      if (r.version !== "3.5.0" || r.generation !== receipt.generation || !r.active || Date.parse(r.startedAt) < Date.parse(receipt.installedAt))
         return [];
       try {
         process.kill(r.pid, 0);

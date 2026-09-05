@@ -1,10 +1,10 @@
-# Determinus 3.0.4 — OpenCode Beta oficial
+# Determinus 3.5.0 — OpenCode Beta oficial
 
 O ZIP inclui código-fonte, testes, plugin compilado, instalador e validador. Não modifica nem recompila OpenCode. Requer Node.js 24 ou superior. A instalação não depende de pnpm, bash, WSL, rsync, jq ou download de dependências.
 
 ## Instalar
 
-Extraia o ZIP e abra PowerShell na pasta `Determinus-3.0.4`:
+Extraia o ZIP e abra PowerShell na pasta `Determinus-3.5.0`:
 
 ```powershell
 .\install-opencode2.ps1
@@ -29,7 +29,7 @@ node .\install.mjs --project 'C:\caminho\do\projeto'
 ## Comportamento da instalação
 
 - Confere SHA-256 e importa o bundle antes de alterar a configuração. O entrypoint `plugin/index.ts` importa `dist/index.js`; SDK e dependências de runtime estão incorporados. Não execute `pnpm install` na pasta implantada.
-- Instala em `%USERPROFILE%\.local\share\Determinus\releases\3.0.4-<hash>`. Cada pacote recebe diretório próprio. A configuração aponta explicitamente para esse entrypoint.
+- Instala em `%USERPROFILE%\.local\share\Determinus\releases\3.5.0-<hash>`. Cada pacote recebe diretório próprio. A configuração aponta explicitamente para esse entrypoint.
 - Atualiza a chave Beta `plugins`; preserva comentários JSONC, providers, credenciais e plugins de outros produtos. Ativa `compaction.auto: true`.
 - Instala apenas o agente compacto `determinus.md`. Retira para backup registros antigos reconhecidos, entradas automáticas Determinus/Advance, `adv.md` e antigos comandos/skills `determinus-*`. Não instala o Advance nem importa seu estado.
 - A limpeza se limita às pastas de configuração. `plugins/` na raiz de um projeto pode conter código-fonte e não é movida. O instalador não percorre todos os seus projetos; use `-Project` nos que têm configuração local própria.

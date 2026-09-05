@@ -40040,7 +40040,7 @@ var PLUGIN_BUNDLE_MANIFEST_SCHEMA_VERSION = 1;
 var PLUGIN_BUNDLE_STALE_ADVISORY = "PLUGIN_BUNDLE_STALE";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562") ? "77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562" : null;
+  return /^[0-9a-f]{64}$/.test("9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad") ? "9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad" : null;
 }
 var LOADED_PLUGIN_BUNDLE_GENERATION = captureLoadedPluginBundleGeneration();
 function getLoadedPluginBundleGeneration() {

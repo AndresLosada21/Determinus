@@ -51986,7 +51986,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562") ? "77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562" : null;
+  return /^[0-9a-f]{64}$/.test("9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad") ? "9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -101299,7 +101299,7 @@ import {
 } from "http";
 import { request as httpsRequest } from "https";
 import { createHash as createHash20, randomBytes as randomBytes3 } from "crypto";
-var CACHE_RELEASE = "3.0.4";
+var CACHE_RELEASE = "3.5.0";
 var BODY_LIMIT = 32 * 1024 * 1024;
 var HOP = /* @__PURE__ */ new Set([
   "host",

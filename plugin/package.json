@@ -1,6 +1,6 @@
 {
   "name": "@andreslosada21/determinus",
-  "version": "3.0.4",
+  "version": "3.5.0",
   "description": "Determinus - Spec-driven development plugin for OpenCode where specs become enforceable laws",
   "type": "module",
   "main": "dist/index.js",

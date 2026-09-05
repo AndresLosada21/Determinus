@@ -5,7 +5,7 @@ import {
 } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { createHash, randomBytes } from "node:crypto";
-export const CACHE_RELEASE = "3.0.4";
+export const CACHE_RELEASE = "3.5.0";
 const BODY_LIMIT = 32 * 1024 * 1024;
 const HOP = new Set([
   "host",

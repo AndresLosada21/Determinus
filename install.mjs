@@ -1491,7 +1491,7 @@ function verifyRelease(root2) {
   const manifest = JSON.parse(
     readFileSync(join(root2, "release-manifest.json"), "utf8")
   );
-  if (manifest.version !== "3.0.4" || !manifest.files || typeof manifest.files !== "object")
+  if (manifest.version !== "3.5.0" || !manifest.files || typeof manifest.files !== "object")
     throw Error("Unsupported release manifest");
   for (const [name, hash] of Object.entries(manifest.files)) {
     const file = resolve(root2, name), rel = relative(root2, file);

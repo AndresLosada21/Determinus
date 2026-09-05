@@ -1,4 +1,4 @@
-# Determinus 3.0.4
+# Determinus 3.5.0
 
 Plugin de **Spec-Driven Development + TDD** para o [OpenCode](https://opencode.ai) Beta: specs viram leis executáveis. Com o agente `determinus` selecionado, todo change atravessa 7 gates com aprovação humana no planejamento e **prova red→green obrigatória** antes de qualquer conclusão de tarefa.
 
