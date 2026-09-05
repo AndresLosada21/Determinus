@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "digest": "sha256:18643eadc3b25c3c58f6be8e5ed0df0fff270ed7b7e9d7a7ee29a40294533aef",
+  "digest": "sha256:41fc32408ca52ca10296c6e8bf1f30b8a17da0007e3f922d8e461cd6a03bc7a1",
   "files": [
     {
       "path": "doctor-cli.d.ts",
@@ -14,8 +14,8 @@
     },
     {
       "path": "index.d.ts",
-      "sha256": "d9984728aa933ee61f1c6cce51592397a82044c4bc6473a1c76d426160a562a3",
-      "bytes": 2500
+      "sha256": "fa97299f4b31df554535b1b395bcc90216ca9020f661abbc786cefd7c060889c",
+      "bytes": 2523
     },
     {
       "path": "index.js",
@@ -34,7 +34,7 @@
     },
     {
       "path": "plugin-bundle-manifest.json",
-      "sha256": "59cb865ee4f6dea204dea7684a719085f8026c9f934daa883f85882a39feffac",
+      "sha256": "72a9790e1811c03264cf0358d19899ab60518329fb6132ea488cb84648e5976c",
       "bytes": 510
     },
     {
@@ -58,6 +58,6 @@
       "bytes": 724968
     }
   ],
-  "computedAt": "2026-09-05T10:51:25.990Z",
-  "pluginRoot": "/workspace/scratch/417cdf278ad8/Determinus-3.0.4/plugin"
+  "computedAt": "2026-09-05T13:22:51.387Z",
+  "pluginRoot": "C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus\\plugin"
 }

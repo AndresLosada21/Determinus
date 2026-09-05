@@ -1,16 +1,17 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- The v1-to-v2 compatibility adapter is incrementally typed.
 // @ts-nocheck
 /**
- * Advance (ADV) Plugin
+ * Determinus Plugin (ST-01: SDK v2 host).
  *
  * Spec-driven development with specs as laws.
  * Primary interface for AI agents to manage specs, changes, and tasks.
  *
- * Implements the @opencode-ai/plugin SDK interface with:
- * - tool: MCP tools for spec/change/task/wisdom/test management (see tool-registry.ts)
- * - event: Session status tracking, terminal UI updates
- * - tool.execute.before/after: Active change tracking, task completion detection
- * - experimental.session.compacting: Change preservation during compaction
+ * Host surface is v2-only (see default export below):
+ * - ctx.tool.transform / ctx.tool.hook("execute.before"/"execute.after")
+ * - ctx.event.subscribe (+ installCacheRuntime)
+ * Legacy `advancePluginImpl` below is an internal adapter preserving the
+ * pre-v2 tool/event behavior for tests; its `experimental.chat.*` hooks are
+ * never registered on the v2 host.
  */
 
 import { Plugin } from "@opencode-ai/plugin";
