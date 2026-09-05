@@ -1546,7 +1546,7 @@ function rollback(j, path) {
   atomic(path, JSON.stringify(j, null, 2));
 }
 function installRelease(root2, home, options = {}) {
-  const { manifest, bundle, identity } = verifyRelease(root2), deploy = join(home, ".local/share/Determinus"), target = join(deploy, "releases", `${manifest.version}-${identity}`), entry = join(target, "plugin/index.ts");
+  const { manifest, bundle, identity } = verifyRelease(root2), deploy = join(home, ".local/share/Determinus"), target = join(deploy, "releases", `${manifest.version}-${identity}`), entry = join(target, "plugin");
   const globalConfig = options.configDir ? resolve(options.configDir) : join(home, ".config/opencode");
   const discoveryDirs = [
     globalConfig,

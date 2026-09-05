@@ -79,6 +79,28 @@ it("rejects invalid config and tampering before mutation", () => {
     f.cleanup();
   }
 });
+it("registers the plugin directory, never a file (host rejects file paths)", () => {
+  const f = fixture();
+  try {
+    installRelease(f.root, f.home);
+    const configPath = join(f.home, ".config/opencode/opencode.jsonc");
+    const plugins = parse(readFileSync(configPath, "utf8"))
+      .plugins as string[];
+    expect(plugins).toHaveLength(1);
+    expect(plugins[0].endsWith("/plugin")).toBe(true);
+    expect(plugins[0].endsWith("index.ts")).toBe(false);
+    const receipt = JSON.parse(
+      readFileSync(
+        join(f.home, ".local/share/Determinus/installed.json"),
+        "utf8",
+      ),
+    );
+    // Receipt keeps the native path; config stores forward slashes.
+    expect(receipt.entry.replace(/\\/g, "/")).toBe(plugins[0]);
+  } finally {
+    f.cleanup();
+  }
+});
 it("rolls back config, agent and discovery on a fault", () => {
   const f = fixture();
   try {

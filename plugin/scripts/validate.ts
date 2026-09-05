@@ -60,11 +60,13 @@ try {
     walk(JSON.parse(cli.stdout));
   } catch {}
   const canonical = (x: string) => x.replace(/\\/g, "/").toLowerCase();
+  const entryRoot = canonical(receipt.entry);
   const active = states.some(
     (x) =>
       x.state.status === "active" &&
       typeof x.source?.path === "string" &&
-      canonical(x.source.path) === canonical(receipt.entry),
+      (canonical(x.source.path) === entryRoot ||
+        canonical(x.source.path).startsWith(entryRoot + "/")),
   );
   const services = ["go", "zen"].map((service) => {
     const samples = reports

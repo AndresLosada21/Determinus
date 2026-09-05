@@ -200,7 +200,10 @@ export function installRelease(
   const { manifest, bundle, identity } = verifyRelease(root),
     deploy = join(home, ".local/share/Determinus"),
     target = join(deploy, "releases", `${manifest.version}-${identity}`),
-    entry = join(target, "plugin/index.ts");
+    // The v2 host rejects configured plugin FILE paths ("configured plugin
+    // path must be a directory") and only resolves directories (server/index
+    // entrypoints). Register the plugin directory, never index.ts.
+    entry = join(target, "plugin");
   const globalConfig = options.configDir
     ? resolve(options.configDir)
     : join(home, ".config/opencode");
