@@ -467,6 +467,11 @@ export async function checkCheckpointTddEvidence(
       phase?: string;
       exitCode: number | null;
       classification: string;
+      failure_class?: string;
+      failure_signal?: string;
+      test_fingerprint?: string;
+      spec_revision?: string;
+      workspace_snapshot?: string;
     }>
   >;
   try {
@@ -477,12 +482,23 @@ export async function checkCheckpointTddEvidence(
     return { ok: true };
   }
 
+  const oracleClass = taskInfo.metadata?.red_oracle_class;
+  const oracleSignal = taskInfo.metadata?.red_oracle_signal;
+  const oracle =
+    oracleClass || oracleSignal
+      ? {
+          allowed_failure_class: oracleClass,
+          expected_signal: oracleSignal,
+        }
+      : undefined;
   const result = checkTddOrdering({
     taskId: input.taskId,
     intent: taskInfo.metadata?.tdd_intent,
     runs: testRuns[input.taskId] ?? [],
     refs: input.refs,
     enforcement,
+    oracle,
+    current_spec_revision: taskInfo.metadata?.spec_revision,
   });
   if (result.ok) return { ok: true, advisory: result.advisory };
   return {
