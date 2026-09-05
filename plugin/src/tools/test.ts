@@ -7,6 +7,7 @@ import { dirname, join, resolve } from "node:path";
 import type { Store } from "../storage/store";
 import type { Change } from "../types";
 import { formatToolOutput } from "../utils/tool-output";
+import { computeSpecRevision } from "../utils/spec-revision";
 import { recordPhaseDuration, withRecordedPhase } from "../utils/metrics";
 import {
   appendTargetProjectContextOutput,
@@ -112,13 +113,6 @@ export function extractFailureSignal(output: string): string {
       .filter((l) => l.length > 0)
       .slice(-1)[0] ?? "";
   return line.slice(0, 200);
-}
-
-export function computeSpecRevision(
-  documents: Record<string, unknown> | undefined,
-): string {
-  const payload = JSON.stringify(documents ?? {});
-  return createHash("sha256").update(payload).digest("hex").slice(0, 12);
 }
 
 function resolveWorkspaceSnapshot(cwd: string): string {

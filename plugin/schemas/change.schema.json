@@ -9486,6 +9486,12 @@
                 }
               ]
             },
+            "failure_class": {
+              "type": "string"
+            },
+            "failure_signal": {
+              "type": "string"
+            },
             "mockSurface": {
               "items": {
                 "properties": {
@@ -9516,6 +9522,15 @@
               "type": "string"
             },
             "runId": {
+              "type": "string"
+            },
+            "spec_revision": {
+              "type": "string"
+            },
+            "test_fingerprint": {
+              "type": "string"
+            },
+            "workspace_snapshot": {
               "type": "string"
             }
           },

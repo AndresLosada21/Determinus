@@ -70,6 +70,14 @@ export const DETERMINUS_TDD_SKILL: DeterminusSkillDefinition = {
     "tdd_intent separate_verification with an explicit lastEvidenceRunId.",
     "Reclassify tdd_intent to not_applicable (with user approval) when TDD",
     "truly does not apply.",
+    "",
+    "Declare the red oracle in task metadata when the Scenario's expected",
+    "failure is known before the run (from /determinus-prep):",
+    "metadata.red_oracle_class (e.g. assertion_failure) and",
+    "metadata.red_oracle_signal (expected substring, e.g. expected 401).",
+    "Checkpoint enforces RED_AMBIGUOUS unless RED matches; absent keys keep",
+    "legacy pass-through. A spec bump after GREEN turns evidence STALE until",
+    "re-proven — re-run red→green against current documents.",
   ].join("\n"),
 };
 
