@@ -37,7 +37,7 @@
     "LICENSES/zod-to-json-schema-3.25.2/PACKAGE.json": "b1dddaa9e0b3aafd792264efc0a819658e020c3714e618c7cbb9c3022709c1e8",
     "plugin/.dependency-cruiser.cjs": "5b31e429fe05bfd42f77ebe1b41511692c4736568c7ee304203f88cbf1cac804",
     "plugin/.env.example": "8740220f604affe43a93ce7a37a9d0faa6d6d59917c85e32e1c3bfcbbed0ce16",
-    "plugin/.gitignore": "8f3de1e507d277f725b13858f0c46932e42bed12a7aeaf6adc57fb7089023581",
+    "plugin/.gitignore": "ff20182edf22d65b8157d478467b4173903439543e92143ce802f283f2b0f902",
     "plugin/.jscpd.json": "e1d9cc62220e394cec43d7ce0e564607d1f2143ef26a319c28fc5d350a6ae484",
     "plugin/.pnpmrc.yaml": "8dc1bcec9269433a6a19813fa568602a4450c424b84c2e969f6c482930367375",
     "plugin/.prettierignore": "3536c7b687e493479997df84d9a6e840e4d20db719c26d26fa461c5708583a35",
@@ -847,6 +847,6 @@
     "validate-opencode2.ps1": "6aa5b9fea1b23536fa18c0dde50942102516b897554d629ee960dca21811bcae",
     "validate-token-guard.ps1": "1f41f57e9fe8b1284e154383ba51fb55c4fbc2b429f86d18f95cf5b99a47c6db",
     "validate.mjs": "98d14da3368c785a3989dfa0ab652c9812e2f47fc81fd87342299ab0c587eb98",
-    "VALIDATION.json": "dd8306d96f9d1c0e4ebec5ed0e4c1fcf00b53a5ae68648196b90794ef3562d85"
+    "VALIDATION.json": "0b6bcebed75e3ab880b7d8bdbcf005a1ca1dec151603090b6d362a442a26d12e"
   }
 }
