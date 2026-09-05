@@ -22985,7 +22985,7 @@ import { basename as basename2, dirname as dirname2, join as join4, resolve as r
 import { fileURLToPath } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("2824c6f49c737011ec15140e53dda7bda2096f02feaba999ad63049b25e7ab0c") ? "2824c6f49c737011ec15140e53dda7bda2096f02feaba999ad63049b25e7ab0c" : null;
+  return /^[0-9a-f]{64}$/.test("25e8684bd8df1e2387b44e677e1897484c47ea428efd6a526eb91483bf995055") ? "25e8684bd8df1e2387b44e677e1897484c47ea428efd6a526eb91483bf995055" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -73010,6 +73010,53 @@ async function fireTaskCompletedFromCheckpoint(store, taskId, sha, verification,
     };
   }
 }
+async function markTaskCancelledFromCheckpoint(store, taskId, reason) {
+  try {
+    const changeId = await resolveChangeId3(store, taskId);
+    if (!changeId) {
+      return {
+        recorded: false,
+        error: `Task not found: ${taskId}`,
+        remediation: CHECKPOINT_RECORDING_REMEDIATION
+      };
+    }
+    const outcome = await coordinateChangeMutation({
+      authority: {
+        reason: "record task checkpoint cancellation",
+        evidence: `${taskId}:${reason}`
+      },
+      changesDir: store.paths.changes,
+      intent: {
+        changeId,
+        mutationKind: "task_checkpoint_cancelled",
+        mutateLatestProjection: (latest) => ({
+          ...latest,
+          tasks: latest.tasks.map(
+            (task) => task.id === taskId ? { ...task, status: "cancelled", notes: reason } : task
+          )
+        }),
+        verifyProjection: (readback) => readback.tasks.find((candidate) => candidate.id === taskId)?.status === "cancelled"
+      }
+    });
+    if (outcome.kind !== "verified") {
+      return {
+        recorded: false,
+        error: outcome.kind === "unverified" || outcome.kind === "operator_required" ? outcome.reason : `Projection revision conflict: expected ${outcome.expected}, actual ${outcome.actual}`,
+        remediation: CHECKPOINT_RECORDING_REMEDIATION
+      };
+    }
+    return { recorded: true };
+  } catch (err) {
+    if (determinus_DEBUG) {
+      console.warn("[checkpoint] task cancel mutation failed:", err);
+    }
+    return {
+      recorded: false,
+      error: err instanceof Error ? err.message : String(err),
+      remediation: CHECKPOINT_RECORDING_REMEDIATION
+    };
+  }
+}
 var DEFAULT_TIMEOUT_MS3, DEFAULT_MAX_BUFFER2, SUBJECT_MAX_LEN, CHECKPOINT_TASK_ID_RE, determinus_DEBUG, GIT_ENV, CHECKPOINT_RECORDING_REMEDIATION, checkpointTools;
 var init_checkpoint = __esm({
   "src/tools/checkpoint.ts"() {
@@ -73235,7 +73282,7 @@ var init_checkpoint = __esm({
                 cleanTouchedFiles = [];
               }
               let checkpointRecording = {
-                recorded: mode !== "complete"
+                recorded: false
               };
               if (mode === "complete") {
                 checkpointRecording = await fireTaskCompletedFromCheckpoint(
@@ -73244,6 +73291,12 @@ var init_checkpoint = __esm({
                   actualHeadSha,
                   args.verification ?? "Clean tree checkpoint",
                   cleanTouchedFiles
+                );
+              } else if (mode === "cancel") {
+                checkpointRecording = await markTaskCancelledFromCheckpoint(
+                  store2,
+                  args.taskId,
+                  args.reason ?? "Cancelled via checkpoint"
                 );
               }
               return formatToolOutput({
@@ -73340,7 +73393,7 @@ var init_checkpoint = __esm({
                 touchedFiles = [];
               }
               let checkpointRecording = {
-                recorded: mode !== "complete"
+                recorded: false
               };
               if (mode === "complete") {
                 checkpointRecording = await fireTaskCompletedFromCheckpoint(
@@ -73349,6 +73402,12 @@ var init_checkpoint = __esm({
                   sha.trim(),
                   args.verification ?? "Checkpoint committed",
                   touchedFiles
+                );
+              } else if (mode === "cancel") {
+                checkpointRecording = await markTaskCancelledFromCheckpoint(
+                  store2,
+                  args.taskId,
+                  args.reason ?? "Cancelled via checkpoint"
                 );
               }
               return formatToolOutput({

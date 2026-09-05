@@ -712,6 +712,71 @@ async function fireTaskCompletedFromCheckpoint(
   }
 }
 
+/**
+ * Cancel-path completion: mark the task cancelled after the cancel commit.
+ * Without this, checkpoint mode:"cancel" commits but the task stays pending
+ * forever — and task_update forbids direct cancellation, leaving no working
+ * cancel path at all.
+ */
+export async function markTaskCancelledFromCheckpoint(
+  store: Store,
+  taskId: string,
+  reason: string,
+): Promise<CheckpointRecordingResult> {
+  try {
+    const changeId = await resolveChangeId(store, taskId);
+    if (!changeId) {
+      return {
+        recorded: false,
+        error: `Task not found: ${taskId}`,
+        remediation: CHECKPOINT_RECORDING_REMEDIATION,
+      };
+    }
+    const outcome = await coordinateChangeMutation<Change>({
+      authority: {
+        reason: "record task checkpoint cancellation",
+        evidence: `${taskId}:${reason}`,
+      },
+      changesDir: store.paths.changes,
+      intent: {
+        changeId,
+        mutationKind: "task_checkpoint_cancelled",
+        mutateLatestProjection: (latest) => ({
+          ...latest,
+          tasks: latest.tasks.map((task) =>
+            task.id === taskId
+              ? { ...task, status: "cancelled" as const, notes: reason }
+              : task,
+          ),
+        }),
+        verifyProjection: (readback) =>
+          readback.tasks.find((candidate) => candidate.id === taskId)
+            ?.status === "cancelled",
+      },
+    });
+    if (outcome.kind !== "verified") {
+      return {
+        recorded: false,
+        error:
+          outcome.kind === "unverified" || outcome.kind === "operator_required"
+            ? outcome.reason
+            : `Projection revision conflict: expected ${outcome.expected}, actual ${outcome.actual}`,
+        remediation: CHECKPOINT_RECORDING_REMEDIATION,
+      };
+    }
+    return { recorded: true };
+  } catch (err) {
+    if (determinus_DEBUG) {
+      console.warn("[checkpoint] task cancel mutation failed:", err);
+    }
+    return {
+      recorded: false,
+      error: err instanceof Error ? err.message : String(err),
+      remediation: CHECKPOINT_RECORDING_REMEDIATION,
+    };
+  }
+}
+
 // ─── Tool definition ────────────────────────────────────────────────────────
 
 export const checkpointTools = {
@@ -1051,9 +1116,10 @@ export const checkpointTools = {
           } catch {
             cleanTouchedFiles = [];
           }
-          // For complete mode, fire taskCompletedSignal so the task is marked done
+          // For complete mode, fire taskCompletedSignal so the task is marked done.
+          // For cancel mode, mark the task cancelled (no evidence needed).
           let checkpointRecording: CheckpointRecordingResult = {
-            recorded: mode !== "complete",
+            recorded: false,
           };
           if (mode === "complete") {
             checkpointRecording = await fireTaskCompletedFromCheckpoint(
@@ -1062,6 +1128,12 @@ export const checkpointTools = {
               actualHeadSha,
               args.verification ?? "Clean tree checkpoint",
               cleanTouchedFiles,
+            );
+          } else if (mode === "cancel") {
+            checkpointRecording = await markTaskCancelledFromCheckpoint(
+              store,
+              args.taskId,
+              args.reason ?? "Cancelled via checkpoint",
             );
           }
           return formatToolOutput({
@@ -1184,9 +1256,10 @@ export const checkpointTools = {
             touchedFiles = [];
           }
 
-          // For complete mode, fire taskCompletedSignal to mark task done
+          // For complete mode, fire taskCompletedSignal to mark task done.
+          // For cancel mode, mark the task cancelled (no evidence needed).
           let checkpointRecording: CheckpointRecordingResult = {
-            recorded: mode !== "complete",
+            recorded: false,
           };
           if (mode === "complete") {
             checkpointRecording = await fireTaskCompletedFromCheckpoint(
@@ -1195,6 +1268,12 @@ export const checkpointTools = {
               sha.trim(),
               args.verification ?? "Checkpoint committed",
               touchedFiles,
+            );
+          } else if (mode === "cancel") {
+            checkpointRecording = await markTaskCancelledFromCheckpoint(
+              store,
+              args.taskId,
+              args.reason ?? "Cancelled via checkpoint",
             );
           }
 

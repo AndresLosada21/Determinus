@@ -1,6 +1,6 @@
 /** Checkpoint behavior that remains after the Temporal transport removal. */
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtempSync } from "node:fs";
@@ -10,6 +10,7 @@ import {
   buildCommitMessage,
   checkCheckpointTddEvidence,
   detectRepoState,
+  markTaskCancelledFromCheckpoint,
 } from "./checkpoint";
 import type { Store } from "../storage/store-types";
 
@@ -207,5 +208,83 @@ describe("checkpoint TDD ordering gate (ST-04, rq-TDD009seq)", () => {
       },
       { tdd_enforcement: "off" },
     );
+  });
+});
+
+describe("checkpoint cancel transition (live smoke fix)", () => {
+  async function withSeededTask(
+    run: (store: Store) => Promise<void>,
+    expectedStatus = "cancelled",
+  ): Promise<void> {
+    const changesDir = mkdtempSync(join(tmpdir(), "det-checkpoint-cancel-"));
+    try {
+      const dir = join(changesDir, "c-cancel");
+      await mkdir(dir, { recursive: true });
+      await writeFile(
+        join(dir, "change.json"),
+        JSON.stringify({
+          id: "c-cancel",
+          title: "Cancel change",
+          status: "active",
+          created_at: "2026-01-01T00:00:00Z",
+          created_by: "test",
+          tasks: [
+            {
+              id: "tk-cancel",
+              title: "Cancel me",
+              status: "pending",
+              priority: 1,
+              created_at: "2026-01-01T00:00:00Z",
+            },
+          ],
+          deltas: {},
+          wisdom: [],
+          gates: {},
+        }),
+      );
+      const store = {
+        paths: { root: changesDir, changes: changesDir },
+        config: null,
+        tasks: {
+          show: async (taskId: string) =>
+            taskId === "tk-cancel"
+              ? { changeId: "c-cancel", metadata: {} }
+              : null,
+        },
+      } as unknown as Store;
+      await run(store);
+      const loaded = JSON.parse(
+        await readFile(join(changesDir, "c-cancel", "change.json"), "utf8"),
+      );
+      expect(loaded.tasks.find((t: any) => t.id === "tk-cancel")?.status).toBe(
+        expectedStatus,
+      );
+    } finally {
+      const { rmSync } = await import("node:fs");
+      rmSync(changesDir, { recursive: true, force: true });
+    }
+  }
+
+  test("cancel marks a pending task cancelled", async () => {
+    await withSeededTask(async (store) => {
+      const result = await markTaskCancelledFromCheckpoint(
+        store,
+        "tk-cancel",
+        "no longer needed",
+      );
+      expect(result.recorded).toBe(true);
+    });
+  });
+
+  test("cancel of a missing task fails gracefully", async () => {
+    await withSeededTask(async (store) => {
+      const result = await markTaskCancelledFromCheckpoint(
+        store,
+        "tk-ghost",
+        "no longer needed",
+      );
+      expect(result.recorded).toBe(false);
+      expect(result.error).toContain("tk-ghost");
+    }, "pending");
   });
 });
