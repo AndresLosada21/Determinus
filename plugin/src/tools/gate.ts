@@ -24,6 +24,10 @@ import {
 import { formatToolOutput } from "../utils/tool-output";
 import { runPrepReadinessChecks } from "../validator/prep-readiness";
 import { runClarifyReadinessChecks } from "../validator/clarify-readiness";
+import {
+  checkExecutionPairing,
+  type TddEnforcement,
+} from "../validator/tdd-ordering";
 import { loadChange, loadProjectConfig } from "../storage/json";
 import {
   normalizeGateArtifactEvidenceForReadback,
@@ -1495,6 +1499,9 @@ export const gateTools = {
           });
         }
 
+        // Advisory TDD notes collected by gate-specific checks below.
+        const tddWarnings: string[] = [];
+
         if (gateId === "execution") {
           const projectedResult = await loadChange(
             activeStore.paths.changes,
@@ -1524,6 +1531,50 @@ export const gateTools = {
               })),
             });
           }
+          // ST-04 (rq-TDD009seq): execution owns the TDD pairing contract —
+          // every done code task must carry a red→green pair. This is the
+          // COMMAND_MANIFEST execution ownership made runtime-real.
+          const tddFeatures = activeStore.config?.features as
+            | FeatureFlags
+            | undefined;
+          const pairing = checkExecutionPairing({
+            tasks: tasks.map((t) => ({
+              id: t.id,
+              status: t.status,
+              metadata: t.metadata as Record<string, string> | undefined,
+            })),
+            // loadChange returns the Change projection (snake_case test_runs),
+            // not ChangeState (camelCase testRuns).
+            testRuns:
+              (projectedState?.test_runs as Record<
+                string,
+                Array<{
+                  runId: string;
+                  phase?: string;
+                  exitCode: number | null;
+                  classification: string;
+                }>
+              >) ?? {},
+            enforcement: (tddFeatures?.tdd_enforcement ??
+              "strict") as TddEnforcement,
+          });
+          if (!pairing.ok) {
+            return formatToolOutput({
+              error: pairing.message,
+              code: "TASK_ORDERING_VIOLATION",
+              changeId,
+              gateId,
+              unpairedTasks: pairing.unpaired,
+              remediation:
+                "Run determinus_run_test red then green per listed task (or reclassify tdd_intent with user approval when TDD truly does not apply).",
+            });
+          }
+          tddWarnings.push(
+            ...pairing.unpaired.map(
+              (taskId) =>
+                `Task ${taskId} completed without a red→green pair (advisory).`,
+            ),
+          );
           // All tasks done/cancelled (or empty list) — fall through
         }
 
@@ -1628,6 +1679,7 @@ export const gateTools = {
           includeSnapshot: include?.snapshot ?? false,
           extraPayload: {
             ...profilePayload,
+            ...(tddWarnings.length > 0 ? { tddWarnings } : {}),
             ...(projectContext ? { _projectContext: projectContext } : {}),
           },
         });

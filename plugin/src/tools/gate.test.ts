@@ -46,14 +46,18 @@ function change(overrides: Partial<Change> = {}): Change {
   } as Change;
 }
 
-function storeFor(root: string, current: Change): Store {
+function storeFor(
+  root: string,
+  current: Change,
+  features: Record<string, unknown> | null = null,
+): Store {
   return {
     paths: {
       root,
       changes: root,
       archive: join(root, "archive"),
     } as Store["paths"],
-    config: null,
+    config: features ? ({ features } as Store["config"]) : null,
     changes: {
       get: async () => ({ success: true, data: current }),
       list: async () => ({ changes: [] }),
@@ -238,6 +242,116 @@ describe("gate tools — disk projection lifecycle", () => {
       expect(parsed.error).toContain("task(s) not done");
       expect(parsed.incompleteTasks).toEqual([
         expect.objectContaining({ id: "tk-open", status: "in_progress" }),
+      ]);
+    } finally {
+      await cleanupTempDir(root);
+    }
+  });
+
+  test("execution completion blocks done tasks without a red→green pair", async () => {
+    const root = await createTempDir("determinus-gate-");
+    try {
+      const task = {
+        id: "tk-nopair",
+        title: "Unpaired task",
+        status: "done",
+        priority: 1,
+        created_at: "2026-01-01T00:00:00Z",
+        metadata: { tdd_intent: "inline" },
+      } as Task;
+      const current = change({
+        tasks: [task],
+        gates: gates({ execution: { ...pending }, acceptance: { ...pending } }),
+      });
+      await seed(root, current);
+      const parsed = JSON.parse(
+        await gateTools.determinus_gate_complete.execute(
+          { changeId: current.id, gateId: "execution" },
+          storeFor(root, current),
+        ),
+      );
+      expect(parsed.code).toBe("TASK_ORDERING_VIOLATION");
+      expect(parsed.unpairedTasks).toEqual(["tk-nopair"]);
+    } finally {
+      await cleanupTempDir(root);
+    }
+  });
+
+  test("execution completion passes done tasks with a red→green pair", async () => {
+    const root = await createTempDir("determinus-gate-");
+    try {
+      const task = {
+        id: "tk-pair",
+        title: "Paired task",
+        status: "done",
+        priority: 1,
+        created_at: "2026-01-01T00:00:00Z",
+        metadata: { tdd_intent: "inline" },
+      } as Task;
+      const current = change({
+        tasks: [task],
+        test_runs: {
+          "tk-pair": [
+            {
+              runId: "tr_red",
+              phase: "red",
+              exitCode: 1,
+              classification: "failed",
+              command: "vitest run",
+              durationMs: 100,
+              recordedAt: "2026-01-02T00:00:00Z",
+            },
+            {
+              runId: "tr_green",
+              phase: "green",
+              exitCode: 0,
+              classification: "passed",
+              command: "vitest run",
+              durationMs: 100,
+              recordedAt: "2026-01-02T00:01:00Z",
+            },
+          ],
+        },
+        gates: gates({ execution: { ...pending }, acceptance: { ...pending } }),
+      });
+      await seed(root, current);
+      const parsed = JSON.parse(
+        await gateTools.determinus_gate_complete.execute(
+          { changeId: current.id, gateId: "execution" },
+          storeFor(root, current),
+        ),
+      );
+      expect(parsed.success).toBe(true);
+      expect(parsed.gateId).toBe("execution");
+    } finally {
+      await cleanupTempDir(root);
+    }
+  });
+
+  test("execution completion warns instead of blocking in advisory mode", async () => {
+    const root = await createTempDir("determinus-gate-");
+    try {
+      const task = {
+        id: "tk-nopair",
+        title: "Unpaired task",
+        status: "done",
+        priority: 1,
+        created_at: "2026-01-01T00:00:00Z",
+      } as Task;
+      const current = change({
+        tasks: [task],
+        gates: gates({ execution: { ...pending }, acceptance: { ...pending } }),
+      });
+      await seed(root, current);
+      const parsed = JSON.parse(
+        await gateTools.determinus_gate_complete.execute(
+          { changeId: current.id, gateId: "execution" },
+          storeFor(root, current, { tdd_enforcement: "advisory" }),
+        ),
+      );
+      expect(parsed.success).toBe(true);
+      expect(parsed.tddWarnings).toEqual([
+        expect.stringContaining("tk-nopair"),
       ]);
     } finally {
       await cleanupTempDir(root);

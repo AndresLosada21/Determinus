@@ -23,7 +23,16 @@ import { isAbsolute, resolve } from "path";
 import { z } from "zod";
 import { formatToolOutput } from "../utils/tool-output";
 import type { Store } from "../storage/store-types";
-import type { Change, ErrorRecovery, ScopedSubagentReport } from "../types";
+import type {
+  Change,
+  ErrorRecovery,
+  FeatureFlags,
+  ScopedSubagentReport,
+} from "../types";
+import {
+  checkTddOrdering,
+  type TddEnforcement,
+} from "../validator/tdd-ordering";
 import { coordinateChangeMutation } from "./change-mutation-coordinator";
 import {
   targetPathSchema,
@@ -71,6 +80,10 @@ interface CheckpointResult {
   checkpointRecorded?: boolean;
   recordingError?: string;
   remediation?: string;
+  /** Machine-readable failure code (e.g. TASK_ORDERING_VIOLATION). */
+  code?: string;
+  /** Advisory TDD note surfaced when tdd_enforcement is advisory. */
+  tddAdvisory?: string;
   /** Repo-relative paths of files modified in this checkpoint */
   touched_files?: string[];
   /**
@@ -402,6 +415,83 @@ function subagentReportBelongsToTask(
   return "task_id" in report && report.task_id === taskId;
 }
 
+export interface CheckpointTddEvidenceRefs {
+  lastRedRunId?: string;
+  lastGreenRunId?: string;
+  lastEvidenceRunId?: string;
+}
+
+export interface CheckpointTddCheck {
+  ok: boolean;
+  error?: string;
+  remediation?: string;
+  advisory?: string;
+}
+
+/**
+ * ST-04 (rq-TDD009seq): TDD red→green ordering gate for task completion.
+ * Reads the task intent and recorded runs from the durable projection and
+ * enforces pairing BEFORE any git mutation, so a violation never orphans a
+ * commit. Skips when the task or change cannot be loaded — downstream steps
+ * surface those specific errors (task-not-found, projection load failure).
+ */
+export async function checkCheckpointTddEvidence(
+  store: Store,
+  input: {
+    taskId: string;
+    changeId?: string;
+    refs?: CheckpointTddEvidenceRefs;
+  },
+): Promise<CheckpointTddCheck> {
+  const features = store.config?.features as FeatureFlags | undefined;
+  const enforcement = (features?.tdd_enforcement ?? "strict") as TddEnforcement;
+  if (enforcement === "off") return { ok: true };
+
+  let taskInfo: {
+    changeId?: string;
+    metadata?: Record<string, string>;
+  } | null;
+  try {
+    taskInfo = await store.tasks.show(input.taskId);
+  } catch {
+    taskInfo = null;
+  }
+  if (!taskInfo) return { ok: true };
+  const changeId = input.changeId ?? taskInfo.changeId;
+  if (!changeId) return { ok: true };
+
+  let testRuns: Record<
+    string,
+    Array<{
+      runId: string;
+      phase?: string;
+      exitCode: number | null;
+      classification: string;
+    }>
+  >;
+  try {
+    const loaded = await loadChange(store.paths.changes, changeId);
+    if (!loaded.success || !loaded.data) return { ok: true };
+    testRuns = loaded.data.test_runs ?? {};
+  } catch {
+    return { ok: true };
+  }
+
+  const result = checkTddOrdering({
+    taskId: input.taskId,
+    intent: taskInfo.metadata?.tdd_intent,
+    runs: testRuns[input.taskId] ?? [],
+    refs: input.refs,
+    enforcement,
+  });
+  if (result.ok) return { ok: true, advisory: result.advisory };
+  return {
+    ok: false,
+    error: `[TASK_ORDERING_VIOLATION] ${result.message}`,
+    remediation: result.remediation,
+  };
+}
+
 async function fireTaskCompletedFromCheckpoint(
   store: Store,
   taskId: string,
@@ -664,6 +754,24 @@ export const checkpointTools = {
         .describe(
           "Verification summary for complete mode (required when committing dirty tree)",
         ),
+      lastRedRunId: z
+        .string()
+        .optional()
+        .describe(
+          "Evidence ref for the red run (rq-TDD009seq). Omit both refs for auto-detection of the red→green pair.",
+        ),
+      lastGreenRunId: z
+        .string()
+        .optional()
+        .describe(
+          "Evidence ref for the green run (rq-TDD009seq). Omit both refs for auto-detection of the red→green pair.",
+        ),
+      lastEvidenceRunId: z
+        .string()
+        .optional()
+        .describe(
+          "Evidence ref for separate_verification tasks (required when tdd_intent is separate_verification).",
+        ),
       ...targetPathSchema.shape,
     },
     execute: async (
@@ -676,6 +784,9 @@ export const checkpointTools = {
         expectedBranch?: string;
         expectedHeadSha?: string;
         verification?: string;
+        lastRedRunId?: string;
+        lastGreenRunId?: string;
+        lastEvidenceRunId?: string;
         target_path?: string;
         target_confirmed?: true;
         confirmationEvidence?: string;
@@ -821,6 +932,34 @@ export const checkpointTools = {
         }
 
         const effectiveChangeId = args.changeId || derivedChangeId;
+
+        // ST-04 (rq-TDD009seq): TDD red→green ordering gate. Runs BEFORE any
+        // git mutation so a violation never orphans a commit. Cancel mode
+        // needs no evidence.
+        let tddAdvisory: string | undefined;
+        if (mode === "complete") {
+          const tddGate = await checkCheckpointTddEvidence(store, {
+            taskId: args.taskId,
+            changeId: effectiveChangeId,
+            refs: {
+              lastRedRunId: args.lastRedRunId,
+              lastGreenRunId: args.lastGreenRunId,
+              lastEvidenceRunId: args.lastEvidenceRunId,
+            },
+          });
+          if (!tddGate.ok) {
+            return formatToolOutput({
+              status: "failed",
+              classification: "SEMANTIC",
+              workdir: cwd,
+              ...(effectiveChangeId ? { changeId: effectiveChangeId } : {}),
+              error: tddGate.error,
+              code: "TASK_ORDERING_VIOLATION",
+              remediation: tddGate.remediation,
+            } satisfies CheckpointResult);
+          }
+          tddAdvisory = tddGate.advisory;
+        }
         const expectedBranch =
           args.expectedBranch ||
           (guardMode && effectiveChangeId
@@ -933,6 +1072,7 @@ export const checkpointTools = {
             gitRoot,
             changeId: derivedChangeId,
             checkpointRecorded: checkpointRecording.recorded,
+            ...(tddAdvisory ? { tddAdvisory } : {}),
             ...(checkpointRecording.error && {
               recordingError: checkpointRecording.error,
             }),
@@ -1067,6 +1207,7 @@ export const checkpointTools = {
             message: subject,
             changeId: derivedChangeId,
             checkpointRecorded: checkpointRecording.recorded,
+            ...(tddAdvisory ? { tddAdvisory } : {}),
             ...(checkpointRecording.error && {
               recordingError: checkpointRecording.error,
             }),

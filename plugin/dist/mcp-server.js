@@ -58502,6 +58502,156 @@ var init_prep_readiness = __esm({
   }
 });
 
+// src/validator/tdd-ordering.ts
+function resolveTddIntent(rawIntent) {
+  if (rawIntent === "separate_verification" || rawIntent === "not_applicable") {
+    return rawIntent;
+  }
+  return "inline";
+}
+function isPassedRun(run) {
+  return run.classification === "passed";
+}
+function findRun(runs, runId) {
+  const index = runs.findIndex((candidate) => candidate.runId === runId);
+  if (index < 0) return null;
+  return { run: runs[index], index };
+}
+function autoDetectPair(runs) {
+  for (let red = 0; red < runs.length; red++) {
+    if (isPassedRun(runs[red])) continue;
+    for (let green = red + 1; green < runs.length; green++) {
+      if (isPassedRun(runs[green])) {
+        return { redRunId: runs[red].runId, greenRunId: runs[green].runId };
+      }
+    }
+  }
+  return null;
+}
+function redGreenRemediation(taskId, missing) {
+  return `Task ${taskId} is missing ${missing}. Run the red phase first (determinus_run_test with phase:'red', expecting failure), then the green phase (phase:'green', expecting pass), then retry the completion. Pass lastRedRunId/lastGreenRunId explicitly to disambiguate when several runs exist.`;
+}
+function checkTddOrdering(input) {
+  const { taskId, runs, refs = {} } = input;
+  const enforcement = input.enforcement ?? "strict";
+  if (enforcement === "off") return { ok: true };
+  const intent = resolveTddIntent(input.intent);
+  if (intent === "not_applicable") return { ok: true };
+  const refuse = (message, remediation) => {
+    if (enforcement === "advisory") {
+      return { ok: true, advisory: `${message} ${remediation}` };
+    }
+    return {
+      ok: false,
+      code: "TASK_ORDERING_VIOLATION",
+      taskId,
+      message,
+      remediation
+    };
+  };
+  if (intent === "separate_verification") {
+    const ref = refs.lastEvidenceRunId;
+    if (!ref) {
+      return refuse(
+        `Task ${taskId} (tdd_intent separate_verification) has no evidence ref.`,
+        `Run the cross-cutting verification (determinus_run_test) and retry with lastEvidenceRunId set to the passing runId.`
+      );
+    }
+    const found = findRun(runs, ref);
+    if (!found) {
+      return refuse(
+        `Task ${taskId} evidence ref ${ref} matches no recorded run.`,
+        `Re-run determinus_run_test and retry with the returned runId as lastEvidenceRunId.`
+      );
+    }
+    if (!isPassedRun(found.run)) {
+      return refuse(
+        `Task ${taskId} evidence ref ${ref} did not pass (classification: ${found.run.classification}).`,
+        `Re-run until the verification passes, then retry with the passing runId.`
+      );
+    }
+    return { ok: true };
+  }
+  if (refs.lastRedRunId || refs.lastGreenRunId) {
+    if (!refs.lastRedRunId || !refs.lastGreenRunId) {
+      return refuse(
+        `Task ${taskId} supplies a partial red/green pair.`,
+        `Supply both lastRedRunId and lastGreenRunId, or omit both for auto-detection.`
+      );
+    }
+    const red = findRun(runs, refs.lastRedRunId);
+    const green = findRun(runs, refs.lastGreenRunId);
+    if (!red) {
+      return refuse(
+        `Task ${taskId} red ref ${refs.lastRedRunId} matches no recorded run.`,
+        redGreenRemediation(taskId, "a matching red run")
+      );
+    }
+    if (!green) {
+      return refuse(
+        `Task ${taskId} green ref ${refs.lastGreenRunId} matches no recorded run.`,
+        redGreenRemediation(taskId, "a matching green run")
+      );
+    }
+    if (isPassedRun(red.run)) {
+      return refuse(
+        `Task ${taskId} red ref ${red.run.runId} passed \u2014 a red run must fail first.`,
+        `Run determinus_run_test with phase:'red' against the failing behavior, then retry.`
+      );
+    }
+    if (!isPassedRun(green.run)) {
+      return refuse(
+        `Task ${taskId} green ref ${green.run.runId} did not pass (classification: ${green.run.classification}).`,
+        `Run determinus_run_test with phase:'green' until it passes, then retry.`
+      );
+    }
+    if (green.index <= red.index) {
+      return refuse(
+        `Task ${taskId} green ref ${green.run.runId} was recorded before red ref ${red.run.runId} \u2014 red must come first.`,
+        `Re-run red then green in order (or omit refs for auto-detection of a valid pair).`
+      );
+    }
+    return {
+      ok: true,
+      pair: { redRunId: red.run.runId, greenRunId: green.run.runId }
+    };
+  }
+  const pair = autoDetectPair(runs);
+  if (!pair) {
+    const hint = runs.length === 0 ? "no test runs are recorded for this task" : "no failed-then-passed sequence exists in the recorded runs";
+    return refuse(
+      `Task ${taskId} (tdd_intent inline) has no red\u2192green pair: ${hint}.`,
+      redGreenRemediation(taskId, "a red\u2192green pair")
+    );
+  }
+  return { ok: true, pair };
+}
+function checkExecutionPairing(input) {
+  const enforcement = input.enforcement ?? "strict";
+  if (enforcement === "off") return { ok: true, unpaired: [] };
+  const unpaired = [];
+  for (const task of input.tasks) {
+    if (task.status !== "done") continue;
+    const intent = resolveTddIntent(task.metadata?.tdd_intent);
+    if (intent === "not_applicable") continue;
+    const runs = input.testRuns[task.id] ?? [];
+    if (intent === "separate_verification") {
+      if (!runs.some(isPassedRun)) unpaired.push(task.id);
+      continue;
+    }
+    if (!autoDetectPair(runs)) unpaired.push(task.id);
+  }
+  if (unpaired.length === 0) return { ok: true, unpaired: [] };
+  const message = `Cannot complete execution: ${unpaired.length} done task(s) without a red\u2192green pair: ${unpaired.join(", ")}. Run determinus_run_test red then green per task (or reclassify tdd_intent with user approval when TDD truly does not apply).`;
+  if (enforcement === "advisory") return { ok: true, unpaired, message };
+  return { ok: false, unpaired, message };
+}
+var init_tdd_ordering = __esm({
+  "src/validator/tdd-ordering.ts"() {
+    "use strict";
+  }
+});
+
 // src/manifest.ts
 var COMMAND_MANIFEST;
 var init_manifest = __esm({
@@ -60934,6 +61084,7 @@ var init_gate = __esm({
     init_tool_output();
     init_prep_readiness();
     init_clarify_readiness();
+    init_tdd_ordering();
     init_json();
     init_artifacts2();
     init_context_snapshot();
@@ -61236,6 +61387,7 @@ var init_gate = __esm({
                 includeSnapshot: include?.snapshot ?? false
               });
             }
+            const tddWarnings = [];
             if (gateId === "execution") {
               const projectedResult2 = await loadChange(
                 activeStore.paths.changes,
@@ -61265,6 +61417,33 @@ var init_gate = __esm({
                   }))
                 });
               }
+              const tddFeatures = activeStore.config?.features;
+              const pairing = checkExecutionPairing({
+                tasks: tasks.map((t) => ({
+                  id: t.id,
+                  status: t.status,
+                  metadata: t.metadata
+                })),
+                // loadChange returns the Change projection (snake_case test_runs),
+                // not ChangeState (camelCase testRuns).
+                testRuns: projectedState2?.test_runs ?? {},
+                enforcement: tddFeatures?.tdd_enforcement ?? "strict"
+              });
+              if (!pairing.ok) {
+                return formatToolOutput({
+                  error: pairing.message,
+                  code: "TASK_ORDERING_VIOLATION",
+                  changeId,
+                  gateId,
+                  unpairedTasks: pairing.unpaired,
+                  remediation: "Run determinus_run_test red then green per listed task (or reclassify tdd_intent with user approval when TDD truly does not apply)."
+                });
+              }
+              tddWarnings.push(
+                ...pairing.unpaired.map(
+                  (taskId) => `Task ${taskId} completed without a red\u2192green pair (advisory).`
+                )
+              );
             }
             let releaseEvidence;
             if (gateId === "release") {
@@ -61347,6 +61526,7 @@ var init_gate = __esm({
               includeSnapshot: include?.snapshot ?? false,
               extraPayload: {
                 ...profilePayload,
+                ...tddWarnings.length > 0 ? { tddWarnings } : {},
                 ...projectContext ? { _projectContext: projectContext } : {}
               }
             });
@@ -72631,6 +72811,41 @@ function subagentReportBelongsToTask(report, taskId) {
   }
   return "task_id" in report && report.task_id === taskId;
 }
+async function checkCheckpointTddEvidence(store, input) {
+  const features = store.config?.features;
+  const enforcement = features?.tdd_enforcement ?? "strict";
+  if (enforcement === "off") return { ok: true };
+  let taskInfo;
+  try {
+    taskInfo = await store.tasks.show(input.taskId);
+  } catch {
+    taskInfo = null;
+  }
+  if (!taskInfo) return { ok: true };
+  const changeId = input.changeId ?? taskInfo.changeId;
+  if (!changeId) return { ok: true };
+  let testRuns;
+  try {
+    const loaded = await loadChange(store.paths.changes, changeId);
+    if (!loaded.success || !loaded.data) return { ok: true };
+    testRuns = loaded.data.test_runs ?? {};
+  } catch {
+    return { ok: true };
+  }
+  const result = checkTddOrdering({
+    taskId: input.taskId,
+    intent: taskInfo.metadata?.tdd_intent,
+    runs: testRuns[input.taskId] ?? [],
+    refs: input.refs,
+    enforcement
+  });
+  if (result.ok) return { ok: true, advisory: result.advisory };
+  return {
+    ok: false,
+    error: `[TASK_ORDERING_VIOLATION] ${result.message}`,
+    remediation: result.remediation
+  };
+}
 async function fireTaskCompletedFromCheckpoint(store, taskId, sha, verification, touchedFiles) {
   try {
     const changeId = await resolveChangeId3(store, taskId);
@@ -72802,6 +73017,7 @@ var init_checkpoint = __esm({
     init_git_binary();
     init_zod();
     init_tool_output();
+    init_tdd_ordering();
     init_change_mutation_coordinator();
     init_target_project();
     init_change_projection_reader();
@@ -72833,6 +73049,15 @@ var init_checkpoint = __esm({
           expectedHeadSha: external_exports.string().optional().describe("Expected HEAD SHA for baseline validation"),
           verification: external_exports.string().optional().describe(
             "Verification summary for complete mode (required when committing dirty tree)"
+          ),
+          lastRedRunId: external_exports.string().optional().describe(
+            "Evidence ref for the red run (rq-TDD009seq). Omit both refs for auto-detection of the red\u2192green pair."
+          ),
+          lastGreenRunId: external_exports.string().optional().describe(
+            "Evidence ref for the green run (rq-TDD009seq). Omit both refs for auto-detection of the red\u2192green pair."
+          ),
+          lastEvidenceRunId: external_exports.string().optional().describe(
+            "Evidence ref for separate_verification tasks (required when tdd_intent is separate_verification)."
           ),
           ...targetPathSchema.shape
         },
@@ -72923,6 +73148,30 @@ var init_checkpoint = __esm({
               });
             }
             const effectiveChangeId = args.changeId || derivedChangeId;
+            let tddAdvisory;
+            if (mode === "complete") {
+              const tddGate = await checkCheckpointTddEvidence(store2, {
+                taskId: args.taskId,
+                changeId: effectiveChangeId,
+                refs: {
+                  lastRedRunId: args.lastRedRunId,
+                  lastGreenRunId: args.lastGreenRunId,
+                  lastEvidenceRunId: args.lastEvidenceRunId
+                }
+              });
+              if (!tddGate.ok) {
+                return formatToolOutput({
+                  status: "failed",
+                  classification: "SEMANTIC",
+                  workdir: cwd,
+                  ...effectiveChangeId ? { changeId: effectiveChangeId } : {},
+                  error: tddGate.error,
+                  code: "TASK_ORDERING_VIOLATION",
+                  remediation: tddGate.remediation
+                });
+              }
+              tddAdvisory = tddGate.advisory;
+            }
             const expectedBranch = args.expectedBranch || (guardMode && effectiveChangeId ? `change/${effectiveChangeId}` : void 0);
             let actualBranch;
             let actualHeadSha;
@@ -73005,6 +73254,7 @@ var init_checkpoint = __esm({
                 gitRoot,
                 changeId: derivedChangeId,
                 checkpointRecorded: checkpointRecording.recorded,
+                ...tddAdvisory ? { tddAdvisory } : {},
                 ...checkpointRecording.error && {
                   recordingError: checkpointRecording.error
                 },
@@ -73110,6 +73360,7 @@ var init_checkpoint = __esm({
                 message: subject,
                 changeId: derivedChangeId,
                 checkpointRecorded: checkpointRecording.recorded,
+                ...tddAdvisory ? { tddAdvisory } : {},
                 ...checkpointRecording.error && {
                   recordingError: checkpointRecording.error
                 },
