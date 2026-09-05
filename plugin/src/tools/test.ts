@@ -105,14 +105,20 @@ export function classifyFailureClass(
   return "command_failure";
 }
 
+const ASSERTION_LINE_RE = /AssertionError|expected\b/;
+const FAILURE_HINT_RE = /AssertionError|expected\b|FAIL\b|Error:|×|✗|\bfailed\b/i;
+
 export function extractFailureSignal(output: string): string {
-  const line =
-    output
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0)
-      .slice(-1)[0] ?? "";
-  return line.slice(0, 200);
+  const clean = stripAnsiTerminal(output);
+  const lines = clean
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  // ST-14: prefer the assertion line (summaries like "1 failed" or
+  // "Duration" also hint failure but carry no behavioral signal).
+  const assertion = lines.filter((l) => ASSERTION_LINE_RE.test(l)).slice(-1)[0];
+  const hinted = assertion ?? lines.filter((l) => FAILURE_HINT_RE.test(l)).slice(-1)[0];
+  return (hinted ?? lines.slice(-1)[0] ?? "").slice(0, 200);
 }
 
 function resolveWorkspaceSnapshot(cwd: string): string {
@@ -603,10 +609,11 @@ export const testTools = {
         const taskInfo = await store.tasks.show(args.taskId);
         if (taskInfo?.changeId) {
           const recordedAt = new Date().toISOString();
-          const combinedOutput = `${stdout ?? ""}\n${stderr ?? ""}`.slice(
-            0,
-            2000,
-          );
+          // ST-14: strip ANSI once — classification and signal match on clean
+          // text (colored "expected[39m 401" broke substring oracle match).
+          const combinedOutput = stripAnsiTerminal(
+            `${stdout ?? ""}\n${stderr ?? ""}`,
+          ).slice(0, 2000);
           const record = {
             runId,
             ...(args.phase && { phase: args.phase }),
