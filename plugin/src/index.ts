@@ -114,6 +114,7 @@ import { installCacheRuntime } from "./cache-runtime";
 import { registerDeterminusAgent } from "./agent-definition";
 import { registerDeterminusSessionContext } from "./hooks/session-context";
 import { registerDeterminusCommands } from "./commands/determinus-commands";
+import { registerDeterminusSkills } from "./skills/sdd-tdd";
 
 export { resolveGitSessionContext } from "./utils/git-session";
 
@@ -1683,6 +1684,14 @@ export default Plugin.define({
       debugLog(`determinus commands registration failed: ${e}`);
     }
 
+    // ST-05: SDD/TDD skills as code (fail-soft; never break boot).
+    let cleanupSkills: (() => Promise<void>) | undefined;
+    try {
+      cleanupSkills = await registerDeterminusSkills(ctx);
+    } catch (e) {
+      debugLog(`determinus skills registration failed: ${e}`);
+    }
+
     // ST-01: serve the determinus turns on the v2 session.context hook.
     // kind === "compaction" runs the compaction turn (block appended to the
     // context system array); other kinds run the system-block turn. The
@@ -1760,6 +1769,11 @@ export default Plugin.define({
     // Return cleanup
     return async () => {
       await cleanupCache();
+      try {
+        await cleanupSkills?.();
+      } catch {
+        // Best-effort shutdown.
+      }
       try {
         await cleanupCommands?.();
       } catch {

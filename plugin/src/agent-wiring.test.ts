@@ -5,18 +5,21 @@ import {
 } from "./agent-definition";
 import { registerDeterminusSessionContext } from "./hooks/session-context";
 import { registerDeterminusCommands } from "./commands/determinus-commands";
+import { registerDeterminusSkills } from "./skills/sdd-tdd";
 
 interface Fixture {
   ctx: any;
   agentStore: Map<string, any>;
   sessionHooks: Array<{ name: string; cb: (event: any) => void }>;
   commandAdds: any[];
+  skillAdds: any[];
 }
 
 function mockCtx(): Fixture {
   const agentStore = new Map<string, any>();
   const sessionHooks: Fixture["sessionHooks"] = [];
   const commandAdds: any[] = [];
+  const skillAdds: any[] = [];
   const ctx: any = {
     agent: {
       transform: async (fn: (editor: any) => void) => {
@@ -39,8 +42,13 @@ function mockCtx(): Fixture {
         fn({ add: (def: any) => void commandAdds.push(def) });
       },
     },
+    skill: {
+      transform: async (fn: (editor: any) => void) => {
+        fn({ add: (def: any) => void skillAdds.push(def) });
+      },
+    },
   };
-  return { ctx, agentStore, sessionHooks, commandAdds };
+  return { ctx, agentStore, sessionHooks, commandAdds, skillAdds };
 }
 
 describe("determinus host wiring (ST-02/ST-03)", () => {
@@ -89,6 +97,14 @@ describe("determinus host wiring (ST-02/ST-03)", () => {
         "determinus-review",
         "determinus-validate",
       ].sort(),
+    );
+  });
+
+  test("skill registration adds sdd and tdd skills", async () => {
+    const { ctx, skillAdds } = mockCtx();
+    await registerDeterminusSkills(ctx);
+    expect(skillAdds.map((s) => s.id).sort()).toEqual(
+      ["determinus-sdd", "determinus-tdd"].sort(),
     );
   });
 

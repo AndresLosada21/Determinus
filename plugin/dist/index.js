@@ -101610,6 +101610,76 @@ async function registerDeterminusCommands(ctx) {
   };
 }
 
+// src/skills/sdd-tdd.ts
+var DETERMINUS_SDD_SKILL = {
+  id: "determinus-sdd",
+  name: "determinus-sdd",
+  description: "SDD change-plane guidance: proposal \u2192 discovery \u2192 design \u2192 planning \u2192 execution \u2192 acceptance \u2192 release \u2192 archive with tools as source of truth.",
+  slash: false,
+  autoinvoke: true,
+  content: [
+    "# Determinus SDD",
+    "",
+    "Durable, evidence-based changes. The determinus_* tools are the source of",
+    "truth for changes, gates, tasks and evidence \u2014 never emulate them with",
+    "shell files or manual archive folders.",
+    "",
+    "## Gate order (strict)",
+    "",
+    "proposal \u2192 discovery \u2192 design \u2192 planning \u2192 execution \u2192 acceptance \u2192 release \u2192 archive.",
+    "Resume the first incomplete gate. Planning needs explicit user approval.",
+    "Execution checkpoints only after scoped verification in the correct worktree.",
+    "Archive only with required sign-off.",
+    "",
+    "## Cost discipline",
+    "",
+    "Durable state replaces chat replay. Report result, path, command, status",
+    "and next action \u2014 never raw logs, trees, diffs or full test reports."
+  ].join("\n")
+};
+var DETERMINUS_TDD_SKILL = {
+  id: "determinus-tdd",
+  name: "determinus-tdd",
+  description: "TDD evidence discipline: red\u2192green\u2192verify pairing for task completion via determinus_run_test and determinus_task_checkpoint.",
+  slash: false,
+  autoinvoke: false,
+  content: [
+    "# Determinus TDD",
+    "",
+    "Every code task completes with a red\u2192green pair recorded by",
+    "determinus_run_test (phase red expecting failure, then phase green",
+    "expecting pass). Pass lastRedRunId/lastGreenRunId to disambiguate when",
+    "several runs exist.",
+    "",
+    "Complete tasks only through determinus_task_checkpoint (mode complete),",
+    "never via task_update status done. Cross-cutting verification uses",
+    "tdd_intent separate_verification with an explicit lastEvidenceRunId.",
+    "Reclassify tdd_intent to not_applicable (with user approval) when TDD",
+    "truly does not apply."
+  ].join("\n")
+};
+function getDeterminusSkillDefs() {
+  return [DETERMINUS_SDD_SKILL, DETERMINUS_TDD_SKILL];
+}
+async function registerDeterminusSkills(ctx) {
+  try {
+    await ctx?.skill?.transform?.((editor) => {
+      try {
+        for (const skill of getDeterminusSkillDefs()) {
+          try {
+            editor?.add?.({ ...skill });
+          } catch {
+          }
+        }
+      } catch {
+      }
+    });
+  } catch {
+  }
+  return async () => {
+  };
+}
+
 // src/index.ts
 init_git_session();
 var MAX_PROMPT_TOOL_OUTPUT_CHARS = 1200;
@@ -102664,6 +102734,12 @@ var src_default = plugin_exports.define({
     } catch (e) {
       debugLog3(`determinus commands registration failed: ${e}`);
     }
+    let cleanupSkills;
+    try {
+      cleanupSkills = await registerDeterminusSkills(ctx);
+    } catch (e) {
+      debugLog3(`determinus skills registration failed: ${e}`);
+    }
     try {
       const systemTurn = hooks?.["determinus.system.turn"];
       const compactionTurn = hooks?.["determinus.compaction.turn"];
@@ -102725,6 +102801,10 @@ var src_default = plugin_exports.define({
     }
     return async () => {
       await cleanupCache();
+      try {
+        await cleanupSkills?.();
+      } catch {
+      }
       try {
         await cleanupCommands?.();
       } catch {
