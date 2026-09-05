@@ -1,0 +1,15 @@
+{
+  "archived_at": "2026-09-05T18:38:31.381Z",
+  "capabilities": [],
+  "change_hash": "eccc44351b317ec3230ebf96a096ac33a47e09bf9af4831a363bddb60c23f077",
+  "change_id": "addHighRoiEnforcement",
+  "completed_tasks": 3,
+  "created_at": "2026-09-05T18:21:28.389Z",
+  "current_gate": "done",
+  "last_activity_at": "2026-09-05T18:38:26.957Z",
+  "status": "archived",
+  "summary_hash": "b16790f1c1cfdcdeebdd8ce841c4f59337230bde0c9ef62ab06215d6de69250f",
+  "task_count": 3,
+  "title": "Add high-ROI enforcement",
+  "version": "1"
+}
