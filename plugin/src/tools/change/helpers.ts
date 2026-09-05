@@ -23,6 +23,7 @@ import {
   subagentReportKey,
 } from "../../types/subagent-reports";
 import { readArtifacts, type ArtifactReadResult } from "./artifacts";
+import { buildSliceContext } from "../../utils/slice-context";
 import {
   buildReleaseCompletionEvidence,
   preservePhase9Evidence,
@@ -462,6 +463,20 @@ export async function buildBriefingPacketForChange(
   for (const task of change.tasks ?? []) {
     for (const file of task.touched_files ?? []) affectedFiles.add(file);
   }
+  const activeTask =
+    change.tasks?.find((t) => t.status === "in_progress") ??
+    change.tasks?.find((t) => t.status === "pending");
+  const active_slice = buildSliceContext(
+    {
+      id: change.id,
+      tasks: (change.tasks ?? []).map((t) => ({
+        id: t.id,
+        title: t.title,
+        status: t.status,
+      })),
+    },
+    activeTask?.id,
+  );
   const reviewMatrixById = new Map(
     change.contract?.reviewMatrix?.rows.map((row) => [row.contractId, row]),
   );
@@ -507,6 +522,7 @@ export async function buildBriefingPacketForChange(
         ? verificationExpectations
         : undefined,
     durable_facts: collectBriefingFactsForReadback(change),
+    active_slice,
     archive_digest: undefined,
     generated_by: briefingPacketGeneratedBy(lane, request),
     generated_at: new Date().toISOString(),

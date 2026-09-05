@@ -82,6 +82,16 @@ export interface BriefingPacketRendererInput {
   epic_membership_verification?: EpicMembershipVerification;
   verification_expectations?: string[];
   durable_facts?: BriefingFact[];
+  /** ST-10 slice projection: active slice only, not the whole change. */
+  active_slice?: {
+    active_slice: string;
+    scenario: string;
+    design: string;
+    tdd_state: string;
+    allowed: string[];
+    forbidden: string[];
+    target: string;
+  };
   archive_digest?: {
     status: string;
     terminal_gate_summary?: Record<string, string>;
