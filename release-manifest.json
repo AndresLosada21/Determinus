@@ -98,7 +98,7 @@
     "plugin/scripts/mcp-runtime-probe.ts": "702c4b1878c453ae2791e344a4992ce2555b34533f73df4467dbf3d5db4fa69c",
     "plugin/scripts/validate.ts": "2119366009a4874b1a54f596b93a4a74d41973d637071eba55a7b858ee1ed9e8",
     "plugin/scripts/write-build-identity.ts": "99133fdefad16573b49b5115ab597376d14b8cd567386193d713485ed7b36d1e",
-    "plugin/scripts/write-release-manifest.ts": "8878c7fffc64b5c5cac2d1bc543308ca39ca722cae341888e6f7db859164fa57",
+    "plugin/scripts/write-release-manifest.ts": "ef4b8cf02dfb6c84f117f16287b171a0b41b3264f6af3c4e371753d3fee3e726",
     "plugin/src/__fixtures__/codemode-mcp-contract-baseline.json": "b7f820f1a75597811394d2ce5bcb52c071407569f839e54b2e181b249f89c12d",
     "plugin/src/__fixtures__/mcp-runtime-live-evidence.json": "8db3e53f86d973eb9bb8819888941a4482e8bce86baa989be6df3985008bea1e",
     "plugin/src/__fixtures__/mcp-runtime-matrix.json": "d1f5c29fca98193e92b48f2b758aefb952a6bab0f2990b30a31a55d6543c7162",
@@ -847,6 +847,6 @@
     "validate-opencode2.ps1": "6aa5b9fea1b23536fa18c0dde50942102516b897554d629ee960dca21811bcae",
     "validate-token-guard.ps1": "1f41f57e9fe8b1284e154383ba51fb55c4fbc2b429f86d18f95cf5b99a47c6db",
     "validate.mjs": "98d14da3368c785a3989dfa0ab652c9812e2f47fc81fd87342299ab0c587eb98",
-    "VALIDATION.json": "59bf69b2cf9ed4ff7bfb82845591f33a5be21e241a5ed58484b7a8f8c00d3172"
+    "VALIDATION.json": "b53bbe37d8b39e3f82ee7d0163692328536d4f96cf00b9e57327ac64323c65ac"
   }
 }
