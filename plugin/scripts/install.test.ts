@@ -85,8 +85,7 @@ it("registers the plugin directory, never a file (host rejects file paths)", () 
   try {
     installRelease(f.root, f.home);
     const configPath = join(f.home, ".config/opencode/opencode.jsonc");
-    const plugins = parse(readFileSync(configPath, "utf8"))
-      .plugins as string[];
+    const plugins = parse(readFileSync(configPath, "utf8")).plugins as string[];
     expect(plugins).toHaveLength(1);
     expect(plugins[0].endsWith("/plugin")).toBe(true);
     expect(plugins[0].endsWith("index.ts")).toBe(false);
@@ -105,9 +104,11 @@ it("registers the plugin directory, never a file (host rejects file paths)", () 
 it("prunes stale and mangled Determinus entries, keeps the new directory entry", () => {
   const raw =
     '{"plugins":["other-plugin","asC:/Users/carlos/.local/share/Determinus/releases/3.0.4-old/plugin","C:/Users/carlos/.local/share/Determinus/plugin","C:/Users/carlos/new/plugin/index.ts"]}';
-  expect(managedPlugin("asC:/Users/carlos/.local/share/Determinus/releases/3.0.4-old/plugin")).toBe(
-    true,
-  );
+  expect(
+    managedPlugin(
+      "asC:/Users/carlos/.local/share/Determinus/releases/3.0.4-old/plugin",
+    ),
+  ).toBe(true);
   const text = patchConfig(raw, "C:/Users/carlos/new/plugin"),
     c = parse(text);
   expect(c.plugins).toEqual([
