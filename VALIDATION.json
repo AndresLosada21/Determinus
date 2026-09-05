@@ -42,12 +42,12 @@
     "installIntegrity": "verified",
     "pluginState": "active",
     "goTraffic": {
-      "observed": 5,
-      "valid2xx": 2,
+      "observed": 8,
+      "valid2xx": 4,
       "repeatedSession": true,
       "standalone": 0,
-      "usageSteps": 12,
-      "cacheReadTokens": 147705
+      "usageSteps": 18,
+      "cacheReadTokens": 301554
     },
     "result": "DETERMINUS_RUNTIME_AND_CACHE_OBSERVED",
     "notes": [
@@ -55,7 +55,8 @@
       "Session system entries must be SystemPart structs; raw strings broke the session drain (fixed 73cd578).",
       "Bundle generation define name aligned so loaded generation is reported (fixed 35e3b7e); prior reports were dropped with empty generation.",
       "Live defects fixed during validation: directory entry, stale-entry pruning, struct entries, generation define.",
-      "SDD live smoke 2026-09-05 (change addSmokeProbe, beta-19151): checkpoint blocked unpaired task with TASK_ORDERING_VIOLATION; paired task passed red(git diff --check exit 2)->green(exit 0) and checkpoint committed; cancel-mode commit now transitions task to cancelled (fixed 94b4da3, verified live); execution+acceptance gates done; release delimited at RELEASE_REQUIRES_TRUNK_MERGE as designed."
+      "SDD live smoke 2026-09-05 (change addSmokeProbe, beta-19151): checkpoint bloqueou sem par red→green (TASK_ORDERING_VIOLATION); com red→green o checkpoint commitou; cancel agora transita para cancelled (fix 94b4da3, provado live); execution+acceptance verdes; release delimitado em RELEASE_REQUIRES_TRUNK_MERGE como projetado; probe fechado como cancelled, fila in-flight zerada.",
+      "Post-restart validate na geracao final 1551392a: active, go 8 observed / 4 valid2xx, repeatedSession true, standalone 0, usageSteps 18, cacheReadTokens 301554."
     ]
   }
 }
