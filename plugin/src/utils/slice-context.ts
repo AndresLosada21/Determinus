@@ -6,7 +6,11 @@
  * Reduces token usage and agent drift. No IO, no store.
  */
 
-export type SliceTddState = "TEST_READY" | "RED_PROVEN" | "IMPLEMENTING" | "VERIFIED";
+export type SliceTddState =
+  | "TEST_READY"
+  | "RED_PROVEN"
+  | "IMPLEMENTING"
+  | "VERIFIED";
 
 export interface SliceTaskLike {
   id: string;

@@ -21,7 +21,10 @@ describe("slice-context (ST-10)", () => {
 
   test("in_progress slice targets GREEN", () => {
     const ctx = buildSliceContext(
-      { ...change, tasks: [{ id: "tk-1", title: "P1", status: "in_progress" }] },
+      {
+        ...change,
+        tasks: [{ id: "tk-1", title: "P1", status: "in_progress" }],
+      },
       "tk-1",
     );
     expect(ctx.tdd_state).toMatch(/RED_PROVEN|IMPLEMENTING/);
@@ -31,6 +34,8 @@ describe("slice-context (ST-10)", () => {
   test("packet is sliced, not whole change", () => {
     const ctx = buildSliceContext(change, "tk-2");
     expect(ctx.active_slice).toBe("tk-2");
-    expect(JSON.stringify(ctx).length).toBeLessThan(JSON.stringify(change).length + 2000);
+    expect(JSON.stringify(ctx).length).toBeLessThan(
+      JSON.stringify(change).length + 2000,
+    );
   });
 });

@@ -50,7 +50,11 @@ export function classifyFailureClass(
   if (exitCode === 0) return "none";
   if (/Cannot find module|ModuleNotFound|ERR_MODULE_NOT_FOUND/i.test(output))
     return "module_not_found";
-  if (/AssertionError|expected .* but (received|got)|toBe|toEqual|toMatch/i.test(output))
+  if (
+    /AssertionError|expected .* but (received|got)|toBe|toEqual|toMatch/i.test(
+      output,
+    )
+  )
     return "assertion_failure";
   if (/timed out|Timeout|ETIMEDOUT/i.test(output)) return "timeout";
   if (/spawn|ENOENT|not recognized|not found.*command/i.test(output))
@@ -563,7 +567,10 @@ export const testTools = {
         const taskInfo = await store.tasks.show(args.taskId);
         if (taskInfo?.changeId) {
           const recordedAt = new Date().toISOString();
-          const combinedOutput = `${stdout ?? ""}\n${stderr ?? ""}`.slice(0, 2000);
+          const combinedOutput = `${stdout ?? ""}\n${stderr ?? ""}`.slice(
+            0,
+            2000,
+          );
           const record = {
             runId,
             ...(args.phase && { phase: args.phase }),
@@ -602,9 +609,10 @@ export const testTools = {
                   ...latest,
                   test_runs: {
                     ...(latest.test_runs ?? {}),
-                    [args.taskId]: [...existing, { ...record, spec_revision }].slice(
-                      -TEST_RUN_RING_BUFFER_LIMIT,
-                    ),
+                    [args.taskId]: [
+                      ...existing,
+                      { ...record, spec_revision },
+                    ].slice(-TEST_RUN_RING_BUFFER_LIMIT),
                   },
                 };
               },

@@ -18,7 +18,10 @@ describe("tdd stale invalidation (ST-09)", () => {
   test("same revision pair passes", () => {
     const r = checkTddOrdering({
       taskId: "tk-p2",
-      runs: [runWithRev("tr_r", "failed", "spec-7"), runWithRev("tr_g", "passed", "spec-7")],
+      runs: [
+        runWithRev("tr_r", "failed", "spec-7"),
+        runWithRev("tr_g", "passed", "spec-7"),
+      ],
       current_spec_revision: "spec-7",
     });
     expect(r.ok).toBe(true);
@@ -27,7 +30,10 @@ describe("tdd stale invalidation (ST-09)", () => {
   test("bump to spec-8 makes spec-7 evidence STALE", () => {
     const r = checkTddOrdering({
       taskId: "tk-p2",
-      runs: [runWithRev("tr_r", "failed", "spec-7"), runWithRev("tr_g", "passed", "spec-7")],
+      runs: [
+        runWithRev("tr_r", "failed", "spec-7"),
+        runWithRev("tr_g", "passed", "spec-7"),
+      ],
       current_spec_revision: "spec-8",
     });
     expect(r.ok).toBe(false);
