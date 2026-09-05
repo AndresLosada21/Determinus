@@ -1,6 +1,14 @@
 {
   "version": "3.0.4",
   "files": {
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/ARCHIVE_SUMMARY.md": "915606218df41deb1fa5bef609efdccb5633df4e44d7b4e2d0fc2b3bf7432644",
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/BRIEFING_DIGEST.md": "eb9b98e19723ad2587c7efa7aa1e7fb8ade62d45bc9c9d35371990d96541afdb",
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/change.json": "93c1be98dd0cf33ffb238d00396a0d53ce0b1ee4ce90a4610a0e774c77e04d5f",
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/design.md": "d35ed90dc246b26c0237498dc40a2ff243c85b56046f7ee122d3a82018130f23",
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/problem-statement.md": "97f89c66cf5bb9fb7b20619a5488c5c0179140dedde78057401a0d25183c52a5",
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/proposal.md": "151d44c612fe22797821382ce89b92f27e6d7016874a15906c2f1e266b0d130a",
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/spec-projection.json": "ae5e9d3649568db9f8d6d7f6434fb1f2aa6b9cd3c831a6da5446e840659fd9d0",
+    ".adv/archive/2026-09-05-addHighRoiEnforcement/summary.v1.json": "d5d37d3053ea52e578ffb509c1b90eb5154dd4f6c6e550c30cc174e6dbc47787",
     ".gitignore": "d81ed4f401910e4c6a2421f9c7dcd98ff7b64507db190e8e1621c66e788afabc",
     ".opencode/agents/determinus.md": "3e865a56f42103ba3724eeabb5ab0368b52fc7b75db6a9cb127554e820bb8927",
     ".opencode/prompt-floor-baselines.json": "c9395bf3bc3408f729977e4f072ba5e81d251a6f2835053928bf1660e7f2443a",
