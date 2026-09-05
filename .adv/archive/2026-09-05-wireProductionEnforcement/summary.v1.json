@@ -1,0 +1,15 @@
+{
+  "archived_at": "2026-09-05T23:18:05.478Z",
+  "capabilities": [],
+  "change_hash": "f80489a4bf1740b46f335299291417e914d24115d48321ede60ab43d160501e3",
+  "change_id": "wireProductionEnforcement",
+  "completed_tasks": 4,
+  "created_at": "2026-09-05T23:00:31.552Z",
+  "current_gate": "done",
+  "last_activity_at": "2026-09-05T23:17:38.106Z",
+  "status": "archived",
+  "summary_hash": "0967b2105b65af77eac24bcfee23d5a0c0ee41f78fc5e8083e70d383f3f9ff77",
+  "task_count": 4,
+  "title": "Wire production enforcement",
+  "version": "1"
+}
