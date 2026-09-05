@@ -63,4 +63,4 @@ Reinicie o OpenCode depois. Restaura a última configuração/agentes retirados,
 
 ## Limites
 
-O pacote foi testado em Linux/Node 24 contra `@opencode-ai/plugin@0.0.0-beta-18743`. Não houve acesso ao seu processo Windows, chamadas pagas à sua conta ou identificação do hash do seu Beta atual. A validação local é necessária para confirmar tráfego nesse ambiente. Não há promessa de zero cache miss ou de que todas as ocorrências passadas do e-mail foram identificadas.
+Validado ao vivo em Windows + Node 24 contra o Beta real (`opencode2` beta-19151): instalação ativa, uso Go observado com `repeatedSession: true` e `cacheReadTokens: 301554`, e ciclo SDD+TDD completo com evidência RED→GREEN. Veja `VALIDATION.json` para a evidência. Não há promessa de zero cache miss.
