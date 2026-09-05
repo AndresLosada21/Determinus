@@ -101,10 +101,7 @@ async function seed(
   );
 }
 
-function storeFor(
-  changesDir: string,
-  metadata: Record<string, string>,
-): Store {
+function storeFor(changesDir: string, metadata: Record<string, string>): Store {
   return {
     paths: { root: changesDir, changes: changesDir } as Store["paths"],
     config: null,

@@ -106,7 +106,8 @@ export function classifyFailureClass(
 }
 
 const ASSERTION_LINE_RE = /AssertionError|expected\b/;
-const FAILURE_HINT_RE = /AssertionError|expected\b|FAIL\b|Error:|×|✗|\bfailed\b/i;
+const FAILURE_HINT_RE =
+  /AssertionError|expected\b|FAIL\b|Error:|×|✗|\bfailed\b/i;
 
 export function extractFailureSignal(output: string): string {
   const clean = stripAnsiTerminal(output);
@@ -117,7 +118,8 @@ export function extractFailureSignal(output: string): string {
   // ST-14: prefer the assertion line (summaries like "1 failed" or
   // "Duration" also hint failure but carry no behavioral signal).
   const assertion = lines.filter((l) => ASSERTION_LINE_RE.test(l)).slice(-1)[0];
-  const hinted = assertion ?? lines.filter((l) => FAILURE_HINT_RE.test(l)).slice(-1)[0];
+  const hinted =
+    assertion ?? lines.filter((l) => FAILURE_HINT_RE.test(l)).slice(-1)[0];
   return (hinted ?? lines.slice(-1)[0] ?? "").slice(0, 200);
 }
 

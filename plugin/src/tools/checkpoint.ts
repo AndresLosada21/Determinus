@@ -515,8 +515,7 @@ export async function checkCheckpointTddEvidence(
     refs: input.refs,
     enforcement,
     oracle,
-    current_spec_revision:
-      liveSpecRevision ?? taskInfo.metadata?.spec_revision,
+    current_spec_revision: liveSpecRevision ?? taskInfo.metadata?.spec_revision,
   });
   if (result.ok) return { ok: true, advisory: result.advisory };
   return {
