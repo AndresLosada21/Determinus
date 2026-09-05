@@ -31,6 +31,23 @@ export interface TddTestRunLike {
   exitCode: number | null;
   /** Authoritative outcome; `determinus_run_test` sets "passed" only on pass. */
   classification: string;
+  /** Failure class for RED validation (ST-08 red_oracle). e.g. assertion_failure, module_not_found. */
+  failure_class?: string;
+  /** Observable failure signal for oracle matching (substring of output). */
+  failure_signal?: string;
+  /** Normalized test-definition fingerprint (ST-08). Divergence => RED_STALE. */
+  test_fingerprint?: string;
+  /** Spec revision hash at run time (ST-09). Mismatch => STALE. */
+  spec_revision?: string;
+  /** Workspace snapshot id at run time (ST-09 commit/tree SHA or digest). */
+  workspace_snapshot?: string;
+}
+
+export interface RedOracle {
+  /** Allowed failure class; when set, RED must carry this class. */
+  allowed_failure_class?: string;
+  /** Expected signal substring; when set, RED failure_signal must contain it. */
+  expected_signal?: string;
 }
 
 export interface TddEvidenceRefs {
@@ -46,6 +63,10 @@ export interface TddOrderingInput {
   runs: readonly TddTestRunLike[];
   refs?: TddEvidenceRefs;
   enforcement?: TddEnforcement;
+  /** Red oracle declared before the run (ST-08). When present, RED must match it. */
+  oracle?: RedOracle;
+  /** Current spec revision for STALE detection (ST-09). Runs with a different revision are ignored. */
+  current_spec_revision?: string;
 }
 
 export interface TddOrderingViolation {
@@ -87,15 +108,64 @@ function findRun(
 }
 
 /** First failed run with a later passed run (record order = chronological). */
+function matchesOracle(run: TddTestRunLike, oracle?: RedOracle): boolean {
+  if (!oracle) return true;
+  if (
+    oracle.allowed_failure_class &&
+    run.failure_class &&
+    run.failure_class !== oracle.allowed_failure_class
+  ) {
+    return false;
+  }
+  if (
+    oracle.allowed_failure_class &&
+    !run.failure_class &&
+    // No class recorded: only accept when no oracle class is demanded.
+    true
+  ) {
+    // Conservative: runs without a recorded class cannot prove the oracle.
+    return false;
+  }
+  if (oracle.expected_signal) {
+    const signal = run.failure_signal ?? "";
+    if (!signal.includes(oracle.expected_signal)) return false;
+  }
+  return true;
+}
+
+function fingerprintsCompatible(
+  red: TddTestRunLike,
+  green: TddTestRunLike,
+): boolean {
+  if (red.test_fingerprint && green.test_fingerprint) {
+    return red.test_fingerprint === green.test_fingerprint;
+  }
+  return true;
+}
+
+function isCurrentRevision(
+  run: TddTestRunLike,
+  current_spec_revision?: string,
+): boolean {
+  if (!current_spec_revision) return true;
+  if (!run.spec_revision) return true;
+  return run.spec_revision === current_spec_revision;
+}
+
 function autoDetectPair(
   runs: readonly TddTestRunLike[],
+  oracle?: RedOracle,
+  current_spec_revision?: string,
 ): { redRunId: string; greenRunId: string } | null {
   for (let red = 0; red < runs.length; red++) {
     if (isPassedRun(runs[red])) continue;
+    if (!matchesOracle(runs[red], oracle)) continue;
+    if (!isCurrentRevision(runs[red], current_spec_revision)) continue;
     for (let green = red + 1; green < runs.length; green++) {
-      if (isPassedRun(runs[green])) {
-        return { redRunId: runs[red].runId, greenRunId: runs[green].runId };
-      }
+      if (!isPassedRun(runs[green])) continue;
+      if (!isCurrentRevision(runs[green], current_spec_revision)) continue;
+      if (!fingerprintsCompatible(runs[red], runs[green])) continue;
+      return { redRunId: runs[red].runId, greenRunId: runs[green].runId };
     }
   }
   return null;
@@ -195,14 +265,65 @@ export function checkTddOrdering(input: TddOrderingInput): TddOrderingResult {
         `Re-run red then green in order (or omit refs for auto-detection of a valid pair).`,
       );
     }
+    if (input.oracle && !matchesOracle(red.run, input.oracle)) {
+      return refuse(
+        `Task ${taskId} red ref ${red.run.runId} does not match the declared red_oracle (class/signal mismatch) — RED_AMBIGUOUS, not RED_PROVEN.`,
+        `Re-run determinus_run_test with phase:'red' against the expected failing behavior, then retry.`,
+      );
+    }
+    if (!fingerprintsCompatible(red.run, green.run)) {
+      return refuse(
+        `Task ${taskId} RED_STALE: test fingerprint changed between red ${red.run.runId} and green ${green.run.runId} — the test was weakened, not the code fixed.`,
+        `Restore the test definition and re-prove RED, then GREEN.`,
+      );
+    }
+    if (
+      input.current_spec_revision &&
+      (!isCurrentRevision(red.run, input.current_spec_revision) ||
+        !isCurrentRevision(green.run, input.current_spec_revision))
+    ) {
+      return refuse(
+        `Task ${taskId} evidence is STALE for the current spec revision — re-prove RED→GREEN.`,
+        `Re-run determinus_run_test red then green against the current spec.`,
+      );
+    }
     return {
       ok: true,
       pair: { redRunId: red.run.runId, greenRunId: green.run.runId },
     };
   }
 
-  const pair = autoDetectPair(runs);
+  const pair = autoDetectPair(runs, input.oracle, input.current_spec_revision);
   if (!pair) {
+    // Specific diagnostics: fingerprint divergence, oracle mismatch, or stale revision.
+    for (let red = 0; red < runs.length; red++) {
+      if (isPassedRun(runs[red])) continue;
+      for (let green = red + 1; green < runs.length; green++) {
+        if (!isPassedRun(runs[green])) continue;
+        if (!fingerprintsCompatible(runs[red], runs[green])) {
+          return refuse(
+            `Task ${taskId} RED_STALE: test fingerprint changed between red ${runs[red].runId} and green ${runs[green].runId} — the test was weakened, not the code fixed.`,
+            `Restore the test definition and re-prove RED, then GREEN.`,
+          );
+        }
+        if (
+          input.current_spec_revision &&
+          (!isCurrentRevision(runs[red], input.current_spec_revision) ||
+            !isCurrentRevision(runs[green], input.current_spec_revision))
+        ) {
+          return refuse(
+            `Task ${taskId} evidence is STALE for the current spec revision — re-prove RED→GREEN.`,
+            `Re-run determinus_run_test red then green against the current spec.`,
+          );
+        }
+        if (input.oracle && !matchesOracle(runs[red], input.oracle)) {
+          return refuse(
+            `Task ${taskId} red ${runs[red].runId} does not match the declared red_oracle — RED_AMBIGUOUS, not RED_PROVEN.`,
+            `Re-run determinus_run_test with phase:'red' against the expected failing behavior, then retry.`,
+          );
+        }
+      }
+    }
     const hint =
       runs.length === 0
         ? "no test runs are recorded for this task"

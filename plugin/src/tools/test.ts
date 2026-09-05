@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { spawn, type ChildProcess } from "child_process";
 import { existsSync } from "node:fs";
-import { randomBytes } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { createHash, randomBytes } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import type { Store } from "../storage/store";
 import type { Change } from "../types";
@@ -33,6 +34,64 @@ export const DEFAULT_TEST_MAX_BUFFER = 10 * 1024 * 1024;
 const DEFAULT_OUTPUT_MAX_LENGTH = 900;
 const TEST_RUN_RING_BUFFER_LIMIT = 8;
 const TRUNCATION_SUFFIX = "... (truncated)";
+
+/** ST-08/ST-09: normalized fingerprint + failure classification + spec binding. */
+export function computeTestFingerprint(command: string): string {
+  return createHash("sha256")
+    .update(command.trim().replace(/\s+/g, " "))
+    .digest("hex")
+    .slice(0, 12);
+}
+
+export function classifyFailureClass(
+  output: string,
+  exitCode: number | null,
+): string {
+  if (exitCode === 0) return "none";
+  if (/Cannot find module|ModuleNotFound|ERR_MODULE_NOT_FOUND/i.test(output))
+    return "module_not_found";
+  if (
+    /AssertionError|expected .* but (received|got)|toBe|toEqual|toMatch/i.test(
+      output,
+    )
+  )
+    return "assertion_failure";
+  if (/timed out|Timeout|ETIMEDOUT/i.test(output)) return "timeout";
+  if (/spawn|ENOENT|not recognized|not found.*command/i.test(output))
+    return "command_failure";
+  return "command_failure";
+}
+
+export function extractFailureSignal(output: string): string {
+  const line =
+    output
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0)
+      .slice(-1)[0] ?? "";
+  return line.slice(0, 200);
+}
+
+export function computeSpecRevision(
+  documents: Record<string, unknown> | undefined,
+): string {
+  const payload = JSON.stringify(documents ?? {});
+  return createHash("sha256").update(payload).digest("hex").slice(0, 12);
+}
+
+function resolveWorkspaceSnapshot(cwd: string): string {
+  try {
+    const sha = execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd,
+      encoding: "utf8",
+      timeout: 5000,
+    }).trim();
+    if (/^[0-9a-f]{40}$/i.test(sha)) return sha.slice(0, 12);
+    return sha.slice(0, 12);
+  } catch {
+    return `dirty-${Date.now().toString(36)}`;
+  }
+}
 const determinus_RUN_TEST_PHASES = ["red", "green", "verify"] as const;
 type AdvRunTestPhase = (typeof determinus_RUN_TEST_PHASES)[number];
 
@@ -508,6 +567,10 @@ export const testTools = {
         const taskInfo = await store.tasks.show(args.taskId);
         if (taskInfo?.changeId) {
           const recordedAt = new Date().toISOString();
+          const combinedOutput = `${stdout ?? ""}\n${stderr ?? ""}`.slice(
+            0,
+            2000,
+          );
           const record = {
             runId,
             ...(args.phase && { phase: args.phase }),
@@ -521,6 +584,10 @@ export const testTools = {
               mockSurface: qualitySignals.mockSurface,
               behaviorSurface: qualitySignals.behaviorSurface,
             }),
+            failure_class: classifyFailureClass(combinedOutput, exitCode),
+            failure_signal: extractFailureSignal(combinedOutput),
+            test_fingerprint: computeTestFingerprint(args.command),
+            workspace_snapshot: resolveWorkspaceSnapshot(cwd),
             recordedAt,
           };
           const outcome = await coordinateChangeMutation<Change>({
@@ -534,13 +601,18 @@ export const testTools = {
               mutationKind: "test_run_recorded",
               mutateLatestProjection: (latest) => {
                 const existing = latest.test_runs?.[args.taskId] ?? [];
+                const spec_revision = computeSpecRevision(
+                  (latest as unknown as { documents?: Record<string, unknown> })
+                    .documents,
+                );
                 return {
                   ...latest,
                   test_runs: {
                     ...(latest.test_runs ?? {}),
-                    [args.taskId]: [...existing, record].slice(
-                      -TEST_RUN_RING_BUFFER_LIMIT,
-                    ),
+                    [args.taskId]: [
+                      ...existing,
+                      { ...record, spec_revision },
+                    ].slice(-TEST_RUN_RING_BUFFER_LIMIT),
                   },
                 };
               },
