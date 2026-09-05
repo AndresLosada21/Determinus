@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { spawn, type ChildProcess } from "child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import type { Store } from "../storage/store";
 import type { Change } from "../types";
 import { formatToolOutput } from "../utils/tool-output";
+import { computeSpecRevision } from "../utils/spec-revision";
 import { recordPhaseDuration, withRecordedPhase } from "../utils/metrics";
 import {
   appendTargetProjectContextOutput,
@@ -36,11 +37,53 @@ const TEST_RUN_RING_BUFFER_LIMIT = 8;
 const TRUNCATION_SUFFIX = "... (truncated)";
 
 /** ST-08/ST-09: normalized fingerprint + failure classification + spec binding. */
-export function computeTestFingerprint(command: string): string {
-  return createHash("sha256")
-    .update(command.trim().replace(/\s+/g, " "))
-    .digest("hex")
-    .slice(0, 12);
+const ANSI_ESCAPE_RE =
+  // eslint-disable-next-line no-control-regex
+  /[][[()#;?]*(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PRZcf-nqry=><]/g;
+
+/** Strip ANSI terminal escapes (ST-14 shares this for failure output). */
+export function stripAnsiTerminal(text: string): string {
+  return text.replace(ANSI_ESCAPE_RE, "");
+}
+
+/**
+ * Normalize test-file content for fingerprinting (ST-11): CRLF→LF, per-line
+ * trim, drop empty lines. Cosmetic-only edits keep the fingerprint; any
+ * assertion change alters it.
+ */
+export function normalizeTestContent(content: string): string {
+  return stripAnsiTerminal(content)
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trim().replace(/\s+/g, " "))
+    .filter((line) => line.length > 0)
+    .join("\n");
+}
+
+function hash12(payload: string): string {
+  return createHash("sha256").update(payload).digest("hex").slice(0, 12);
+}
+
+/**
+ * Content fingerprint (ST-11): `file:<sha12>` over normalized test-file
+ * content resolved via extractTestFilePath, or `cmd:<sha12>` fallback when no
+ * file resolves. Origin prefixes keep incomparable provenances from producing
+ * false RED_STALE (see fingerprintsCompatible).
+ */
+export function computeTestFingerprint(command: string, cwd?: string): string {
+  const normalizedCmd = command.trim().replace(/\s+/g, " ");
+  const testFile = extractTestFilePath(command);
+  if (testFile && cwd) {
+    try {
+      const abs = resolve(cwd, testFile);
+      if (existsSync(abs)) {
+        return `file:${hash12(normalizeTestContent(readFileSync(abs, "utf8")))}`;
+      }
+    } catch {
+      // Fall through to command fallback below.
+    }
+  }
+  return `cmd:${hash12(normalizedCmd)}`;
 }
 
 export function classifyFailureClass(
@@ -62,21 +105,22 @@ export function classifyFailureClass(
   return "command_failure";
 }
 
-export function extractFailureSignal(output: string): string {
-  const line =
-    output
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0)
-      .slice(-1)[0] ?? "";
-  return line.slice(0, 200);
-}
+const ASSERTION_LINE_RE = /AssertionError|expected\b/;
+const FAILURE_HINT_RE =
+  /AssertionError|expected\b|FAIL\b|Error:|×|✗|\bfailed\b/i;
 
-export function computeSpecRevision(
-  documents: Record<string, unknown> | undefined,
-): string {
-  const payload = JSON.stringify(documents ?? {});
-  return createHash("sha256").update(payload).digest("hex").slice(0, 12);
+export function extractFailureSignal(output: string): string {
+  const clean = stripAnsiTerminal(output);
+  const lines = clean
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  // ST-14: prefer the assertion line (summaries like "1 failed" or
+  // "Duration" also hint failure but carry no behavioral signal).
+  const assertion = lines.filter((l) => ASSERTION_LINE_RE.test(l)).slice(-1)[0];
+  const hinted =
+    assertion ?? lines.filter((l) => FAILURE_HINT_RE.test(l)).slice(-1)[0];
+  return (hinted ?? lines.slice(-1)[0] ?? "").slice(0, 200);
 }
 
 function resolveWorkspaceSnapshot(cwd: string): string {
@@ -567,10 +611,11 @@ export const testTools = {
         const taskInfo = await store.tasks.show(args.taskId);
         if (taskInfo?.changeId) {
           const recordedAt = new Date().toISOString();
-          const combinedOutput = `${stdout ?? ""}\n${stderr ?? ""}`.slice(
-            0,
-            2000,
-          );
+          // ST-14: strip ANSI once — classification and signal match on clean
+          // text (colored "expected[39m 401" broke substring oracle match).
+          const combinedOutput = stripAnsiTerminal(
+            `${stdout ?? ""}\n${stderr ?? ""}`,
+          ).slice(0, 2000);
           const record = {
             runId,
             ...(args.phase && { phase: args.phase }),
@@ -586,7 +631,7 @@ export const testTools = {
             }),
             failure_class: classifyFailureClass(combinedOutput, exitCode),
             failure_signal: extractFailureSignal(combinedOutput),
-            test_fingerprint: computeTestFingerprint(args.command),
+            test_fingerprint: computeTestFingerprint(args.command, cwd),
             workspace_snapshot: resolveWorkspaceSnapshot(cwd),
             recordedAt,
           };

@@ -1060,6 +1060,16 @@ export const TestRunRecordSchema = z.object({
   behaviorSurface: z.enum(["small", "medium", "large"]).optional(),
   evidence_kind: z.enum(["unit", "other"]).optional(),
   recordedAt: z.string(),
+  // ST-08/ST-09/ST-11/ST-12/ST-14: TDD enforcement evidence. All optional so
+  // legacy runs (pre-fingerprint) load unchanged; unknown absence means
+  // "not recorded", and validators treat absent fields as pass-through
+  // (grandfather), never as failure. Without these declarations zod strips
+  // them on load and checkpoint enforcement silently degrades to fail→pass.
+  failure_class: z.string().optional(),
+  failure_signal: z.string().optional(),
+  test_fingerprint: z.string().optional(),
+  spec_revision: z.string().optional(),
+  workspace_snapshot: z.string().optional(),
 });
 export type TestRunRecord = z.infer<typeof TestRunRecordSchema>;
 

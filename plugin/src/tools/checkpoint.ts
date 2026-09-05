@@ -40,6 +40,7 @@ import {
   appendTargetProjectContextOutput,
 } from "./target-project";
 import { loadChange } from "../storage/change-projection-reader";
+import { computeSpecRevision } from "../utils/spec-revision";
 import { extractStructuredOutput } from "../utils/extract-structured-output";
 import { dismissAllSuggestedDrafts } from "../utils/wisdom-draft";
 
@@ -474,14 +475,24 @@ export async function checkCheckpointTddEvidence(
       workspace_snapshot?: string;
     }>
   >;
+  let liveDocuments: Record<string, unknown> | undefined;
   try {
     const loaded = await loadChange(store.paths.changes, changeId);
     if (!loaded.success || !loaded.data) return { ok: true };
     testRuns = loaded.data.test_runs ?? {};
+    liveDocuments = (
+      loaded.data as unknown as { documents?: Record<string, unknown> }
+    ).documents;
   } catch {
     return { ok: true };
   }
 
+  // ST-12 oracle contract (declared per task, honored here):
+  //   metadata.red_oracle_class  – e.g. "assertion_failure"
+  //   metadata.red_oracle_signal – expected substring, e.g. "expected 401"
+  //   metadata.red_oracle_required – reserved ("true" = fail closed without oracle)
+  // Absent keys = pass-through (legacy tasks unaffected). Declare the oracle in
+  // /determinus-prep task metadata from the Scenario's expected failure.
   const oracleClass = taskInfo.metadata?.red_oracle_class;
   const oracleSignal = taskInfo.metadata?.red_oracle_signal;
   const oracle =
@@ -491,6 +502,12 @@ export async function checkCheckpointTddEvidence(
           expected_signal: oracleSignal,
         }
       : undefined;
+  // ST-12: current revision comes from LIVE documents (same hash the writer
+  // stamps), never from metadata — a spec bump after GREEN turns prior runs
+  // STALE. Absent documents hash stably, so legacy changes see no false STALE.
+  const liveSpecRevision = liveDocuments
+    ? computeSpecRevision(liveDocuments)
+    : undefined;
   const result = checkTddOrdering({
     taskId: input.taskId,
     intent: taskInfo.metadata?.tdd_intent,
@@ -498,7 +515,7 @@ export async function checkCheckpointTddEvidence(
     refs: input.refs,
     enforcement,
     oracle,
-    current_spec_revision: taskInfo.metadata?.spec_revision,
+    current_spec_revision: liveSpecRevision ?? taskInfo.metadata?.spec_revision,
   });
   if (result.ok) return { ok: true, advisory: result.advisory };
   return {

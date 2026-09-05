@@ -133,11 +133,21 @@ function matchesOracle(run: TddTestRunLike, oracle?: RedOracle): boolean {
   return true;
 }
 
+function fingerprintOrigin(fp: string | undefined): string | undefined {
+  const sep = fp?.indexOf(":") ?? -1;
+  return sep > 0 ? fp?.slice(0, sep) : undefined;
+}
+
 function fingerprintsCompatible(
   red: TddTestRunLike,
   green: TddTestRunLike,
 ): boolean {
   if (red.test_fingerprint && green.test_fingerprint) {
+    const redOrigin = fingerprintOrigin(red.test_fingerprint);
+    const greenOrigin = fingerprintOrigin(green.test_fingerprint);
+    // ST-11: compare only within the same provenance. Legacy bare hashes
+    // (no origin) keep exact comparison; mixed/absent origins grandfather.
+    if (redOrigin && greenOrigin && redOrigin !== greenOrigin) return true;
     return red.test_fingerprint === green.test_fingerprint;
   }
   return true;

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { buildSliceContext } from "./slice-context";
+import { renderBriefingPacket } from "./briefing-packet-renderer";
 
 const change = {
   id: "c1",
@@ -31,11 +32,17 @@ describe("slice-context (ST-10)", () => {
     expect(ctx.target).toMatch(/GREEN/);
   });
 
-  test("packet is sliced, not whole change", () => {
+  test("slice reaches the rendered packet (ST-13 presence, not size)", () => {
     const ctx = buildSliceContext(change, "tk-2");
-    expect(ctx.active_slice).toBe("tk-2");
-    expect(JSON.stringify(ctx).length).toBeLessThan(
-      JSON.stringify(change).length + 2000,
-    );
+    const packet = renderBriefingPacket({
+      change_id: "c1",
+      title: "ST-10 change",
+      lane: "engineer",
+      tasks: change.tasks,
+      active_slice: ctx,
+    });
+    const slice = packet.sections.find((s) => s.kind === "active_slice");
+    expect(slice).toBeDefined();
+    expect(JSON.stringify(slice?.content)).toContain("tk-2");
   });
 });
