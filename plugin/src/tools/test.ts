@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { spawn, type ChildProcess } from "child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
@@ -36,11 +36,53 @@ const TEST_RUN_RING_BUFFER_LIMIT = 8;
 const TRUNCATION_SUFFIX = "... (truncated)";
 
 /** ST-08/ST-09: normalized fingerprint + failure classification + spec binding. */
-export function computeTestFingerprint(command: string): string {
-  return createHash("sha256")
-    .update(command.trim().replace(/\s+/g, " "))
-    .digest("hex")
-    .slice(0, 12);
+const ANSI_ESCAPE_RE =
+  // eslint-disable-next-line no-control-regex
+  /[][[()#;?]*(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PRZcf-nqry=><]/g;
+
+/** Strip ANSI terminal escapes (ST-14 shares this for failure output). */
+export function stripAnsiTerminal(text: string): string {
+  return text.replace(ANSI_ESCAPE_RE, "");
+}
+
+/**
+ * Normalize test-file content for fingerprinting (ST-11): CRLF→LF, per-line
+ * trim, drop empty lines. Cosmetic-only edits keep the fingerprint; any
+ * assertion change alters it.
+ */
+export function normalizeTestContent(content: string): string {
+  return stripAnsiTerminal(content)
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trim().replace(/\s+/g, " "))
+    .filter((line) => line.length > 0)
+    .join("\n");
+}
+
+function hash12(payload: string): string {
+  return createHash("sha256").update(payload).digest("hex").slice(0, 12);
+}
+
+/**
+ * Content fingerprint (ST-11): `file:<sha12>` over normalized test-file
+ * content resolved via extractTestFilePath, or `cmd:<sha12>` fallback when no
+ * file resolves. Origin prefixes keep incomparable provenances from producing
+ * false RED_STALE (see fingerprintsCompatible).
+ */
+export function computeTestFingerprint(command: string, cwd?: string): string {
+  const normalizedCmd = command.trim().replace(/\s+/g, " ");
+  const testFile = extractTestFilePath(command);
+  if (testFile && cwd) {
+    try {
+      const abs = resolve(cwd, testFile);
+      if (existsSync(abs)) {
+        return `file:${hash12(normalizeTestContent(readFileSync(abs, "utf8")))}`;
+      }
+    } catch {
+      // Fall through to command fallback below.
+    }
+  }
+  return `cmd:${hash12(normalizedCmd)}`;
 }
 
 export function classifyFailureClass(
@@ -586,7 +628,7 @@ export const testTools = {
             }),
             failure_class: classifyFailureClass(combinedOutput, exitCode),
             failure_signal: extractFailureSignal(combinedOutput),
-            test_fingerprint: computeTestFingerprint(args.command),
+            test_fingerprint: computeTestFingerprint(args.command, cwd),
             workspace_snapshot: resolveWorkspaceSnapshot(cwd),
             recordedAt,
           };
