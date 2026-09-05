@@ -295,7 +295,7 @@ export function checkTddOrdering(input: TddOrderingInput): TddOrderingResult {
 
   const pair = autoDetectPair(runs, input.oracle, input.current_spec_revision);
   if (!pair) {
-    // Specific diagnostics: fingerprint divergence or oracle mismatch, else generic.
+    // Specific diagnostics: fingerprint divergence, oracle mismatch, or stale revision.
     for (let red = 0; red < runs.length; red++) {
       if (isPassedRun(runs[red])) continue;
       for (let green = red + 1; green < runs.length; green++) {
@@ -304,6 +304,16 @@ export function checkTddOrdering(input: TddOrderingInput): TddOrderingResult {
           return refuse(
             `Task ${taskId} RED_STALE: test fingerprint changed between red ${runs[red].runId} and green ${runs[green].runId} — the test was weakened, not the code fixed.`,
             `Restore the test definition and re-prove RED, then GREEN.`,
+          );
+        }
+        if (
+          input.current_spec_revision &&
+          (!isCurrentRevision(runs[red], input.current_spec_revision) ||
+            !isCurrentRevision(runs[green], input.current_spec_revision))
+        ) {
+          return refuse(
+            `Task ${taskId} evidence is STALE for the current spec revision — re-prove RED→GREEN.`,
+            `Re-run determinus_run_test red then green against the current spec.`,
           );
         }
         if (input.oracle && !matchesOracle(runs[red], input.oracle)) {
