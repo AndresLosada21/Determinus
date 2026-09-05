@@ -1,0 +1,28 @@
+{
+  "environment": "Linux, Node 24.19.0",
+  "result": "PASS",
+  "checks": [
+    "Compiled entry imported outside node_modules",
+    "Compiled installer repeated; config, credentials and project source preserved",
+    "Active plugin without traffic correctly stays pending",
+    "Synthetic current-generation traffic and usage accepted (not live account evidence)",
+    "Validator rejects old-generation",
+    "Validator rejects missing-header",
+    "Validator rejects cache-other-service",
+    "Corrupt real bundle rejected before configuration changes",
+    "Compiled rollback restores original configuration"
+  ],
+  "realWindowsHostTested": false,
+  "paidProviderRequests": 0,
+  "version": "3.0.4",
+  "unitTests": {
+    "cacheTransportContextInstaller": 16,
+    "existingRegressionAndPreservation": 258,
+    "totalPassed": 274,
+    "failed": 0
+  },
+  "typecheck": "PASS",
+  "compiledBuild": "PASS",
+  "publicSDK": "0.0.0-beta-18743",
+  "fullRepositorySuiteRun": false
+}

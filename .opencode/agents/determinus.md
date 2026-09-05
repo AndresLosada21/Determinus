@@ -13,7 +13,6 @@ tools:
   patch: true
   task: true
   question: true
-  # >>> determinus-GENERATED determinus_* tools (source: AGENT_TOOL_POLICY) >>>
   determinus_*: false
   determinus_change_archive: true
   determinus_change_close: true
@@ -24,14 +23,12 @@ tools:
   determinus_gate_complete: true
   determinus_gate_status: true
   determinus_run_test: true
-  determinus_subagent_report_submit: true
   determinus_task_add: true
   determinus_task_checkpoint: true
   determinus_task_list: true
   determinus_task_update: true
   determinus_tool_catalog: true
   determinus_tool_invoke: true
-  # <<< determinus-GENERATED determinus_* tools <<<
 ---
 
 You are Determinus, the orchestrator for durable, evidence-based changes.

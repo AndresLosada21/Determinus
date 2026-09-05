@@ -16,11 +16,11 @@
  * identity — a single structural cast, not a version bridge.
  */
 
-import * as OpencodePlugin from "@opencode-ai/plugin";
+
 import { z } from "zod";
 
 // Compatibility: old SDK exported `tool`, new SDK (v2) does not. Use fallback.
-const sdkTool = (OpencodePlugin as unknown as { tool?: typeof localTool }).tool;
+
 type ToolContext = {
   sessionID?: string;
   messageID?: string;
@@ -56,7 +56,7 @@ function localTool(def: {
 } {
   return def;
 }
-const tool = sdkTool ?? localTool;
+const tool = localTool;
 import { safeExecute } from "./utils/safe-execute";
 import {
   formatToolArgPreflightError,

@@ -5745,40 +5745,7 @@ describe("auto-drive regression guards (rq-releaseFinalization02 / DONT1 / DONT3
   });
 });
 
-// Regression guard for the command-side auto-drive: verify the new auto-drive
-// section in determinus-archive.md does NOT route completion through redriveArchivedUnmergedBranch
-// (DONT3) — the correct completion path is verifyReleaseEvidenceFromMain.
-describe("determinus-archive.md auto-drive (rq-releaseFinalization02 DONT3)", () => {
-  it("does not mention redriveArchivedUnmergedBranch in the new auto-drive section", () => {
-    // __dirname = <plugin>/src/tools/archive-helpers/. Repo root is 4 levels up.
-    const repoRoot = join(__dirname, "..", "..", "..", "..");
-    const cmdPath = join(repoRoot, ".opencode/command/determinus-archive.md");
-    const content = readFileSync(cmdPath, "utf8");
-    // The auto-drive section lives inside the Phase 9.5 block. Use regex to
-    // capture the section header (idempotent against header-text duplication
-    // and future refactors) and stop at the next `### Step` heading.
-    const headerPattern =
-      /^### Phase 9\.5: Auto-Drive Pending-PR Archive Completion\s*$/m;
-    const sectionStartMatch = headerPattern.exec(content);
-    expect(sectionStartMatch).not.toBeNull();
-    const sectionStart = sectionStartMatch!.index;
-    const tail = content.slice(sectionStart + sectionStartMatch![0].length);
-    // Stop at the next "### " subheading (any Step or other subhead).
-    const nextHeadMatch = /\n###\s/.exec(tail);
-    const section = nextHeadMatch
-      ? content.slice(
-          sectionStart,
-          sectionStart + sectionStartMatch![0].length + nextHeadMatch.index,
-        )
-      : content.slice(sectionStart);
-    expect(section).not.toMatch(/redriveArchivedUnmergedBranch/);
-    // The section must reference the correct completion entry instead.
-    expect(section).toContain("verifyReleaseEvidenceFromMain");
-    // The removed local-trunk sync helper is no longer mentioned.
-    expect(section).not.toContain("syncDefaultBranchAfterMerge");
-  });
-});
-
+// The v1 slash command was removed from the Beta distribution.
 /**
  * rq-optimizePhase9GitCalls AC7 — cache hit/miss/invalidation/failure-rollback tests.
  *

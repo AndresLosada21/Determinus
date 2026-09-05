@@ -1,0 +1,10 @@
+{
+  "name": "@opencode-ai/schema",
+  "version": "0.0.0-beta-18743",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anomalyco/opencode.git",
+    "directory": "packages/schema"
+  }
+}

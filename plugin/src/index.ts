@@ -108,6 +108,8 @@ import { buildAdvWorktreeAdapter } from "./utils/workspace-adapter";
 import { authorizeMorphWorktree } from "./utils/morph-worktree-authorization";
 import { worktreeExistsForChange } from "./tools/worktree/state";
 
+import { installCacheRuntime } from "./cache-runtime";
+
 export { resolveGitSessionContext } from "./utils/git-session";
 
 // OpenCode v2 replays completed tool results in every following model request.
@@ -116,13 +118,7 @@ export { resolveGitSessionContext } from "./utils/git-session";
 const MAX_PROMPT_TOOL_OUTPUT_CHARS = 1_200;
 const MAX_PROMPT_DIFF_CHARS = 1_200;
 const PROMPT_EXCERPT_CHARS = 400;
-
-/**
- * Number of most-recent non-blank messages exempt from containment. This is
- * zero deliberately: OpenCode replays a just-completed tool result on the
- * next request, which makes a single large task report break prompt caching.
- */
-const RECENCY_PROTECTED_MESSAGES = 0;
+// Native runtime preserves replay and uses host compaction; see cache-runtime.ts.
 
 /**
  * Tool types whose outputs are sub-agent (task) or skill returns and must
@@ -282,16 +278,7 @@ export const compactToolPart = (part: unknown): boolean => {
  * adapter used to shallow-cast v2 messages, silently making output compaction
  * a no-op.  Compact the native ToolResultPart in place as well.
  */
-export const compactV2ToolResultPart = (part: unknown): boolean => {
-  if (!isRecord(part) || part.type !== "tool-result") return false;
-  if (!isRecord(part.result) || part.result.type !== "text") return false;
-  if (typeof part.result.value !== "string") return false;
-  const output = part.result.value;
-  if (output.length <= MAX_PROMPT_TOOL_OUTPUT_CHARS) return false;
-  const toolName = typeof part.name === "string" ? part.name : "tool result";
-  part.result.value = dropToolOutput(toolName, output);
-  return true;
-};
+export const compactV2ToolResultPart = (_part: unknown): boolean => false;
 
 const compactSummaryDiffs = (info: unknown): number => {
   if (!isRecord(info) || !isRecord(info.summary)) return 0;
@@ -319,55 +306,9 @@ const isBlankUnfinishedAssistantMessage = (message: {
   return message.info.finish == null;
 };
 
-export const compactPromptMessages = (
-  messages: Array<{
-    info?: unknown;
-    parts?: unknown[];
-    role?: unknown;
-    content?: unknown[];
-  }>,
-): {
-  droppedBlank: number;
-  compactedToolOutputs: number;
-  compactedDiffs: number;
-} => {
-  let droppedBlank = 0;
-  let compactedToolOutputs = 0;
-  let compactedDiffs = 0;
-  let recentProtected = 0;
-
-  for (let index = messages.length - 1; index >= 0; index--) {
-    const message = messages[index];
-    if (!message) continue;
-    if (isBlankUnfinishedAssistantMessage(message)) {
-      messages.splice(index, 1);
-      droppedBlank++;
-      continue;
-    }
-
-    // AC5: protect the most recent N non-blank messages from any content
-    // truncation (matches host prune turn-protection). Counting non-blank
-    // messages from the end is robust to blank-message splicing above.
-    if (recentProtected < RECENCY_PROTECTED_MESSAGES) {
-      recentProtected++;
-      continue;
-    }
-
-    compactedDiffs += compactSummaryDiffs(message.info);
-    if (Array.isArray(message.parts)) {
-      for (const part of message.parts) {
-        if (compactToolPart(part)) compactedToolOutputs++;
-      }
-    }
-    if (Array.isArray(message.content)) {
-      for (const part of message.content) {
-        if (compactV2ToolResultPart(part)) compactedToolOutputs++;
-      }
-    }
-  }
-
-  return { droppedBlank, compactedToolOutputs, compactedDiffs };
-};
+// Native host compaction owns transcript size. Never edit replayed messages.
+export const compactPromptMessages = (_messages: Array<any>) => ({ droppedBlank: 0, compactedToolOutputs: 0, compactedDiffs: 0 });
+export const enforcePromptHistoryBudget = (messages: Array<any>) => ({ omittedMessages: 0, compactedTextParts: 0, retainedChars: messages.reduce((n, x) => n + (JSON.stringify(x)?.length ?? 0), 0), limit: null });
 
 const extractSessionErrorMessage = (properties: unknown): string => {
   if (!isRecord(properties)) return "Unknown session error";
@@ -1751,17 +1692,18 @@ export default Plugin.define({
         } else {
           output = { error: event.error };
         }
+        const originalOutput = output.output;
         await afterHook(input, output);
         // Propagate possible mutations: if old hook changed output, reflect in new event
         if (event.status === "completed" && output) {
           if (
             typeof output.output === "string" &&
-            output.output !== event.result?.content
+            output.output !== originalOutput
           ) {
             // If old hook provided new output string, update event.result.content
             event.result = {
               ...event.result,
-              content: [{ type: "text", text: output.output }],
+              content: [{ type: "text", text: output.output }, ...(Array.isArray(event.result?.content) ? event.result.content.filter((p: any) => p?.type !== "text") : [])],
               metadata: output.metadata ?? event.result?.metadata,
             };
           } else if (output.metadata) {
@@ -1773,59 +1715,7 @@ export default Plugin.define({
       });
     }
 
-    // Register session context hook (system + messages)
-    // Never mutate the leading system message after a session begins. Provider
-    // prompt caches key on that prefix; status/wisdom banners here caused full
-    // 200k+ context cache misses after otherwise small tool calls.
-    const hasSystemTransform = false;
-    const hasMessagesTransform =
-      !!hooks["experimental.chat.messages.transform"];
-    if (hasSystemTransform || hasMessagesTransform) {
-      await ctx.session.hook("context", async (event: any) => {
-        // System transform
-        if (hasSystemTransform) {
-          try {
-            const existingSystem =
-              event.system.map((p: any) => p.text).join("\n\n") || "";
-            const output: any = {
-              system: existingSystem ? [existingSystem] : [],
-            };
-            const input: any = { sessionID: event.sessionID };
-            await hooks["experimental.chat.system.transform"](input, output);
-            const newSystem = output.system[0];
-            if (newSystem !== undefined && newSystem !== existingSystem) {
-              event.system.length = 0;
-              // Use SystemPart shape { type: "text", text }
-              event.system.push({ type: "text", text: newSystem } as any);
-            }
-          } catch (e) {
-            debugLog(`system.transform shim failed: ${e}`);
-          }
-        }
-        // Messages transform
-        if (hasMessagesTransform) {
-          try {
-            // The old transform expects output.messages as Array<{info, parts}>
-            // New event.messages is Array<Message> from @opencode-ai/ai
-            // We'll try calling it with a shallow cast; it will mutate in place if applicable
-            const output: any = { messages: event.messages as any };
-            await hooks["experimental.chat.messages.transform"](
-              {} as any,
-              output,
-            );
-            // If it mutated, event.messages is already mutated because same array
-          } catch (e) {
-            debugLog(`messages.transform shim failed: ${e}`);
-          }
-        }
-        // Do not emulate the v1 `experimental.session.compacting` hook here.
-        // `context` runs before *every* OpenCode v2 model request, whereas the
-        // old hook ran only while creating a compaction summary. Injecting it
-        // here added a mutable change/task/spec snapshot to every prompt and
-        // invalidated otherwise reusable cache prefixes. OpenCode v2 already
-        // owns compaction and serializes the active transcript safely.
-      });
-    }
+    const cleanupCache = await installCacheRuntime(ctx);
 
     // Event subscription loop for old event hook
     let eventController: AbortController | undefined;
@@ -1838,6 +1728,7 @@ export default Plugin.define({
             signal: eventController!.signal,
           } as any)) {
             const evAny: any = ev;
+            cleanupCache.recordEvent(evAny);
             const type = evAny.type ?? evAny.event?.type ?? "unknown";
             const properties = { ...evAny };
             delete properties.type;
@@ -1857,6 +1748,7 @@ export default Plugin.define({
 
     // Return cleanup
     return async () => {
+      await cleanupCache();
       try {
         eventController?.abort();
       } catch {

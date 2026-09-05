@@ -1,0 +1,7 @@
+{
+  "name": "nanoid",
+  "version": "5.1.16",
+  "license": "MIT",
+  "author": "Andrey Sitnik <andrey@sitnik.es>",
+  "repository": "ai/nanoid"
+}

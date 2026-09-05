@@ -1,1 +1,0 @@
-Noisy `adv_run_test` output is truncated by raw head-only substring, which can drop failure summaries or tail diagnostics while preserving low-signal noise. Scope is minimal: smarter output selection within existing `adv_run_test` API and ~2000-character budget.

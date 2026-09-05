@@ -1,0 +1,10 @@
+{
+  "name": "ajv-formats",
+  "version": "3.0.1",
+  "license": "MIT",
+  "author": "Evgeny Poberezkin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajv-validator/ajv-formats.git"
+  }
+}

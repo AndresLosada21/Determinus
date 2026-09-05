@@ -1,0 +1,7 @@
+{
+  "name": "ajv",
+  "version": "8.20.0",
+  "license": "MIT",
+  "author": "Evgeny Poberezkin",
+  "repository": "ajv-validator/ajv"
+}

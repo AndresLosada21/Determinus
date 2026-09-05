@@ -1,1 +1,0 @@
-Task-id-only lookup currently depends on a reverse task→change index or disk projection. Re-entry task additions can be visible through change-id-scoped queries while the reverse index/projection is stale, causing task-id-only tools to reject valid tasks.

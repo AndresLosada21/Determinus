@@ -1,0 +1,10 @@
+{
+  "name": "fast-uri",
+  "version": "4.1.2",
+  "license": "BSD-3-Clause",
+  "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fastify/fast-uri.git"
+  }
+}

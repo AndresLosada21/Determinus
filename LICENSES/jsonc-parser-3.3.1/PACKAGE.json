@@ -1,0 +1,10 @@
+{
+  "name": "jsonc-parser",
+  "version": "3.3.1",
+  "license": "MIT",
+  "author": "Microsoft Corporation",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/node-jsonc-parser"
+  }
+}

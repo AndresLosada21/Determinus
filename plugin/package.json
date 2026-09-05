@@ -1,97 +1,99 @@
 {
-    "name":  "@andreslosada21/determinus",
-    "version":  "3.0.2",
-    "description":  "Determinus - Spec-driven development plugin for OpenCode where specs become enforceable laws",
-    "type":  "module",
-    "main":  "dist/index.js",
-    "types":  "dist/index.d.ts",
-    "packageManager":  "pnpm@11.9.0",
-    "repository":  {
-                       "type":  "git",
-                       "url":  "git+https://github.com/AndresLosada21/Determinus.git"
-                   },
-    "homepage":  "https://github.com/AndresLosada21/Determinus#readme",
-    "bugs":  {
-                 "url":  "https://github.com/AndresLosada21/Determinus/issues"
-             },
-    "author":  "Anomaly",
-    "scripts":  {
-                    "build":  "tsx scripts/build-plugin.ts \u0026\u0026 pnpm run build:identity",
-                    "build:mcp-server":  "tsup src/mcp-server/index.ts src/reconcile-cli.ts --format esm --out-dir dist --no-splitting",
-                    "build:identity":  "tsx scripts/write-build-identity.ts",
-                    "dev":  "tsup src/index.ts --format esm --watch",
-                    "check":  "pnpm run schemas:check \u0026\u0026 pnpm run typecheck \u0026\u0026 pnpm run generate:manifests:check \u0026\u0026 tsx scripts/check-frontmatter.ts \u0026\u0026 tsx scripts/check-test-isolation.ts \u0026\u0026 tsx scripts/check-prompt-budget.ts \u0026\u0026 tsx scripts/check-lockfile-policy.ts \u0026\u0026 tsx scripts/check-skill-references.ts \u0026\u0026 pnpm run lint \u0026\u0026 pnpm run format:check",
-                    "prepublishOnly":  "pnpm run build",
-                    "typecheck":  "tsc --noEmit",
-                    "lint":  "eslint src/",
-                    "lint:fix":  "eslint src/ --fix",
-                    "format":  "prettier --write src/",
-                    "format:check":  "prettier --check src/",
-                    "test":  "vitest run",
-                    "test:opencode2":  "vitest run src/__tests__/prompt-compaction.test.ts --project unit --maxWorkers=1 && vitest run src/tools/archive-helpers/git-finalize.test.ts --project unit --maxWorkers=1 --testNamePattern=worktree",
-                    "test:watch":  "vitest",
-                    "test:coverage":  "vitest run --coverage",
-                    "dead-code:check":  "bun ../bin/dead-code-check.ts",
-                    "dead-code:provenance:refresh":  "bun ../bin/dead-code-provenance-refresh.ts",
-                    "check:sdk-parity":  "tsx scripts/check-sdk-parity.ts",
-                    "architecture:check":  "depcruise --config .dependency-cruiser.cjs -- src",
-                    "schemas:generate":  "tsx scripts/generate-json-schemas.ts",
-                    "schemas:check":  "tsx scripts/generate-json-schemas.ts --check",
-                    "generate:manifests":  "tsx scripts/generate-agent-manifests.ts",
-                    "generate:manifests:check":  "tsx scripts/generate-agent-manifests.ts --check",
-                    "bench:latency":  "bun --smol scripts/bench-adv-latency.ts"
-                },
-    "dependencies":  {
-                         "@modelcontextprotocol/sdk":  "^1.29.0",
-                         "@opencode-ai/plugin":  "0.0.0-beta-18743",
-                         "effect":  "^3.19.0",
-                         "jsonc-parser":  "^3.3.1",
-                         "lru-cache":  "^11.3.6",
-                         "nanoid":  "^5.1.16",
-                         "yaml":  "^2.9.0",
-                         "zod":  "^4.3.6"
-                     },
-    "devDependencies":  {
-                            "@ast-grep/cli":  "^0.44.1",
-                            "@eslint/js":  "^10.0.1",
-                            "@types/node":  "^25.6.0",
-                            "@vitest/coverage-v8":  "^4.1.4",
-                            "bun-types":  "^1.3.12",
-                            "dependency-cruiser":  "^18.1.1",
-                            "eslint":  "^10.2.0",
-                            "eslint-config-prettier":  "^10.1.8",
-                            "jscpd":  "^5.0.12",
-                            "knip":  "^6.25.0",
-                            "prettier":  "^3.8.2",
-                            "tsup":  "^8.5.1",
-                            "tsx":  "^4.20.6",
-                            "typescript":  "^6.0.2",
-                            "typescript-eslint":  "^8.58.2",
-                            "vite":  "^8.0.8",
-                            "vitest":  "^4.1.4"
-                        },
-    "peerDependencies":  {
-                             "typescript":  "^5.0.0 || ^6.0.0"
-                         },
-    "engines":  {
-                    "node":  "\u003e=24.0.0"
-                },
-    "files":  [
-                  "dist",
-                  "src",
-                  "schemas"
-              ],
-    "keywords":  [
-                     "opencode",
-                     "plugin",
-                     "specs",
-                     "requirements",
-                     "tdd",
-                     "spec-driven",
-                     "validation",
-                     "ai-agent",
-                     "mcp",
-                     "model-context-protocol"
-                 ],
-    "license":  "MIT"
+  "name": "@andreslosada21/determinus",
+  "version": "3.0.4",
+  "description": "Determinus - Spec-driven development plugin for OpenCode where specs become enforceable laws",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "packageManager": "pnpm@11.9.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AndresLosada21/Determinus.git"
+  },
+  "homepage": "https://github.com/AndresLosada21/Determinus#readme",
+  "bugs": {
+    "url": "https://github.com/AndresLosada21/Determinus/issues"
+  },
+  "author": "Anomaly",
+  "scripts": {
+    "build": "node --import tsx scripts/build-plugin.ts && pnpm run build:identity",
+    "build:mcp-server": "tsup src/mcp-server/index.ts src/reconcile-cli.ts --format esm --out-dir dist --no-splitting",
+    "build:identity": "node --import tsx scripts/write-build-identity.ts",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "check": "pnpm run schemas:check && pnpm run typecheck && pnpm run generate:manifests:check && tsx scripts/check-frontmatter.ts && tsx scripts/check-test-isolation.ts && tsx scripts/check-prompt-budget.ts && tsx scripts/check-lockfile-policy.ts && tsx scripts/check-skill-references.ts && pnpm run lint && pnpm run format:check",
+    "prepublishOnly": "pnpm run build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "test": "vitest run",
+    "test:opencode2": "vitest run src/__tests__/prompt-compaction.test.ts --project unit --maxWorkers=1 && vitest run src/tools/archive-helpers/git-finalize.test.ts --project unit --maxWorkers=1 --testNamePattern=worktree",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "dead-code:check": "bun ../bin/dead-code-check.ts",
+    "dead-code:provenance:refresh": "bun ../bin/dead-code-provenance-refresh.ts",
+    "check:sdk-parity": "tsx scripts/check-sdk-parity.ts",
+    "architecture:check": "depcruise --config .dependency-cruiser.cjs -- src",
+    "schemas:generate": "tsx scripts/generate-json-schemas.ts",
+    "schemas:check": "tsx scripts/generate-json-schemas.ts --check",
+    "generate:manifests": "tsx scripts/generate-agent-manifests.ts",
+    "generate:manifests:check": "tsx scripts/generate-agent-manifests.ts --check",
+    "bench:latency": "bun --smol scripts/bench-adv-latency.ts",
+    "build:installers": "node --import tsx scripts/build-installers.ts",
+    "test:cache": "vitest run --config vitest.cache.config.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@opencode-ai/plugin": "0.0.0-beta-18743",
+    "effect": "^3.19.0",
+    "jsonc-parser": "^3.3.1",
+    "lru-cache": "^11.3.6",
+    "nanoid": "^5.1.16",
+    "yaml": "^2.9.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@ast-grep/cli": "^0.44.1",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^4.1.4",
+    "bun-types": "^1.3.12",
+    "dependency-cruiser": "^18.1.1",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "jscpd": "^5.0.12",
+    "knip": "^6.25.0",
+    "prettier": "^3.8.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.8",
+    "vitest": "^4.1.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0 || ^6.0.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "files": [
+    "dist",
+    "src",
+    "schemas"
+  ],
+  "keywords": [
+    "opencode",
+    "plugin",
+    "specs",
+    "requirements",
+    "tdd",
+    "spec-driven",
+    "validation",
+    "ai-agent",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "license": "MIT"
 }

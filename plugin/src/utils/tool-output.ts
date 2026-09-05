@@ -1,3 +1,4 @@
+import { persistResult } from "./result-artifacts";
 /**
  * Tool Output Formatting
  *
@@ -16,7 +17,7 @@ const ENV_MAX_CHARS = parseInt(process.env.determinus_TOOL_MAX_CHARS || "", 10);
 const ENV_OUTPUT_MODE = process.env.determinus_TOOL_OUTPUT_MODE;
 
 /** Hard character cap for a model-visible tool result. */
-export const DEFAULT_MAX_CHARS = 1200;
+export const DEFAULT_MAX_CHARS = 5000;
 
 /** Use compact JSON unless env says "pretty" */
 const OUTPUT_MODE: "compact" | "pretty" =
@@ -104,13 +105,26 @@ export function formatToolOutput(
   const indent = options?.pretty || OUTPUT_MODE === "pretty" ? 2 : undefined;
   const maxChars = options?.maxChars ?? MAX_CHARS;
 
-  const serialized = JSON.stringify(data, null, indent);
+  const serialized = JSON.stringify(data, null, indent) ?? "null";
 
   if (serialized.length <= maxChars) {
     return serialized;
   }
 
-  return buildTruncationEnvelope(data, serialized.length, maxChars, options);
+  // Persist the complete producer data before reducing its preview.
+  try {
+    const file = persistResult(serialized);
+    const result = JSON.parse(
+      buildTruncationEnvelope(data, serialized.length, maxChars, options),
+    );
+    result._fullResult = file;
+    result._hint += ` Full JSON: ${file}. Decoded text: ${file}.txt.`;
+    for (let i = 0; i < 3; i++)
+      result._meta.returnedChars = JSON.stringify(result).length;
+    return JSON.stringify(result);
+  } catch {
+    return serialized;
+  }
 }
 
 /**

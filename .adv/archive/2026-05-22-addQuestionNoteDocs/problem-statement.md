@@ -1,1 +1,0 @@
-ADV question tool needs optional note convention for user context alongside structured answers.

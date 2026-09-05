@@ -1,0 +1,10 @@
+{
+  "name": "zod-to-json-schema",
+  "version": "3.25.2",
+  "license": "ISC",
+  "author": "Stefan Terdell",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StefanTerdell/zod-to-json-schema"
+  }
+}

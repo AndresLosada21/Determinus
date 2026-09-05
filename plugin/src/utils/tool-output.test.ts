@@ -54,3 +54,25 @@ describe("resolveOutputMode", () => {
     vi.resetModules();
   });
 });
+
+it("retains full producer data before truncating its preview", async () => {
+  const { readFileSync, rmSync } = await import("node:fs");
+  const original = {
+    success: false,
+    details: "required-evidence".repeat(1000),
+    sessions: [{ id: "fixture" }],
+  };
+  const result = JSON.parse(formatToolOutput(original));
+  try {
+    expect(JSON.parse(readFileSync(result._fullResult, "utf8"))).toEqual(
+      original,
+    );
+    expect(readFileSync(result._fullResult + ".txt", "utf8")).toContain(
+      original.details,
+    );
+    expect(result._meta.returnedChars).toBe(JSON.stringify(result).length);
+  } finally {
+    rmSync(result._fullResult, { force: true });
+    rmSync(result._fullResult + ".txt", { force: true });
+  }
+});

@@ -1,0 +1,10 @@
+{
+  "name": "@modelcontextprotocol/sdk",
+  "version": "1.29.0",
+  "license": "MIT",
+  "author": "Anthropic, PBC (https://anthropic.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/modelcontextprotocol/typescript-sdk.git"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "digest": "sha256:18643eadc3b25c3c58f6be8e5ed0df0fff270ed7b7e9d7a7ee29a40294533aef",
+  "files": [
+    {
+      "path": "doctor-cli.d.ts",
+      "sha256": "ff724bf9117a45bbc8f0340f7c4b4b7ac165e906754ef8b4ad961f719b10b118",
+      "bytes": 90
+    },
+    {
+      "path": "doctor-cli.js",
+      "sha256": "d1abf4f4c21aeaa15072c48a8227685edc246ad089f5ec3f94b5d79ab0a77137",
+      "bytes": 1573302
+    },
+    {
+      "path": "index.d.ts",
+      "sha256": "d9984728aa933ee61f1c6cce51592397a82044c4bc6473a1c76d426160a562a3",
+      "bytes": 2500
+    },
+    {
+      "path": "index.js",
+      "sha256": "81975ab3a3e2a31cb0682d09fd81a95d1b2f5ff57065274a4ec353cc781108dd",
+      "bytes": 3829621
+    },
+    {
+      "path": "mcp-server.d.ts",
+      "sha256": "395ad3cba5ffe414ae3b228ebb4dee71bb8e6018229a5f2050387f8ae1184697",
+      "bytes": 1253
+    },
+    {
+      "path": "mcp-server.js",
+      "sha256": "528f8eb419a50de7acc3d3b4e5993eea633661617aa0626c99bbaba281a77039",
+      "bytes": 3267778
+    },
+    {
+      "path": "plugin-bundle-manifest.json",
+      "sha256": "59cb865ee4f6dea204dea7684a719085f8026c9f934daa883f85882a39feffac",
+      "bytes": 510
+    },
+    {
+      "path": "reconcile-cli.d.ts",
+      "sha256": "c7da8d78ef682d5591478299f16f8e7b095d0f285412bb7bfd6a3185828134a4",
+      "bytes": 450
+    },
+    {
+      "path": "reconcile-cli.js",
+      "sha256": "dedabc73b8643e6deddf0e343e498ffd5c639b55001c2cfd38da833ff5728e3c",
+      "bytes": 1170321
+    },
+    {
+      "path": "summary-candidates-cli.d.ts",
+      "sha256": "adb3c81de9fcc7486852544893c90219910687487f44e3579583324ec8353d82",
+      "bytes": 1006
+    },
+    {
+      "path": "summary-candidates-cli.js",
+      "sha256": "1c5d8a05bbed5ca6a98af009a9f373f60603cfc7ad2cdcc201ed845233126fe0",
+      "bytes": 724968
+    }
+  ],
+  "computedAt": "2026-09-05T10:51:25.990Z",
+  "pluginRoot": "/workspace/scratch/417cdf278ad8/Determinus-3.0.4/plugin"
+}
