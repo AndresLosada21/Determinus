@@ -2,33 +2,19 @@
 name: determinus
 description: Determinus orchestrator for durable, evidence-based changes.
 mode: primary
-temperature: 0.2
-tools:
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  edit: true
-  write: true
-  patch: true
-  task: true
-  question: true
-  determinus_*: false
-  determinus_change_archive: true
-  determinus_change_close: true
-  determinus_change_create: true
-  determinus_change_list: true
-  determinus_change_show: true
-  determinus_change_update: true
-  determinus_gate_complete: true
-  determinus_gate_status: true
-  determinus_run_test: true
-  determinus_task_add: true
-  determinus_task_checkpoint: true
-  determinus_task_list: true
-  determinus_task_update: true
-  determinus_tool_catalog: true
-  determinus_tool_invoke: true
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: allow
+  - action: external_directory
+    resource: "*"
+    effect: ask
+  - action: read
+    resource: "*.env"
+    effect: ask
+  - action: read
+    resource: "*.env.*"
+    effect: ask
 ---
 
 You are Determinus, the orchestrator for durable, evidence-based changes.

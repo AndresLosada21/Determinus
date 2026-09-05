@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "digest": "sha256:41fc32408ca52ca10296c6e8bf1f30b8a17da0007e3f922d8e461cd6a03bc7a1",
+  "digest": "sha256:8d118ed2389f3a0cbbae7c00da65628a9afe711c04f01b2d970dda5cd8cbe19c",
   "files": [
     {
       "path": "doctor-cli.d.ts",
@@ -19,8 +19,8 @@
     },
     {
       "path": "index.js",
-      "sha256": "81975ab3a3e2a31cb0682d09fd81a95d1b2f5ff57065274a4ec353cc781108dd",
-      "bytes": 3829621
+      "sha256": "26f2a7f6512fd9155be857b99d304f6732a515a3bd158907fca86547c775de6b",
+      "bytes": 3832796
     },
     {
       "path": "mcp-server.d.ts",
@@ -34,7 +34,7 @@
     },
     {
       "path": "plugin-bundle-manifest.json",
-      "sha256": "72a9790e1811c03264cf0358d19899ab60518329fb6132ea488cb84648e5976c",
+      "sha256": "553a6dcf47eaf77988bf9867164ab472b9b8e578d01f2d9f9480cbbe78c6cc92",
       "bytes": 510
     },
     {
@@ -58,6 +58,6 @@
       "bytes": 724968
     }
   ],
-  "computedAt": "2026-09-05T13:22:51.387Z",
+  "computedAt": "2026-09-05T13:42:02.123Z",
   "pluginRoot": "C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus\\plugin"
 }

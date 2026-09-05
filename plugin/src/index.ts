@@ -110,6 +110,8 @@ import { authorizeMorphWorktree } from "./utils/morph-worktree-authorization";
 import { worktreeExistsForChange } from "./tools/worktree/state";
 
 import { installCacheRuntime } from "./cache-runtime";
+import { registerDeterminusAgent } from "./agent-definition";
+import { registerDeterminusSessionContext } from "./hooks/session-context";
 
 export { resolveGitSessionContext } from "./utils/git-session";
 
@@ -1718,6 +1720,20 @@ export default Plugin.define({
 
     const cleanupCache = await installCacheRuntime(ctx);
 
+    // ST-02: determinus default-on (fail-soft; never break boot).
+    let cleanupAgent: (() => Promise<void>) | undefined;
+    let cleanupSessionContext: (() => Promise<void>) | undefined;
+    try {
+      cleanupAgent = await registerDeterminusAgent(ctx);
+    } catch (e) {
+      debugLog(`determinus agent registration failed: ${e}`);
+    }
+    try {
+      cleanupSessionContext = await registerDeterminusSessionContext(ctx);
+    } catch (e) {
+      debugLog(`determinus session-context registration failed: ${e}`);
+    }
+
     // Event subscription loop for old event hook
     let eventController: AbortController | undefined;
     if (hooks.event) {
@@ -1750,6 +1766,16 @@ export default Plugin.define({
     // Return cleanup
     return async () => {
       await cleanupCache();
+      try {
+        await cleanupSessionContext?.();
+      } catch {
+        // Best-effort shutdown.
+      }
+      try {
+        await cleanupAgent?.();
+      } catch {
+        // Best-effort shutdown.
+      }
       try {
         eventController?.abort();
       } catch {

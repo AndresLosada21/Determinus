@@ -101273,6 +101273,84 @@ Full error: ${file2}`;
   }
 }
 
+// src/agent-definition.ts
+var DETERMINUS_AGENT_ID = "determinus";
+var DETERMINUS_DIRECTIVE = [
+  "[Determinus] Durable, evidence-based changes. Tools are the source of truth; do not emulate with shell files.",
+  "Sequence: proposal \u2192 discovery \u2192 design \u2192 planning \u2192 execution \u2192 acceptance \u2192 release \u2192 archive. Resume the first incomplete gate.",
+  "Gate discipline: planning needs approval; execution checkpoints only after scoped verification in the correct worktree; archive only with required sign-off.",
+  "Cost discipline: durable state replaces replay; report result/path/command/status/next action, never raw logs or diffs."
+].join("\n");
+function shouldInjectDirective(agentID) {
+  return agentID === DETERMINUS_AGENT_ID;
+}
+async function registerDeterminusAgent(ctx) {
+  try {
+    await ctx?.agent?.transform?.((editor) => {
+      try {
+        editor?.update?.(DETERMINUS_AGENT_ID, (agent) => {
+          try {
+            agent.mode = "primary";
+            if (!agent.description)
+              agent.description = "Determinus orchestrator for durable, evidence-based changes.";
+            if (!agent.system || typeof agent.system !== "string")
+              agent.system = DETERMINUS_DIRECTIVE;
+            else if (!agent.system.includes(DETERMINUS_DIRECTIVE.slice(0, 48)))
+              agent.system = `${agent.system}
+
+${DETERMINUS_DIRECTIVE}`;
+          } catch {
+          }
+        });
+      } catch {
+      }
+    });
+  } catch {
+  }
+  return async () => {
+  };
+}
+
+// src/hooks/session-context.ts
+function getAgentID(event) {
+  return event?.agent ?? event?.agentID ?? event?.agentId;
+}
+function getKind(event) {
+  return event?.kind;
+}
+function appendDirective(event) {
+  const system = event?.system;
+  if (!Array.isArray(system)) return;
+  const has3 = system.some(
+    (part) => typeof part === "string" && (part === DETERMINUS_DIRECTIVE || part.includes(DETERMINUS_DIRECTIVE.slice(0, 48)))
+  );
+  if (!has3) system.push(DETERMINUS_DIRECTIVE);
+}
+function shouldEnforceForEvent(event) {
+  if (!shouldInjectDirective(getAgentID(event))) return false;
+  const kind = getKind(event);
+  if (kind === void 0 || kind === null) return true;
+  return kind === "primary" || kind === "compaction";
+}
+function enforceSessionContext(event) {
+  if (!shouldEnforceForEvent(event)) return;
+  try {
+    appendDirective(event);
+  } catch {
+  }
+}
+async function registerDeterminusSessionContext(ctx) {
+  try {
+    const registration = await ctx?.session?.hook?.("context", (event) => {
+      enforceSessionContext(event);
+    });
+    void registration;
+  } catch {
+  }
+  return async () => {
+  };
+}
+
 // src/index.ts
 init_git_session();
 var MAX_PROMPT_TOOL_OUTPUT_CHARS = 1200;
@@ -102315,6 +102393,18 @@ var src_default = plugin_exports.define({
       });
     }
     const cleanupCache = await installCacheRuntime(ctx);
+    let cleanupAgent;
+    let cleanupSessionContext;
+    try {
+      cleanupAgent = await registerDeterminusAgent(ctx);
+    } catch (e) {
+      debugLog3(`determinus agent registration failed: ${e}`);
+    }
+    try {
+      cleanupSessionContext = await registerDeterminusSessionContext(ctx);
+    } catch (e) {
+      debugLog3(`determinus session-context registration failed: ${e}`);
+    }
     let eventController;
     if (hooks.event) {
       const eventHook = hooks.event;
@@ -102343,6 +102433,14 @@ var src_default = plugin_exports.define({
     }
     return async () => {
       await cleanupCache();
+      try {
+        await cleanupSessionContext?.();
+      } catch {
+      }
+      try {
+        await cleanupAgent?.();
+      } catch {
+      }
       try {
         eventController?.abort();
       } catch {
