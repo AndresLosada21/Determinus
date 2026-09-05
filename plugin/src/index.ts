@@ -112,6 +112,7 @@ import { worktreeExistsForChange } from "./tools/worktree/state";
 import { installCacheRuntime } from "./cache-runtime";
 import { registerDeterminusAgent } from "./agent-definition";
 import { registerDeterminusSessionContext } from "./hooks/session-context";
+import { registerDeterminusCommands } from "./commands/determinus-commands";
 
 export { resolveGitSessionContext } from "./utils/git-session";
 
@@ -1734,6 +1735,14 @@ export default Plugin.define({
       debugLog(`determinus session-context registration failed: ${e}`);
     }
 
+    // ST-03: SDD slash commands as code (fail-soft; never break boot).
+    let cleanupCommands: (() => Promise<void>) | undefined;
+    try {
+      cleanupCommands = await registerDeterminusCommands(ctx);
+    } catch (e) {
+      debugLog(`determinus commands registration failed: ${e}`);
+    }
+
     // Event subscription loop for old event hook
     let eventController: AbortController | undefined;
     if (hooks.event) {
@@ -1766,6 +1775,11 @@ export default Plugin.define({
     // Return cleanup
     return async () => {
       await cleanupCache();
+      try {
+        await cleanupCommands?.();
+      } catch {
+        // Best-effort shutdown.
+      }
       try {
         await cleanupSessionContext?.();
       } catch {

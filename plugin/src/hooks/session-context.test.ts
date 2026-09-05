@@ -39,9 +39,9 @@ describe("determinus session-context enforcement (ST-02)", () => {
     expect(
       shouldEnforceForEvent({ agent: "determinus", kind: "compaction" }),
     ).toBe(true);
-    expect(
-      shouldEnforceForEvent({ agent: "determinus", kind: "title" }),
-    ).toBe(false);
+    expect(shouldEnforceForEvent({ agent: "determinus", kind: "title" })).toBe(
+      false,
+    );
     expect(
       shouldEnforceForEvent({ agent: "determinus", kind: "generate" }),
     ).toBe(false);

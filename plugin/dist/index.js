@@ -101351,6 +101351,87 @@ async function registerDeterminusSessionContext(ctx) {
   };
 }
 
+// src/commands/determinus-commands.ts
+init_manifest();
+var SDD_COMMAND_NAMES = [
+  "determinus-proposal",
+  "determinus-discover",
+  "determinus-design",
+  "determinus-prep",
+  "determinus-apply",
+  "determinus-review",
+  "determinus-harden",
+  "determinus-validate",
+  "determinus-archive"
+];
+function getSddCommandDefs() {
+  return SDD_COMMAND_NAMES.map((name) => COMMAND_MANIFEST[name]).filter(
+    (def) => def !== void 0
+  );
+}
+function buildCommandPrompt(def, argsText) {
+  const lines = [`[Determinus /${def.name}] ${def.description}`];
+  if (def.phaseGoal) lines.push(`Phase goal: ${def.phaseGoal}`);
+  if (def.gate) lines.push(`Gate: ${def.gate}`);
+  const gates = def.scope?.gates;
+  if (gates && gates.length > 0) lines.push(`Owns gates: ${gates.join(", ")}`);
+  if (def.requiresChangeId)
+    lines.push(`Arguments: ${argsText || def.args_hint || "<change-id>"}`);
+  else if (argsText) lines.push(`Arguments: ${argsText}`);
+  lines.push(
+    "Use the determinus_* tools as the source of truth for changes, gates, tasks and evidence. Do not emulate with shell files."
+  );
+  return lines.join("\n");
+}
+function extractArgsText(prompt) {
+  if (typeof prompt === "string") return prompt.trim();
+  if (prompt && typeof prompt === "object") {
+    const record3 = prompt;
+    for (const key of ["text", "prompt", "args", "input"]) {
+      if (typeof record3[key] === "string")
+        return record3[key].trim();
+    }
+  }
+  return "";
+}
+async function executeSddCommand(def, input, host) {
+  try {
+    const text = buildCommandPrompt(def, extractArgsText(input?.prompt));
+    const sessionID = input?.sessionID;
+    const promptFn = host?.session?.prompt;
+    if (typeof promptFn === "function" && sessionID) {
+      await promptFn.call(host.session, { sessionID, text });
+      return;
+    }
+  } catch {
+  }
+}
+function buildHostCommandDefs(host) {
+  return getSddCommandDefs().map((def) => ({
+    name: def.name,
+    description: def.description,
+    execute: (input) => executeSddCommand(def, input, host)
+  }));
+}
+async function registerDeterminusCommands(ctx) {
+  try {
+    await ctx?.command?.transform?.((editor) => {
+      try {
+        for (const def of buildHostCommandDefs(ctx)) {
+          try {
+            editor?.add?.(def);
+          } catch {
+          }
+        }
+      } catch {
+      }
+    });
+  } catch {
+  }
+  return async () => {
+  };
+}
+
 // src/index.ts
 init_git_session();
 var MAX_PROMPT_TOOL_OUTPUT_CHARS = 1200;
@@ -102405,6 +102486,12 @@ var src_default = plugin_exports.define({
     } catch (e) {
       debugLog3(`determinus session-context registration failed: ${e}`);
     }
+    let cleanupCommands;
+    try {
+      cleanupCommands = await registerDeterminusCommands(ctx);
+    } catch (e) {
+      debugLog3(`determinus commands registration failed: ${e}`);
+    }
     let eventController;
     if (hooks.event) {
       const eventHook = hooks.event;
@@ -102433,6 +102520,10 @@ var src_default = plugin_exports.define({
     }
     return async () => {
       await cleanupCache();
+      try {
+        await cleanupCommands?.();
+      } catch {
+      }
       try {
         await cleanupSessionContext?.();
       } catch {

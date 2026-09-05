@@ -40,7 +40,8 @@ export function injectDirective(
 ): unknown[] {
   const contains = system.some(
     (part) =>
-      typeof part === "string" && (part === directive || part.includes(directive.slice(0, 48))),
+      typeof part === "string" &&
+      (part === directive || part.includes(directive.slice(0, 48))),
   );
   if (contains) return [...system];
   return [...system, directive];
@@ -52,7 +53,9 @@ export function injectDirective(
  * cache-runtime.ts). Never throws: boot must survive a missing/incompatible
  * agent domain (ST-01 fail-soft).
  */
-export async function registerDeterminusAgent(ctx: any): Promise<() => Promise<void>> {
+export async function registerDeterminusAgent(
+  ctx: any,
+): Promise<() => Promise<void>> {
   try {
     await ctx?.agent?.transform?.((editor: any) => {
       try {
