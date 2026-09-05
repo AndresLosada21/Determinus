@@ -13,6 +13,8 @@
 import {
   DETERMINUS_AGENT_ID,
   DETERMINUS_DIRECTIVE,
+  appendSystemText,
+  hasDirectiveEntry,
   shouldInjectDirective,
 } from "../agent-definition";
 
@@ -27,13 +29,8 @@ function getKind(event: any): unknown {
 function appendDirective(event: any): void {
   const system = (event as any)?.system;
   if (!Array.isArray(system)) return;
-  const has = system.some(
-    (part: unknown) =>
-      typeof part === "string" &&
-      (part === DETERMINUS_DIRECTIVE ||
-        part.includes(DETERMINUS_DIRECTIVE.slice(0, 48))),
-  );
-  if (!has) system.push(DETERMINUS_DIRECTIVE);
+  if (hasDirectiveEntry(system, DETERMINUS_DIRECTIVE)) return;
+  appendSystemText(system, DETERMINUS_DIRECTIVE);
 }
 
 export function shouldEnforceForEvent(event: any): boolean {

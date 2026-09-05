@@ -101459,6 +101459,30 @@ var DETERMINUS_DIRECTIVE = [
   "Gate discipline: planning needs approval; execution checkpoints only after scoped verification in the correct worktree; archive only with required sign-off.",
   "Cost discipline: durable state replaces replay; report result/path/command/status/next action, never raw logs or diffs."
 ].join("\n");
+function makeSystemEntry(text) {
+  return { type: "text", text };
+}
+function entryText(part) {
+  if (typeof part === "string") return part;
+  if (part !== null && typeof part === "object" && typeof part.text === "string") {
+    return part.text;
+  }
+  return null;
+}
+function hasDirectiveEntry(system, directive = DETERMINUS_DIRECTIVE) {
+  const marker = directive.slice(0, 48);
+  return system.some((part) => {
+    const text = entryText(part);
+    return text !== null && (text === directive || text.includes(marker));
+  });
+}
+function appendSystemText(system, text) {
+  if (!Array.isArray(system)) return false;
+  const exists3 = system.some((part) => entryText(part) === text);
+  if (exists3) return false;
+  system.push(makeSystemEntry(text));
+  return true;
+}
 function shouldInjectDirective(agentID) {
   return agentID === DETERMINUS_AGENT_ID;
 }
@@ -101499,10 +101523,8 @@ function getKind(event) {
 function appendDirective(event) {
   const system = event?.system;
   if (!Array.isArray(system)) return;
-  const has3 = system.some(
-    (part) => typeof part === "string" && (part === DETERMINUS_DIRECTIVE || part.includes(DETERMINUS_DIRECTIVE.slice(0, 48)))
-  );
-  if (!has3) system.push(DETERMINUS_DIRECTIVE);
+  if (hasDirectiveEntry(system, DETERMINUS_DIRECTIVE)) return;
+  appendSystemText(system, DETERMINUS_DIRECTIVE);
 }
 function shouldEnforceForEvent(event) {
   if (!shouldInjectDirective(getAgentID(event))) return false;
@@ -102748,22 +102770,29 @@ var src_default = plugin_exports.define({
           try {
             if (event?.kind === "compaction") {
               if (typeof compactionTurn === "function") {
-                const systemArr = Array.isArray(event?.system) ? event.system : [];
+                const collected = [];
                 await compactionTurn(
                   { sessionID: event?.sessionID },
-                  { context: systemArr }
+                  { context: collected }
                 );
-                if (!Array.isArray(event?.system) && systemArr.length > 0) {
-                  try {
-                    event.system = systemArr;
-                  } catch {
+                for (const block of collected) {
+                  if (typeof block === "string" && block) {
+                    appendSystemText(event?.system, block);
                   }
                 }
               }
               return;
             }
+            if (event?.kind !== void 0 && event?.kind !== null && event?.kind !== "primary") {
+              return;
+            }
             if (typeof systemTurn === "function") {
-              await systemTurn({ sessionID: event?.sessionID }, event);
+              const shim = { system: [""] };
+              await systemTurn({ sessionID: event?.sessionID }, shim);
+              const block = shim.system[0];
+              if (typeof block === "string" && block) {
+                appendSystemText(event?.system, block);
+              }
             }
           } catch (e) {
             debugLog3(`determinus context hook failed: ${e}`);

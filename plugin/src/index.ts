@@ -113,6 +113,7 @@ import { worktreeExistsForChange } from "./tools/worktree/state";
 import { installCacheRuntime } from "./cache-runtime";
 import { registerDeterminusAgent } from "./agent-definition";
 import { registerDeterminusSessionContext } from "./hooks/session-context";
+import { appendSystemText } from "./agent-definition";
 import { registerDeterminusCommands } from "./commands/determinus-commands";
 import { registerDeterminusSkills } from "./skills/sdd-tdd";
 
@@ -1693,10 +1694,13 @@ export default Plugin.define({
     }
 
     // ST-01: serve the determinus turns on the v2 session.context hook.
-    // kind === "compaction" runs the compaction turn (block appended to the
-    // context system array); other kinds run the system-block turn. The
-    // turn bodies only touch `output` (+ closures), so the v2 event doubles
-    // as both input ({ sessionID }) and output ({ system }). Fail-soft.
+    // The legacy turn bodies assume string-based `output.system`/`output`
+    // `.context` arrays, but v2 carries `{ type: "text", text }` structs —
+    // pushing a raw string fails host-side schema validation and breaks the
+    // session drain. Turns therefore run against throwaway string shims and
+    // their text is merged back as structs via appendSystemText. Only
+    // primary (and kindless) turns run the system block; title/generate
+    // kinds are left untouched. Fail-soft.
     try {
       const systemTurn = (hooks as any)?.["determinus.system.turn"];
       const compactionTurn = (hooks as any)?.["determinus.compaction.turn"];
@@ -1708,25 +1712,33 @@ export default Plugin.define({
           try {
             if (event?.kind === "compaction") {
               if (typeof compactionTurn === "function") {
-                const systemArr = Array.isArray(event?.system)
-                  ? event.system
-                  : [];
+                const collected: unknown[] = [];
                 await compactionTurn(
                   { sessionID: event?.sessionID },
-                  { context: systemArr },
+                  { context: collected },
                 );
-                if (!Array.isArray(event?.system) && systemArr.length > 0) {
-                  try {
-                    event.system = systemArr;
-                  } catch {
-                    // Assignment must never throw inside a host hook.
+                for (const block of collected) {
+                  if (typeof block === "string" && block) {
+                    appendSystemText(event?.system, block);
                   }
                 }
               }
               return;
             }
+            if (
+              event?.kind !== undefined &&
+              event?.kind !== null &&
+              event?.kind !== "primary"
+            ) {
+              return;
+            }
             if (typeof systemTurn === "function") {
-              await systemTurn({ sessionID: event?.sessionID }, event);
+              const shim: { system: string[] } = { system: [""] };
+              await systemTurn({ sessionID: event?.sessionID }, shim);
+              const block = shim.system[0];
+              if (typeof block === "string" && block) {
+                appendSystemText(event?.system, block);
+              }
             }
           } catch (e) {
             debugLog(`determinus context hook failed: ${e}`);

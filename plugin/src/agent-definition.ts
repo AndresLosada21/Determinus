@@ -25,26 +25,70 @@ export function buildDeterminusDirective(): string {
   return DETERMINUS_DIRECTIVE;
 }
 
+/**
+ * v2 SystemPart shape (`{ type: "text", text }`). The session context
+ * `system` array carries structs, never raw strings — pushing a string
+ * fails host-side schema validation and breaks the session drain.
+ */
+export interface SystemTextEntry {
+  type: string;
+  text: string;
+  [key: string]: unknown;
+}
+
+export function makeSystemEntry(text: string): SystemTextEntry {
+  return { type: "text", text };
+}
+
+function entryText(part: unknown): string | null {
+  if (typeof part === "string") return part;
+  if (
+    part !== null &&
+    typeof part === "object" &&
+    typeof (part as { text?: unknown }).text === "string"
+  ) {
+    return (part as { text: string }).text;
+  }
+  return null;
+}
+
+export function hasDirectiveEntry(
+  system: readonly unknown[],
+  directive: string = DETERMINUS_DIRECTIVE,
+): boolean {
+  const marker = directive.slice(0, 48);
+  return system.some((part) => {
+    const text = entryText(part);
+    return text !== null && (text === directive || text.includes(marker));
+  });
+}
+
+/**
+ * Idempotent struct-aware append. Returns true when an entry was added.
+ * Never throws; refuses non-array targets.
+ */
+export function appendSystemText(system: unknown, text: string): boolean {
+  if (!Array.isArray(system)) return false;
+  const exists = system.some((part) => entryText(part) === text);
+  if (exists) return false;
+  system.push(makeSystemEntry(text));
+  return true;
+}
+
 export function shouldInjectDirective(agentID: unknown): boolean {
   return agentID === DETERMINUS_AGENT_ID;
 }
 
 /**
  * Idempotent append: override-resistant re-assertion that never duplicates.
- * `system` is treated opaquely (string entries); non-string parts are left
- * untouched and the directive is appended when absent.
+ * Struct-aware: v2 system arrays carry `{ type: "text", text }` entries.
  */
 export function injectDirective(
   system: readonly unknown[],
   directive: string = DETERMINUS_DIRECTIVE,
 ): unknown[] {
-  const contains = system.some(
-    (part) =>
-      typeof part === "string" &&
-      (part === directive || part.includes(directive.slice(0, 48))),
-  );
-  if (contains) return [...system];
-  return [...system, directive];
+  if (hasDirectiveEntry(system, directive)) return [...system];
+  return [...system, makeSystemEntry(directive)];
 }
 
 /**

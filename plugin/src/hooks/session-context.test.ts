@@ -2,8 +2,11 @@ import { describe, expect, test } from "vitest";
 import {
   DETERMINUS_AGENT_ID,
   DETERMINUS_DIRECTIVE,
+  appendSystemText,
   buildDeterminusDirective,
+  hasDirectiveEntry,
   injectDirective,
+  makeSystemEntry,
   shouldInjectDirective,
 } from "../agent-definition";
 import {
@@ -55,7 +58,36 @@ describe("determinus session-context enforcement (ST-02)", () => {
     enforceSessionContext(event);
     enforceSessionContext(event);
     expect(event.system).toHaveLength(1);
-    expect(String(event.system[0])).toContain("proposal → discovery");
+    expect(event.system[0]).toEqual({
+      type: "text",
+      text: expect.stringContaining("proposal → discovery"),
+    });
+  });
+
+  test("enforce appends a struct, never a raw string (host schema)", () => {
+    const event: any = {
+      agent: "determinus",
+      kind: "primary",
+      system: [{ type: "text", text: "host prompt" }],
+    };
+    enforceSessionContext(event);
+    for (const part of event.system) {
+      expect(typeof part).not.toBe("string");
+    }
+    expect(event.system[1]).toEqual({
+      type: "text",
+      text: expect.stringContaining("proposal → discovery"),
+    });
+  });
+
+  test("enforce detects the directive inside struct entries", () => {
+    const event: any = {
+      agent: "determinus",
+      kind: "primary",
+      system: [makeSystemEntry(DETERMINUS_DIRECTIVE)],
+    };
+    enforceSessionContext(event);
+    expect(event.system).toHaveLength(1);
   });
 
   test("enforce never throws on malformed events", () => {
@@ -64,5 +96,30 @@ describe("determinus session-context enforcement (ST-02)", () => {
     expect(() =>
       enforceSessionContext({ agent: "determinus", system: null }),
     ).not.toThrow();
+  });
+});
+
+describe("appendSystemText (host SystemPart shape)", () => {
+  test("appends { type: text, text } entries idempotently", () => {
+    const system: unknown[] = [];
+    expect(appendSystemText(system, "hello")).toBe(true);
+    expect(system).toEqual([{ type: "text", text: "hello" }]);
+    expect(appendSystemText(system, "hello")).toBe(false);
+    expect(system).toHaveLength(1);
+  });
+
+  test("refuses non-array targets without throwing", () => {
+    expect(appendSystemText(undefined, "x")).toBe(false);
+    expect(appendSystemText(null, "x")).toBe(false);
+    expect(appendSystemText("system", "x")).toBe(false);
+  });
+
+  test("hasDirectiveEntry sees both string and struct entries", () => {
+    expect(hasDirectiveEntry([])).toBe(false);
+    expect(hasDirectiveEntry([DETERMINUS_DIRECTIVE])).toBe(true);
+    expect(hasDirectiveEntry([makeSystemEntry(DETERMINUS_DIRECTIVE)])).toBe(
+      true,
+    );
+    expect(hasDirectiveEntry([{ type: "text", text: "other" }])).toBe(false);
   });
 });
