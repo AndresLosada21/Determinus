@@ -33,7 +33,7 @@ async function main(): Promise<void> {
     ...config,
     define: {
       ...config.define,
-      __ADV_PLUGIN_BUNDLE_GENERATION__: JSON.stringify(generation),
+      __determinus_PLUGIN_BUNDLE_GENERATION__: JSON.stringify(generation),
     },
   });
 

@@ -40010,8 +40010,8 @@ var PLUGIN_BUNDLE_MANIFEST_FILENAME = "plugin-bundle-manifest.json";
 var PLUGIN_BUNDLE_MANIFEST_SCHEMA_VERSION = 1;
 var PLUGIN_BUNDLE_STALE_ADVISORY = "PLUGIN_BUNDLE_STALE";
 function captureLoadedPluginBundleGeneration() {
-  if (typeof __determinus_PLUGIN_BUNDLE_GENERATION__ !== "string") return null;
-  return /^[0-9a-f]{64}$/.test(__determinus_PLUGIN_BUNDLE_GENERATION__) ? __determinus_PLUGIN_BUNDLE_GENERATION__ : null;
+  if (false) return null;
+  return /^[0-9a-f]{64}$/.test("2824c6f49c737011ec15140e53dda7bda2096f02feaba999ad63049b25e7ab0c") ? "2824c6f49c737011ec15140e53dda7bda2096f02feaba999ad63049b25e7ab0c" : null;
 }
 var LOADED_PLUGIN_BUNDLE_GENERATION = captureLoadedPluginBundleGeneration();
 function getLoadedPluginBundleGeneration() {

@@ -51956,8 +51956,8 @@ import { readFile as readFile11, rename as rename3, writeFile as writeFile4 } fr
 import { basename as basename10, dirname as dirname17, join as join37, resolve as resolve14 } from "path";
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
-  if (typeof __determinus_PLUGIN_BUNDLE_GENERATION__ !== "string") return null;
-  return /^[0-9a-f]{64}$/.test(__determinus_PLUGIN_BUNDLE_GENERATION__) ? __determinus_PLUGIN_BUNDLE_GENERATION__ : null;
+  if (false) return null;
+  return /^[0-9a-f]{64}$/.test("2824c6f49c737011ec15140e53dda7bda2096f02feaba999ad63049b25e7ab0c") ? "2824c6f49c737011ec15140e53dda7bda2096f02feaba999ad63049b25e7ab0c" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
