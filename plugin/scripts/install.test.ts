@@ -16,6 +16,7 @@ import {
   installRelease,
   verifyRelease,
   rollbackInstalled,
+  managedPlugin,
 } from "./installer-core";
 const sha = (x: string) => createHash("sha256").update(x).digest("hex");
 function fixture() {
@@ -100,6 +101,20 @@ it("registers the plugin directory, never a file (host rejects file paths)", () 
   } finally {
     f.cleanup();
   }
+});
+it("prunes stale and mangled Determinus entries, keeps the new directory entry", () => {
+  const raw =
+    '{"plugins":["other-plugin","asC:/Users/carlos/.local/share/Determinus/releases/3.0.4-old/plugin","C:/Users/carlos/.local/share/Determinus/plugin","C:/Users/carlos/new/plugin/index.ts"]}';
+  expect(managedPlugin("asC:/Users/carlos/.local/share/Determinus/releases/3.0.4-old/plugin")).toBe(
+    true,
+  );
+  const text = patchConfig(raw, "C:/Users/carlos/new/plugin"),
+    c = parse(text);
+  expect(c.plugins).toEqual([
+    "other-plugin",
+    "C:/Users/carlos/new/plugin/index.ts",
+    "C:/Users/carlos/new/plugin",
+  ]);
 });
 it("rolls back config, agent and discovery on a fault", () => {
   const f = fixture();
