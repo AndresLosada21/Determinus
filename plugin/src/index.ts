@@ -105,7 +105,6 @@ import {
   normalizeTodoWriteItems,
   type TodoWriteTaskState,
 } from "./utils/todowrite-guard";
-import { buildAdvWorktreeAdapter } from "./utils/workspace-adapter";
 import { authorizeMorphWorktree } from "./utils/morph-worktree-authorization";
 import { worktreeExistsForChange } from "./tools/worktree/state";
 
@@ -120,8 +119,6 @@ export { resolveGitSessionContext } from "./utils/git-session";
 // Keep the prompt-facing form deliberately small; the full, durable result is
 // preserved by the tool/store rather than by conversational history.
 const MAX_PROMPT_TOOL_OUTPUT_CHARS = 1_200;
-const MAX_PROMPT_DIFF_CHARS = 1_200;
-const PROMPT_EXCERPT_CHARS = 400;
 // Native runtime preserves replay and uses host compaction; see cache-runtime.ts.
 
 /**
@@ -145,22 +142,6 @@ const normalizeToolTargetPath = (
   basePath: string,
 ): string =>
   isAbsolute(targetPath) ? targetPath : resolve(basePath, targetPath);
-
-const compactLargeText = (
-  marker: "TOOL_OUTPUT" | "DIFF",
-  source: string,
-  text: string,
-): string => {
-  const first = text.slice(0, PROMPT_EXCERPT_CHARS);
-  const last = text.slice(-PROMPT_EXCERPT_CHARS);
-  return [
-    `[ADV:${marker}_TRUNCATED] ${source} produced ${text.length} chars. Full content omitted from model prompt to keep the session resumable.`,
-    `--- first ${PROMPT_EXCERPT_CHARS} chars ---`,
-    first,
-    `--- last ${PROMPT_EXCERPT_CHARS} chars ---`,
-    last,
-  ].join("\n");
-};
 
 /**
  * Honest full-drop marker for oversized unprotected tool output (AC7).
@@ -284,32 +265,6 @@ export const compactToolPart = (part: unknown): boolean => {
  */
 export const compactV2ToolResultPart = (_part: unknown): boolean => false;
 
-const compactSummaryDiffs = (info: unknown): number => {
-  if (!isRecord(info) || !isRecord(info.summary)) return 0;
-  const diffs = info.summary.diffs;
-  if (!Array.isArray(diffs)) return 0;
-
-  let compacted = 0;
-  for (const diff of diffs) {
-    if (!isRecord(diff) || typeof diff.patch !== "string") continue;
-    if (diff.patch.length <= MAX_PROMPT_DIFF_CHARS) continue;
-    const file = typeof diff.file === "string" ? diff.file : "summary diff";
-    diff.patch = compactLargeText("DIFF", file, diff.patch);
-    compacted++;
-  }
-  return compacted;
-};
-
-const isBlankUnfinishedAssistantMessage = (message: {
-  info?: unknown;
-  parts?: unknown[];
-}): boolean => {
-  if (!isRecord(message.info)) return false;
-  if (message.info.role !== "assistant") return false;
-  if (Array.isArray(message.parts) && message.parts.length > 0) return false;
-  return message.info.finish == null;
-};
-
 // Native host compaction owns transcript size. Never edit replayed messages.
 export const compactPromptMessages = (_messages: Array<any>) => ({ droppedBlank: 0, compactedToolOutputs: 0, compactedDiffs: 0 });
 export const enforcePromptHistoryBudget = (messages: Array<any>) => ({ omittedMessages: 0, compactedTextParts: 0, retainedChars: messages.reduce((n, x) => n + (JSON.stringify(x)?.length ?? 0), 0), limit: null });
@@ -431,12 +386,7 @@ function buildFactoryFailureHooks(error: Error, directory: string): any {
 }
 
 const advancePluginImpl: Plugin = async (input) => {
-  const { directory, worktree, project, experimental_workspace, client } =
-    input;
-  experimental_workspace?.register?.(
-    "determinus-worktree",
-    buildAdvWorktreeAdapter(),
-  );
+  const { directory, worktree, project, client } = input;
 
   const gitSession = resolveGitSessionContext(directory, worktree);
   const { isWorktree, isMainCheckout } = gitSession;
@@ -1553,7 +1503,6 @@ export default Plugin.define({
       directory,
       worktree,
       project,
-      experimental_workspace: undefined,
       client: shimClient,
       serverUrl,
     };
