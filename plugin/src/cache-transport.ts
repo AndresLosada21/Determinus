@@ -34,7 +34,9 @@ export function goZenURL(value: unknown): URL | undefined {
       /^\/zen\/(?:go\/)?v1(?:\/|$)/.test(u.pathname)
     )
       return u;
-  } catch {}
+  } catch {
+    // Non-URL base: not a routable gateway candidate.
+  }
 }
 const validID = (x: unknown): x is string =>
   typeof x === "string" && /^[\x21-\x7e]{1,256}$/.test(x);
@@ -49,7 +51,9 @@ export function sessionIdentity(headers: Headers, body: Buffer) {
     const data = JSON.parse(body.toString("utf8"));
     if (validID(data?.prompt_cache_key))
       return { id: data.prompt_cache_key, source: "prompt-cache-key" };
-  } catch {}
+  } catch {
+    // Non-JSON body: fall through to standalone-operation identity.
+  }
   // Generate.text has no public conversation identity. An identical standalone
   // payload keeps its identity across retries; unrelated payloads do not share it.
   return {
@@ -110,8 +114,8 @@ export async function createCacheGateway(options: GatewayOptions) {
     const target = new URL(upstream.toString());
     target.pathname = upstream.pathname.replace(/\/$/, "") + suffix;
     target.search = match[3] ?? "";
-    let chunks: Buffer[] = [],
-      size = 0;
+    const chunks: Buffer[] = [];
+    let size = 0;
     try {
       for await (const chunk of incoming) {
         size += chunk.length;
@@ -127,7 +131,6 @@ export async function createCacheGateway(options: GatewayOptions) {
       return;
     }
     const body = Buffer.concat(chunks);
-    chunks = [];
     const headers = new Headers();
     const connectionHeaders = new Set(
       String(incoming.headers.connection ?? "")

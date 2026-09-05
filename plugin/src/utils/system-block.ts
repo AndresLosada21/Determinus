@@ -4,7 +4,7 @@
  *
  * Single ordered emitter for the ADV plugin's system-context contributions.
  * Replaces the previous pattern of multiple `output.system.push(...)` calls
- * inside `experimental.chat.system.transform` and `buildFactoryFailureHooks`,
+ * inside `determinus.system.turn` and `buildFactoryFailureHooks`,
  * which broke OpenAI-compat providers (multiple system entries trigger
  * assistant-prefilling rejection on those providers).
  *

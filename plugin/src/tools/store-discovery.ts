@@ -83,7 +83,11 @@ export async function walkStoreDirs(dataHomeRoot: string): Promise<{
     exists: await pathExists(shardsRoot),
   });
   for (const shard of await readdirSafe(shardsRoot)) {
-    const determinusRoot = join(shardsRoot, shard, "opencode/plugins/determinus");
+    const determinusRoot = join(
+      shardsRoot,
+      shard,
+      "opencode/plugins/determinus",
+    );
     for (const name of await readdirSafe(determinusRoot)) {
       stores.push({
         projectId: name,

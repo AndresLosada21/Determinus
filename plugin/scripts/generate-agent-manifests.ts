@@ -2,25 +2,31 @@
 /**
  * Agent manifest generator.
  *
- * Rewrites the ADV-generated portion of each shipped agent's `tools:` YAML
- * frontmatter block from the single source of truth in `AGENT_TOOL_POLICY`.
- * The generator is marker-bounded: it preserves every byte outside the
- * `# >>> ADV-GENERATED ...` / `# <<< ADV-GENERATED ...` sentinel pair and
- * regenerates only the content between them.
+ * Rewrites the ADV-generated portion of each legacy-managed agent's `tools:`
+ * YAML frontmatter block from the single source of truth in
+ * `AGENT_TOOL_POLICY`. The generator is marker-bounded: it preserves every
+ * byte outside the `# >>> ADV-GENERATED ...` / `# <<< ADV-GENERATED ...`
+ * sentinel pair and regenerates only the content between them.
+ *
+ * Scope: only manifests carrying the sentinel pair are managed. Sentinel-free
+ * (v2-native) manifests — e.g. `.opencode/agents/determinus.md`, which scopes
+ * tools via `permissions:` instead of the legacy `tools:` map — are left
+ * untouched in both modes.
  *
  * Usage:
  *   tsx scripts/generate-agent-manifests.ts              # write mode
  *   tsx scripts/generate-agent-manifests.ts --check      # verify, exit 1 on drift
  */
 
-import { readFileSync, writeFileSync } from "fs";
+import { readdirSync, readFileSync, writeFileSync } from "fs";
 import { join, resolve } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { AGENT_TOOL_POLICY } from "../src/tool-role-policy";
 
 export const ADV_TOOLS_BLOCK_START =
   "  # >>> determinus-GENERATED determinus_* tools (source: AGENT_TOOL_POLICY) >>>";
-export const ADV_TOOLS_BLOCK_END = "  # <<< determinus-GENERATED determinus_* tools <<<";
+export const ADV_TOOLS_BLOCK_END =
+  "  # <<< determinus-GENERATED determinus_* tools <<<";
 
 /**
  * Append this note to the hand-owned invoke-routing paragraph that follows
@@ -31,10 +37,21 @@ export const ADV_TOOLS_BLOCK_END = "  # <<< determinus-GENERATED determinus_* to
 const TIER_4_INVOKE_ROUTING_NOTE =
   " Tier-4 reads (the catalog returned by `determinus_tool_catalog`) also via tools.determinus.* Code Mode; invoke-only schemas are available through the invoke facade.";
 
-const ADV_TOOL_ENTRY_RE = /^\s+((?:adv|determinus)_[A-Za-z0-9_*]+):\s*(true|false)\s*$/;
+const ADV_TOOL_ENTRY_RE =
+  /^\s+((?:adv|determinus)_[A-Za-z0-9_*]+):\s*(true|false)\s*$/;
 
 function isAdvEntry(line: string): boolean {
   return ADV_TOOL_ENTRY_RE.test(line);
+}
+
+/**
+ * True when a manifest carries the legacy generator sentinel and is
+ * therefore managed by runGenerate. Sentinel-free (v2-native) manifests —
+ * which scope tools via `permissions:` instead of the legacy `tools:` map —
+ * are exempt by design.
+ */
+export function isLegacyManagedManifest(content: string): boolean {
+  return content.includes(ADV_TOOLS_BLOCK_START.trim());
 }
 
 function sortedUnique(values: readonly string[]): string[] {
@@ -339,19 +356,47 @@ export async function runGenerate(options: {
   const agentsDir = options.agentsDir ?? resolveAgentsDir();
   const diffs: string[] = [];
 
-  for (const policy of AGENT_TOOL_POLICY) {
-    const path = join(agentsDir, `${policy.agent}.md`);
+  // File-driven: only sentinel-carrying (legacy-managed) manifests are
+  // processed. Sentinel-free v2-native manifests are exempt by design.
+  let files: string[];
+  try {
+    files = readdirSync(agentsDir)
+      .filter((name) => name.endsWith(".md"))
+      .sort();
+  } catch (error) {
+    return {
+      ok: false,
+      diffs: [
+        ` missing agents dir: ${agentsDir} (${(error as Error).message})`,
+      ],
+    };
+  }
+
+  for (const file of files) {
+    const agent = file.replace(/\.md$/, "");
+    const path = join(agentsDir, file);
     const content = readFileSync(path, "utf8");
-    const generated = generateManifestContent(content, policy.agent);
+    if (!isLegacyManagedManifest(content)) continue;
+    const policy = AGENT_TOOL_POLICY.find((p) => p.agent === agent);
+    if (!policy) {
+      if (options.check) {
+        diffs.push(` missing row: ${agent}.md`);
+        continue;
+      }
+      throw new Error(
+        `No AGENT_TOOL_POLICY row for managed manifest "${agent}". Add a row before shipping this manifest.`,
+      );
+    }
+    const generated = generateManifestContent(content, agent);
 
     const contentChanged = generated !== content;
     const nonAdvChanged =
-      nonAdvLines(content, policy.agent).join("\n") !==
-      nonAdvLines(generated, policy.agent).join("\n");
+      nonAdvLines(content, agent).join("\n") !==
+      nonAdvLines(generated, agent).join("\n");
 
     if (contentChanged || nonAdvChanged) {
       if (options.check) {
-        diffs.push(` drift: ${policy.agent}.md`);
+        diffs.push(` drift: ${agent}.md`);
       } else {
         writeFileSync(path, generated, "utf8");
       }

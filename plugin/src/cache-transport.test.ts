@@ -155,7 +155,8 @@ it("cancels upstream when the client aborts a stream", async () => {
   });
   let calls = 0;
   const backend = createServer(async (req, res) => {
-    for await (const _ of req) {
+    for await (const chunk of req) {
+      void chunk;
     }
     calls++;
     res.on("close", markClosed);

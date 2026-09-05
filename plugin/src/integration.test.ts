@@ -2,7 +2,7 @@
  * ADV Wisdom Lifecycle Integration Test
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { AdvancePlugin } from "./index";
 import { getStatus, resetStatusForTest } from "./events/status";
 import {
@@ -60,7 +60,7 @@ describe("Wisdom Lifecycle Integration", () => {
 
     const changeId = "addFeature";
     const taskId = "tk-task0001";
-    const transformHook = hooks["experimental.chat.system.transform"]!;
+    const transformHook = hooks["determinus.system.turn"]!;
 
     // 1. Initial state - no active change tracked yet.
     // Filter out the [ADV:DEGRADED] banner, which is injected when this
@@ -137,52 +137,11 @@ describe("Wisdom Lifecycle Integration", () => {
   });
 });
 
-describe("Workspace adapter registration", () => {
-  let tempDir: string;
-  let hooks: any;
-
-  beforeEach(async () => {
-    resetStatusForTest();
-    tempDir = await createTempDir();
-    await createTestProject(tempDir);
-  });
-
-  afterEach(async () => {
-    if (hooks?.event) {
-      try {
-        await hooks.event({
-          event: { type: "session.deleted", properties: {} },
-        });
-      } catch {
-        // ignore cleanup errors
-      }
-    }
-    hooks = null;
-    await cleanupTempDir(tempDir);
-  });
-
-  test("registers the ADV worktree adapter when OpenCode exposes workspaces", async () => {
-    const register = vi.fn();
-
-    hooks = await AdvancePlugin({
-      client: ROOT_CLIENT,
-      project: { id: "test", worktree: tempDir, time: { created: Date.now() } },
-      directory: tempDir,
-      worktree: tempDir,
-      serverUrl: new URL("http://localhost"),
-      experimental_workspace: { register },
-    } as any);
-
-    expect(register).toHaveBeenCalledTimes(1);
-    expect(register).toHaveBeenCalledWith(
-      "determinus-worktree",
-      expect.objectContaining({
-        name: "determinus-worktree",
-        description: expect.stringContaining("determinus-managed git worktree"),
-      }),
-    );
-  });
-});
+// NOTE (ST-01 v2 migration): the "Workspace adapter registration" suite was
+// removed with its test — the legacy host workspace-registration path
+// is gone (the v2 wrapper never provided it, so it never ran in production).
+// The v2 equivalent (`ctx.worktree` domain) is tracked as future work;
+// see issue #2.
 
 describe("Active Change Title Update on determinus_change_create", () => {
   let tempDir: string;
@@ -324,7 +283,7 @@ describe("Active Change Title Update on determinus_change_create", () => {
     );
 
     const out = { system: [] as string[] };
-    await hooks["experimental.chat.system.transform"]!(
+    await hooks["determinus.system.turn"]!(
       { sessionID: "test" } as any,
       out as any,
     );

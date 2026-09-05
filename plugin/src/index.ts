@@ -10,8 +10,10 @@
  * - ctx.tool.transform / ctx.tool.hook("execute.before"/"execute.after")
  * - ctx.event.subscribe (+ installCacheRuntime)
  * Legacy `advancePluginImpl` below is an internal adapter preserving the
- * pre-v2 tool/event behavior for tests; its `experimental.chat.*` hooks are
- * never registered on the v2 host.
+ * pre-v2 tool/event behavior for tests; its `determinus.system.turn` and
+ * `determinus.compaction.turn` entries are served on the v2 host through
+ * `ctx.session.hook("context")` (see the setup wrapper), never as legacy
+ * host hooks.
  */
 
 import { Plugin } from "@opencode-ai/plugin";
@@ -266,8 +268,20 @@ export const compactToolPart = (part: unknown): boolean => {
 export const compactV2ToolResultPart = (_part: unknown): boolean => false;
 
 // Native host compaction owns transcript size. Never edit replayed messages.
-export const compactPromptMessages = (_messages: Array<any>) => ({ droppedBlank: 0, compactedToolOutputs: 0, compactedDiffs: 0 });
-export const enforcePromptHistoryBudget = (messages: Array<any>) => ({ omittedMessages: 0, compactedTextParts: 0, retainedChars: messages.reduce((n, x) => n + (JSON.stringify(x)?.length ?? 0), 0), limit: null });
+export const compactPromptMessages = (_messages: Array<any>) => ({
+  droppedBlank: 0,
+  compactedToolOutputs: 0,
+  compactedDiffs: 0,
+});
+export const enforcePromptHistoryBudget = (messages: Array<any>) => ({
+  omittedMessages: 0,
+  compactedTextParts: 0,
+  retainedChars: messages.reduce(
+    (n, x) => n + (JSON.stringify(x)?.length ?? 0),
+    0,
+  ),
+  limit: null,
+});
 
 const extractSessionErrorMessage = (properties: unknown): string => {
   if (!isRecord(properties)) return "Unknown session error";
@@ -357,7 +371,7 @@ const hooksLogger = createLogger("hooks");
  * The returned hooks expose:
  *   - the same `createDegradedToolMap` stubs used for `tryInitStore`
  *     failures, so any tool call returns `determinus_PLUGIN_INIT_FAILED`
- *   - a `system.transform` hook that injects an `[ADV:DEGRADED]` banner
+ *   - a `determinus.system.turn` hook that injects an `[ADV:DEGRADED]` banner
  *     on every turn, so the agent discovers the failure BEFORE making
  *     any tool call
  *   - safe no-ops for all other hooks
@@ -369,7 +383,7 @@ function buildFactoryFailureHooks(error: Error, directory: string): any {
     event: async () => {},
     "tool.execute.before": async () => {},
     "tool.execute.after": async () => {},
-    "experimental.chat.system.transform": async (_input, output) => {
+    "determinus.system.turn": async (_input, output) => {
       try {
         // Single ordered append per AC1: never use output.system.push.
         // Factory-failure path has no plugin state, so we append the
@@ -380,8 +394,7 @@ function buildFactoryFailureHooks(error: Error, directory: string): any {
         // banner injection must never throw
       }
     },
-    "experimental.chat.messages.transform": async () => {},
-    "experimental.session.compacting": async () => {},
+    "determinus.compaction.turn": async () => {},
   };
 }
 
@@ -1248,10 +1261,7 @@ const advancePluginImpl: Plugin = async (input) => {
     //   - [ADV] Active change         (active change line)
     //   - [ADV:RECORD_WISDOM]         (wisdom recording prompt â€” append-only)
     //
-    "experimental.chat.system.transform": async (
-      input,
-      output,
-    ): Promise<void> => {
+    "determinus.system.turn": async (input, output): Promise<void> => {
       try {
         // Reread the bounded deployed manifest every transform so a
         // manifest replacement is surfaced on the next turn (AC7).
@@ -1334,35 +1344,12 @@ const advancePluginImpl: Plugin = async (input) => {
           state.lastSessionHealthIssue.surfaced = true;
         }
       } catch (e) {
-        debugLog(`experimental.chat.system.transform error: ${e}`);
+        debugLog(`determinus.system.turn error: ${e}`);
       }
     },
 
-    "experimental.chat.messages.transform": async (_input, output) => {
-      try {
-        if (!Array.isArray(output.messages)) return;
-        const result = compactPromptMessages(output.messages);
-        if (
-          result.droppedBlank > 0 ||
-          result.compactedToolOutputs > 0 ||
-          result.compactedDiffs > 0
-        ) {
-          state.lastSessionHealthIssue = {
-            kind: "message-history",
-            message:
-              `Sanitized prompt history: dropped ${result.droppedBlank} blank assistant message(s), ` +
-              `compacted ${result.compactedToolOutputs} oversized tool output(s), ` +
-              `compacted ${result.compactedDiffs} oversized diff(s).`,
-            detectedAt: Date.now(),
-          };
-          debugLog(state.lastSessionHealthIssue.message);
-        }
-      } catch (e) {
-        debugLog(`experimental.chat.messages.transform error: ${e}`);
-      }
-    },
-
-    // Session Compaction Hook
+    // Session Compaction Turn (v2: served via ctx.session.hook("context")
+    // with kind === "compaction"; see the setup wrapper below).
     //
     // Single combined context entry per AC2: composes a change-context
     // snapshot (via buildChangeContextSnapshot â€” same formatter the live
@@ -1370,10 +1357,7 @@ const advancePluginImpl: Plugin = async (input) => {
     // the in-progress task's durable run ledger. Stale-ledger detection
     // (AC7) replaces the resume hint with an explicit warning when the
     // referenced task is cancelled or done.
-    "experimental.session.compacting": async (
-      _input,
-      output,
-    ): Promise<void> => {
+    "determinus.compaction.turn": async (_input, output): Promise<void> => {
       try {
         const changeId = state.activeChange.id;
         if (!changeId || !store) {
@@ -1461,6 +1445,8 @@ const advancePluginImpl: Plugin = async (input) => {
     },
   };
 };
+
+export const AdvancePlugin = advancePluginImpl;
 
 export default Plugin.define({
   id: "determinus",
@@ -1656,7 +1642,12 @@ export default Plugin.define({
             // If old hook provided new output string, update event.result.content
             event.result = {
               ...event.result,
-              content: [{ type: "text", text: output.output }, ...(Array.isArray(event.result?.content) ? event.result.content.filter((p: any) => p?.type !== "text") : [])],
+              content: [
+                { type: "text", text: output.output },
+                ...(Array.isArray(event.result?.content)
+                  ? event.result.content.filter((p: any) => p?.type !== "text")
+                  : []),
+              ],
               metadata: output.metadata ?? event.result?.metadata,
             };
           } else if (output.metadata) {
@@ -1690,6 +1681,51 @@ export default Plugin.define({
       cleanupCommands = await registerDeterminusCommands(ctx);
     } catch (e) {
       debugLog(`determinus commands registration failed: ${e}`);
+    }
+
+    // ST-01: serve the determinus turns on the v2 session.context hook.
+    // kind === "compaction" runs the compaction turn (block appended to the
+    // context system array); other kinds run the system-block turn. The
+    // turn bodies only touch `output` (+ closures), so the v2 event doubles
+    // as both input ({ sessionID }) and output ({ system }). Fail-soft.
+    try {
+      const systemTurn = (hooks as any)?.["determinus.system.turn"];
+      const compactionTurn = (hooks as any)?.["determinus.compaction.turn"];
+      if (
+        typeof systemTurn === "function" ||
+        typeof compactionTurn === "function"
+      ) {
+        await ctx.session.hook("context", async (event: any) => {
+          try {
+            if (event?.kind === "compaction") {
+              if (typeof compactionTurn === "function") {
+                const systemArr = Array.isArray(event?.system)
+                  ? event.system
+                  : [];
+                await compactionTurn(
+                  { sessionID: event?.sessionID },
+                  { context: systemArr },
+                );
+                if (!Array.isArray(event?.system) && systemArr.length > 0) {
+                  try {
+                    event.system = systemArr;
+                  } catch {
+                    // Assignment must never throw inside a host hook.
+                  }
+                }
+              }
+              return;
+            }
+            if (typeof systemTurn === "function") {
+              await systemTurn({ sessionID: event?.sessionID }, event);
+            }
+          } catch (e) {
+            debugLog(`determinus context hook failed: ${e}`);
+          }
+        });
+      }
+    } catch (e) {
+      debugLog(`determinus context hook registration failed: ${e}`);
     }
 
     // Event subscription loop for old event hook

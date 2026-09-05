@@ -348,7 +348,12 @@ export function getExternalRootForProject(projectId: string): string {
     basename(shardParent) === "opencode-projects" &&
     /^[0-9a-f]{40}$/.test(currentShard)
   ) {
-    return join(shardParent, projectId, "opencode/plugins/determinus", projectId);
+    return join(
+      shardParent,
+      projectId,
+      "opencode/plugins/determinus",
+      projectId,
+    );
   }
 
   return getExternalRoot(projectId);

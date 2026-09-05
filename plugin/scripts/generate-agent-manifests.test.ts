@@ -1,46 +1,60 @@
 import { describe, expect, test } from "vitest";
-import {
-  mkdtempSync,
-  writeFileSync,
-  readFileSync,
-  rmSync,
-  readdirSync,
-} from "fs";
-import { join, resolve } from "path";
+import { mkdtempSync, writeFileSync, readFileSync, rmSync } from "fs";
+import { join } from "path";
 import { tmpdir } from "os";
-import { fileURLToPath } from "url";
 import { AGENT_TOOL_POLICY } from "../src/tool-role-policy";
-import { ADV_TOOL_NAMES } from "../src/tool-registry";
+import { determinus_TOOL_NAMES } from "../src/tool-registry";
 import {
   generateAdvToolsBlock,
   generateManifestContent,
+  isLegacyManagedManifest,
   runGenerate,
   ADV_TOOLS_BLOCK_START,
   ADV_TOOLS_BLOCK_END,
 } from "./generate-agent-manifests";
 
-const REPO_ROOT = resolve(fileURLToPath(import.meta.url), "../../..");
-const COMMITTED_AGENTS_DIR = join(REPO_ROOT, ".opencode/agents");
-
 function createTempDir(): string {
   return mkdtempSync(join(tmpdir(), "generate-agent-manifests-"));
 }
 
-function copyCommittedAgents(targetDir: string): void {
-  for (const policy of AGENT_TOOL_POLICY) {
-    const src = join(COMMITTED_AGENTS_DIR, `${policy.agent}.md`);
-    const dest = join(targetDir, `${policy.agent}.md`);
-    writeFileSync(dest, readFileSync(src, "utf8"), "utf8");
-  }
+/**
+ * Synthetic legacy-managed fixture base: policy-accurate content the
+ * generator normalizes idempotently. Self-contained — no dependency on
+ * committed agent files (the baseline ships v2-native manifests only).
+ */
+function sentinelBase(agent = "determinus"): string {
+  return [
+    "---",
+    `description: test ${agent}`,
+    "tools:",
+    "  read: true",
+    "  determinus_*: false",
+    "  determinus_change_list: true",
+    "---",
+    "body",
+  ].join("\n");
+}
+
+function writeSentinelFixture(targetDir: string, agent = "determinus"): string {
+  const path = join(targetDir, `${agent}.md`);
+  writeFileSync(
+    path,
+    generateManifestContent(sentinelBase(agent), agent),
+    "utf8",
+  );
+  return path;
 }
 
 function assertValidAdvBlock(block: string): void {
-  const retained = new Set(ADV_TOOL_NAMES);
+  const retained = new Set(determinus_TOOL_NAMES);
   retained.add("adv_*");
+  retained.add("determinus_*");
   const lines = block.split("\n");
   for (const line of lines) {
     if (line.trim() === "" || line.trim().startsWith("#")) continue;
-    const match = line.match(/^\s+(adv_[A-Za-z0-9_*]+):\s*(true|false)\s*$/);
+    const match = line.match(
+      /^\s+((?:adv|determinus)_[A-Za-z0-9_*]+):\s*(true|false)\s*$/,
+    );
     expect(
       match,
       `every non-comment line must be a valid adv_* entry, got: ${line}`,
@@ -65,8 +79,8 @@ function markerCount(content: string, marker: string): number {
 
 describe("generate-agent-manifests", () => {
   test("generateAdvToolsBlock is deterministic", () => {
-    const first = generateAdvToolsBlock("adv-engineer");
-    const second = generateAdvToolsBlock("adv-engineer");
+    const first = generateAdvToolsBlock("determinus");
+    const second = generateAdvToolsBlock("determinus");
     expect(first).toBe(second);
   });
 
@@ -78,18 +92,13 @@ describe("generate-agent-manifests", () => {
   });
 
   test("generateManifestContent is idempotent (generate ∘ generate == generate)", () => {
-    const agent = "adv-engineer";
-    const original = readFileSync(
-      join(COMMITTED_AGENTS_DIR, `${agent}.md`),
-      "utf8",
-    );
-    const once = generateManifestContent(original, agent);
-    const twice = generateManifestContent(once, agent);
-    expect(twice).toBe(once);
+    const once = generateManifestContent(sentinelBase(), "determinus");
+    expect(markerCount(once, ADV_TOOLS_BLOCK_START)).toBe(1);
+    expect(generateManifestContent(once, "determinus")).toBe(once);
   });
 
   test("generateManifestContent inserts markers on first-run and round-trips", () => {
-    const agent = "adv-engineer";
+    const agent = "determinus";
     const base = [
       "---",
       "description: test",
@@ -115,7 +124,7 @@ describe("generate-agent-manifests", () => {
   });
 
   test("generateManifestContent preserves bytes outside markers", () => {
-    const agent = "adv-engineer";
+    const agent = "determinus";
     const beforeText = "---\ndescription: test\ntools:\n  read: true\n";
     const afterText = "  task: false\n---\nbody\nmore body";
     const base = `${beforeText}  adv_*: false\n  adv_spec: true\n${afterText}`;
@@ -127,11 +136,7 @@ describe("generate-agent-manifests", () => {
   });
 
   test("generateManifestContent preserves hand-owned non-adv_* lines inside the generated region", () => {
-    const agent = "adv-engineer";
-    const original = readFileSync(
-      join(COMMITTED_AGENTS_DIR, `${agent}.md`),
-      "utf8",
-    );
+    const original = generateManifestContent(sentinelBase(), "determinus");
     const endMarker = original.indexOf(ADV_TOOLS_BLOCK_END);
     expect(endMarker).toBeGreaterThan(-1);
     const handOwnedLine = "  # Hand-owned non-adv_* line";
@@ -140,9 +145,9 @@ describe("generate-agent-manifests", () => {
       handOwnedLine +
       "\n" +
       original.slice(endMarker);
-    const generated = generateManifestContent(modified, agent);
+    const generated = generateManifestContent(modified, "determinus");
     expect(generated).toContain(handOwnedLine);
-    const twice = generateManifestContent(generated, agent);
+    const twice = generateManifestContent(generated, "determinus");
     expect(twice).toBe(generated);
   });
 
@@ -158,7 +163,7 @@ describe("generate-agent-manifests", () => {
       ADV_TOOLS_BLOCK_END,
       "---",
     ].join("\n");
-    expect(() => generateManifestContent(base, "adv-engineer")).toThrow(
+    expect(() => generateManifestContent(base, "determinus")).toThrow(
       /exactly one/i,
     );
   });
@@ -171,7 +176,7 @@ describe("generate-agent-manifests", () => {
       "  adv_spec: true",
       "---",
     ].join("\n");
-    expect(() => generateManifestContent(base, "adv-engineer")).toThrow(
+    expect(() => generateManifestContent(base, "determinus")).toThrow(
       /Incomplete marker pair/i,
     );
   });
@@ -183,15 +188,19 @@ describe("generate-agent-manifests", () => {
     }
   });
 
+  test("isLegacyManagedManifest gates on the sentinel pair", () => {
+    expect(isLegacyManagedManifest(sentinelBase())).toBe(false);
+    const managed = generateManifestContent(sentinelBase(), "determinus");
+    expect(isLegacyManagedManifest(managed)).toBe(true);
+  });
+
   test("runGenerate --check exits non-zero on injected drift", async () => {
     const agentsDir = createTempDir();
     try {
-      copyCommittedAgents(agentsDir);
-      const agent = "adv-engineer";
-      const path = join(agentsDir, `${agent}.md`);
+      const path = writeSentinelFixture(agentsDir);
       const drifted = readFileSync(path, "utf8").replace(
-        "adv_task_list: true",
-        "adv_task_list: false",
+        "determinus_change_list: true",
+        "determinus_change_list: false",
       );
       writeFileSync(path, drifted, "utf8");
       const result = await runGenerate({ check: true, agentsDir });
@@ -205,7 +214,7 @@ describe("generate-agent-manifests", () => {
   test("runGenerate --check exits zero when no drift", async () => {
     const agentsDir = createTempDir();
     try {
-      copyCommittedAgents(agentsDir);
+      writeSentinelFixture(agentsDir);
       const result = await runGenerate({ check: true, agentsDir });
       expect(result.ok).toBe(true);
       expect(result.diffs).toEqual([]);
@@ -217,9 +226,7 @@ describe("generate-agent-manifests", () => {
   test("runGenerate --check tolerates hand-owned non-adv_* lines inside the generated region", async () => {
     const agentsDir = createTempDir();
     try {
-      copyCommittedAgents(agentsDir);
-      const agent = "adv-engineer";
-      const path = join(agentsDir, `${agent}.md`);
+      const path = writeSentinelFixture(agentsDir);
       const original = readFileSync(path, "utf8");
       const endMarker = original.indexOf(ADV_TOOLS_BLOCK_END);
       expect(endMarker).toBeGreaterThan(-1);
@@ -238,32 +245,48 @@ describe("generate-agent-manifests", () => {
     }
   });
 
-  test("runGenerate --check fails when markers are missing", async () => {
+  test("runGenerate --check exempts sentinel-free v2-native manifests", async () => {
+    // v2-native manifests scope tools via permissions:, not the legacy tools:
+    // map. The generator must leave them untouched in both modes.
     const agentsDir = createTempDir();
     try {
-      copyCommittedAgents(agentsDir);
-      const agent = "adv-engineer";
-      const path = join(agentsDir, `${agent}.md`);
-      const content = readFileSync(path, "utf8");
-      // Strip markers to simulate a manifest that has not been normalized yet.
-      const missingMarkers = content
-        .replace(
-          new RegExp(
-            `^\\s*${escapeRegExp(ADV_TOOLS_BLOCK_START.trim())}$\\n?`,
-            "gm",
-          ),
-          "",
-        )
-        .replace(
-          new RegExp(
-            `^\\s*${escapeRegExp(ADV_TOOLS_BLOCK_END.trim())}$\\n?`,
-            "gm",
-          ),
-          "",
-        );
-      writeFileSync(path, missingMarkers, "utf8");
+      const path = join(agentsDir, "determinus.md");
+      const v2native = [
+        "---",
+        "name: determinus",
+        "mode: primary",
+        "permissions:",
+        '  - action: "*"',
+        "---",
+        "",
+        "body",
+      ].join("\n");
+      writeFileSync(path, v2native, "utf8");
+      const result = await runGenerate({ check: true, agentsDir });
+      expect(result.ok).toBe(true);
+      expect(result.diffs).toEqual([]);
+      expect(readFileSync(path, "utf8")).toBe(v2native);
+    } finally {
+      rmSync(agentsDir, { recursive: true, force: true });
+    }
+  });
+
+  test("runGenerate --check flags sentinel manifests without a policy row", async () => {
+    const agentsDir = createTempDir();
+    try {
+      const base = [
+        "---",
+        "tools:",
+        ADV_TOOLS_BLOCK_START,
+        "  determinus_change_list: true",
+        ADV_TOOLS_BLOCK_END,
+        "---",
+        "body",
+      ].join("\n");
+      writeFileSync(join(agentsDir, "ghost-agent.md"), base, "utf8");
       const result = await runGenerate({ check: true, agentsDir });
       expect(result.ok).toBe(false);
+      expect(result.diffs.some((d) => d.includes("ghost-agent"))).toBe(true);
     } finally {
       rmSync(agentsDir, { recursive: true, force: true });
     }
@@ -272,11 +295,12 @@ describe("generate-agent-manifests", () => {
   test("runGenerate write mode updates drifted files to committed output", async () => {
     const agentsDir = createTempDir();
     try {
-      copyCommittedAgents(agentsDir);
-      const agent = "adv-engineer";
-      const path = join(agentsDir, `${agent}.md`);
+      const path = writeSentinelFixture(agentsDir);
       const original = readFileSync(path, "utf8");
-      const drifted = original.replace("adv_spec: true", "adv_spec: false");
+      const drifted = original.replace(
+        "determinus_change_list: true",
+        "determinus_change_list: false",
+      );
       writeFileSync(path, drifted, "utf8");
       const result = await runGenerate({ check: false, agentsDir });
       expect(result.ok).toBe(true);

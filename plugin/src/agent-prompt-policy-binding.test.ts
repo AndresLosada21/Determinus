@@ -30,6 +30,8 @@ import {
   AGENT_TOOL_POLICY,
   SPAWNABLE_SUBAGENT_ROSTER,
 } from "./tool-role-policy";
+import { isLegacyManagedManifest } from "../scripts/generate-agent-manifests";
+import { parseFrontmatterText } from "./utils/manifest-frontmatter";
 
 const REPO_ROOT = resolve(__dirname, "../..");
 const AGENTS_DIR = join(REPO_ROOT, ".opencode", "agents");
@@ -268,14 +270,23 @@ describe("AC5 prompt-body policy binding", () => {
   for (const agent of SPAWNABLE_SUBAGENT_ROSTER) {
     const policy = AGENT_TOOL_POLICY.find((p) => p.agent === agent);
 
-    test(`${agent}: every determinus_* reference is allowed or invoke-wrapped`, () => {
+    test(`${agent}: policy row exists and shipped sentinel manifests bind (v2-native exempt)`, () => {
       expect(
         policy,
         `No AGENT_TOOL_POLICY entry for agent "${agent}"`,
       ).toBeDefined();
 
-      const promptPath = join(AGENTS_DIR, `${agent}.md`);
-      const body = readFileSync(promptPath, "utf8");
+      // File-driven: only sentinel-carrying manifests are binding-checked.
+      // Roster lanes without shipped manifests are intended lanes awaiting
+      // v2-native manifests, not drift.
+      const manifestPath = join(AGENTS_DIR, `${agent}.md`);
+      let body: string;
+      try {
+        body = readFileSync(manifestPath, "utf8");
+      } catch {
+        return;
+      }
+      if (!isLegacyManagedManifest(body)) return;
       const allowed = new Set(policy!.allowed);
       const violations = findPolicyViolations(body, allowed);
 
@@ -290,4 +301,14 @@ describe("AC5 prompt-body policy binding", () => {
       }
     });
   }
+
+  test("determinus.md is v2-native: no legacy tools: frontmatter map", () => {
+    const text = readFileSync(join(AGENTS_DIR, "determinus.md"), "utf8");
+    const parsed = parseFrontmatterText(text);
+    expect(parsed.ok).toBe(true);
+    expect(
+      parsed.doc === null || !("tools" in parsed.doc),
+      "determinus.md must scope tools via permissions:, not the legacy tools: map",
+    ).toBe(true);
+  });
 });

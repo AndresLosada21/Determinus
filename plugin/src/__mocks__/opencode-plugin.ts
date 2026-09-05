@@ -44,17 +44,13 @@ export interface Hooks {
   event?: (input: { event: unknown }) => Promise<void>;
   "tool.execute.before"?: (input: unknown, output: unknown) => Promise<void>;
   "tool.execute.after"?: (input: unknown, output: unknown) => Promise<void>;
-  "experimental.session.compacting"?: (
-    input: unknown,
-    output: unknown,
-  ) => Promise<void>;
-  "experimental.chat.system.transform"?: (
+  "determinus.system.turn"?: (
     input: { sessionID: string },
     output: { system: string[] },
   ) => Promise<void>;
-  "experimental.chat.messages.transform"?: (
+  "determinus.compaction.turn"?: (
     input: unknown,
-    output: { messages: Array<{ info: unknown; parts: unknown[] }> },
+    output: unknown,
   ) => Promise<void>;
 }
 

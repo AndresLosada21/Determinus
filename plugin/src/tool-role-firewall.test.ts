@@ -368,7 +368,7 @@ describe("Runtime role firewall in tool.execute.before", () => {
   };
 
   const setMainSession = async (sessionID: string) => {
-    await hooks["experimental.chat.system.transform"]!(
+    await hooks["determinus.system.turn"]!(
       { sessionID } as any,
       { system: [] } as any,
     );
@@ -429,7 +429,7 @@ describe("Runtime role firewall in tool.execute.before", () => {
 
   it("does not let a sub-agent transform steal root orchestrator authority", async () => {
     await createPlugin();
-    await hooks["experimental.chat.system.transform"]!(
+    await hooks["determinus.system.turn"]!(
       { sessionID: "sub-agent" } as any,
       { system: [] } as any,
     );

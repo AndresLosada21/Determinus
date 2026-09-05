@@ -86,7 +86,7 @@ it("isolates prefix observations by session", () => {
   expect(o.observe({ ...e, sessionID: "b" }).prefixChanged).toBe(false);
 });
 it("routes custom Go models and variants, caps catalog limits, observes native usage and leaves replay intact", async () => {
-  const callbacks = new Map<string, Function>();
+  const callbacks = new Map<string, (...args: unknown[]) => unknown>();
   const model = {
       id: "muse",
       settings: {},
@@ -107,9 +107,13 @@ it("routes custom Go models and variants, caps catalog limits, observes native u
         { provider, models: new Map([["muse", model]]) },
         { provider: other, models: new Map() },
       ],
-      update: (_id: string, fn: Function) => fn(provider),
+      update: (_id: string, fn: (...args: unknown[]) => unknown) =>
+        fn(provider),
     },
-    model: { update: (_p: string, _id: string, fn: Function) => fn(model) },
+    model: {
+      update: (_p: string, _id: string, fn: (...args: unknown[]) => unknown) =>
+        fn(model),
+    },
   };
   const directory = mkdtempSync(join(tmpdir(), "det-cache-fixture-")),
     file = join(
@@ -117,7 +121,7 @@ it("routes custom Go models and variants, caps catalog limits, observes native u
       ".local/share/Determinus/diagnostics",
       `cache-${createHash("sha256").update(directory).digest("hex").slice(0, 16)}-${process.pid}.json`,
     );
-  const reg = async (name: string, fn: Function) => {
+  const reg = async (name: string, fn: (...args: unknown[]) => unknown) => {
     callbacks.set(name, fn);
     return { dispose: async () => {} };
   };
@@ -125,7 +129,7 @@ it("routes custom Go models and variants, caps catalog limits, observes native u
     app: { name: "OpenCode-test", version: "beta" },
     location: { directory },
     catalog: {
-      transform: async (fn: Function) => {
+      transform: async (fn: (...args: unknown[]) => unknown) => {
         fn(catalog);
         return { dispose: async () => {} };
       },

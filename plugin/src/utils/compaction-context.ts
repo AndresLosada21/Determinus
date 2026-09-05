@@ -2,8 +2,9 @@
 /**
  * Compaction Context Builder
  *
- * Pure helper that produces the single text block ADV pushes into
- * `output.context` during `experimental.session.compacting`. Replaces
+ * Pure helper that produces the single text block ADV pushes as compaction
+ * context during the `determinus.compaction.turn` (served on the v2 host via
+ * `ctx.session.hook("context")` with kind === "compaction"). Replaces
  * the previous hand-rolled blocks (ACTIVE ADV CHANGE / ADV SPECS CONTEXT
  * / ADV TASK CONTEXT) with a uniform composition over:
  *

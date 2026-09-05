@@ -1,11 +1,11 @@
 /**
- * Compaction Hook Enrichment Tests
+ * Compaction Turn Enrichment Tests
  *
- * Tests for the experimental.session.compacting hook's ADV TASK CONTEXT
+ * Tests for the determinus.compaction.turn's ADV TASK CONTEXT
  * block, progress lines, graceful degradation, and line-length caps.
  *
- * Uses the disk store directly to set up tasks, then tests the compacting
- * hook output.
+ * Uses the disk store directly to set up tasks, then tests the compaction
+ * turn output.
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
@@ -77,7 +77,7 @@ const createMockPluginInput = (directory: string): MockPluginInput => ({
   $: {},
 });
 
-describe("experimental.session.compacting enrichment", () => {
+describe("determinus.compaction.turn enrichment", () => {
   let tempDir: string;
   const pluginInstances: any[] = [];
 
@@ -116,7 +116,7 @@ describe("experimental.session.compacting enrichment", () => {
 
     // Capture the main session ID so the role firewall allows the active-work
     // mutator used below.
-    await hooks["experimental.chat.system.transform"]!(
+    await hooks["determinus.system.turn"]!(
       { sessionID: "test-session" } as any,
       { system: [] } as any,
     );
@@ -156,7 +156,7 @@ describe("experimental.session.compacting enrichment", () => {
     const input = { sessionID: "test-session" };
     const output = { context: [] as string[] };
 
-    await hooks["experimental.session.compacting"]!(input, output);
+    await hooks["determinus.compaction.turn"]!(input, output);
 
     return { output: output.context, changeId };
   }
@@ -182,7 +182,7 @@ describe("experimental.session.compacting enrichment", () => {
 
     // Capture the main session ID so the role firewall allows the active-work
     // mutator used below.
-    await hooks["experimental.chat.system.transform"]!(
+    await hooks["determinus.system.turn"]!(
       { sessionID: "test-session" } as any,
       { system: [] } as any,
     );
@@ -212,7 +212,7 @@ describe("experimental.session.compacting enrichment", () => {
     const input = { sessionID: "test-session" };
     const output = { context: [] as string[] };
 
-    await hooks["experimental.session.compacting"]!(input, output);
+    await hooks["determinus.compaction.turn"]!(input, output);
 
     // After T4, compaction uses buildChangeContextSnapshot which emits
     // counts in the format "Tasks: N done | N active | N pending".
@@ -232,7 +232,7 @@ describe("experimental.session.compacting enrichment", () => {
 
     // Should not throw
     await expect(
-      hooks["experimental.session.compacting"]!(input, output),
+      hooks["determinus.compaction.turn"]!(input, output),
     ).resolves.not.toThrow();
 
     // No CONTEXT/snapshot block (no active change)
@@ -248,7 +248,7 @@ describe("experimental.session.compacting enrichment", () => {
 
     // Capture the main session ID so the role firewall allows the active-work
     // mutator used below.
-    await hooks["experimental.chat.system.transform"]!(
+    await hooks["determinus.system.turn"]!(
       { sessionID: "test-session" } as any,
       { system: [] } as any,
     );
@@ -272,7 +272,7 @@ describe("experimental.session.compacting enrichment", () => {
     const input = { sessionID: "test-session" };
     const output = { context: [] as string[] };
 
-    await hooks["experimental.session.compacting"]!(input, output);
+    await hooks["determinus.compaction.turn"]!(input, output);
 
     // After T4 the compaction block is bounded by an explicit byte
     // budget (DEFAULT_COMPACTION_MAX_BYTES = 16_000) instead of a

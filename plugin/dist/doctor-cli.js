@@ -24393,7 +24393,12 @@ function getExternalRootForProject(projectId) {
   const currentShard = basename4(dataHome);
   const shardParent = dirname5(dataHome);
   if (basename4(shardParent) === "opencode-projects" && /^[0-9a-f]{40}$/.test(currentShard)) {
-    return join14(shardParent, projectId, "opencode/plugins/determinus", projectId);
+    return join14(
+      shardParent,
+      projectId,
+      "opencode/plugins/determinus",
+      projectId
+    );
   }
   return getExternalRoot(projectId);
 }
@@ -31777,7 +31782,11 @@ async function walkStoreDirs(dataHomeRoot) {
     exists: await pathExists2(shardsRoot)
   });
   for (const shard of await readdirSafe(shardsRoot)) {
-    const determinusRoot = join21(shardsRoot, shard, "opencode/plugins/determinus");
+    const determinusRoot = join21(
+      shardsRoot,
+      shard,
+      "opencode/plugins/determinus"
+    );
     for (const name of await readdirSafe(determinusRoot)) {
       stores.push({
         projectId: name,

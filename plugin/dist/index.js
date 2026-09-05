@@ -20413,7 +20413,7 @@ async function boundedRetry(options2) {
     capMs,
     jitter = 1,
     now: now3 = Date.now,
-    sleep: sleep3 = (ms) => new Promise((resolve28) => setTimeout(resolve28, ms)),
+    sleep: sleep3 = (ms) => new Promise((resolve27) => setTimeout(resolve27, ms)),
     random: random2 = Math.random
   } = options2;
   const start = now3();
@@ -24884,7 +24884,12 @@ function getExternalRootForProject(projectId) {
   const currentShard = basename4(dataHome);
   const shardParent = dirname5(dataHome);
   if (basename4(shardParent) === "opencode-projects" && /^[0-9a-f]{40}$/.test(currentShard)) {
-    return join15(shardParent, projectId, "opencode/plugins/determinus", projectId);
+    return join15(
+      shardParent,
+      projectId,
+      "opencode/plugins/determinus",
+      projectId
+    );
   }
   return getExternalRoot(projectId);
 }
@@ -24907,12 +24912,12 @@ function assertPathInsideDirectory(candidatePath, directory) {
   }
 }
 function execGit(args2, cwd) {
-  return new Promise((resolve28, reject) => {
+  return new Promise((resolve27, reject) => {
     execFileGitCb(args2, { cwd, timeout: 5e3 }, (error51, stdout) => {
       if (error51) {
         reject(error51);
       } else {
-        resolve28(stdout);
+        resolve27(stdout);
       }
     });
   });
@@ -34321,12 +34326,12 @@ var init_branch_parser = __esm({
 
 // src/utils/git.ts
 function execGit2(args2, cwd, timeoutMs = 5e3) {
-  return new Promise((resolve28, reject) => {
+  return new Promise((resolve27, reject) => {
     execFileGitCb(args2, { cwd, timeout: timeoutMs }, (error51, stdout) => {
       if (error51) {
         reject(error51);
       } else {
-        resolve28(stdout);
+        resolve27(stdout);
       }
     });
   });
@@ -38694,7 +38699,7 @@ async function runAbortableProcess(input) {
   let unregister;
   let terminate = async () => void 0;
   const closePromise = new Promise(
-    (resolve28, reject) => {
+    (resolve27, reject) => {
       let stdout = "";
       let stderr = "";
       let settled = false;
@@ -38729,7 +38734,7 @@ async function runAbortableProcess(input) {
         if (timeoutTimer) clearTimeout(timeoutTimer);
         if (killTimer) clearTimeout(killTimer);
         unregister?.();
-        resolve28(result3);
+        resolve27(result3);
       };
       const fail7 = (error51) => {
         if (settled) return;
@@ -39020,8 +39025,8 @@ async function waitForSettlement(settled, ms) {
   try {
     await Promise.race([
       settled,
-      new Promise((resolve28) => {
-        timer = setTimeout(resolve28, ms);
+      new Promise((resolve27) => {
+        timer = setTimeout(resolve27, ms);
         timer.unref?.();
       })
     ]);
@@ -39041,8 +39046,8 @@ async function waitForProcessGroupGone(pgid, timeoutMs = 1e3) {
   const deadline = Date.now() + timeoutMs;
   while (processGroupAlive(pgid)) {
     if (Date.now() >= deadline) throw new GitWorktreeFlockQuiescenceError(pgid);
-    await new Promise((resolve28) => {
-      const timer = setTimeout(resolve28, 5);
+    await new Promise((resolve27) => {
+      const timer = setTimeout(resolve27, 5);
       timer.unref?.();
     });
   }
@@ -39091,8 +39096,8 @@ async function acquireGitWorktreeProcessLease(projectStateDir, options2 = {}) {
   );
   let settledState = false;
   let resolveParentSettled;
-  const parentSettled = new Promise((resolve28) => {
-    resolveParentSettled = resolve28;
+  const parentSettled = new Promise((resolve27) => {
+    resolveParentSettled = resolve27;
   });
   let readyState = false;
   let output = "";
@@ -39105,12 +39110,12 @@ async function acquireGitWorktreeProcessLease(projectStateDir, options2 = {}) {
     await waitForProcessGroupGone(pgid);
   });
   void settled.catch(() => void 0);
-  const ready = new Promise((resolve28, reject) => {
+  const ready = new Promise((resolve27, reject) => {
     child.stdout?.on("data", (chunk) => {
       output = appendBounded(output, chunk);
       if (!readyState && output.includes(FLOCK_READY)) {
         readyState = true;
-        resolve28(true);
+        resolve27(true);
       }
     });
     child.stderr?.on("data", (chunk) => {
@@ -39123,7 +39128,7 @@ async function acquireGitWorktreeProcessLease(projectStateDir, options2 = {}) {
       settledState = true;
       resolveParentSettled();
       if (!readyState) {
-        if (code === GIT_WORKTREE_FLOCK_CONFLICT_EXIT_CODE) resolve28(false);
+        if (code === GIT_WORKTREE_FLOCK_CONFLICT_EXIT_CODE) resolve27(false);
         else if (code === 127)
           reject(
             new GitWorktreeFlockUnsupportedError(
@@ -39360,8 +39365,8 @@ function createWorktreeBeforeRemoveStage(run2) {
   let started = false;
   let cancelled = false;
   let resolveSettled;
-  const settled = new Promise((resolve28) => {
-    resolveSettled = resolve28;
+  const settled = new Promise((resolve27) => {
+    resolveSettled = resolve27;
   });
   return {
     [WORKTREE_BEFORE_REMOVE_STAGE]: true,
@@ -39394,8 +39399,8 @@ function createWorktreeReconciliationStage(run2) {
   let started = false;
   let cancelled = false;
   let resolveSettled;
-  const settled = new Promise((resolve28) => {
-    resolveSettled = resolve28;
+  const settled = new Promise((resolve27) => {
+    resolveSettled = resolve27;
   });
   return {
     [WORKTREE_RECONCILIATION_STAGE]: true,
@@ -40378,7 +40383,7 @@ ${summary}`,
 }
 async function execOneHookCommand(phase, cwd, command, timeoutMs, env) {
   const startedAt = Date.now();
-  return new Promise((resolve28) => {
+  return new Promise((resolve27) => {
     const child = execFile2(
       HOOK_DEFAULTS.shell,
       ["-c", command],
@@ -40397,7 +40402,7 @@ async function execOneHookCommand(phase, cwd, command, timeoutMs, env) {
           const errAny = error51;
           const timedOut = errAny.killed === true && errAny.signal === "SIGKILL";
           const exitCode = typeof errAny.code === "number" ? errAny.code : null;
-          resolve28({
+          resolve27({
             command,
             phase,
             exitCode,
@@ -40408,7 +40413,7 @@ async function execOneHookCommand(phase, cwd, command, timeoutMs, env) {
           });
           return;
         }
-        resolve28({
+        resolve27({
           command,
           phase,
           exitCode: 0,
@@ -40695,7 +40700,7 @@ var init_with_timeout = __esm({
 // src/integrations/gh-cli.ts
 import { execFile as execFile3 } from "child_process";
 function execGh(args2, cwd, timeout3 = DEFAULT_TIMEOUT_MS, signal) {
-  return new Promise((resolve28) => {
+  return new Promise((resolve27) => {
     execFile3(
       "gh",
       args2,
@@ -40714,7 +40719,7 @@ function execGh(args2, cwd, timeout3 = DEFAULT_TIMEOUT_MS, signal) {
           const rawStderr = stderr ?? "";
           const isRateLimit = rawStderr.includes("HTTP 429") || rawStderr.includes("rate limit") || false;
           const effectiveStderr = rawStderr || error51.message;
-          resolve28({
+          resolve27({
             stdout: stdout ?? "",
             stderr: effectiveStderr,
             exitCode: isEnoent ? -1 : error51.errno ?? (isKilled ? -1 : 1),
@@ -40723,7 +40728,7 @@ function execGh(args2, cwd, timeout3 = DEFAULT_TIMEOUT_MS, signal) {
             rateLimited: isRateLimit || void 0
           });
         } else {
-          resolve28({
+          resolve27({
             stdout: stdout ?? "",
             stderr: stderr ?? "",
             exitCode: 0
@@ -40788,7 +40793,7 @@ async function detectDirty(worktreePath) {
   }
 }
 function gitWorktreeRemove(repoRoot, worktreePath, timeoutMs = GIT_WORKTREE_REMOVE_TIMEOUT_MS) {
-  return new Promise((resolve28) => {
+  return new Promise((resolve27) => {
     execFileGitCb(
       ["worktree", "remove", worktreePath],
       {
@@ -40798,12 +40803,12 @@ function gitWorktreeRemove(repoRoot, worktreePath, timeoutMs = GIT_WORKTREE_REMO
       },
       (error51, _stdout, stderr) => {
         if (error51) {
-          resolve28({
+          resolve27({
             ok: false,
             reason: stderr.trim() || error51.message || "git worktree remove failed"
           });
         } else {
-          resolve28({ ok: true });
+          resolve27({ ok: true });
         }
       }
     );
@@ -41352,7 +41357,7 @@ async function pathExists(filePath) {
   }
 }
 async function git2(args2, cwd, timeoutMs = DEFAULT_WORKTREE_GIT_TIMEOUT_MS, signal) {
-  return new Promise((resolve28) => {
+  return new Promise((resolve27) => {
     execFileGitCb(
       args2,
       {
@@ -41362,13 +41367,13 @@ async function git2(args2, cwd, timeoutMs = DEFAULT_WORKTREE_GIT_TIMEOUT_MS, sig
       },
       (error51, stdout, stderr) => {
         if (error51) {
-          resolve28(
+          resolve27(
             Result3.err(
               stderr.trim() || error51.message || `git ${args2[0]} failed`
             )
           );
         } else {
-          resolve28(Result3.ok(stdout.trim()));
+          resolve27(Result3.ok(stdout.trim()));
         }
       }
     );
@@ -49929,7 +49934,7 @@ async function verifyProjection(manifestInput, releasedCommitSha, expectedChange
   };
 }
 async function readGitPathBounded(repo, commitSha, path3, limitBytes = PROJECTION_DOCUMENT_BYTE_LIMIT) {
-  return new Promise((resolve28, reject) => {
+  return new Promise((resolve27, reject) => {
     const child = spawnGitStreams(["show", `${commitSha}:${path3}`], {
       cwd: repo,
       stdio: ["ignore", "pipe", "pipe"]
@@ -49967,7 +49972,7 @@ async function readGitPathBounded(repo, commitSha, path3, limitBytes = PROJECTIO
         );
         return;
       }
-      resolve28(Buffer.concat(chunks).toString("utf8"));
+      resolve27(Buffer.concat(chunks).toString("utf8"));
     });
   });
 }
@@ -54216,8 +54221,8 @@ async function readPortfolioState(store, deadlineMs = PORTFOLIO_READ_DEADLINE_MS
     const read2 = store.changes.listSummary ? store.changes.listSummary(criteria) : store.changes.list(criteria);
     const result3 = await Promise.race([
       read2,
-      new Promise((resolve28) => {
-        setTimeout(() => resolve28(null), deadlineMs);
+      new Promise((resolve27) => {
+        setTimeout(() => resolve27(null), deadlineMs);
       })
     ]);
     if (!result3 || !Array.isArray(result3.changes)) {
@@ -57143,7 +57148,7 @@ var init_handlers_lifecycle = __esm({
       }
       if (shouldClaimCheck && origin?.issue_number !== void 0 && result3.changeId) {
         if (claimRaceCheckMs > 0) {
-          await new Promise((resolve28) => setTimeout(resolve28, claimRaceCheckMs));
+          await new Promise((resolve27) => setTimeout(resolve27, claimRaceCheckMs));
         }
         try {
           const projectId2 = await getProjectId(store.paths.root) ?? "";
@@ -61826,7 +61831,7 @@ async function buildExternalDependencyStatus(dependencies, options2 = {}) {
     const results = new Array(n);
     const assigned = /* @__PURE__ */ new Set();
     let started = 0;
-    const deadlinePromise = new Promise((resolve28) => {
+    const deadlinePromise = new Promise((resolve27) => {
       setTimeout(() => {
         for (let i = 0; i < n; i++) {
           if (!assigned.has(i)) {
@@ -61834,7 +61839,7 @@ async function buildExternalDependencyStatus(dependencies, options2 = {}) {
             assigned.add(i);
           }
         }
-        resolve28();
+        resolve27();
       }, deadlineMs);
     });
     async function worker() {
@@ -68073,7 +68078,7 @@ var init_status_recommendations = __esm({
 import { statSync as statSync5 } from "fs";
 async function getWorktreeCensus(repoRoot, options2 = {}) {
   try {
-    const stdout = await new Promise((resolve28, reject) => {
+    const stdout = await new Promise((resolve27, reject) => {
       execFileGitCb(
         ["worktree", "list", "--porcelain", "-z"],
         {
@@ -68085,7 +68090,7 @@ async function getWorktreeCensus(repoRoot, options2 = {}) {
         },
         (err, out) => {
           if (err) reject(err);
-          else resolve28(out ?? "");
+          else resolve27(out ?? "");
         }
       );
     });
@@ -68836,7 +68841,7 @@ import { readdir as readdir9, stat as stat6, access as access9, readFile as read
 import { join as join49, basename as basename14 } from "path";
 import { spawn as spawn4 } from "child_process";
 async function defaultLsofCheck(path3) {
-  return new Promise((resolve28) => {
+  return new Promise((resolve27) => {
     const proc = spawn4("lsof", ["-t", path3], {
       timeout: 3e3,
       windowsHide: process.platform === "win32"
@@ -68850,18 +68855,18 @@ async function defaultLsofCheck(path3) {
     });
     proc.on("error", (err) => {
       if ("code" in err && err.code === "ENOENT") {
-        resolve28("unknown_no_lsof");
+        resolve27("unknown_no_lsof");
       } else {
-        resolve28("unknown_no_lsof");
+        resolve27("unknown_no_lsof");
       }
     });
     proc.on("close", (code) => {
       if (code !== 0) {
-        resolve28(null);
+        resolve27(null);
         return;
       }
       const line = stdout.trim().split("\n")[0];
-      resolve28(line || null);
+      resolve27(line || null);
     });
   });
 }
@@ -69069,7 +69074,7 @@ async function findLockFiles(repoPath) {
   return locks;
 }
 async function runFsck(repoPath) {
-  return new Promise((resolve28) => {
+  return new Promise((resolve27) => {
     const proc = spawnGitStreams(
       ["--git-dir", repoPath, "fsck", "--no-dangling", "--connectivity-only"],
       { timeout: 2e4 }
@@ -69083,7 +69088,7 @@ async function runFsck(repoPath) {
       stderr += data.toString();
     });
     proc.on("error", () => {
-      resolve28([]);
+      resolve27([]);
     });
     proc.on("close", () => {
       const lines = (stdout + stderr).split("\n");
@@ -69097,7 +69102,7 @@ async function runFsck(repoPath) {
           if (errs.length >= MAX_FSCK_ERRORS_PER_REPO) break;
         }
       }
-      resolve28(errs);
+      resolve27(errs);
     });
   });
 }
@@ -70623,8 +70628,8 @@ async function executeHealthPlan(config2) {
   const capTimers = /* @__PURE__ */ new Map();
   const abortControllers = /* @__PURE__ */ new Map();
   let doneResolver;
-  const done4 = new Promise((resolve28) => {
-    doneResolver = resolve28;
+  const done4 = new Promise((resolve27) => {
+    doneResolver = resolve27;
   });
   let cutoffTimer;
   let deadlineTimer;
@@ -70854,13 +70859,13 @@ var init_tool_schema_projection = __esm({
 // src/utils/tool-lane-projection.ts
 import { execFile as execFile4 } from "child_process";
 function execFileAsync2(command, args2, options2) {
-  return new Promise((resolve28, reject) => {
+  return new Promise((resolve27, reject) => {
     execFile4(command, args2, options2, (error51, stdout, stderr) => {
       if (error51) {
         reject(error51);
         return;
       }
-      resolve28({ stdout, stderr });
+      resolve27({ stdout, stderr });
     });
   });
 }
@@ -71625,9 +71630,9 @@ var init_status2 = __esm({
                       (data) => ({ kind: "complete", data }),
                       (error51) => ({ kind: "error", error: error51 })
                     ),
-                    new Promise((resolve28) => {
+                    new Promise((resolve27) => {
                       timer = setTimeout(
-                        () => resolve28({ kind: "deadline" }),
+                        () => resolve27({ kind: "deadline" }),
                         Math.max(0, postStatusCutoffAt - Date.now())
                       );
                     })
@@ -72556,7 +72561,7 @@ ${TRUNCATION_SUFFIX}`;
         retainedBytes += remaining;
         maxBufferExceeded = true;
       };
-      return await new Promise((resolve28) => {
+      return await new Promise((resolve27) => {
         let child;
         try {
           const isWindows = process.platform === "win32";
@@ -72573,7 +72578,7 @@ ${TRUNCATION_SUFFIX}`;
           );
         } catch (error51) {
           const message = error51 instanceof Error ? error51.message : String(error51);
-          resolve28({
+          resolve27({
             stdout: "",
             stderr: message,
             exitCode: 1,
@@ -72591,7 +72596,7 @@ ${TRUNCATION_SUFFIX}`;
           settled = true;
           if (timeout3) clearTimeout(timeout3);
           if (hardKillTimeout) clearTimeout(hardKillTimeout);
-          resolve28({ ...result3, durationMs: performance.now() - startedAt });
+          resolve27({ ...result3, durationMs: performance.now() - startedAt });
         };
         const requestKill = (signal) => {
           killSubprocess(child, signal);
@@ -72911,7 +72916,7 @@ var init_extract_structured_output = __esm({
 import { access as access11 } from "fs/promises";
 import { isAbsolute as isAbsolute6, resolve as resolve22 } from "path";
 function runGit(args2, cwd) {
-  return new Promise((resolve28, reject) => {
+  return new Promise((resolve27, reject) => {
     execFileGitCb(
       args2,
       {
@@ -72932,7 +72937,7 @@ function runGit(args2, cwd) {
             })
           );
         } else {
-          resolve28({
+          resolve27({
             stdout: stdout ?? "",
             stderr: stderr ?? "",
             exitCode: 0
@@ -75206,9 +75211,9 @@ async function executeTargetWorktreeDelete(args2, store, options2) {
   );
   let timeoutHandle;
   let timedOut = false;
-  const timeoutRace = new Promise((resolve28) => {
+  const timeoutRace = new Promise((resolve27) => {
     timeoutHandle = setTimeout(
-      () => resolve28({ _timedOut: true }),
+      () => resolve27({ _timedOut: true }),
       Math.max(1, operation.remainingMs() - operation.responseReserveMs)
     );
   });
@@ -75249,9 +75254,9 @@ async function executeWorktreeCleanup(args2, store, options2 = {}, context3) {
       effectiveTimeoutMs: effectiveTimeoutMs2
     });
     let timeoutHandle2;
-    const timeoutRace2 = new Promise((resolve28) => {
+    const timeoutRace2 = new Promise((resolve27) => {
       timeoutHandle2 = setTimeout(
-        () => resolve28({ _timedOut: true }),
+        () => resolve27({ _timedOut: true }),
         effectiveTimeoutMs2
       );
     });
@@ -75316,9 +75321,9 @@ async function executeWorktreeCleanup(args2, store, options2 = {}, context3) {
     gitTimeoutMs: discoveryGitBudgetForToolBudget(effectiveTimeoutMs)
   });
   let timeoutHandle;
-  const timeoutRace = new Promise((resolve28) => {
+  const timeoutRace = new Promise((resolve27) => {
     timeoutHandle = setTimeout(
-      () => resolve28({ _timedOut: true }),
+      () => resolve27({ _timedOut: true }),
       effectiveTimeoutMs
     );
   });
@@ -75392,9 +75397,9 @@ async function executeWorktreeDetach(args2, store, context3) {
     }
   );
   let timeoutHandle;
-  const timeoutRace = new Promise((resolve28) => {
+  const timeoutRace = new Promise((resolve27) => {
     timeoutHandle = setTimeout(
-      () => resolve28({ _timedOut: true }),
+      () => resolve27({ _timedOut: true }),
       effectiveTimeoutMs
     );
   });
@@ -81964,8 +81969,8 @@ var runPromiseExitWith = (context3) => {
   const runFork3 = runForkWith(context3);
   return (effect2, options2) => {
     const fiber3 = runFork3(effect2, options2);
-    return new Promise((resolve28) => {
-      fiber3.addObserver((exit3) => resolve28(exit3));
+    return new Promise((resolve27) => {
+      fiber3.addObserver((exit3) => resolve27(exit3));
     });
   };
 };
@@ -92467,9 +92472,9 @@ function toStandardSchemaV1(self, options2) {
     if (exit3) {
       return makeStandardResult(exit3);
     }
-    return new Promise((resolve28) => {
+    return new Promise((resolve27) => {
       fiber3.addObserver((exit4) => {
-        resolve28(makeStandardResult(exit4));
+        resolve27(makeStandardResult(exit4));
       });
     });
   };
@@ -99146,7 +99151,7 @@ var Updated9 = ephemeral({
 var Event14 = { Updated: Updated9, Definitions: inventory(Updated9) };
 
 // src/index.ts
-import { isAbsolute as isAbsolute9, join as join58, resolve as resolve27 } from "path";
+import { isAbsolute as isAbsolute8, join as join57, resolve as resolve26 } from "path";
 import { realpathSync as realpathSync2 } from "fs";
 import { fileURLToPath as fileURLToPath4 } from "url";
 
@@ -100667,84 +100672,6 @@ function evaluateTodoWriteGuard(input) {
   return { kind: "allow" };
 }
 
-// src/utils/workspace-adapter.ts
-init_project_id();
-import { isAbsolute as isAbsolute8, join as join56, resolve as resolve26 } from "path";
-var isRecord2 = (value3) => typeof value3 === "object" && value3 !== null;
-var getAllowedWorktreeRoot = () => getWorktreeHomeOverride() ?? join56(getDataHome(), "opencode/worktree");
-var validateAdvWorktreeBranch = (branch) => {
-  if (typeof branch !== "string" || branch.length === 0) {
-    throw new Error("determinus-worktree adapter requires info.extra.branch");
-  }
-  if (branch.startsWith("-") || branch.startsWith("/") || branch.endsWith("/") || branch.includes("//") || branch.includes("@{") || branch.includes("..") || branch.endsWith(".lock") || branch.startsWith(".") || branch.endsWith(".") || // eslint-disable-next-line no-control-regex -- control character detection is intentional for branch safety
-  /[\x00-\x1f\x7f ~^:?*[\]\\;&|`$()]/.test(branch) || branch.length > 255) {
-    throw new Error("determinus-worktree adapter branch is invalid");
-  }
-  return branch;
-};
-var validateAdvWorktreeDirectory = (directory) => {
-  if (!isAbsolute8(directory)) {
-    throw new Error("determinus-worktree adapter directory must be absolute");
-  }
-  const normalized = resolve26(directory);
-  assertPathInsideDirectory(normalized, getAllowedWorktreeRoot());
-  return normalized;
-};
-var getAdvWorktreeDirectory = (info) => {
-  const extra = isRecord2(info.extra) ? info.extra : {};
-  if (typeof extra.directory !== "string" || extra.directory.length === 0) {
-    throw new Error(
-      "determinus-worktree adapter requires info.extra.directory"
-    );
-  }
-  if (typeof info.projectID !== "string" || info.projectID.length === 0) {
-    throw new Error("determinus-worktree adapter requires info.projectID");
-  }
-  const branch = validateAdvWorktreeBranch(extra.branch);
-  const directory = validateAdvWorktreeDirectory(extra.directory);
-  const expected = resolve26(getWorktreeBase(info.projectID), branch);
-  if (directory !== expected) {
-    throw new Error(
-      `determinus-worktree adapter directory does not match project/branch: expected ${expected}`
-    );
-  }
-  return directory;
-};
-function buildAdvWorktreeAdapter() {
-  return {
-    name: "determinus-worktree",
-    description: "determinus-managed git worktree (per-change isolation)",
-    async configure(info) {
-      return {
-        ...info,
-        directory: getAdvWorktreeDirectory(info)
-      };
-    },
-    async create() {
-    },
-    async remove() {
-    },
-    async target(info) {
-      if (typeof info.directory !== "string" || info.directory.length === 0) {
-        throw new Error(
-          "determinus-worktree adapter target requires info.directory"
-        );
-      }
-      const expectedDirectory = getAdvWorktreeDirectory(info);
-      const targetDirectory = validateAdvWorktreeDirectory(info.directory);
-      if (targetDirectory !== expectedDirectory) {
-        throw new Error(
-          `determinus-worktree adapter target does not match project/branch: expected ${expectedDirectory}`
-        );
-      }
-      return {
-        type: "local",
-        directory: targetDirectory
-      };
-    }
-  };
-}
-
 // src/utils/morph-worktree-authorization.ts
 var determinus_MORPH_WORKTREE_CAPABILITY = /* @__PURE__ */ Symbol.for(
   "advance.morph-worktree-capability.v1"
@@ -100784,7 +100711,7 @@ init_result_artifacts();
 import { createHash as createHash19 } from "crypto";
 import { mkdirSync as mkdirSync6, renameSync as renameSync4, writeFileSync as writeFileSync6 } from "fs";
 import { homedir as homedir6 } from "os";
-import { join as join57 } from "path";
+import { join as join56 } from "path";
 
 // src/cache-transport.ts
 import {
@@ -100864,7 +100791,8 @@ async function createCacheGateway(options2) {
     const target = new URL(upstream.toString());
     target.pathname = upstream.pathname.replace(/\/$/, "") + suffix2;
     target.search = match8[3] ?? "";
-    let chunks = [], size6 = 0;
+    const chunks = [];
+    let size6 = 0;
     try {
       for await (const chunk of incoming) {
         size6 += chunk.length;
@@ -100880,7 +100808,6 @@ async function createCacheGateway(options2) {
       return;
     }
     const body = Buffer.concat(chunks);
-    chunks = [];
     const headers = new Headers();
     const connectionHeaders = new Set(
       String(incoming.headers.connection ?? "").toLowerCase().split(",").map((x) => x.trim())
@@ -100954,11 +100881,11 @@ async function createCacheGateway(options2) {
     "upgrade",
     (_req, socket) => socket.end("HTTP/1.1 426 Upgrade Required\r\nConnection: close\r\n\r\n")
   );
-  await new Promise((resolve28, reject) => {
+  await new Promise((resolve27, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
       server.off("error", reject);
-      resolve28();
+      resolve27();
     });
   });
   server.unref();
@@ -100991,7 +100918,7 @@ async function createCacheGateway(options2) {
     async close() {
       for (const req of requests) req.destroy();
       server.closeAllConnections();
-      await new Promise((resolve28) => server.close(() => resolve28()));
+      await new Promise((resolve27) => server.close(() => resolve27()));
     }
   };
 }
@@ -101000,9 +100927,9 @@ async function createCacheGateway(options2) {
 var RESULT_LIMIT = 6e3;
 var CONTEXT_LIMIT = 96e3;
 var digest = (text) => createHash19("sha256").update(text).digest("hex");
-var isRecord3 = (x) => typeof x === "object" && x !== null && !Array.isArray(x);
+var isRecord2 = (x) => typeof x === "object" && x !== null && !Array.isArray(x);
 function containResult(tool2, result3, persist) {
-  if (!isRecord3(result3) || /(?:^|[._/])skill$/i.test(tool2)) return result3;
+  if (!isRecord2(result3) || /(?:^|[._/])skill$/i.test(tool2)) return result3;
   const serialized = JSON.stringify(result3);
   if (serialized.length <= RESULT_LIMIT) return result3;
   const path3 = persist(serialized);
@@ -101014,7 +100941,7 @@ ${excerpt.slice(0, 2600)}
 ${excerpt.slice(-1200)}`;
   const nonText = Array.isArray(result3.content) ? result3.content.filter((x) => x?.type !== "text") : [];
   const essential = {};
-  if (isRecord3(result3.structured))
+  if (isRecord2(result3.structured))
     for (const key of [
       "success",
       "ok",
@@ -101067,7 +100994,7 @@ var ContextObserver = class {
 };
 async function installCacheRuntime(ctx) {
   const registrations = [];
-  const locationKey2 = digest(ctx.location.directory).slice(0, 16), diagDir = join57(homedir6(), ".local/share/Determinus/diagnostics"), path3 = join57(diagDir, `cache-${locationKey2}-${process.pid}.json`);
+  const locationKey2 = digest(ctx.location.directory).slice(0, 16), diagDir = join56(homedir6(), ".local/share/Determinus/diagnostics"), path3 = join56(diagDir, `cache-${locationKey2}-${process.pid}.json`);
   const state = {
     version: CACHE_RELEASE,
     generation: getLoadedPluginBundleGeneration(),
@@ -101437,9 +101364,9 @@ init_git_session();
 var MAX_PROMPT_TOOL_OUTPUT_CHARS = 1200;
 var PROTECTED_TOOL_TYPES = /* @__PURE__ */ new Set(["task", "skill"]);
 var isProtectedToolType = (toolName) => toolName.length > 0 && PROTECTED_TOOL_TYPES.has(toolName.toLowerCase());
-var isRecord4 = (value3) => typeof value3 === "object" && value3 !== null;
-var isDiskChangeReachable = async (changesDir, changeId) => existsSync17(join58(changesDir, changeId, "change.json"));
-var normalizeToolTargetPath = (targetPath, basePath) => isAbsolute9(targetPath) ? targetPath : resolve27(basePath, targetPath);
+var isRecord3 = (value3) => typeof value3 === "object" && value3 !== null;
+var isDiskChangeReachable = async (changesDir, changeId) => existsSync17(join57(changesDir, changeId, "change.json"));
+var normalizeToolTargetPath = (targetPath, basePath) => isAbsolute8(targetPath) ? targetPath : resolve26(basePath, targetPath);
 var dropToolOutput = (source, text) => `[ADV:OUTPUT_DROPPED] ${source} produced ${text.length} chars. Full content removed from model prompt to keep the session resumable.`;
 var DEFAULT_FALLBACK_SINK_DIR = "/tmp/opencode";
 var FALLBACK_EXCERPT_CHARS = 500;
@@ -101447,7 +101374,7 @@ var fallbackSinkDir = () => process.env.determinus_FALLBACK_SINK_DIR ?? DEFAULT_
 var persistFallbackContent = (content, dir = fallbackSinkDir()) => {
   try {
     const hash3 = createHash20("sha256").update(content).digest("hex").slice(0, 16);
-    const filePath = join58(dir, `fallback-report-${hash3}.md`);
+    const filePath = join57(dir, `fallback-report-${hash3}.md`);
     if (!existsSync17(filePath)) {
       mkdirSync7(dir, { recursive: true });
       writeFileSync7(filePath, content, "utf8");
@@ -101464,7 +101391,7 @@ var fallbackPersistedMarker = (source, content, filePath) => {
   return `[ADV:FALLBACK_RESULT_PERSISTED] ${source} returned ${content.length} chars (${elided} elided). Full content at ${filePath}. First ${shown} chars: ${excerpt}`;
 };
 var compactToolPart = (part) => {
-  if (!isRecord4(part) || part.type !== "tool") return false;
+  if (!isRecord3(part) || part.type !== "tool") return false;
   const toolName = typeof part.tool === "string" ? part.tool : typeof part.callID === "string" ? part.callID : "tool output";
   const protectedType = isProtectedToolType(toolName);
   const replaceOversized = (output) => {
@@ -101475,7 +101402,7 @@ var compactToolPart = (part) => {
     return dropToolOutput(toolName, output);
   };
   let compacted = false;
-  if (isRecord4(part.state) && typeof part.state.output === "string") {
+  if (isRecord3(part.state) && typeof part.state.output === "string") {
     const output = part.state.output;
     if (output.length > MAX_PROMPT_TOOL_OUTPUT_CHARS) {
       part.state.output = replaceOversized(output);
@@ -101492,10 +101419,22 @@ var compactToolPart = (part) => {
   return compacted;
 };
 var compactV2ToolResultPart = (_part) => false;
-var compactPromptMessages = (_messages) => ({ droppedBlank: 0, compactedToolOutputs: 0, compactedDiffs: 0 });
-var enforcePromptHistoryBudget = (messages) => ({ omittedMessages: 0, compactedTextParts: 0, retainedChars: messages.reduce((n, x) => n + (JSON.stringify(x)?.length ?? 0), 0), limit: null });
+var compactPromptMessages = (_messages) => ({
+  droppedBlank: 0,
+  compactedToolOutputs: 0,
+  compactedDiffs: 0
+});
+var enforcePromptHistoryBudget = (messages) => ({
+  omittedMessages: 0,
+  compactedTextParts: 0,
+  retainedChars: messages.reduce(
+    (n, x) => n + (JSON.stringify(x)?.length ?? 0),
+    0
+  ),
+  limit: null
+});
 var extractSessionErrorMessage = (properties) => {
-  if (!isRecord4(properties)) return "Unknown session error";
+  if (!isRecord3(properties)) return "Unknown session error";
   for (const key of ["error", "message", "reason"]) {
     const value3 = properties[key];
     if (typeof value3 === "string" && value3.trim()) return value3.trim();
@@ -101525,7 +101464,7 @@ function buildFactoryFailureHooks(error51, directory) {
     },
     "tool.execute.after": async () => {
     },
-    "experimental.chat.system.transform": async (_input, output) => {
+    "determinus.system.turn": async (_input, output) => {
       try {
         const existing = output.system[0] ?? null;
         output.system[0] = existing ? `${existing}
@@ -101534,18 +101473,12 @@ ${banner}` : banner;
       } catch {
       }
     },
-    "experimental.chat.messages.transform": async () => {
-    },
-    "experimental.session.compacting": async () => {
+    "determinus.compaction.turn": async () => {
     }
   };
 }
 var advancePluginImpl = async (input) => {
-  const { directory, worktree, project, experimental_workspace, client } = input;
-  experimental_workspace?.register?.(
-    "determinus-worktree",
-    buildAdvWorktreeAdapter()
-  );
+  const { directory, worktree, project, client } = input;
   const gitSession = resolveGitSessionContext(directory, worktree);
   const { isWorktree, isMainCheckout } = gitSession;
   debugLog3(
@@ -101735,7 +101668,7 @@ var advancePluginImpl = async (input) => {
       } else {
         await authorizeMorphWorktree(args2, sessionID, {
           getTaskChangeId: async (taskId) => (await store.tasks.show(taskId))?.changeId ?? null,
-          getExpectedRoot: (changeId) => join58(getWorktreeBase(resolvedProjectId), "change", changeId),
+          getExpectedRoot: (changeId) => join57(getWorktreeBase(resolvedProjectId), "change", changeId),
           canonicalize: (path3) => realpathSync2(path3),
           isSetupReady: (changeId) => worktreeExistsForChange(worktreeStateAccess, changeId)
         });
@@ -101749,7 +101682,7 @@ var advancePluginImpl = async (input) => {
             currentProjectPath: directory,
             target_path: String(args2.target_path)
           });
-          const targetChangesDir = join58(targetCtx.externalRoot, "changes");
+          const targetChangesDir = join57(targetCtx.externalRoot, "changes");
           const reachable = await isDiskChangeReachable(
             targetChangesDir,
             String(args2.changeId)
@@ -101913,8 +101846,8 @@ var advancePluginImpl = async (input) => {
       if (targetPath) {
         let resolutionBase = directory;
         const changeId = state.activeChange.id;
-        if (!isAbsolute9(targetPath) && isMainCheckout && changeId && cachedWorktreeBase) {
-          const worktreeDir = join58(cachedWorktreeBase, "change", changeId);
+        if (!isAbsolute8(targetPath) && isMainCheckout && changeId && cachedWorktreeBase) {
+          const worktreeDir = join57(cachedWorktreeBase, "change", changeId);
           if (existsSync17(worktreeDir)) {
             debugLog3(
               `trunk-write-firewall: resolving rel path against worktree ${worktreeDir} instead of session dir ${directory}`
@@ -102152,7 +102085,7 @@ var advancePluginImpl = async (input) => {
     //   - [ADV] Active change         (active change line)
     //   - [ADV:RECORD_WISDOM]         (wisdom recording prompt â€” append-only)
     //
-    "experimental.chat.system.transform": async (input2, output) => {
+    "determinus.system.turn": async (input2, output) => {
       try {
         const pluginBundleFreshness = await getPluginBundleFreshness(
           pluginBundleDistDir
@@ -102199,26 +102132,11 @@ var advancePluginImpl = async (input) => {
           state.lastSessionHealthIssue.surfaced = true;
         }
       } catch (e) {
-        debugLog3(`experimental.chat.system.transform error: ${e}`);
+        debugLog3(`determinus.system.turn error: ${e}`);
       }
     },
-    "experimental.chat.messages.transform": async (_input, output) => {
-      try {
-        if (!Array.isArray(output.messages)) return;
-        const result3 = compactPromptMessages(output.messages);
-        if (result3.droppedBlank > 0 || result3.compactedToolOutputs > 0 || result3.compactedDiffs > 0) {
-          state.lastSessionHealthIssue = {
-            kind: "message-history",
-            message: `Sanitized prompt history: dropped ${result3.droppedBlank} blank assistant message(s), compacted ${result3.compactedToolOutputs} oversized tool output(s), compacted ${result3.compactedDiffs} oversized diff(s).`,
-            detectedAt: Date.now()
-          };
-          debugLog3(state.lastSessionHealthIssue.message);
-        }
-      } catch (e) {
-        debugLog3(`experimental.chat.messages.transform error: ${e}`);
-      }
-    },
-    // Session Compaction Hook
+    // Session Compaction Turn (v2: served via ctx.session.hook("context")
+    // with kind === "compaction"; see the setup wrapper below).
     //
     // Single combined context entry per AC2: composes a change-context
     // snapshot (via buildChangeContextSnapshot â€” same formatter the live
@@ -102226,7 +102144,7 @@ var advancePluginImpl = async (input) => {
     // the in-progress task's durable run ledger. Stale-ledger detection
     // (AC7) replaces the resume hint with an explicit warning when the
     // referenced task is cancelled or done.
-    "experimental.session.compacting": async (_input, output) => {
+    "determinus.compaction.turn": async (_input, output) => {
       try {
         const changeId = state.activeChange.id;
         if (!changeId || !store) {
@@ -102298,6 +102216,7 @@ var advancePluginImpl = async (input) => {
     }
   };
 };
+var AdvancePlugin = advancePluginImpl;
 var src_default = plugin_exports.define({
   id: "determinus",
   setup: async (ctx) => {
@@ -102333,7 +102252,6 @@ var src_default = plugin_exports.define({
       directory,
       worktree,
       project,
-      experimental_workspace: void 0,
       client: shimClient,
       serverUrl
     };
@@ -102462,7 +102380,10 @@ var src_default = plugin_exports.define({
           if (typeof output.output === "string" && output.output !== originalOutput) {
             event.result = {
               ...event.result,
-              content: [{ type: "text", text: output.output }, ...Array.isArray(event.result?.content) ? event.result.content.filter((p) => p?.type !== "text") : []],
+              content: [
+                { type: "text", text: output.output },
+                ...Array.isArray(event.result?.content) ? event.result.content.filter((p) => p?.type !== "text") : []
+              ],
               metadata: output.metadata ?? event.result?.metadata
             };
           } else if (output.metadata) {
@@ -102491,6 +102412,39 @@ var src_default = plugin_exports.define({
       cleanupCommands = await registerDeterminusCommands(ctx);
     } catch (e) {
       debugLog3(`determinus commands registration failed: ${e}`);
+    }
+    try {
+      const systemTurn = hooks?.["determinus.system.turn"];
+      const compactionTurn = hooks?.["determinus.compaction.turn"];
+      if (typeof systemTurn === "function" || typeof compactionTurn === "function") {
+        await ctx.session.hook("context", async (event) => {
+          try {
+            if (event?.kind === "compaction") {
+              if (typeof compactionTurn === "function") {
+                const systemArr = Array.isArray(event?.system) ? event.system : [];
+                await compactionTurn(
+                  { sessionID: event?.sessionID },
+                  { context: systemArr }
+                );
+                if (!Array.isArray(event?.system) && systemArr.length > 0) {
+                  try {
+                    event.system = systemArr;
+                  } catch {
+                  }
+                }
+              }
+              return;
+            }
+            if (typeof systemTurn === "function") {
+              await systemTurn({ sessionID: event?.sessionID }, event);
+            }
+          } catch (e) {
+            debugLog3(`determinus context hook failed: ${e}`);
+          }
+        });
+      }
+    } catch (e) {
+      debugLog3(`determinus context hook registration failed: ${e}`);
     }
     let eventController;
     if (hooks.event) {
@@ -102544,6 +102498,7 @@ var src_default = plugin_exports.define({
   }
 });
 export {
+  AdvancePlugin,
   compactPromptMessages,
   compactToolPart,
   compactV2ToolResultPart,

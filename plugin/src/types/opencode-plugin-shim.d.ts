@@ -19,9 +19,6 @@ declare module "@opencode-ai/plugin" {
     };
     client: any;
     serverUrl: URL;
-    experimental_workspace?: {
-      register?: (name: string, adapter: any) => void;
-    };
     $?: unknown;
   }
   export interface ToolDefinition {
@@ -51,15 +48,8 @@ declare module "@opencode-ai/plugin" {
     event?: (input: { event: unknown }) => Promise<void>;
     "tool.execute.before"?: (input: unknown, output: unknown) => Promise<void>;
     "tool.execute.after"?: (input: unknown, output: unknown) => Promise<void>;
-    "experimental.chat.system.transform"?: (
-      input: any,
-      output: any,
-    ) => Promise<void>;
-    "experimental.chat.messages.transform"?: (
-      input: any,
-      output: any,
-    ) => Promise<void>;
-    "experimental.session.compacting"?: (
+    "determinus.system.turn"?: (input: any, output: any) => Promise<void>;
+    "determinus.compaction.turn"?: (
       input: unknown,
       output: unknown,
     ) => Promise<void>;

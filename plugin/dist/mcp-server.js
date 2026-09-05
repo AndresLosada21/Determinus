@@ -22520,7 +22520,12 @@ function getExternalRootForProject(projectId) {
   const currentShard = basename(dataHome);
   const shardParent = dirname(dataHome);
   if (basename(shardParent) === "opencode-projects" && /^[0-9a-f]{40}$/.test(currentShard)) {
-    return join2(shardParent, projectId, "opencode/plugins/determinus", projectId);
+    return join2(
+      shardParent,
+      projectId,
+      "opencode/plugins/determinus",
+      projectId
+    );
   }
   return getExternalRoot(projectId);
 }

@@ -242,7 +242,7 @@ describe("active-change pointer hooks (T4/T5/T7)", () => {
   };
 
   const setMainSession = async (sessionID: string = "main") => {
-    await hooks["experimental.chat.system.transform"]!(
+    await hooks["determinus.system.turn"]!(
       { sessionID } as any,
       { system: [] } as any,
     );

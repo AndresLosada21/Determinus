@@ -16,7 +16,6 @@
  * identity — a single structural cast, not a version bridge.
  */
 
-
 import { z } from "zod";
 
 // Compatibility: old SDK exported `tool`, new SDK (v2) does not. Use fallback.

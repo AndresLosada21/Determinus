@@ -1,3 +1,5 @@
+import { Plugin } from '@opencode-ai/plugin';
+
 interface GitSessionContext {
     isWorktree: boolean;
     isMainCheckout: boolean;
@@ -16,8 +18,10 @@ declare function resolveGitSessionContext(directory: string, worktree: string | 
  * - ctx.tool.transform / ctx.tool.hook("execute.before"/"execute.after")
  * - ctx.event.subscribe (+ installCacheRuntime)
  * Legacy `advancePluginImpl` below is an internal adapter preserving the
- * pre-v2 tool/event behavior for tests; its `experimental.chat.*` hooks are
- * never registered on the v2 host.
+ * pre-v2 tool/event behavior for tests; its `determinus.system.turn` and
+ * `determinus.compaction.turn` entries are served on the v2 host through
+ * `ctx.session.hook("context")` (see the setup wrapper), never as legacy
+ * host hooks.
  */
 
 /**
@@ -53,6 +57,7 @@ declare const enforcePromptHistoryBudget: (messages: Array<any>) => {
     retainedChars: any;
     limit: null;
 };
+declare const AdvancePlugin: Plugin;
 declare const _default: any;
 
-export { compactPromptMessages, compactToolPart, compactV2ToolResultPart, _default as default, enforcePromptHistoryBudget, fallbackPersistedMarker, persistFallbackContent, resolveGitSessionContext };
+export { AdvancePlugin, compactPromptMessages, compactToolPart, compactV2ToolResultPart, _default as default, enforcePromptHistoryBudget, fallbackPersistedMarker, persistFallbackContent, resolveGitSessionContext };
