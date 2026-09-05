@@ -16671,6 +16671,10 @@ var BriefingPacketSectionKindSchema = external_exports.enum([
   "scope",
   "contract",
   "tasks",
+  // ST-13: additive kind — old readers never see it because packets are
+  // rendered live per version, never persisted across releases. No schema
+  // version bump: existing kinds and their positions are untouched.
+  "active_slice",
   "affected_files",
   "epic_context",
   "verification_expectations",
@@ -17464,7 +17468,17 @@ var TestRunRecordSchema = external_exports.object({
   mockSurface: external_exports.array(external_exports.object({ pattern: external_exports.string(), count: external_exports.number() })).optional(),
   behaviorSurface: external_exports.enum(["small", "medium", "large"]).optional(),
   evidence_kind: external_exports.enum(["unit", "other"]).optional(),
-  recordedAt: external_exports.string()
+  recordedAt: external_exports.string(),
+  // ST-08/ST-09/ST-11/ST-12/ST-14: TDD enforcement evidence. All optional so
+  // legacy runs (pre-fingerprint) load unchanged; unknown absence means
+  // "not recorded", and validators treat absent fields as pass-through
+  // (grandfather), never as failure. Without these declarations zod strips
+  // them on load and checkpoint enforcement silently degrades to fail→pass.
+  failure_class: external_exports.string().optional(),
+  failure_signal: external_exports.string().optional(),
+  test_fingerprint: external_exports.string().optional(),
+  spec_revision: external_exports.string().optional(),
+  workspace_snapshot: external_exports.string().optional()
 });
 var ProjectionCommitAuditEntrySchema = external_exports.object({
   mutation_kind: external_exports.string().min(1),

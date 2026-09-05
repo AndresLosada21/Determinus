@@ -17853,6 +17853,10 @@ var init_briefing_packets = __esm({
       "scope",
       "contract",
       "tasks",
+      // ST-13: additive kind — old readers never see it because packets are
+      // rendered live per version, never persisted across releases. No schema
+      // version bump: existing kinds and their positions are untouched.
+      "active_slice",
       "affected_files",
       "epic_context",
       "verification_expectations",
@@ -18905,7 +18909,17 @@ var init_changes = __esm({
       mockSurface: external_exports.array(external_exports.object({ pattern: external_exports.string(), count: external_exports.number() })).optional(),
       behaviorSurface: external_exports.enum(["small", "medium", "large"]).optional(),
       evidence_kind: external_exports.enum(["unit", "other"]).optional(),
-      recordedAt: external_exports.string()
+      recordedAt: external_exports.string(),
+      // ST-08/ST-09/ST-11/ST-12/ST-14: TDD enforcement evidence. All optional so
+      // legacy runs (pre-fingerprint) load unchanged; unknown absence means
+      // "not recorded", and validators treat absent fields as pass-through
+      // (grandfather), never as failure. Without these declarations zod strips
+      // them on load and checkpoint enforcement silently degrades to fail→pass.
+      failure_class: external_exports.string().optional(),
+      failure_signal: external_exports.string().optional(),
+      test_fingerprint: external_exports.string().optional(),
+      spec_revision: external_exports.string().optional(),
+      workspace_snapshot: external_exports.string().optional()
     });
     ProjectionCommitAuditEntrySchema = external_exports.object({
       mutation_kind: external_exports.string().min(1),
@@ -44107,6 +44121,18 @@ function buildTasksSection(input) {
     omitted
   });
 }
+function buildActiveSliceSection(input) {
+  const slice = input.active_slice;
+  if (!slice || !isNonEmptyString(slice.active_slice)) return void 0;
+  return section("active_slice", "slice.projection", {
+    active_slice: slice.active_slice,
+    scenario: slice.scenario,
+    tdd_state: slice.tdd_state,
+    allowed: slice.allowed,
+    forbidden: slice.forbidden,
+    target: slice.target
+  });
+}
 function buildAffectedFilesSection(input) {
   const files = input.affected_files ?? [];
   if (!files.length) return void 0;
@@ -44232,6 +44258,7 @@ function renderBriefingPacket(input) {
     scope: buildScopeSection,
     contract: buildContractSection,
     tasks: buildTasksSection,
+    active_slice: buildActiveSliceSection,
     affected_files: buildAffectedFilesSection,
     epic_context: buildEpicContextSection,
     verification_expectations: buildVerificationExpectationsSection,
@@ -44301,6 +44328,7 @@ var init_briefing_packet_renderer = __esm({
         "scope",
         "contract",
         "tasks",
+        "active_slice",
         "affected_files",
         "epic_context",
         "verification_expectations",
@@ -44322,6 +44350,7 @@ var init_briefing_packet_renderer = __esm({
         "scope",
         "contract",
         "tasks",
+        "active_slice",
         "affected_files",
         "epic_context",
         "verification_expectations",
@@ -51957,7 +51986,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("9ab6177b1c78277d94801d004c7ca428d7f3a234e95030a683dc6fd2d07a3d0d") ? "9ab6177b1c78277d94801d004c7ca428d7f3a234e95030a683dc6fd2d07a3d0d" : null;
+  return /^[0-9a-f]{64}$/.test("77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562") ? "77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -52433,6 +52462,57 @@ var init_ops_followup_reconciliation = __esm({
   }
 });
 
+// src/utils/slice-context.ts
+function inferTddState(status) {
+  if (status === "done") return "VERIFIED";
+  if (status === "in_progress") return "RED_PROVEN";
+  return "TEST_READY";
+}
+function buildSliceContext(change, activeTaskId) {
+  const tasks = change.tasks ?? [];
+  const active = tasks.find((t) => t.id === activeTaskId) ?? tasks.find((t) => t.status === "in_progress") ?? tasks.find((t) => t.status === "pending") ?? tasks[0];
+  const activeId = active?.id ?? "";
+  const scenario = active?.title ?? "";
+  const design = change.design ?? "";
+  const tdd_state = inferTddState(active?.status);
+  if (tdd_state === "TEST_READY") {
+    return {
+      active_slice: activeId,
+      scenario,
+      design,
+      tdd_state,
+      allowed: ["edit tests", "run active TestCase"],
+      forbidden: ["production behavior changes", "complete task"],
+      target: "reach RED_PROVEN"
+    };
+  }
+  if (tdd_state === "VERIFIED") {
+    return {
+      active_slice: activeId,
+      scenario,
+      design,
+      tdd_state,
+      allowed: ["read evidence"],
+      forbidden: ["re-edit without new slice"],
+      target: "next slice"
+    };
+  }
+  return {
+    active_slice: activeId,
+    scenario,
+    design,
+    tdd_state: active?.status === "in_progress" ? "RED_PROVEN" : "IMPLEMENTING",
+    allowed: ["production edits", "run focused test"],
+    forbidden: ["complete task before GREEN+VERIFY"],
+    target: "reach GREEN"
+  };
+}
+var init_slice_context = __esm({
+  "src/utils/slice-context.ts"() {
+    "use strict";
+  }
+});
+
 // src/validator/cycle-detect.ts
 function detectCycles(nodes, getDeps, getKey = (n) => String(n)) {
   if (nodes.length === 0) {
@@ -52781,6 +52861,18 @@ async function buildBriefingPacketForChange(store, change, lane = DEFAULT_BRIEFI
   for (const task of change.tasks ?? []) {
     for (const file2 of task.touched_files ?? []) affectedFiles.add(file2);
   }
+  const activeTask = change.tasks?.find((t) => t.status === "in_progress") ?? change.tasks?.find((t) => t.status === "pending");
+  const active_slice = buildSliceContext(
+    {
+      id: change.id,
+      tasks: (change.tasks ?? []).map((t) => ({
+        id: t.id,
+        title: t.title,
+        status: t.status
+      }))
+    },
+    activeTask?.id
+  );
   const reviewMatrixById = new Map(
     change.contract?.reviewMatrix?.rows.map((row) => [row.contractId, row])
   );
@@ -52816,6 +52908,7 @@ async function buildBriefingPacketForChange(store, change, lane = DEFAULT_BRIEFI
     ...change.epic_membership && epicMembershipVerification ? { epic_membership_verification: epicMembershipVerification } : {},
     verification_expectations: verificationExpectations.length > 0 ? verificationExpectations : void 0,
     durable_facts: collectBriefingFactsForReadback(change),
+    active_slice,
     archive_digest: void 0,
     generated_by: briefingPacketGeneratedBy(lane, request3),
     generated_at: (/* @__PURE__ */ new Date()).toISOString()
@@ -52838,6 +52931,7 @@ var init_helpers = __esm({
     init_debug_log();
     init_subagent_reports();
     init_artifacts2();
+    init_slice_context();
     init_archive_gate();
     init_change_mutation_coordinator();
     init_work_graph_validation();
@@ -58624,13 +58718,49 @@ function findRun(runs, runId) {
   if (index2 < 0) return null;
   return { run: runs[index2], index: index2 };
 }
-function autoDetectPair(runs) {
+function matchesOracle(run2, oracle) {
+  if (!oracle) return true;
+  if (oracle.allowed_failure_class && run2.failure_class && run2.failure_class !== oracle.allowed_failure_class) {
+    return false;
+  }
+  if (oracle.allowed_failure_class && !run2.failure_class && // No class recorded: only accept when no oracle class is demanded.
+  true) {
+    return false;
+  }
+  if (oracle.expected_signal) {
+    const signal = run2.failure_signal ?? "";
+    if (!signal.includes(oracle.expected_signal)) return false;
+  }
+  return true;
+}
+function fingerprintOrigin(fp) {
+  const sep5 = fp?.indexOf(":") ?? -1;
+  return sep5 > 0 ? fp?.slice(0, sep5) : void 0;
+}
+function fingerprintsCompatible(red, green) {
+  if (red.test_fingerprint && green.test_fingerprint) {
+    const redOrigin = fingerprintOrigin(red.test_fingerprint);
+    const greenOrigin = fingerprintOrigin(green.test_fingerprint);
+    if (redOrigin && greenOrigin && redOrigin !== greenOrigin) return true;
+    return red.test_fingerprint === green.test_fingerprint;
+  }
+  return true;
+}
+function isCurrentRevision(run2, current_spec_revision) {
+  if (!current_spec_revision) return true;
+  if (!run2.spec_revision) return true;
+  return run2.spec_revision === current_spec_revision;
+}
+function autoDetectPair(runs, oracle, current_spec_revision) {
   for (let red = 0; red < runs.length; red++) {
     if (isPassedRun(runs[red])) continue;
+    if (!matchesOracle(runs[red], oracle)) continue;
+    if (!isCurrentRevision(runs[red], current_spec_revision)) continue;
     for (let green = red + 1; green < runs.length; green++) {
-      if (isPassedRun(runs[green])) {
-        return { redRunId: runs[red].runId, greenRunId: runs[green].runId };
-      }
+      if (!isPassedRun(runs[green])) continue;
+      if (!isCurrentRevision(runs[green], current_spec_revision)) continue;
+      if (!fingerprintsCompatible(runs[red], runs[green])) continue;
+      return { redRunId: runs[red].runId, greenRunId: runs[green].runId };
     }
   }
   return null;
@@ -58718,13 +58848,55 @@ function checkTddOrdering(input) {
         `Re-run red then green in order (or omit refs for auto-detection of a valid pair).`
       );
     }
+    if (input.oracle && !matchesOracle(red.run, input.oracle)) {
+      return refuse(
+        `Task ${taskId} red ref ${red.run.runId} does not match the declared red_oracle (class/signal mismatch) \u2014 RED_AMBIGUOUS, not RED_PROVEN.`,
+        `Re-run determinus_run_test with phase:'red' against the expected failing behavior, then retry.`
+      );
+    }
+    if (!fingerprintsCompatible(red.run, green.run)) {
+      return refuse(
+        `Task ${taskId} RED_STALE: test fingerprint changed between red ${red.run.runId} and green ${green.run.runId} \u2014 the test was weakened, not the code fixed.`,
+        `Restore the test definition and re-prove RED, then GREEN.`
+      );
+    }
+    if (input.current_spec_revision && (!isCurrentRevision(red.run, input.current_spec_revision) || !isCurrentRevision(green.run, input.current_spec_revision))) {
+      return refuse(
+        `Task ${taskId} evidence is STALE for the current spec revision \u2014 re-prove RED\u2192GREEN.`,
+        `Re-run determinus_run_test red then green against the current spec.`
+      );
+    }
     return {
       ok: true,
       pair: { redRunId: red.run.runId, greenRunId: green.run.runId }
     };
   }
-  const pair = autoDetectPair(runs);
+  const pair = autoDetectPair(runs, input.oracle, input.current_spec_revision);
   if (!pair) {
+    for (let red = 0; red < runs.length; red++) {
+      if (isPassedRun(runs[red])) continue;
+      for (let green = red + 1; green < runs.length; green++) {
+        if (!isPassedRun(runs[green])) continue;
+        if (!fingerprintsCompatible(runs[red], runs[green])) {
+          return refuse(
+            `Task ${taskId} RED_STALE: test fingerprint changed between red ${runs[red].runId} and green ${runs[green].runId} \u2014 the test was weakened, not the code fixed.`,
+            `Restore the test definition and re-prove RED, then GREEN.`
+          );
+        }
+        if (input.current_spec_revision && (!isCurrentRevision(runs[red], input.current_spec_revision) || !isCurrentRevision(runs[green], input.current_spec_revision))) {
+          return refuse(
+            `Task ${taskId} evidence is STALE for the current spec revision \u2014 re-prove RED\u2192GREEN.`,
+            `Re-run determinus_run_test red then green against the current spec.`
+          );
+        }
+        if (input.oracle && !matchesOracle(runs[red], input.oracle)) {
+          return refuse(
+            `Task ${taskId} red ${runs[red].runId} does not match the declared red_oracle \u2014 RED_AMBIGUOUS, not RED_PROVEN.`,
+            `Re-run determinus_run_test with phase:'red' against the expected failing behavior, then retry.`
+          );
+        }
+      }
+    }
     const hint = runs.length === 0 ? "no test runs are recorded for this task" : "no failed-then-passed sequence exists in the recorded runs";
     return refuse(
       `Task ${taskId} (tdd_intent inline) has no red\u2192green pair: ${hint}.`,
@@ -72514,6 +72686,18 @@ var init_project2 = __esm({
   }
 });
 
+// src/utils/spec-revision.ts
+import { createHash as createHash18 } from "crypto";
+function computeSpecRevision(documents) {
+  const payload = JSON.stringify(documents ?? {});
+  return createHash18("sha256").update(payload).digest("hex").slice(0, 12);
+}
+var init_spec_revision = __esm({
+  "src/utils/spec-revision.ts"() {
+    "use strict";
+  }
+});
+
 // src/tools/test-quality.ts
 import { readFileSync as readFileSync5 } from "fs";
 function extractTestFilePath(command) {
@@ -72599,15 +72783,73 @@ var init_test_quality = __esm({
 
 // src/tools/test.ts
 import { spawn as spawn5 } from "child_process";
-import { existsSync as existsSync15 } from "fs";
-import { randomBytes as randomBytes2 } from "crypto";
+import { existsSync as existsSync15, readFileSync as readFileSync6 } from "fs";
+import { execFileSync as execFileSync2 } from "child_process";
+import { createHash as createHash19, randomBytes as randomBytes2 } from "crypto";
 import { dirname as dirname22, join as join52, resolve as resolve21 } from "path";
-var DEFAULT_TEST_TIMEOUT_MS, DEFAULT_TEST_MAX_BUFFER, DEFAULT_OUTPUT_MAX_LENGTH, TEST_RUN_RING_BUFFER_LIMIT, TRUNCATION_SUFFIX, determinus_RUN_TEST_PHASES, FAILURE_LINE, SUMMARY_LINE, DIRECT_TEST_WORKFLOW, OC_TEST_WRAPPER_COMMAND, EVIDENCE_COMMAND, appendUnique, withTruncationSuffix, shapeCommandOutput, killSubprocess, classifyRun, formatRecordingError, findRepoLocalTestWrapper, buildTestWorkflowAdvisories, runCommand, testTools;
+function stripAnsiTerminal(text) {
+  return text.replace(ANSI_ESCAPE_RE, "");
+}
+function normalizeTestContent(content) {
+  return stripAnsiTerminal(content).replace(/\r\n/g, "\n").split("\n").map((line) => line.trim().replace(/\s+/g, " ")).filter((line) => line.length > 0).join("\n");
+}
+function hash12(payload) {
+  return createHash19("sha256").update(payload).digest("hex").slice(0, 12);
+}
+function computeTestFingerprint(command, cwd) {
+  const normalizedCmd = command.trim().replace(/\s+/g, " ");
+  const testFile = extractTestFilePath(command);
+  if (testFile && cwd) {
+    try {
+      const abs2 = resolve21(cwd, testFile);
+      if (existsSync15(abs2)) {
+        return `file:${hash12(normalizeTestContent(readFileSync6(abs2, "utf8")))}`;
+      }
+    } catch {
+    }
+  }
+  return `cmd:${hash12(normalizedCmd)}`;
+}
+function classifyFailureClass(output, exitCode) {
+  if (exitCode === 0) return "none";
+  if (/Cannot find module|ModuleNotFound|ERR_MODULE_NOT_FOUND/i.test(output))
+    return "module_not_found";
+  if (/AssertionError|expected .* but (received|got)|toBe|toEqual|toMatch/i.test(
+    output
+  ))
+    return "assertion_failure";
+  if (/timed out|Timeout|ETIMEDOUT/i.test(output)) return "timeout";
+  if (/spawn|ENOENT|not recognized|not found.*command/i.test(output))
+    return "command_failure";
+  return "command_failure";
+}
+function extractFailureSignal(output) {
+  const clean = stripAnsiTerminal(output);
+  const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+  const assertion = lines.filter((l) => ASSERTION_LINE_RE.test(l)).slice(-1)[0];
+  const hinted = assertion ?? lines.filter((l) => FAILURE_HINT_RE.test(l)).slice(-1)[0];
+  return (hinted ?? lines.slice(-1)[0] ?? "").slice(0, 200);
+}
+function resolveWorkspaceSnapshot(cwd) {
+  try {
+    const sha = execFileSync2("git", ["rev-parse", "HEAD"], {
+      cwd,
+      encoding: "utf8",
+      timeout: 5e3
+    }).trim();
+    if (/^[0-9a-f]{40}$/i.test(sha)) return sha.slice(0, 12);
+    return sha.slice(0, 12);
+  } catch {
+    return `dirty-${Date.now().toString(36)}`;
+  }
+}
+var DEFAULT_TEST_TIMEOUT_MS, DEFAULT_TEST_MAX_BUFFER, DEFAULT_OUTPUT_MAX_LENGTH, TEST_RUN_RING_BUFFER_LIMIT, TRUNCATION_SUFFIX, ANSI_ESCAPE_RE, ASSERTION_LINE_RE, FAILURE_HINT_RE, determinus_RUN_TEST_PHASES, FAILURE_LINE, SUMMARY_LINE, DIRECT_TEST_WORKFLOW, OC_TEST_WRAPPER_COMMAND, EVIDENCE_COMMAND, appendUnique, withTruncationSuffix, shapeCommandOutput, killSubprocess, classifyRun, formatRecordingError, findRepoLocalTestWrapper, buildTestWorkflowAdvisories, runCommand, testTools;
 var init_test = __esm({
   "src/tools/test.ts"() {
     "use strict";
     init_zod();
     init_tool_output();
+    init_spec_revision();
     init_metrics();
     init_target_project();
     init_test_quality();
@@ -72617,6 +72859,10 @@ var init_test = __esm({
     DEFAULT_OUTPUT_MAX_LENGTH = 900;
     TEST_RUN_RING_BUFFER_LIMIT = 8;
     TRUNCATION_SUFFIX = "... (truncated)";
+    ANSI_ESCAPE_RE = // eslint-disable-next-line no-control-regex
+    /[][[()#;?]*(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PRZcf-nqry=><]/g;
+    ASSERTION_LINE_RE = /AssertionError|expected\b/;
+    FAILURE_HINT_RE = /AssertionError|expected\b|FAIL\b|Error:|×|✗|\bfailed\b/i;
     determinus_RUN_TEST_PHASES = ["red", "green", "verify"];
     FAILURE_LINE = /\b(?:fail(?:ed|ure|ures)?|error|exception|assert(?:ion)?|expected|received)\b|\b[\w./-]+:\d+:\d+\b|\bat\s+.*:\d+:\d+\b/i;
     SUMMARY_LINE = /\b(?:tests?|test files?|passed|failed|skipped|duration|time|pass|ok)\b/i;
@@ -72920,6 +73166,10 @@ ${TRUNCATION_SUFFIX}`;
             const taskInfo = await store.tasks.show(args2.taskId);
             if (taskInfo?.changeId) {
               const recordedAt = (/* @__PURE__ */ new Date()).toISOString();
+              const combinedOutput = stripAnsiTerminal(
+                `${stdout ?? ""}
+${stderr ?? ""}`
+              ).slice(0, 2e3);
               const record3 = {
                 runId,
                 ...args2.phase && { phase: args2.phase },
@@ -72933,6 +73183,10 @@ ${TRUNCATION_SUFFIX}`;
                   mockSurface: qualitySignals.mockSurface,
                   behaviorSurface: qualitySignals.behaviorSurface
                 },
+                failure_class: classifyFailureClass(combinedOutput, exitCode),
+                failure_signal: extractFailureSignal(combinedOutput),
+                test_fingerprint: computeTestFingerprint(args2.command, cwd),
+                workspace_snapshot: resolveWorkspaceSnapshot(cwd),
                 recordedAt
               };
               const outcome = await coordinateChangeMutation({
@@ -72946,13 +73200,17 @@ ${TRUNCATION_SUFFIX}`;
                   mutationKind: "test_run_recorded",
                   mutateLatestProjection: (latest2) => {
                     const existing = latest2.test_runs?.[args2.taskId] ?? [];
+                    const spec_revision = computeSpecRevision(
+                      latest2.documents
+                    );
                     return {
                       ...latest2,
                       test_runs: {
                         ...latest2.test_runs ?? {},
-                        [args2.taskId]: [...existing, record3].slice(
-                          -TEST_RUN_RING_BUFFER_LIMIT
-                        )
+                        [args2.taskId]: [
+                          ...existing,
+                          { ...record3, spec_revision }
+                        ].slice(-TEST_RUN_RING_BUFFER_LIMIT)
                       }
                     };
                   },
@@ -73275,19 +73533,30 @@ async function checkCheckpointTddEvidence(store, input) {
   const changeId = input.changeId ?? taskInfo.changeId;
   if (!changeId) return { ok: true };
   let testRuns;
+  let liveDocuments;
   try {
     const loaded = await loadChange(store.paths.changes, changeId);
     if (!loaded.success || !loaded.data) return { ok: true };
     testRuns = loaded.data.test_runs ?? {};
+    liveDocuments = loaded.data.documents;
   } catch {
     return { ok: true };
   }
+  const oracleClass = taskInfo.metadata?.red_oracle_class;
+  const oracleSignal = taskInfo.metadata?.red_oracle_signal;
+  const oracle = oracleClass || oracleSignal ? {
+    allowed_failure_class: oracleClass,
+    expected_signal: oracleSignal
+  } : void 0;
+  const liveSpecRevision = liveDocuments ? computeSpecRevision(liveDocuments) : void 0;
   const result3 = checkTddOrdering({
     taskId: input.taskId,
     intent: taskInfo.metadata?.tdd_intent,
     runs: testRuns[input.taskId] ?? [],
     refs: input.refs,
-    enforcement
+    enforcement,
+    oracle,
+    current_spec_revision: liveSpecRevision ?? taskInfo.metadata?.spec_revision
   });
   if (result3.ok) return { ok: true, advisory: result3.advisory };
   return {
@@ -73518,6 +73787,7 @@ var init_checkpoint = __esm({
     init_change_mutation_coordinator();
     init_target_project();
     init_change_projection_reader();
+    init_spec_revision();
     init_extract_structured_output();
     init_wisdom_draft();
     DEFAULT_TIMEOUT_MS3 = 3e4;
@@ -77204,7 +77474,7 @@ __export(manifest_frontmatter_exports, {
   runtimeFrontmatterCheck: () => runtimeFrontmatterCheck,
   scanDir: () => scanDir
 });
-import { readFileSync as readFileSync6, readdirSync as readdirSync5, statSync as statSync6 } from "fs";
+import { readFileSync as readFileSync7, readdirSync as readdirSync5, statSync as statSync6 } from "fs";
 import { join as join55 } from "path";
 import { homedir as homedir5 } from "os";
 function parseFrontmatterText(text) {
@@ -77241,7 +77511,7 @@ function parseFrontmatterText(text) {
 function parseFrontmatter(filePath) {
   let text;
   try {
-    text = readFileSync6(filePath, "utf8");
+    text = readFileSync7(filePath, "utf8");
   } catch {
     return { ok: true, doc: null };
   }
@@ -100789,7 +101059,7 @@ init_git();
 init_target_project();
 init_git_session();
 import { existsSync as existsSync17, mkdirSync as mkdirSync7, writeFileSync as writeFileSync7 } from "fs";
-import { createHash as createHash20 } from "crypto";
+import { createHash as createHash22 } from "crypto";
 
 // src/tool-role-firewall.ts
 init_tool_registry();
@@ -101018,7 +101288,7 @@ init_state();
 // src/cache-runtime.ts
 init_plugin_bundle_manifest();
 init_result_artifacts();
-import { createHash as createHash19 } from "crypto";
+import { createHash as createHash21 } from "crypto";
 import { mkdirSync as mkdirSync6, renameSync as renameSync4, writeFileSync as writeFileSync6 } from "fs";
 import { homedir as homedir6 } from "os";
 import { join as join56 } from "path";
@@ -101028,7 +101298,7 @@ import {
   createServer
 } from "http";
 import { request as httpsRequest } from "https";
-import { createHash as createHash18, randomBytes as randomBytes3 } from "crypto";
+import { createHash as createHash20, randomBytes as randomBytes3 } from "crypto";
 var CACHE_RELEASE = "3.0.4";
 var BODY_LIMIT = 32 * 1024 * 1024;
 var HOP = /* @__PURE__ */ new Set([
@@ -101067,7 +101337,7 @@ function sessionIdentity(headers, body) {
   } catch {
   }
   return {
-    id: "det-aux-" + createHash18("sha256").update(body).digest("hex"),
+    id: "det-aux-" + createHash20("sha256").update(body).digest("hex"),
     source: "standalone-operation"
   };
 }
@@ -101131,7 +101401,7 @@ async function createCacheGateway(options2) {
     const entry = {
       service: upstream.pathname.startsWith("/zen/go/") ? "go" : "zen",
       identitySource: identity3.source,
-      sessionHash: createHash18("sha256").update(identity3.id).digest("hex").slice(0, 16),
+      sessionHash: createHash20("sha256").update(identity3.id).digest("hex").slice(0, 16),
       sessionPresent: true,
       userAgentPresent: true,
       requestBytes: body.length
@@ -101236,7 +101506,7 @@ async function createCacheGateway(options2) {
 // src/cache-runtime.ts
 var RESULT_LIMIT = 6e3;
 var CONTEXT_LIMIT = 96e3;
-var digest = (text) => createHash19("sha256").update(text).digest("hex");
+var digest = (text) => createHash21("sha256").update(text).digest("hex");
 var isRecord2 = (x) => typeof x === "object" && x !== null && !Array.isArray(x);
 function containResult(tool2, result3, persist) {
   if (!isRecord2(result3) || /(?:^|[._/])skill$/i.test(tool2)) return result3;
@@ -101736,7 +102006,15 @@ var DETERMINUS_TDD_SKILL = {
     "never via task_update status done. Cross-cutting verification uses",
     "tdd_intent separate_verification with an explicit lastEvidenceRunId.",
     "Reclassify tdd_intent to not_applicable (with user approval) when TDD",
-    "truly does not apply."
+    "truly does not apply.",
+    "",
+    "Declare the red oracle in task metadata when the Scenario's expected",
+    "failure is known before the run (from /determinus-prep):",
+    "metadata.red_oracle_class (e.g. assertion_failure) and",
+    "metadata.red_oracle_signal (expected substring, e.g. expected 401).",
+    "Checkpoint enforces RED_AMBIGUOUS unless RED matches; absent keys keep",
+    "legacy pass-through. A spec bump after GREEN turns evidence STALE until",
+    "re-proven \u2014 re-run red\u2192green against current documents."
   ].join("\n")
 };
 function getDeterminusSkillDefs() {
@@ -101775,7 +102053,7 @@ var FALLBACK_EXCERPT_CHARS = 500;
 var fallbackSinkDir = () => process.env.determinus_FALLBACK_SINK_DIR ?? DEFAULT_FALLBACK_SINK_DIR;
 var persistFallbackContent = (content, dir = fallbackSinkDir()) => {
   try {
-    const hash3 = createHash20("sha256").update(content).digest("hex").slice(0, 16);
+    const hash3 = createHash22("sha256").update(content).digest("hex").slice(0, 16);
     const filePath = join57(dir, `fallback-report-${hash3}.md`);
     if (!existsSync17(filePath)) {
       mkdirSync7(dir, { recursive: true });

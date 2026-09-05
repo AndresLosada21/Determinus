@@ -17645,6 +17645,10 @@ var init_briefing_packets = __esm({
       "scope",
       "contract",
       "tasks",
+      // ST-13: additive kind — old readers never see it because packets are
+      // rendered live per version, never persisted across releases. No schema
+      // version bump: existing kinds and their positions are untouched.
+      "active_slice",
       "affected_files",
       "epic_context",
       "verification_expectations",
@@ -18471,7 +18475,17 @@ var init_changes = __esm({
       mockSurface: external_exports.array(external_exports.object({ pattern: external_exports.string(), count: external_exports.number() })).optional(),
       behaviorSurface: external_exports.enum(["small", "medium", "large"]).optional(),
       evidence_kind: external_exports.enum(["unit", "other"]).optional(),
-      recordedAt: external_exports.string()
+      recordedAt: external_exports.string(),
+      // ST-08/ST-09/ST-11/ST-12/ST-14: TDD enforcement evidence. All optional so
+      // legacy runs (pre-fingerprint) load unchanged; unknown absence means
+      // "not recorded", and validators treat absent fields as pass-through
+      // (grandfather), never as failure. Without these declarations zod strips
+      // them on load and checkpoint enforcement silently degrades to fail→pass.
+      failure_class: external_exports.string().optional(),
+      failure_signal: external_exports.string().optional(),
+      test_fingerprint: external_exports.string().optional(),
+      spec_revision: external_exports.string().optional(),
+      workspace_snapshot: external_exports.string().optional()
     });
     ProjectionCommitAuditEntrySchema = external_exports.object({
       mutation_kind: external_exports.string().min(1),
@@ -25576,6 +25590,18 @@ function buildTasksSection(input) {
     omitted
   });
 }
+function buildActiveSliceSection(input) {
+  const slice = input.active_slice;
+  if (!slice || !isNonEmptyString(slice.active_slice)) return void 0;
+  return section("active_slice", "slice.projection", {
+    active_slice: slice.active_slice,
+    scenario: slice.scenario,
+    tdd_state: slice.tdd_state,
+    allowed: slice.allowed,
+    forbidden: slice.forbidden,
+    target: slice.target
+  });
+}
 function buildAffectedFilesSection(input) {
   const files = input.affected_files ?? [];
   if (!files.length) return void 0;
@@ -25701,6 +25727,7 @@ function renderBriefingPacket(input) {
     scope: buildScopeSection,
     contract: buildContractSection,
     tasks: buildTasksSection,
+    active_slice: buildActiveSliceSection,
     affected_files: buildAffectedFilesSection,
     epic_context: buildEpicContextSection,
     verification_expectations: buildVerificationExpectationsSection,
@@ -25770,6 +25797,7 @@ var init_briefing_packet_renderer = __esm({
         "scope",
         "contract",
         "tasks",
+        "active_slice",
         "affected_files",
         "epic_context",
         "verification_expectations",
@@ -25791,6 +25819,7 @@ var init_briefing_packet_renderer = __esm({
         "scope",
         "contract",
         "tasks",
+        "active_slice",
         "affected_files",
         "epic_context",
         "verification_expectations",
@@ -40011,7 +40040,7 @@ var PLUGIN_BUNDLE_MANIFEST_SCHEMA_VERSION = 1;
 var PLUGIN_BUNDLE_STALE_ADVISORY = "PLUGIN_BUNDLE_STALE";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("9ab6177b1c78277d94801d004c7ca428d7f3a234e95030a683dc6fd2d07a3d0d") ? "9ab6177b1c78277d94801d004c7ca428d7f3a234e95030a683dc6fd2d07a3d0d" : null;
+  return /^[0-9a-f]{64}$/.test("77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562") ? "77ad558bfb6814666b4dbb458a75016ce40646d5f80c5db9560b203b538d2562" : null;
 }
 var LOADED_PLUGIN_BUNDLE_GENERATION = captureLoadedPluginBundleGeneration();
 function getLoadedPluginBundleGeneration() {

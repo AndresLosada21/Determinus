@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "digest": "sha256:14feac610a795801db6da693daba2f7b7fab40a3980f754c6f39e02fb24fc9c4",
+  "digest": "sha256:5de3ed655bc01514ced878e92ed7677a0960297ade7a7bf2a70492381aad8a65",
   "files": [
     {
       "path": "doctor-cli.d.ts",
@@ -9,8 +9,8 @@
     },
     {
       "path": "doctor-cli.js",
-      "sha256": "a5bc85c6c1fd556e6b41160b337c8ce4819210a0ca7769b58cf675cecc649664",
-      "bytes": 1573356
+      "sha256": "2c48cca9a77b978670a0a4bb58286e217b0d938acf2d229c1c897002281a6ee2",
+      "bytes": 1574798
     },
     {
       "path": "index.d.ts",
@@ -19,8 +19,8 @@
     },
     {
       "path": "index.js",
-      "sha256": "ea84bed81cc928644428c65d8f407d03d055a4a98db1580a8735854264e86fd3",
-      "bytes": 3848626
+      "sha256": "0bd4dc047526dec19c35ee98c5215d8133f329b23eab4bb3a633151cda4a962e",
+      "bytes": 3860542
     },
     {
       "path": "mcp-server.d.ts",
@@ -29,12 +29,12 @@
     },
     {
       "path": "mcp-server.js",
-      "sha256": "83ef8b943c69f3cc036b9a4fe47979a8c6154126cf5c78e9c6460affe2ce79d0",
-      "bytes": 3279932
+      "sha256": "1022deb851c3ab0ad6d126d085b32127d066e2922464f30f6b7a58d48f61ff64",
+      "bytes": 3291302
     },
     {
       "path": "plugin-bundle-manifest.json",
-      "sha256": "5ce448ec5195faa3a5544378499ac45df82ad1cf6ea968d04c64d6265851b5b1",
+      "sha256": "15507b3397b6c6e2b512924b279e5f382b190d871ef705bc7986f2afba976d38",
       "bytes": 510
     },
     {
@@ -44,8 +44,8 @@
     },
     {
       "path": "reconcile-cli.js",
-      "sha256": "612591beee2c79bd3eec74a26338b63c8297885a37d0b7610a4b6354c84beba2",
-      "bytes": 1170351
+      "sha256": "8a2a44728e91a0f55ba20a767a492999d5ea379fef081c6ddc8a1e22ccc400d6",
+      "bytes": 1171306
     },
     {
       "path": "summary-candidates-cli.d.ts",
@@ -54,10 +54,10 @@
     },
     {
       "path": "summary-candidates-cli.js",
-      "sha256": "1c5d8a05bbed5ca6a98af009a9f373f60603cfc7ad2cdcc201ed845233126fe0",
-      "bytes": 724968
+      "sha256": "ab668267f894104b5946eba3f61d659bfc854d72d3293b08c86005251a78c106",
+      "bytes": 725867
     }
   ],
-  "computedAt": "2026-09-05T17:46:29.899Z",
+  "computedAt": "2026-09-05T23:20:30.440Z",
   "pluginRoot": "C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus\\plugin"
 }
