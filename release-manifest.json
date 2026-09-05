@@ -1,6 +1,7 @@
 {
   "version": "3.0.4",
   "files": {
+    ".gitignore": "d81ed4f401910e4c6a2421f9c7dcd98ff7b64507db190e8e1621c66e788afabc",
     ".opencode/agents/determinus.md": "3e865a56f42103ba3724eeabb5ab0368b52fc7b75db6a9cb127554e820bb8927",
     ".opencode/prompt-floor-baselines.json": "c9395bf3bc3408f729977e4f072ba5e81d251a6f2835053928bf1660e7f2443a",
     "AUDITORIA-ANTERIOR.md": "eee92a4988ce94c1ebad9ab4f75a051aa45a3343ebc3d53ccf811e6649cf118a",
@@ -42,14 +43,14 @@
     "plugin/.pnpmrc.yaml": "8dc1bcec9269433a6a19813fa568602a4450c424b84c2e969f6c482930367375",
     "plugin/.prettierignore": "3536c7b687e493479997df84d9a6e840e4d20db719c26d26fa461c5708583a35",
     "plugin/.prettierrc": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
-    "plugin/dist/build-identity.json": "6a1146407d761fc81c5558a2d9bac7ea6185ac03ec30ee72dfc9ed1d91360f6b",
+    "plugin/dist/build-identity.json": "66d15e6eb44a1ce66d3bb95955231791dc7b0d83c6ee30d472b722e8852f54d2",
     "plugin/dist/doctor-cli.d.ts": "ff724bf9117a45bbc8f0340f7c4b4b7ac165e906754ef8b4ad961f719b10b118",
-    "plugin/dist/doctor-cli.js": "15b422154d054907b4461d28c6d4ef7671776c0911786f2629893352eb5ad767",
+    "plugin/dist/doctor-cli.js": "a5bc85c6c1fd556e6b41160b337c8ce4819210a0ca7769b58cf675cecc649664",
     "plugin/dist/index.d.ts": "173f80721591b5739cdd2de9659ea168447b5290cfdc06f1e462ebe2c212e7c8",
-    "plugin/dist/index.js": "ad9ed9cc510d54a053ca9aa4e75cad945c48898499f438f7c4d8d1f275dfb118",
+    "plugin/dist/index.js": "ea84bed81cc928644428c65d8f407d03d055a4a98db1580a8735854264e86fd3",
     "plugin/dist/mcp-server.d.ts": "395ad3cba5ffe414ae3b228ebb4dee71bb8e6018229a5f2050387f8ae1184697",
-    "plugin/dist/mcp-server.js": "18ff512300093823bfd11315c1c3c0f84bcd570f414474aef74b5ca7c24f7f9c",
-    "plugin/dist/plugin-bundle-manifest.json": "e91b446587f1071c93be0a48b14828d95d1f7be417e828a76f0acd9b4471b060",
+    "plugin/dist/mcp-server.js": "83ef8b943c69f3cc036b9a4fe47979a8c6154126cf5c78e9c6460affe2ce79d0",
+    "plugin/dist/plugin-bundle-manifest.json": "5ce448ec5195faa3a5544378499ac45df82ad1cf6ea968d04c64d6265851b5b1",
     "plugin/dist/reconcile-cli.d.ts": "c7da8d78ef682d5591478299f16f8e7b095d0f285412bb7bfd6a3185828134a4",
     "plugin/dist/reconcile-cli.js": "612591beee2c79bd3eec74a26338b63c8297885a37d0b7610a4b6354c84beba2",
     "plugin/dist/summary-candidates-cli.d.ts": "adb3c81de9fcc7486852544893c90219910687487f44e3579583324ec8353d82",
@@ -846,6 +847,6 @@
     "validate-opencode2.ps1": "6aa5b9fea1b23536fa18c0dde50942102516b897554d629ee960dca21811bcae",
     "validate-token-guard.ps1": "1f41f57e9fe8b1284e154383ba51fb55c4fbc2b429f86d18f95cf5b99a47c6db",
     "validate.mjs": "98d14da3368c785a3989dfa0ab652c9812e2f47fc81fd87342299ab0c587eb98",
-    "VALIDATION.json": "0b6bcebed75e3ab880b7d8bdbcf005a1ca1dec151603090b6d362a442a26d12e"
+    "VALIDATION.json": "59bf69b2cf9ed4ff7bfb82845591f33a5be21e241a5ed58484b7a8f8c00d3172"
   }
 }

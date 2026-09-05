@@ -1,0 +1,4 @@
+# ADV store auto-seeds a default project.json in the repo root on mutation;
+# it is environment-local config, not source. Ignore it (recreated as needed).
+project.json
+node_modules/

@@ -51957,7 +51957,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("25e8684bd8df1e2387b44e677e1897484c47ea428efd6a526eb91483bf995055") ? "25e8684bd8df1e2387b44e677e1897484c47ea428efd6a526eb91483bf995055" : null;
+  return /^[0-9a-f]{64}$/.test("9ab6177b1c78277d94801d004c7ca428d7f3a234e95030a683dc6fd2d07a3d0d") ? "9ab6177b1c78277d94801d004c7ca428d7f3a234e95030a683dc6fd2d07a3d0d" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;

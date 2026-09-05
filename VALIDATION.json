@@ -36,7 +36,8 @@
       "73cd578",
       "283298b",
       "35e3b7e",
-      "5a7a45a"
+      "5a7a45a",
+      "94b4da3"
     ],
     "installIntegrity": "verified",
     "pluginState": "active",
@@ -54,7 +55,7 @@
       "Session system entries must be SystemPart structs; raw strings broke the session drain (fixed 73cd578).",
       "Bundle generation define name aligned so loaded generation is reported (fixed 35e3b7e); prior reports were dropped with empty generation.",
       "Live defects fixed during validation: directory entry, stale-entry pruning, struct entries, generation define.",
-      "SDD live smoke (checkpoint block without red-green pair) still pending on the owner machine."
+      "SDD live smoke 2026-09-05 (change addSmokeProbe, beta-19151): checkpoint blocked unpaired task with TASK_ORDERING_VIOLATION; paired task passed red(git diff --check exit 2)->green(exit 0) and checkpoint committed; cancel-mode commit now transitions task to cancelled (fixed 94b4da3, verified live); execution+acceptance gates done; release delimited at RELEASE_REQUIRES_TRUNK_MERGE as designed."
     ]
   }
 }
