@@ -1,0 +1,595 @@
+{
+  "$schema": "https://raw.githubusercontent.com/AndresLosada21/Determinus/trunk/plugin/schemas/change.schema.json",
+  "id": "addHighRoiEnforcement",
+  "title": "Add high-ROI enforcement",
+  "status": "archived",
+  "created_at": "2026-09-05T18:21:28.389Z",
+  "tasks": [
+    {
+      "id": "tk-df37a660864c",
+      "title": "P1 red_oracle + fingerprint (GH#10)",
+      "type": "code",
+      "status": "done",
+      "priority": 0,
+      "created_at": "2026-09-05T18:23:01.060Z",
+      "started_at": "2026-09-05T18:24:39.626Z",
+      "completed_at": "2026-09-05T18:26:46.100Z",
+      "verification": "P1 oracle+fingerprint: new tdd-oracle-fingerprint.test.ts 3/3 green; tdd-ordering 14/14 + checkpoint 9/9 green, no regression. RED tr_mtopqr5u fail -> GREEN tr_mtops93s pass.",
+      "summary": "P1 oracle+fingerprint: new tdd-oracle-fingerprint.test.ts 3/3 green; tdd-ordering 14/14 + checkpoint 9/9 green, no regression. RED tr_mtopqr5u fail -> GREEN tr_mtops93s pass.",
+      "filesTouched": [
+        "plugin/src/tools/checkpoint.ts",
+        "plugin/src/validator/tdd-oracle-fingerprint.test.ts",
+        "plugin/src/validator/tdd-ordering.ts"
+      ],
+      "checkpointSha": "8839c226fab25d9885f7cdd73dcdc6717cc7c1b1",
+      "completedAt": "2026-09-05T18:26:46.100Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "P1-oracle-fingerprint"
+        ],
+        "verifies": [
+          "EPIC-acceptance-red-falso"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    },
+    {
+      "id": "tk-6fa017676ba8",
+      "title": "P2 invalidacao por revisao (GH#11)",
+      "type": "code",
+      "status": "done",
+      "priority": 1,
+      "created_at": "2026-09-05T18:23:05.550Z",
+      "started_at": "2026-09-05T18:27:16.505Z",
+      "completed_at": "2026-09-05T18:28:38.472Z",
+      "verification": "P2 stale+runner: tdd-stale 2/2 + oracle 3/3 green (5/5); tdd-ordering 14/14 green; test.test.ts 20 failed pre-existing no Windows (igual baseline limpo). RED tr_mtoptemt fail -> GREEN tr_mtopu500 pass.",
+      "summary": "P2 stale+runner: tdd-stale 2/2 + oracle 3/3 green (5/5); tdd-ordering 14/14 green; test.test.ts 20 failed pre-existing no Windows (igual baseline limpo). RED tr_mtoptemt fail -> GREEN tr_mtopu500 pass.",
+      "filesTouched": [
+        "plugin/src/tools/test.ts",
+        "plugin/src/validator/tdd-ordering.ts",
+        "plugin/src/validator/tdd-stale.test.ts"
+      ],
+      "checkpointSha": "981bdf4b44963c288d737683b0fa228768f58f7f",
+      "completedAt": "2026-09-05T18:28:38.472Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "P2-stale-invalidation"
+        ],
+        "verifies": [
+          "EPIC-acceptance-stale"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    },
+    {
+      "id": "tk-6fa5dc023548",
+      "title": "P3 projecao de contexto por slice (GH#12)",
+      "type": "code",
+      "status": "done",
+      "priority": 2,
+      "created_at": "2026-09-05T18:23:06.181Z",
+      "started_at": "2026-09-05T18:28:41.271Z",
+      "completed_at": "2026-09-05T18:30:11.087Z",
+      "verification": "P3 slice projection: slice-context 3/3 + briefing-renderer 19/19 green (22/22); tsc clean. RED tr_mtopvgfz fail -> GREEN tr_mtopvmhw/tr_mtopwsib pass.",
+      "summary": "P3 slice projection: slice-context 3/3 + briefing-renderer 19/19 green (22/22); tsc clean. RED tr_mtopvgfz fail -> GREEN tr_mtopvmhw/tr_mtopwsib pass.",
+      "filesTouched": [
+        "plugin/src/tools/change/helpers.ts",
+        "plugin/src/utils/briefing-packet-renderer.ts",
+        "plugin/src/utils/slice-context.test.ts",
+        "plugin/src/utils/slice-context.ts"
+      ],
+      "checkpointSha": "5fc7ed95508d2bd37c42f6ebb4026c8d26f19a96",
+      "completedAt": "2026-09-05T18:30:11.087Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "P3-slice-projection"
+        ],
+        "verifies": [
+          "EPIC-acceptance-projecao"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    }
+  ],
+  "test_runs": {
+    "tk-df37a660864c": [
+      {
+        "runId": "tr_mtopqr5u_969f8595",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/validator/tdd-oracle-fingerprint.test.ts",
+        "durationMs": 988.1794000002556,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:25:24.742Z"
+      },
+      {
+        "runId": "tr_mtoprwy8_a4bfe277",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/validator/tdd-oracle-fingerprint.test.ts",
+        "durationMs": 14413.001800000202,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:26:18.899Z"
+      },
+      {
+        "runId": "tr_mtops93s_6b560238",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/validator/tdd-oracle-fingerprint.test.ts",
+        "durationMs": 1223.7178000002168,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:26:34.651Z"
+      },
+      {
+        "runId": "tr_mtopsfd9_a97cbc8a",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/validator/tdd-ordering.test.ts src/tools/checkpoint.test.ts",
+        "durationMs": 4401.30569999991,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:26:42.768Z"
+      }
+    ],
+    "tk-6fa017676ba8": [
+      {
+        "runId": "tr_mtoptemt_4bd49580",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/validator/tdd-stale.test.ts",
+        "durationMs": 1217.3108000000939,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:27:28.473Z"
+      },
+      {
+        "runId": "tr_mtopu500_8d0bb976",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/validator/tdd-stale.test.ts src/validator/tdd-oracle-fingerprint.test.ts",
+        "durationMs": 1343.9967000000179,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:28:02.644Z"
+      },
+      {
+        "runId": "tr_mtopu9nr_1fcf45ce",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/test.test.ts src/validator/tdd-ordering.test.ts",
+        "durationMs": 2609.4218999999575,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:28:08.681Z"
+      }
+    ],
+    "tk-6fa5dc023548": [
+      {
+        "runId": "tr_mtopvgfz_d03970ac",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/slice-context.test.ts",
+        "durationMs": 1239.0835000001825,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:29:04.130Z"
+      },
+      {
+        "runId": "tr_mtopvmhw_9a004afd",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/slice-context.test.ts",
+        "durationMs": 1241.1242999997921,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:29:11.974Z"
+      },
+      {
+        "runId": "tr_mtopwsib_32940275",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/slice-context.test.ts src/utils/briefing-packet-renderer.test.ts",
+        "durationMs": 1798.8289999999106,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T18:30:06.422Z"
+      }
+    ]
+  },
+  "deltas": {},
+  "gates": {
+    "proposal": {
+      "status": "done",
+      "completed_at": "2026-09-05T18:21:47.668Z",
+      "completed_by": "agent"
+    },
+    "discovery": {
+      "status": "done",
+      "completed_at": "2026-09-05T18:21:50.386Z",
+      "completed_by": "agent"
+    },
+    "design": {
+      "status": "done",
+      "completed_at": "2026-09-05T18:21:58.033Z",
+      "completed_by": "agent"
+    },
+    "planning": {
+      "status": "done",
+      "completed_at": "2026-09-05T18:24:26.824Z",
+      "completed_by": "agent",
+      "approval_evidence": "Owner approved planning 2026-09-05; 3 tasks P1/P2/P3 linked GH#10-12, EPIC GH#9"
+    },
+    "execution": {
+      "status": "done",
+      "completed_at": "2026-09-05T18:30:17.613Z",
+      "completed_by": "agent"
+    },
+    "acceptance": {
+      "status": "done",
+      "completed_at": "2026-09-05T18:35:05.244Z",
+      "completed_by": "agent",
+      "approval_evidence": "P1 oracle+fingerprint 3/3 + tdd-ordering 14/14 + checkpoint 9/9; P2 stale 2/2 + runner persistence; P3 slice 3/3 + renderer 19/19; tsc clean; pnpm check green (103 eslint warnings pre-existing, 0 errors); test.test.ts 20 failures pre-existing Windows baseline (identical on clean tree)"
+    },
+    "release": {
+      "status": "done",
+      "completed_at": "2026-09-05T18:38:26.957Z",
+      "completed_by": "agent",
+      "approval_evidence": "Merged to origin/main ba4d851 + manifest 097b89d (852 files); pushed 1611e2d..097b89d; Phase 9 finalization shipped; defaultBranch=main; repoRoot=C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus; pushStatus=verified; proof=pr_merged; releasedCommitSha=ba4d851880aaad5c35e17193c8ac51ac1c87ac4e; route=direct; mergeCommitOid=ba4d851880aaad5c35e17193c8ac51ac1c87ac4e"
+    }
+  },
+  "documents": {
+    "proposal": "# Add high-ROI enforcement\n\n## Scope\n- P1: TestCase filho de Task com red_oracle; run_test persiste fingerprint+failure_class; checkpoint valida oracle+fingerprint (tdd-ordering.ts, test.ts, checkpoint.ts).\n- P2: TestRun com spec_revision+workspace_snapshot; STALE read-only; checkpoint+execution ignoram STALE (test.ts, checkpoint.ts, gate.ts, storage).\n- P3: buildSliceContext puro sobre context-snapshot.ts; wiring em briefingPacket + 9 comandos + diretiva determinus.md.\n\n## Exclusions\n- Sem adapter generico, sem hard mutation guard, sem grafo completo, sem event-sourcing, sem mudar lifecycle 7 gates, sem novo agente.\n\n## Acceptance criteria\n- RED falso nao conta; teste enfraquecido invalida RED; bump spec torna STALE; briefingPacket fatiado sem regressao budget/cache.\n- pnpm check verde em plugin/; manifest regenerado por ultimo; push origin/main; GH #9-#12 fechados com evidencia.\n\n## Error handling / rollback\n- Fingerprint diverge -> RED_STALE + TASK_ORDERING_VIOLATION ate re-provar; sem auto-revalidacao.\n- Se tree SHA indisponivel -> digest + git diff --check fallback.\n- Se migracao store travar -> corte para stale read-only.\n- Rollback: git revert do checkpoint + re-run red->green; journal/recibo preservados.",
+    "problemStatement": "RED falso, teste enfraquecido, evidencia stale e contexto cheio. Ver tdd-ordering.ts, checkpoint.ts, gate.ts, context-snapshot.ts. Plano: C:\\Users\\carlos\\.opencode\\plan\\determinus-alto-roi.md",
+    "design": "# Design — Alto-ROI\n\n## Direcao suportada\nManter core Change+Task+TestRun+7 gates; TestCase como filha de Task (nao substitui Task).\n\n## P1 red_oracle+fingerprint\n- red_oracle antes do run: {expected_outcome:failure, allowed_failure_class:assertion_failure, expected_signal}.\n- run_test persiste test_definition_fingerprint (hash normalizado arquivo+seletor) + failure_class + failure_fingerprint.\n- checkTddOrdering estendido: RED exige outcome FAILED+classe+sinal+nao-infra; GREEN exige mesmo TestCase+fingerprint compativel+apos RED; diverge -> RED_STALE.\n- Adapter v1 = hash normalizado conservador; existing_reproduction permitido se ligado ao Scenario; not_applicable exige reason+alternative.\n\n## P2 stale\n- TestRun: spec_revision (hash proposal+agreement+design) + workspace_snapshot (commit/tree SHA, fallback digest).\n- Bump => STALE read-only (sem migracao); checkpoint+pairing ignoram STALE.\n- Baseline por slice para falha antiga nao virar RED.\n\n## P3 projecao\n- buildSliceContext puro sobre buildChangeContextSnapshot; injeta em briefingPacket + 9 comandos + diretiva; skills seguem guidance.\n- Formato: ACTIVE SLICE|SCENARIO|DESIGN|TESTCASE|STATE|ALLOWED|FORBIDDEN.\n\n## Cortes\n- Sem SHA => digest+diff-check; sem migracao => read-only; budget estoura => cortar campos."
+  },
+  "same_project_dependencies": [],
+  "origin": {
+    "kind": "triage",
+    "issue_number": 9,
+    "source_artifact": "determinus-alto-roi.md"
+  },
+  "projection_revision": 28,
+  "projection_commits": [
+    {
+      "mutation_kind": "artifact_update",
+      "authority_kind": "mutation",
+      "authority_reason": "change artifact update",
+      "authority_evidence": "operator-requested artifact update",
+      "operation_id": "mutation:artifact_update:addHighRoiEnforcement:8bcbd70b-9190-4d3e-a3e1-8ecbd4bde936",
+      "payload_hash": "d2e16f9db1bac39a612df44f44f3390f33b9946b0a44ce685872dd74f2be98a6",
+      "prior_revision": 0,
+      "new_revision": 1,
+      "committed_at": "2026-09-05T18:21:44.921Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate proposal completion",
+      "operation_id": "mutation:gate_completion:addHighRoiEnforcement:ee1e69a1-ab17-4e93-9d09-298cb165d138",
+      "payload_hash": "bd3b468169ddb866c90d5dec75611e9e05e6d78147048906083266c9d9dabe0f",
+      "prior_revision": 1,
+      "new_revision": 2,
+      "committed_at": "2026-09-05T18:21:47.673Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate discovery completion",
+      "operation_id": "mutation:gate_completion:addHighRoiEnforcement:a87e0a7d-a984-4b55-8469-7cd1ceef24b1",
+      "payload_hash": "543c350f61bc11bd7afca1b67c9dfb9db3f3a8dfedfdbbbdc378f7f25949d885",
+      "prior_revision": 2,
+      "new_revision": 3,
+      "committed_at": "2026-09-05T18:21:50.389Z"
+    },
+    {
+      "mutation_kind": "artifact_update",
+      "authority_kind": "mutation",
+      "authority_reason": "change artifact update",
+      "authority_evidence": "operator-requested artifact update",
+      "operation_id": "mutation:artifact_update:addHighRoiEnforcement:f007a152-051f-4c82-95f9-2bbd239cf8bf",
+      "payload_hash": "8b79678a78847530fc2f692a072f4df7372d37602a71b43c12865fc8d0982740",
+      "prior_revision": 3,
+      "new_revision": 4,
+      "committed_at": "2026-09-05T18:21:55.576Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate design completion",
+      "operation_id": "mutation:gate_completion:addHighRoiEnforcement:22664577-a047-400a-ba08-06957e477e44",
+      "payload_hash": "79f2d5ab367fe6a40a877d0481a7329de46bb5df2b538fac922e7189594ce243",
+      "prior_revision": 4,
+      "new_revision": 5,
+      "committed_at": "2026-09-05T18:21:58.036Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-df37a660864c",
+      "operation_id": "mutation:task_add:addHighRoiEnforcement:664411ba-987f-4b88-b075-a8e6dd514fc3",
+      "payload_hash": "b5e48aa5493e45908f1b89fb912291e4a2ba2feb3f2972f5fe40d19b7d17d6d0",
+      "prior_revision": 5,
+      "new_revision": 6,
+      "committed_at": "2026-09-05T18:23:01.063Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-6fa017676ba8",
+      "operation_id": "mutation:task_add:addHighRoiEnforcement:c5f9c0d1-61f7-4340-9422-2f88b6fe5ce9",
+      "payload_hash": "614ff7e27f7d18358d60628f40047a2a29fdf1f151037ad29f5431944c8ed5ec",
+      "prior_revision": 6,
+      "new_revision": 7,
+      "committed_at": "2026-09-05T18:23:05.554Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-6fa5dc023548",
+      "operation_id": "mutation:task_add:addHighRoiEnforcement:eced7363-139d-419e-ae7a-2db0e274733e",
+      "payload_hash": "10f70cf746583aec789f3f8a2ed5bea2aee5544c5d7a230358f4b3025ac3aa86",
+      "prior_revision": 7,
+      "new_revision": 8,
+      "committed_at": "2026-09-05T18:23:06.184Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "Owner approved planning 2026-09-05; 3 tasks P1/P2/P3 linked GH#10-12, EPIC GH#9",
+      "operation_id": "mutation:gate_completion:addHighRoiEnforcement:515d47b6-6599-4a11-88d3-fb747c4233f7",
+      "payload_hash": "c25eefbd4e2ce6cd42b91d3e980f0d0a53e9c156c20613919c950cb6b874af31",
+      "prior_revision": 8,
+      "new_revision": 9,
+      "committed_at": "2026-09-05T18:24:26.828Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:addHighRoiEnforcement:7a836633-c097-40bd-9f64-85611bcb1cb4",
+      "payload_hash": "a6945f765e68e04b1b8d4ce44895a6494ced4890dfc5c49dd0b8613e8836c7c0",
+      "prior_revision": 9,
+      "new_revision": 10,
+      "committed_at": "2026-09-05T18:24:39.634Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/validator/tdd-oracle-fingerprint.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:c81ba9cf-32e3-4f0b-853f-9128c45d1a4f",
+      "payload_hash": "793aa522660928876b2c1eb3658d2305d902aacbe565fa40d33b12cf180ebc76",
+      "prior_revision": 10,
+      "new_revision": 11,
+      "committed_at": "2026-09-05T18:25:24.746Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/validator/tdd-oracle-fingerprint.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:1b5e59a4-a018-4b16-9631-cc150718bd8e",
+      "payload_hash": "41317cf08ccae643a0f383560dbafea548288217d2d6f7d5884c214050812913",
+      "prior_revision": 11,
+      "new_revision": 12,
+      "committed_at": "2026-09-05T18:26:18.903Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/validator/tdd-oracle-fingerprint.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:3e7b8836-e190-478b-a0d4-66ebf79cbf1b",
+      "payload_hash": "b220cec87df8df4d10bd04c0e0ec0f303e44ea8ecf50e1ebce20ecdf8fd54347",
+      "prior_revision": 12,
+      "new_revision": 13,
+      "committed_at": "2026-09-05T18:26:34.655Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/validator/tdd-ordering.test.ts src/tools/checkpoint.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:21082843-52f7-422f-96a7-ef93d96515e2",
+      "payload_hash": "f64c47509142a7f76c6441f25ea97f7db50e3c513de756eb92a4fd757ed816c1",
+      "prior_revision": 13,
+      "new_revision": 14,
+      "committed_at": "2026-09-05T18:26:42.772Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "8839c226fab25d9885f7cdd73dcdc6717cc7c1b1:P1 oracle+fingerprint: new tdd-oracle-fingerprint.test.ts 3/3 green; tdd-ordering 14/14 + checkpoint 9/9 green, no regression. RED tr_mtopqr5u fail -> GREEN tr_mtops93s pass.",
+      "operation_id": "mutation:task_checkpoint_completed:addHighRoiEnforcement:da9f3e82-8688-4ab4-9652-2e1245fec961",
+      "payload_hash": "baa41ad4759428ff6ef205eb8d61cb5d43f0fbb7fd59391ac6703883c5a9a29b",
+      "prior_revision": 14,
+      "new_revision": 15,
+      "committed_at": "2026-09-05T18:26:46.104Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:addHighRoiEnforcement:a6343878-a2e9-4c45-a74f-5a999c519929",
+      "payload_hash": "613fd9f89a6712008bd691eba4265849081e6c36e5bcd10156043f50f4e7972c",
+      "prior_revision": 15,
+      "new_revision": 16,
+      "committed_at": "2026-09-05T18:27:16.511Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/validator/tdd-stale.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:4ba3ec30-7916-47ac-b55a-560f6de19ee4",
+      "payload_hash": "4c94a9b2496ba5daab9d3172604f0141275e725852bf370005a4c75bcf113e5c",
+      "prior_revision": 16,
+      "new_revision": 17,
+      "committed_at": "2026-09-05T18:27:28.476Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/validator/tdd-stale.test.ts src/validator/tdd-oracle-fingerprint.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:87f7aa30-8d6d-419a-8a8b-e341a90553d3",
+      "payload_hash": "a0d884653c0d4b59b6e80b2c90430719c11aa1fa956214d639efb80928a6a2a1",
+      "prior_revision": 17,
+      "new_revision": 18,
+      "committed_at": "2026-09-05T18:28:02.647Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test.test.ts src/validator/tdd-ordering.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:d18cefc1-8ef5-4b57-8e76-ec0b48256587",
+      "payload_hash": "a35161dfb8bc49ab434ce325ef06a84b05e631fca3be08e04506038072703949",
+      "prior_revision": 18,
+      "new_revision": 19,
+      "committed_at": "2026-09-05T18:28:08.686Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "981bdf4b44963c288d737683b0fa228768f58f7f:P2 stale+runner: tdd-stale 2/2 + oracle 3/3 green (5/5); tdd-ordering 14/14 green; test.test.ts 20 failed pre-existing no Windows (igual baseline limpo). RED tr_mtoptemt fail -> GREEN tr_mtopu500 pass.",
+      "operation_id": "mutation:task_checkpoint_completed:addHighRoiEnforcement:fe9c1eb9-bdf9-49fd-aa39-17d4e56561d4",
+      "payload_hash": "358d29d0e230ee54d68d82e121c52ffadb50c3de9068297d7bdad99f248ec47c",
+      "prior_revision": 19,
+      "new_revision": 20,
+      "committed_at": "2026-09-05T18:28:38.476Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:addHighRoiEnforcement:056688a2-28c0-47a0-83d2-859dc3adf962",
+      "payload_hash": "8a1f9980c1480ad742ffe18163189719476d124913a68f8d90b1f54cd3e9b7ba",
+      "prior_revision": 20,
+      "new_revision": 21,
+      "committed_at": "2026-09-05T18:28:41.278Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/slice-context.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:bcb2d0dc-1152-4e8c-8cc4-57885a047e77",
+      "payload_hash": "d710afaec43cab1f277b889b90be9bd9a97d54edb1ad477a032e44b085c67a5a",
+      "prior_revision": 21,
+      "new_revision": 22,
+      "committed_at": "2026-09-05T18:29:04.134Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/slice-context.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:7b5e8edb-adfb-4119-93df-ccbc27f70ad4",
+      "payload_hash": "2351397d4aa1e664417b85d232c9a3dbd57f04a13bd4cc51c70fc777274bf32a",
+      "prior_revision": 22,
+      "new_revision": 23,
+      "committed_at": "2026-09-05T18:29:11.977Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/slice-context.test.ts src/utils/briefing-packet-renderer.test.ts",
+      "operation_id": "mutation:test_run_recorded:addHighRoiEnforcement:8f9fac19-3271-424c-a28b-6be234b3e861",
+      "payload_hash": "76e27f95d65a318499764a0b6267ddf1fa0e78c497be64126f2f2f0282c8054c",
+      "prior_revision": 23,
+      "new_revision": 24,
+      "committed_at": "2026-09-05T18:30:06.425Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "5fc7ed95508d2bd37c42f6ebb4026c8d26f19a96:P3 slice projection: slice-context 3/3 + briefing-renderer 19/19 green (22/22); tsc clean. RED tr_mtopvgfz fail -> GREEN tr_mtopvmhw/tr_mtopwsib pass.",
+      "operation_id": "mutation:task_checkpoint_completed:addHighRoiEnforcement:8d5e7bef-49e0-4b90-b6a9-c23b108e865a",
+      "payload_hash": "c3bbbc8e413070f04056f4409ac20838f598f3e7c0b8f79967a0e8a919a82e53",
+      "prior_revision": 24,
+      "new_revision": 25,
+      "committed_at": "2026-09-05T18:30:11.091Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate execution completion",
+      "operation_id": "mutation:gate_completion:addHighRoiEnforcement:29a76b65-d29c-4f1b-a640-7689d5c92aeb",
+      "payload_hash": "fea78e60bf1adcb418829b2c153f5896bb66ede56202a5733f573554bd6b3e79",
+      "prior_revision": 25,
+      "new_revision": 26,
+      "committed_at": "2026-09-05T18:30:17.617Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "P1 oracle+fingerprint 3/3 + tdd-ordering 14/14 + checkpoint 9/9; P2 stale 2/2 + runner persistence; P3 slice 3/3 + renderer 19/19; tsc clean; pnpm check green (103 eslint warnings pre-existing, 0 errors); test.test.ts 20 failures pre-existing Windows baseline (identical on clean tree)",
+      "operation_id": "mutation:gate_completion:addHighRoiEnforcement:fa70bd16-557a-4b68-b946-998531bf6cb8",
+      "payload_hash": "29ed2056dfc8e218882e0470233e6c31cc567b8189280f01c58f2292e6593de9",
+      "prior_revision": 26,
+      "new_revision": 27,
+      "committed_at": "2026-09-05T18:35:05.248Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "Merged to origin/main ba4d851 + manifest 097b89d (852 files); pushed 1611e2d..097b89d",
+      "operation_id": "mutation:gate_completion:addHighRoiEnforcement:ed36185c-528c-4e7d-ba0c-4a908ef3252e",
+      "payload_hash": "7f35a4117eaa9709780c564296297bf0034354c6407e8f2e0cb3c3d88c0cb9a6",
+      "prior_revision": 27,
+      "new_revision": 28,
+      "committed_at": "2026-09-05T18:38:26.974Z"
+    }
+  ]
+}
