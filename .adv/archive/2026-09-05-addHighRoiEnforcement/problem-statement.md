@@ -1,0 +1,1 @@
+RED falso, teste enfraquecido, evidencia stale e contexto cheio. Ver tdd-ordering.ts, checkpoint.ts, gate.ts, context-snapshot.ts. Plano: C:\Users\carlos\.opencode\plan\determinus-alto-roi.md
