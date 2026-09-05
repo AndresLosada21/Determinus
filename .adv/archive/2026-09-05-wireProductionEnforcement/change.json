@@ -1,0 +1,769 @@
+{
+  "$schema": "https://raw.githubusercontent.com/AndresLosada21/Determinus/trunk/plugin/schemas/change.schema.json",
+  "id": "wireProductionEnforcement",
+  "title": "Wire production enforcement",
+  "status": "archived",
+  "created_at": "2026-09-05T23:00:31.552Z",
+  "tasks": [
+    {
+      "id": "tk-6504a3475be3",
+      "title": "ST-11 fingerprint de conteudo (GH#14)",
+      "type": "code",
+      "status": "done",
+      "priority": 0,
+      "created_at": "2026-09-05T23:01:30.220Z",
+      "started_at": "2026-09-05T23:02:20.012Z",
+      "completed_at": "2026-09-05T23:05:00.103Z",
+      "verification": "STALE probe: red fp(file v1) vs green fp(file v2) must block",
+      "summary": "STALE probe: red fp(file v1) vs green fp(file v2) must block",
+      "filesTouched": [
+        "plugin/src/tools/probe-fp.test.ts",
+        "plugin/src/tools/test-fingerprint-content.test.ts",
+        "plugin/src/tools/test.ts",
+        "plugin/src/validator/tdd-ordering.ts"
+      ],
+      "checkpointSha": "1fe4c50b5712f6a80cb3c03ee824a7d5539156f7",
+      "completedAt": "2026-09-05T23:05:00.103Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "ST-11-file-fingerprint"
+        ],
+        "verifies": [
+          "EPIC13-acceptance-live"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    },
+    {
+      "id": "tk-c1f2c9f627b6",
+      "title": "ST-12 fiacao oracle+rev (GH#15)",
+      "type": "code",
+      "status": "done",
+      "priority": 1,
+      "created_at": "2026-09-05T23:01:31.029Z",
+      "started_at": "2026-09-05T23:05:43.266Z",
+      "completed_at": "2026-09-05T23:09:22.717Z",
+      "verification": "ST-12: checkpoint-oracle-stale 4/4 (RED tr_mtoztjyy 2-fail -> GREEN tr_mtozvgfh); live-documents rev wiring; TestRunRecordSchema extended (strip fix); ordering 14/14 + checkpoint 9/9 + skills 4/4 green.",
+      "summary": "ST-12: checkpoint-oracle-stale 4/4 (RED tr_mtoztjyy 2-fail -> GREEN tr_mtozvgfh); live-documents rev wiring; TestRunRecordSchema extended (strip fix); ordering 14/14 + checkpoint 9/9 + skills 4/4 green.",
+      "filesTouched": [
+        "plugin/schemas/change.schema.json",
+        "plugin/src/skills/sdd-tdd.ts",
+        "plugin/src/tools/checkpoint-oracle-stale.test.ts",
+        "plugin/src/tools/checkpoint.ts",
+        "plugin/src/tools/probe-fp.test.ts",
+        "plugin/src/tools/test.ts",
+        "plugin/src/types/changes.ts",
+        "plugin/src/utils/spec-revision.ts"
+      ],
+      "checkpointSha": "1455dd533d464cd42ab1ed7618f82c1f74dc87e1",
+      "completedAt": "2026-09-05T23:09:22.717Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "ST-12-oracle-wiring"
+        ],
+        "verifies": [
+          "EPIC13-acceptance-live"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "red_oracle_class": "assertion_failure",
+        "red_oracle_signal": "AssertionError",
+        "tdd_intent": "inline"
+      }
+    },
+    {
+      "id": "tk-9c88e68d1d3c",
+      "title": "ST-14 sinal robusto (GH#17)",
+      "type": "code",
+      "status": "done",
+      "priority": 2,
+      "created_at": "2026-09-05T23:01:31.706Z",
+      "started_at": "2026-09-05T23:09:33.251Z",
+      "completed_at": "2026-09-05T23:10:41.189Z",
+      "verification": "ST-14: signal 4/4 (RED tr_mtozwbm4 1-fail -> GREEN tr_mtozx8ij 7/7); stripAnsi single-point + 2-tier assertion preference; test.test.ts ceiling 20 failed/7 passed identical to clean-tree baseline.",
+      "summary": "ST-14: signal 4/4 (RED tr_mtozwbm4 1-fail -> GREEN tr_mtozx8ij 7/7); stripAnsi single-point + 2-tier assertion preference; test.test.ts ceiling 20 failed/7 passed identical to clean-tree baseline.",
+      "filesTouched": [
+        "plugin/src/tools/test-failure-signal.test.ts",
+        "plugin/src/tools/test.ts"
+      ],
+      "checkpointSha": "5cb44051e8f435b6dae3aaa2999bc5c92b36d70b",
+      "completedAt": "2026-09-05T23:10:41.189Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "ST-14-signal-robustness"
+        ],
+        "verifies": [
+          "EPIC13-acceptance-live"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    },
+    {
+      "id": "tk-d51aff50a19b",
+      "title": "ST-13 render slice (GH#16)",
+      "type": "code",
+      "status": "done",
+      "priority": 3,
+      "created_at": "2026-09-05T23:01:32.387Z",
+      "started_at": "2026-09-05T23:10:44.817Z",
+      "completed_at": "2026-09-05T23:12:35.079Z",
+      "verification": "ST-13: slice-render-presence 2/2 (RED tr_mtozym7w missing-kind -> GREEN tr_mtozzvwv); slice-context 3/3 (size test replaced by render-presence); renderer 19/19 + enrichment 5/5 + types 15/15 green (44/44). Kind active_slice additive, engineer+reviewer lanes.",
+      "summary": "ST-13: slice-render-presence 2/2 (RED tr_mtozym7w missing-kind -> GREEN tr_mtozzvwv); slice-context 3/3 (size test replaced by render-presence); renderer 19/19 + enrichment 5/5 + types 15/15 green (44/44). Kind active_slice additive, engineer+reviewer lanes.",
+      "filesTouched": [
+        "plugin/src/types/briefing-packets.ts",
+        "plugin/src/utils/briefing-packet-renderer.ts",
+        "plugin/src/utils/slice-context.test.ts",
+        "plugin/src/utils/slice-render-presence.test.ts"
+      ],
+      "checkpointSha": "da38f1a0ff5340860a9bffd8e0fe3327c45e9074",
+      "completedAt": "2026-09-05T23:12:35.079Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "ST-13-slice-render"
+        ],
+        "verifies": [
+          "EPIC13-acceptance-live"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    }
+  ],
+  "test_runs": {
+    "tk-6504a3475be3": [
+      {
+        "runId": "tr_mtozo1f3_389e8057",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "timed_out",
+        "command": "pnpm vitest run src/tools/test-fingerprint-content.test.ts",
+        "durationMs": 35780.75979999825,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:03:14.226Z"
+      },
+      {
+        "runId": "tr_mtozp2ng_5ac0c204",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/test-fingerprint-content.test.ts src/validator/tdd-oracle-fingerprint.test.ts src/validator/tdd-stale.test.ts src/validator/tdd-ordering.test.ts",
+        "durationMs": 2774.6160000003874,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:04:02.479Z"
+      },
+      {
+        "runId": "tr_mtozpjvb_09d24411",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/tools/test-fingerprint-content.test.ts src/validator/tdd-oracle-fingerprint.test.ts src/validator/tdd-stale.test.ts src/validator/tdd-ordering.test.ts src/tools/checkpoint.test.ts",
+        "durationMs": 3954.547499999404,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:04:24.794Z"
+      },
+      {
+        "runId": "tr_mtozpzjz_ccbc058c",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/probe-fp.test.ts -t \"red case\"",
+        "durationMs": 1276.2765999995172,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:04:45.124Z"
+      },
+      {
+        "runId": "tr_mtozq7dg_5b62e416",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/tools/probe-fp.test.ts -t \"green case\"",
+        "durationMs": 1237.6854000017047,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:04:55.255Z"
+      }
+    ],
+    "tk-c1f2c9f627b6": [
+      {
+        "runId": "tr_mtoztjyy_a15a9c45",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts",
+        "durationMs": 2676.2036999985576,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:07:31.549Z"
+      },
+      {
+        "runId": "tr_mtozudsy_e94cfe07",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts",
+        "durationMs": 2605.3380999974906,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:08:10.214Z"
+      },
+      {
+        "runId": "tr_mtozvgfh_259dffed",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts",
+        "durationMs": 2604.6787000000477,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:09:00.273Z"
+      },
+      {
+        "runId": "tr_mtozvui0_cef1fcbc",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts src/tools/test-fingerprint-content.test.ts src/validator/tdd-ordering.test.ts src/validator/tdd-oracle-fingerprint.test.ts src/validator/tdd-stale.test.ts src/tools/checkpoint.test.ts src/skills",
+        "durationMs": 4016.2311999984086,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:09:18.507Z"
+      }
+    ],
+    "tk-9c88e68d1d3c": [
+      {
+        "runId": "tr_mtozwbm4_d7b203f2",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/test-failure-signal.test.ts",
+        "durationMs": 2578.072300001979,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:09:40.687Z"
+      },
+      {
+        "runId": "tr_mtozwye7_3e19169a",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/test-failure-signal.test.ts src/tools/test-fingerprint-content.test.ts",
+        "durationMs": 2721.046299997717,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:10:10.210Z"
+      },
+      {
+        "runId": "tr_mtozx8ij_31b6b69e",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/tools/test-failure-signal.test.ts src/tools/test-fingerprint-content.test.ts",
+        "durationMs": 2606.9879000000656,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:10:23.327Z"
+      },
+      {
+        "runId": "tr_mtozxd3x_d4561d58",
+        "phase": "verify",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/tools/test.test.ts",
+        "durationMs": 2776.3596000000834,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:10:29.280Z"
+      }
+    ],
+    "tk-d51aff50a19b": [
+      {
+        "runId": "tr_mtozym7w_1680c7b5",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/slice-render-presence.test.ts",
+        "durationMs": 1862.272199999541,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:11:27.743Z"
+      },
+      {
+        "runId": "tr_mtozzvwv_c2b514e3",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/slice-render-presence.test.ts src/utils/slice-context.test.ts src/utils/briefing-packet-renderer.test.ts src/types/briefing-packets.test.ts src/tools/change-show-enrichment.test.ts",
+        "durationMs": 6003.857400000095,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-05T23:12:26.963Z"
+      }
+    ]
+  },
+  "deltas": {},
+  "gates": {
+    "proposal": {
+      "status": "done",
+      "completed_at": "2026-09-05T23:00:46.250Z",
+      "completed_by": "agent"
+    },
+    "discovery": {
+      "status": "done",
+      "completed_at": "2026-09-05T23:00:46.329Z",
+      "completed_by": "agent"
+    },
+    "design": {
+      "status": "done",
+      "completed_at": "2026-09-05T23:00:55.475Z",
+      "completed_by": "agent"
+    },
+    "planning": {
+      "status": "done",
+      "completed_at": "2026-09-05T23:02:16.767Z",
+      "completed_by": "agent",
+      "approval_evidence": "Owner approved 2026-09-05; 4 tasks ST-11/12/14/13 linked GH#14-17, EPIC GH#13"
+    },
+    "execution": {
+      "status": "done",
+      "completed_at": "2026-09-05T23:12:39.794Z",
+      "completed_by": "agent"
+    },
+    "acceptance": {
+      "status": "done",
+      "completed_at": "2026-09-05T23:14:38.601Z",
+      "completed_by": "agent",
+      "approval_evidence": "ST-11 fp-content 3/3 + live weakening demo runs; ST-12 oracle-stale 4/4 + schema-strip fix + skills 4/4; ST-14 signal 4/4 + test.test.ts ceiling 20/7 identical; ST-13 render 44/44 + presence replaces size test. pnpm check green. Caveat: live checkpoint/blocking demos run old installed plugin logic; new-code proof via unit execution tr_* (self-hosting: enforcement activates on next plugin build)."
+    },
+    "release": {
+      "status": "done",
+      "completed_at": "2026-09-05T23:17:38.106Z",
+      "completed_by": "agent",
+      "approval_evidence": "Merged d5d8bd9 + origin archive bundle 36df222 + manifest 0aaed67 (865 files); pushed 7e89331..0aaed67; pnpm check green post-merge; Phase 9 finalization shipped; defaultBranch=main; repoRoot=C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus; pushStatus=verified; proof=pr_merged; releasedCommitSha=d5d8bd90516c1ac99ef5c2a669d5c37031cb092e; route=direct; mergeCommitOid=d5d8bd90516c1ac99ef5c2a669d5c37031cb092e"
+    }
+  },
+  "documents": {
+    "proposal": "# Wire production enforcement\n\n## Scope\n- ST-11: fingerprint de conteudo (hash do arquivo de teste via extractTestFilePath; fallback cmd:; regra de origem em fingerprintsCompatible).\n- ST-12: fiar oracle (contrato metadata red_oracle_*) + current_spec_revision dos documentos vivos no checkpoint; pairing inalterado.\n- ST-13: renderizar active_slice no pacote (builder + registro por lane).\n- ST-14: strip ANSI + preferencia por linha de assercao no sinal de falha.\n\n## Exclusions\n- Sem adapter generico, sem hard guard, sem grafo, sem mudar lifecycle 7 gates, sem fingerprint semantico por framework, sem nova tool de TestCase.\n\n## Acceptance criteria\n- Cada story com demo ao vivo RED->GREEN (runs tr_*); pnpm check verde; test.test.ts sem fails novos (teto 20); budget sem regressao; manifest regenerado por ultimo; GH#13-#17 fechadas com evidencia.\n\n## Error handling / rollback\n- Fingerprint sem origem ou origens distintas => compativel (conservador, sem STALE espurio).\n- documents ausente => hash estavel, sem STALE falso. Rollback: revert do checkpoint + re-prova.",
+    "problemStatement": "Revisao tecnica total 2026-09-05 (change addHighRoiEnforcement, GH#9): oracle+fingerprint+stale provados no unitario, dormentes em producao (fingerprint hasheia comando; oracle/rev sem produtor; slice nao renderizado); sinal fragil a ANSI. EPIC GH#13, stories GH#14-17.",
+    "design": "# Design — fiação de produção\n\n## ST-11 fingerprint de conteúdo\n- Novo: normalizeTestContent (strip ANSI, CRLF->LF, trim por linha, drop vazias) + resolveTestFile via extractTestFilePath.\n- fp=file:<sha12> quando resolvido; fp=cmd:<sha12> fallback. fingerprintsCompatible só compara mesma origem.\n\n## ST-12 fiação oracle+rev\n- Contrato metadata: red_oracle_class/signal/required documentado no prep + skill sdd-tdd (guidance).\n- Checkpoint: current_spec_revision = computeSpecRevision(live documents via loadChange); oracle de metadata (inalterado).\n- Pairing inalterado (decisão registrada na issue).\n\n## ST-13 render slice\n- Investigar SectionKind/LANE_SECTIONS; preferir sub-bloco de tasks se novo kind exigir bump de schema; fortalecer teste p/ presença.\n\n## ST-14 sinal robusto\n- stripAnsi único ponto (combinedOutput) + preferência por linha de asserção + fallback última linha; taxonomia intacta."
+  },
+  "same_project_dependencies": [],
+  "origin": {
+    "kind": "triage",
+    "issue_number": 13,
+    "source_artifact": "epic-13-followup"
+  },
+  "projection_revision": 35,
+  "projection_commits": [
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate proposal completion",
+      "operation_id": "mutation:gate_completion:wireProductionEnforcement:0e96b91e-d52a-428b-9073-fbb2d829fa73",
+      "payload_hash": "b2a72c11af9ff3f9ed2f7e0f50abf65eab889420cf7b1195097424a17a1bf927",
+      "prior_revision": 0,
+      "new_revision": 1,
+      "committed_at": "2026-09-05T23:00:46.253Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate discovery completion",
+      "operation_id": "mutation:gate_completion:wireProductionEnforcement:dc234c32-85b3-4cb5-b9a3-a931eda4dcc3",
+      "payload_hash": "436d7c92518caa72ae48fe8c059e3dff971ed6242fd335f645f032c9183dbea5",
+      "prior_revision": 1,
+      "new_revision": 2,
+      "committed_at": "2026-09-05T23:00:46.333Z"
+    },
+    {
+      "mutation_kind": "artifact_update",
+      "authority_kind": "mutation",
+      "authority_reason": "change artifact update",
+      "authority_evidence": "operator-requested artifact update",
+      "operation_id": "mutation:artifact_update:wireProductionEnforcement:78a14756-bfae-4440-8c48-38b14f0d2856",
+      "payload_hash": "67b5d2c455e1ca8e6e71f16faac09df114154913cc1fec9a379eadc4de5e08fd",
+      "prior_revision": 2,
+      "new_revision": 3,
+      "committed_at": "2026-09-05T23:00:51.755Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate design completion",
+      "operation_id": "mutation:gate_completion:wireProductionEnforcement:f0dbdb76-6925-4a5f-b3e4-7e3437883652",
+      "payload_hash": "783ec39915a1a32a48b78f8e10827486176fa7e548e1f934120d8f052e62354a",
+      "prior_revision": 3,
+      "new_revision": 4,
+      "committed_at": "2026-09-05T23:00:55.480Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-6504a3475be3",
+      "operation_id": "mutation:task_add:wireProductionEnforcement:47d0fd8f-7c38-4a3b-88eb-99ee620f590c",
+      "payload_hash": "ba0cd481dda01fbd68b756497a0dc4829d9c1e583ff311223759571c29b2e14f",
+      "prior_revision": 4,
+      "new_revision": 5,
+      "committed_at": "2026-09-05T23:01:30.223Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-c1f2c9f627b6",
+      "operation_id": "mutation:task_add:wireProductionEnforcement:0b722a3a-a818-459f-89a8-1f16b965998c",
+      "payload_hash": "57475e49f676a8c6e6aaab2949b635a09a5b48064e0299aa3d9823c3b5d03bc1",
+      "prior_revision": 5,
+      "new_revision": 6,
+      "committed_at": "2026-09-05T23:01:31.031Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-9c88e68d1d3c",
+      "operation_id": "mutation:task_add:wireProductionEnforcement:024f2e2f-bf51-49cc-99c4-737038e6314f",
+      "payload_hash": "07ca0928c3d00eb6fbcda983811198a52cb8009fa1b6bf5607012dc8440a8e1d",
+      "prior_revision": 6,
+      "new_revision": 7,
+      "committed_at": "2026-09-05T23:01:31.710Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-d51aff50a19b",
+      "operation_id": "mutation:task_add:wireProductionEnforcement:899f461b-ae45-4701-86c0-fb8880d33135",
+      "payload_hash": "a54ea1f463793e538b730e91956c7257d60804137361a96a3c2dcd4612adf5d0",
+      "prior_revision": 7,
+      "new_revision": 8,
+      "committed_at": "2026-09-05T23:01:32.391Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "Owner approved 2026-09-05; 4 tasks ST-11/12/14/13 linked GH#14-17, EPIC GH#13",
+      "operation_id": "mutation:gate_completion:wireProductionEnforcement:a593db47-5e3f-4e74-b37f-67c55a5acd7f",
+      "payload_hash": "819ae085856a00eb5e126a6f5c396159244f98d032287c7bab78285cf735694f",
+      "prior_revision": 8,
+      "new_revision": 9,
+      "committed_at": "2026-09-05T23:02:16.770Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:wireProductionEnforcement:ac2639db-def0-4daa-aa98-374a5ff3e870",
+      "payload_hash": "f128466782dddf04f57d7510e5face2f7fffce6fb28510ba49cfef24445ee5b7",
+      "prior_revision": 9,
+      "new_revision": 10,
+      "committed_at": "2026-09-05T23:02:20.018Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test-fingerprint-content.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:25ea268f-3b83-462e-985d-bed5ac64d4a0",
+      "payload_hash": "7c6bb5a1f347c18a465411fd3e2bb2c5dd7ad4df76c66438376abd0e84b1fa4b",
+      "prior_revision": 10,
+      "new_revision": 11,
+      "committed_at": "2026-09-05T23:03:14.230Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test-fingerprint-content.test.ts src/validator/tdd-oracle-fingerprint.test.ts src/validator/tdd-stale.test.ts src/validator/tdd-ordering.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:35d9f7bb-df0e-4646-a771-70bdddfa15b4",
+      "payload_hash": "b5e624ad24496daae88f9d2875a94f2690aaa4843083198f51074b840312d0a4",
+      "prior_revision": 11,
+      "new_revision": 12,
+      "committed_at": "2026-09-05T23:04:02.482Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test-fingerprint-content.test.ts src/validator/tdd-oracle-fingerprint.test.ts src/validator/tdd-stale.test.ts src/validator/tdd-ordering.test.ts src/tools/checkpoint.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:c720bfa7-efeb-47dc-ad92-b0669183357c",
+      "payload_hash": "06387d10f6a5dfef38172496422a14eab618e67e921a9449b549012e3091dc42",
+      "prior_revision": 12,
+      "new_revision": 13,
+      "committed_at": "2026-09-05T23:04:24.798Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/probe-fp.test.ts -t \"red case\"",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:04a8c31c-23ae-44d9-ba1d-2d0e8a99ea00",
+      "payload_hash": "b118be35fa0f2eb21b1150f152f261dbd52bcba9e29e55134f39678328811679",
+      "prior_revision": 13,
+      "new_revision": 14,
+      "committed_at": "2026-09-05T23:04:45.127Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/probe-fp.test.ts -t \"green case\"",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:2a7a0bc8-a5ee-434a-b4a0-d989f8d1dbf4",
+      "payload_hash": "8909f0758f207694086e40fdeaf06962044a730bdf0071252e70b160717f7d72",
+      "prior_revision": 14,
+      "new_revision": 15,
+      "committed_at": "2026-09-05T23:04:55.260Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "1fe4c50b5712f6a80cb3c03ee824a7d5539156f7:STALE probe: red fp(file v1) vs green fp(file v2) must block",
+      "operation_id": "mutation:task_checkpoint_completed:wireProductionEnforcement:738a343c-4a6f-4c03-9638-599207be6981",
+      "payload_hash": "4ab70049fc64d66b44cde91d032c9f00fcccf71eca4846fe899137caf8b14bc2",
+      "prior_revision": 15,
+      "new_revision": 16,
+      "committed_at": "2026-09-05T23:05:00.106Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:wireProductionEnforcement:1bb114d6-6d3e-4cc5-a493-20d38965cd86",
+      "payload_hash": "863f94cadc01501e5954fcc4d880f071796db9c7853ee9a3bd1ed52ca604b1ed",
+      "prior_revision": 16,
+      "new_revision": 17,
+      "committed_at": "2026-09-05T23:05:43.272Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:456b3a87-f097-4ffb-956b-2c101a5f7bcc",
+      "payload_hash": "67c37076a7e788c07dc48d6282a53030b71c06df3a48dc29be0775b9cf4d6d39",
+      "prior_revision": 17,
+      "new_revision": 18,
+      "committed_at": "2026-09-05T23:07:31.552Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:55d1d217-5c05-4718-a82f-7c4984eb8997",
+      "payload_hash": "0bbfe0eaa98fe15ed84f8e8ed856e8ebbeabb335ed50c434a43328b644832148",
+      "prior_revision": 18,
+      "new_revision": 19,
+      "committed_at": "2026-09-05T23:08:10.217Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:0e88f9b0-2066-4de3-a0a3-15d3949b396d",
+      "payload_hash": "c2030563ecdd65ca96939f7676ebc6564c83d1e73a5f1f243a75408238b1f2dc",
+      "prior_revision": 19,
+      "new_revision": 20,
+      "committed_at": "2026-09-05T23:09:00.277Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/checkpoint-oracle-stale.test.ts src/tools/test-fingerprint-content.test.ts src/validator/tdd-ordering.test.ts src/validator/tdd-oracle-fingerprint.test.ts src/validator/tdd-stale.test.ts src/tools/checkpoint.test.ts src/skills",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:9447698f-ea20-4682-9862-a1666d075937",
+      "payload_hash": "da4fcd92c86effb114400035a5ae3f6fce320e066f69d71c5fb31ca2ed25397a",
+      "prior_revision": 20,
+      "new_revision": 21,
+      "committed_at": "2026-09-05T23:09:18.511Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "1455dd533d464cd42ab1ed7618f82c1f74dc87e1:ST-12: checkpoint-oracle-stale 4/4 (RED tr_mtoztjyy 2-fail -> GREEN tr_mtozvgfh); live-documents rev wiring; TestRunRecordSchema extended (strip fix); ordering 14/14 + checkpoint 9/9 + skills 4/4 green.",
+      "operation_id": "mutation:task_checkpoint_completed:wireProductionEnforcement:d5240edd-98dd-446b-9289-312a1cf3461a",
+      "payload_hash": "1d48f07838020e02fe2e30618941e86afe0076d2a90f3ba7b0d35039abde6830",
+      "prior_revision": 21,
+      "new_revision": 22,
+      "committed_at": "2026-09-05T23:09:22.721Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:wireProductionEnforcement:82716b57-7fe4-415e-90c9-87c1a8bd3145",
+      "payload_hash": "225a956ca0f1d75d8beaec35efb979e9cbf4ed53874ba6b7df0aa2969ce2c0f2",
+      "prior_revision": 22,
+      "new_revision": 23,
+      "committed_at": "2026-09-05T23:09:33.258Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test-failure-signal.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:ad703682-dbcc-493c-987b-74feb231cf83",
+      "payload_hash": "b092c09342468c413282f83f5176ce8bd78c40dfed8436715974b0ab6d9f96e3",
+      "prior_revision": 23,
+      "new_revision": 24,
+      "committed_at": "2026-09-05T23:09:40.691Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test-failure-signal.test.ts src/tools/test-fingerprint-content.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:19e0f808-bbf3-47ba-b8f8-ef9ef986ceb3",
+      "payload_hash": "41a9dbcf0dd64f3d2bca001f856ff25ad5fa64aea8797616494d08cadc499bc1",
+      "prior_revision": 24,
+      "new_revision": 25,
+      "committed_at": "2026-09-05T23:10:10.215Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test-failure-signal.test.ts src/tools/test-fingerprint-content.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:f586adfd-fd9e-4573-9531-7598b71da378",
+      "payload_hash": "b802e2f5dccaaa8e05fa8e0fb1f2876167ecf5f8e584d98cb54c37713bec51f3",
+      "prior_revision": 25,
+      "new_revision": 26,
+      "committed_at": "2026-09-05T23:10:23.331Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/tools/test.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:23126946-d41c-44a7-9cd1-fd7f6084e877",
+      "payload_hash": "314d9fa178485a9dbe456a78b0ccba0ec9d6f9d0ee85beb5cab5f630e63e5464",
+      "prior_revision": 26,
+      "new_revision": 27,
+      "committed_at": "2026-09-05T23:10:29.283Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "5cb44051e8f435b6dae3aaa2999bc5c92b36d70b:ST-14: signal 4/4 (RED tr_mtozwbm4 1-fail -> GREEN tr_mtozx8ij 7/7); stripAnsi single-point + 2-tier assertion preference; test.test.ts ceiling 20 failed/7 passed identical to clean-tree baseline.",
+      "operation_id": "mutation:task_checkpoint_completed:wireProductionEnforcement:cb1ad66f-19b5-47e4-8859-45bd1f5ac64a",
+      "payload_hash": "16a44d47f806c04d547914b0ffa223dd45a0485a40ccd9553f554e3384dbd2e7",
+      "prior_revision": 27,
+      "new_revision": 28,
+      "committed_at": "2026-09-05T23:10:41.192Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:wireProductionEnforcement:c91d8ab2-2bf3-46f8-a392-548769cbb878",
+      "payload_hash": "a97c815112eb8b0dcbb57072437eb1f4a7f8a9545d7785568c44d821b3bf9a16",
+      "prior_revision": 28,
+      "new_revision": 29,
+      "committed_at": "2026-09-05T23:10:44.824Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/slice-render-presence.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:a03defb0-210c-4443-a1f8-1a8c123619c4",
+      "payload_hash": "ab2a532cf6be7591e73343e1495d025477d2ee6956c03c96b683a3847785ba02",
+      "prior_revision": 29,
+      "new_revision": 30,
+      "committed_at": "2026-09-05T23:11:27.748Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/slice-render-presence.test.ts src/utils/slice-context.test.ts src/utils/briefing-packet-renderer.test.ts src/types/briefing-packets.test.ts src/tools/change-show-enrichment.test.ts",
+      "operation_id": "mutation:test_run_recorded:wireProductionEnforcement:9057de82-d7fe-48d5-8cfe-88c67f6d2ec6",
+      "payload_hash": "1c7592bb8487e198f6f355dc16d8ab13a34bd91c43e5eb7dea8119c08329be2b",
+      "prior_revision": 30,
+      "new_revision": 31,
+      "committed_at": "2026-09-05T23:12:26.967Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "da38f1a0ff5340860a9bffd8e0fe3327c45e9074:ST-13: slice-render-presence 2/2 (RED tr_mtozym7w missing-kind -> GREEN tr_mtozzvwv); slice-context 3/3 (size test replaced by render-presence); renderer 19/19 + enrichment 5/5 + types 15/15 green (44/44). Kind active_slice additive, engineer+reviewer lanes.",
+      "operation_id": "mutation:task_checkpoint_completed:wireProductionEnforcement:826a3304-01f1-48c6-a901-3c5cb2848f0c",
+      "payload_hash": "4b704298687954bfa70ad7f5b7aa721233f01ea28934731fe60153dde18ecbb4",
+      "prior_revision": 31,
+      "new_revision": 32,
+      "committed_at": "2026-09-05T23:12:35.083Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate execution completion",
+      "operation_id": "mutation:gate_completion:wireProductionEnforcement:9d4db8ec-10ce-4906-9efb-43004180b48d",
+      "payload_hash": "f0a6ec23d82a2793be2a32fbd29c433694de0032bb5692c87dc92ca17699a0f0",
+      "prior_revision": 32,
+      "new_revision": 33,
+      "committed_at": "2026-09-05T23:12:39.797Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "ST-11 fp-content 3/3 + live weakening demo runs; ST-12 oracle-stale 4/4 + schema-strip fix + skills 4/4; ST-14 signal 4/4 + test.test.ts ceiling 20/7 identical; ST-13 render 44/44 + presence replaces size test. pnpm check green. Caveat: live checkpoint/blocking demos run old installed plugin logic; new-code proof via unit execution tr_* (self-hosting: enforcement activates on next plugin build).",
+      "operation_id": "mutation:gate_completion:wireProductionEnforcement:69c2556a-5fbc-42c9-9607-2a7a2270b898",
+      "payload_hash": "22f3ab215a9e7e2858c9cee4b571da09e9d6db98d9e812b5db342dcc2752b4d3",
+      "prior_revision": 33,
+      "new_revision": 34,
+      "committed_at": "2026-09-05T23:14:38.604Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "Merged d5d8bd9 + origin archive bundle 36df222 + manifest 0aaed67 (865 files); pushed 7e89331..0aaed67; pnpm check green post-merge",
+      "operation_id": "mutation:gate_completion:wireProductionEnforcement:d607b4f4-58b5-43f3-9e58-aa15f18755e4",
+      "payload_hash": "85c78cb276bfd362d58b7263c84a1dda10e576c4b57d0745d5393ac003348f1b",
+      "prior_revision": 34,
+      "new_revision": 35,
+      "committed_at": "2026-09-05T23:17:38.124Z"
+    }
+  ]
+}

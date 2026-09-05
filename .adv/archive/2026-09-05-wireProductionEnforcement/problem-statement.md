@@ -1,0 +1,1 @@
+Revisao tecnica total 2026-09-05 (change addHighRoiEnforcement, GH#9): oracle+fingerprint+stale provados no unitario, dormentes em producao (fingerprint hasheia comando; oracle/rev sem produtor; slice nao renderizado); sinal fragil a ANSI. EPIC GH#13, stories GH#14-17.
