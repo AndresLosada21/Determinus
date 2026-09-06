@@ -115,7 +115,25 @@ export class ContextObserver {
     };
   }
 }
-export async function installCacheRuntime(ctx: any) {
+export async function installCacheRuntime(
+  ctx: any,
+  hooks?: {
+    /** ST-15: fired on every recorded usage step (fail-soft for listeners). */
+    onUsageStep?: (snapshot: {
+      at: number;
+      newTokens: number;
+      cachedTokens: number;
+      totalTokens: number;
+    }) => void;
+    /** ST-15: live bust ranking supplier (fail-soft; capped at projection). */
+    getBustReport?: () => Array<{
+      suspect?: unknown;
+      cause?: unknown;
+      evidence?: unknown;
+      recommendation?: unknown;
+    }>;
+  },
+) {
   const registrations: { dispose(): Promise<void> }[] = [];
   const locationKey = digest(ctx.location.directory).slice(0, 16),
     diagDir = join(homedir(), ".local/share/Determinus/diagnostics"),
@@ -151,6 +169,32 @@ export async function installCacheRuntime(ctx: any) {
     zen: { steps: 0, cacheReadTokens: 0 },
   };
   let lastFlush = 0;
+  // ST-15: project the live bust ranking into the small diagnostics file.
+  // Bounded (5 busts × 3 evidence lines), sanitized (no local paths: the
+  // file is shared with support), fail-soft (projection faults yield []).
+  const redactLocalPaths = (text: string): string =>
+    text.replace(/[A-Za-z]:[\\/][^\s"']*/g, "<workdir>");
+  const projectTopBusts = (): Array<{
+    suspect: string;
+    cause: string;
+    evidence: string[];
+    recommendation: string;
+  }> => {
+    try {
+      const report = hooks?.getBustReport?.();
+      if (!Array.isArray(report)) return [];
+      return report.slice(0, 5).map((bust) => ({
+        suspect: String(bust?.suspect ?? "unknown").slice(0, 80),
+        cause: String(bust?.cause ?? "unknown").slice(0, 16),
+        evidence: Array.isArray(bust?.evidence)
+          ? bust.evidence.slice(0, 3).map((line) => redactLocalPaths(String(line)).slice(0, 200))
+          : [],
+        recommendation: String(bust?.recommendation ?? "").slice(0, 200),
+      }));
+    } catch {
+      return [];
+    }
+  };
   const flush = (force = false) => {
     if (!force && Date.now() - lastFlush < 1000) return;
     try {
@@ -158,7 +202,12 @@ export async function installCacheRuntime(ctx: any) {
       writeFileSync(
         path + ".tmp",
         JSON.stringify(
-          { ...state, usageByService, updatedAt: new Date().toISOString() },
+          {
+            ...state,
+            usageByService,
+            topBusts: projectTopBusts(),
+            updatedAt: new Date().toISOString(),
+          },
           null,
           2,
         ),
@@ -207,6 +256,18 @@ export async function installCacheRuntime(ctx: any) {
     state.inputTokens += values[0];
     state.cacheReadTokens += values[1];
     state.cacheWriteTokens += values[2];
+    try {
+      hooks?.onUsageStep?.({
+        at: Date.now(),
+        newTokens: values[0],
+        cachedTokens: values[1],
+        // Approximation: provider total-input accounting varies; only the
+        // cached series drives bust detection.
+        totalTokens: values[0] + values[1] + values[2],
+      });
+    } catch {
+      /* listener faults must not interrupt inference */
+    }
     flush(true);
   };
   const userAgent =

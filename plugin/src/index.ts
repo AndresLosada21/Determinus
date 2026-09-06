@@ -111,6 +111,7 @@ import { authorizeMorphWorktree } from "./utils/morph-worktree-authorization";
 import { worktreeExistsForChange } from "./tools/worktree/state";
 
 import { installCacheRuntime } from "./cache-runtime";
+import { createBustCollector } from "./utils/cache-bust-collector";
 import { registerDeterminusAgent } from "./agent-definition";
 import { registerDeterminusSessionContext } from "./hooks/session-context";
 import { appendSystemText } from "./agent-definition";
@@ -1661,7 +1662,63 @@ export default Plugin.define({
       });
     }
 
-    const cleanupCache = await installCacheRuntime(ctx);
+    const bustCollector = createBustCollector();
+    const feedBustUsage = (snapshot: {
+      at: number;
+      newTokens: number;
+      cachedTokens: number;
+      totalTokens: number;
+    }) => {
+      try {
+        bustCollector.feedUsage(snapshot);
+      } catch {
+        // Observational only; never break the runtime.
+      }
+    };
+    const cleanupCache = await installCacheRuntime(ctx, {
+      onUsageStep: feedBustUsage,
+      getBustReport: () => {
+        try {
+          return bustCollector.report().slice(0, 5);
+        } catch {
+          return [];
+        }
+      },
+    });
+
+    // ST-15: bust-attribution collector on host tool hooks (observational,
+    // fail-soft; never mutate, never block, never break boot).
+    try {
+      await ctx.tool.hook("execute.before", (event: any) => {
+        try {
+          bustCollector.feedTool({
+            phase: "before",
+            tool: event?.tool,
+            at: Date.now(),
+            callId: event?.id,
+            args: event?.input,
+            dir: ctx?.location?.directory,
+          });
+        } catch {
+          // Observational only.
+        }
+      });
+      await ctx.tool.hook("execute.after", (event: any) => {
+        try {
+          bustCollector.feedTool({
+            phase: "after",
+            tool: event?.tool,
+            at: Date.now(),
+            callId: event?.id,
+            output: event?.result,
+          });
+        } catch {
+          // Observational only.
+        }
+      });
+    } catch (e) {
+      debugLog(`bust collector registration failed: ${e}`);
+    }
 
     // ST-02: determinus default-on (fail-soft; never break boot).
     let cleanupAgent: (() => Promise<void>) | undefined;

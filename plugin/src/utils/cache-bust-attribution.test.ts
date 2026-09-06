@@ -66,4 +66,17 @@ describe("cache-bust attribution core (ST-15)", () => {
     expect(busts[0].cause).toBe("ours");
     expect(busts[0].evidence.join(" ")).toMatch(/cwd|dir/i);
   });
+
+  test("real incident: 119KB-new call behind a 117k cached drop", () => {
+    // Session footer 2026-09-06: tool-call 119.015 new, then "likely cache
+    // bust: 117.632 fewer cached tokens". The drop must blame that call.
+    const withOutput = [
+      { ...step({ at: 0, cachedTokens: 212_849, tool: "setup" }), bytesOut: 119_015 },
+      step({ at: 1000, cachedTokens: 212_849 - 117_632, tool: "setup" }),
+    ];
+    const busts = detectBusts(withOutput);
+    expect(busts).toHaveLength(1);
+    expect(busts[0].cause).toBe("ours");
+    expect(busts[0].evidence.join(" ")).toContain("119015");
+  });
 });
