@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  DETERMINUS_INTAKE_SKILL,
   DETERMINUS_SDD_SKILL,
   DETERMINUS_TDD_SKILL,
   getDeterminusSkillDefs,
@@ -7,10 +8,10 @@ import {
 } from "./sdd-tdd";
 
 describe("determinus skills as code (ST-05)", () => {
-  test("both skills are well-formed for skill guidance", () => {
+  test("all three skills are well-formed for skill guidance", () => {
     const defs = getDeterminusSkillDefs();
     expect(defs.map((d) => d.id).sort()).toEqual(
-      ["determinus-sdd", "determinus-tdd"].sort(),
+      ["determinus-sdd", "determinus-tdd", "determinus-intake"].sort(),
     );
     for (const def of defs) {
       // SkillInstructions publishes only described, non-excluded skills.
@@ -22,8 +23,9 @@ describe("determinus skills as code (ST-05)", () => {
     }
   });
 
-  test("sdd is offered by default, tdd loads on demand", () => {
+  test("sdd and intake are offered by default, tdd loads on demand", () => {
     expect(DETERMINUS_SDD_SKILL.autoinvoke).toBe(true);
+    expect(DETERMINUS_INTAKE_SKILL.autoinvoke).toBe(true);
     expect(DETERMINUS_TDD_SKILL.autoinvoke).toBe(false);
   });
 
@@ -38,7 +40,7 @@ describe("determinus skills as code (ST-05)", () => {
     };
     await registerDeterminusSkills(ctx);
     expect(added.map((s) => s.id).sort()).toEqual(
-      ["determinus-sdd", "determinus-tdd"].sort(),
+      ["determinus-sdd", "determinus-tdd", "determinus-intake"].sort(),
     );
   });
 

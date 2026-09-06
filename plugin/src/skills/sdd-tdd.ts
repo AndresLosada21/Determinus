@@ -8,6 +8,8 @@
  * - `determinus-sdd`: change-plane and gate discipline (autoinvoke: offered
  *   by default through skill guidance).
  * - `determinus-tdd`: red→green→verify evidence discipline (on demand).
+ * - `determinus-intake`: intent → GitHub EPIC premise (autoinvoke: offered
+ *   by default; session instruction may adapt or skip it).
  *
  * `any`-typed host (same pattern as agent/commands registration): never
  * couple to a specific `@opencode-ai/plugin` version. Fail-soft.
@@ -47,6 +49,15 @@ export const DETERMINUS_SDD_SKILL: DeterminusSkillDefinition = {
     "",
     "Durable state replaces chat replay. Report result, path, command, status",
     "and next action — never raw logs, trees, diffs or full test reports.",
+    "",
+    "## Obligations and slices",
+    "",
+    "Every behavior maps to an obligation with an evidence_policy",
+    "(automated_tdd, automated_test, static_check, review, human_acceptance).",
+    "Plan behavior slices first (one independently verifiable behavior each),",
+    "then tasks. A task never marks itself done: determinus_task_checkpoint",
+    "plus the execution gate decide DONE. Load determinus-tdd before execution",
+    "and determinus-intake at intent time.",
   ].join("\n"),
 };
 
@@ -73,16 +84,48 @@ export const DETERMINUS_TDD_SKILL: DeterminusSkillDefinition = {
     "",
     "Declare the red oracle in task metadata when the Scenario's expected",
     "failure is known before the run (from /determinus-prep):",
-    "metadata.red_oracle_class (e.g. assertion_failure) and",
-    "metadata.red_oracle_signal (expected substring, e.g. expected 401).",
-    "Checkpoint enforces RED_AMBIGUOUS unless RED matches; absent keys keep",
-    "legacy pass-through. A spec bump after GREEN turns evidence STALE until",
-    "re-proven — re-run red→green against current documents.",
+    "metadata.red_oracle_class (assertion_failure, compile_error,",
+    "missing_behavior, timeout) and metadata.red_oracle_signal (expected",
+    "substring, e.g. expected 401). Checkpoint enforces RED_AMBIGUOUS unless",
+    "RED matches; absent keys keep legacy pass-through.",
+    "",
+    "Never weaken the test to reach GREEN: a changed test fingerprint after",
+    "RED turns evidence STALE until re-proven. A spec bump after GREEN also",
+    "turns evidence STALE — re-run red→green against current documents.",
+    "GREEN requires a valid RED first, same TestCase, same fingerprint.",
+  ].join("\n"),
+};
+
+export const DETERMINUS_INTAKE_SKILL: DeterminusSkillDefinition = {
+  id: "determinus-intake",
+  name: "determinus-intake",
+  description:
+    "Intent intake premise: material user intents become a GitHub EPIC issue first, then stories linked to the change. Adaptable per session.",
+  slash: false,
+  autoinvoke: true,
+  content: [
+    "# Determinus Intake",
+    "",
+    "Premise (default, adaptable): every material user intent becomes a",
+    "GitHub EPIC issue before a change starts. A session instruction may",
+    "adapt or skip it (hotfix, spike, docs-only) — state the reason in chat.",
+    "",
+    "## Flow",
+    "",
+    "intent → EPIC ([EPIC] title, labels, DoR/DoD body, project) → stories",
+    "([ST-XX] titles, `Parte de #<epic>`) → determinus_change_create linked",
+    "via origin/triage or epic_membership. Trivial intents skip with an",
+    "explicit reason.",
+    "",
+    "## Issue rules",
+    "",
+    "Titles `[EPIC]`/`[ST-XX]`; mandatory labels; DoR/DoD body; story links",
+    "`Parte de #<epic>`. Close only with evidence. Never paste secrets.",
   ].join("\n"),
 };
 
 export function getDeterminusSkillDefs(): DeterminusSkillDefinition[] {
-  return [DETERMINUS_SDD_SKILL, DETERMINUS_TDD_SKILL];
+  return [DETERMINUS_SDD_SKILL, DETERMINUS_TDD_SKILL, DETERMINUS_INTAKE_SKILL];
 }
 
 export async function registerDeterminusSkills(
