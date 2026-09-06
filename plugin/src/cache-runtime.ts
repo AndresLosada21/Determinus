@@ -187,7 +187,9 @@ export async function installCacheRuntime(
         suspect: String(bust?.suspect ?? "unknown").slice(0, 80),
         cause: String(bust?.cause ?? "unknown").slice(0, 16),
         evidence: Array.isArray(bust?.evidence)
-          ? bust.evidence.slice(0, 3).map((line) => redactLocalPaths(String(line)).slice(0, 200))
+          ? bust.evidence
+              .slice(0, 3)
+              .map((line) => redactLocalPaths(String(line)).slice(0, 200))
           : [],
         recommendation: String(bust?.recommendation ?? "").slice(0, 200),
       }));

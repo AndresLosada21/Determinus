@@ -14,7 +14,6 @@
  */
 
 import {
-  appendStep,
   detectBusts,
   type AttributionOptions,
   type BustAttribution,
@@ -65,7 +64,10 @@ function byteLength(value: unknown): number {
   }
 }
 
-function pendingKey(tool: string | undefined, callId: string | undefined): string | undefined {
+function pendingKey(
+  tool: string | undefined,
+  callId: string | undefined,
+): string | undefined {
   if (callId) return `id:${callId}`;
   if (tool) return `tool:${tool}`;
   return undefined;
@@ -90,7 +92,13 @@ export function createBustCollector(
   const seenTools = new Set<string>();
   const pending = new Map<
     string,
-    { tool: string; at: number; bytesIn: number; dir?: string; toolCount?: number }
+    {
+      tool: string;
+      at: number;
+      bytesIn: number;
+      dir?: string;
+      toolCount?: number;
+    }
   >();
 
   const pushBounded = <T>(list: T[], item: T): void => {
@@ -141,9 +149,11 @@ export function createBustCollector(
       try {
         if (
           !snapshot ||
-          ![snapshot.newTokens, snapshot.cachedTokens, snapshot.totalTokens].every(
-            (x) => typeof x === "number" && Number.isFinite(x) && x >= 0,
-          )
+          ![
+            snapshot.newTokens,
+            snapshot.cachedTokens,
+            snapshot.totalTokens,
+          ].every((x) => typeof x === "number" && Number.isFinite(x) && x >= 0)
         ) {
           return;
         }
@@ -176,8 +186,11 @@ export function createBustCollector(
         let carryDir: string | undefined;
         let carryCount: number | undefined;
         const steps = usages.map((snap, j) => {
-          const upper = j + 1 < usages.length ? usages[j + 1].at : Number.POSITIVE_INFINITY;
-          const window = completed.filter((c) => c.at > snap.at && c.at <= upper);
+          const upper =
+            j + 1 < usages.length ? usages[j + 1].at : Number.POSITIVE_INFINITY;
+          const window = completed.filter(
+            (c) => c.at > snap.at && c.at <= upper,
+          );
           const top = window.reduce<CompletedCall | undefined>(
             (best, c) => (!best || c.bytesOut > best.bytesOut ? c : best),
             undefined,

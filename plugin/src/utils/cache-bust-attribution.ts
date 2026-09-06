@@ -58,7 +58,10 @@ const DEFAULTS: Required<AttributionOptions> = {
   largeOutputBytes: 50_000,
 };
 
-export function appendStep(steps: readonly UsageStep[], step: UsageStep): UsageStep[] {
+export function appendStep(
+  steps: readonly UsageStep[],
+  step: UsageStep,
+): UsageStep[] {
   return [...steps, step];
 }
 
@@ -91,9 +94,15 @@ export function detectBusts(
     let cause: BustCause = "unknown";
     let recommendation =
       "Narrow the preceding call (bounded reads, quiet flags) and re-observe.";
-    if (prev.dir !== undefined && next.dir !== undefined && prev.dir !== next.dir) {
+    if (
+      prev.dir !== undefined &&
+      next.dir !== undefined &&
+      prev.dir !== next.dir
+    ) {
       cause = "ours";
-      evidence.push(`cwd ${prev.dir}→${next.dir} (session_move busts the prefix)`);
+      evidence.push(
+        `cwd ${prev.dir}→${next.dir} (session_move busts the prefix)`,
+      );
       recommendation = "Avoid session_move; pass workdir/target_path per call.";
     } else if (
       prev.toolCount !== undefined &&
@@ -104,7 +113,8 @@ export function detectBusts(
       evidence.push(
         `tool inventory ${prev.toolCount}→${next.toolCount} (definitions reorder the prefix)`,
       );
-      recommendation = "Stabilize tool registration; avoid dynamic skills mid-session.";
+      recommendation =
+        "Stabilize tool registration; avoid dynamic skills mid-session.";
     } else if (next.at - prev.at >= ttlGapMs) {
       cause = "host";
       evidence.push(

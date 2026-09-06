@@ -49,7 +49,9 @@ describe("bust diagnostics exposure (ST-15)", () => {
         {
           suspect: "read",
           cause: "ours",
-          evidence: ["cwd C:\\Users\\carlos\\a→C:\\Users\\carlos\\b (session_move)"],
+          evidence: [
+            "cwd C:\\Users\\carlos\\a→C:\\Users\\carlos\\b (session_move)",
+          ],
           recommendation: "Avoid session_move.",
         },
       ],

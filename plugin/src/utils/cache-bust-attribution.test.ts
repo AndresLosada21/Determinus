@@ -71,7 +71,10 @@ describe("cache-bust attribution core (ST-15)", () => {
     // Session footer 2026-09-06: tool-call 119.015 new, then "likely cache
     // bust: 117.632 fewer cached tokens". The drop must blame that call.
     const withOutput = [
-      { ...step({ at: 0, cachedTokens: 212_849, tool: "setup" }), bytesOut: 119_015 },
+      {
+        ...step({ at: 0, cachedTokens: 212_849, tool: "setup" }),
+        bytesOut: 119_015,
+      },
       step({ at: 1000, cachedTokens: 212_849 - 117_632, tool: "setup" }),
     ];
     const busts = detectBusts(withOutput);

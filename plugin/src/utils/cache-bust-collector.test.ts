@@ -7,7 +7,12 @@ describe("bust collector (ST-15)", () => {
   test("pairs before/after into completed calls", () => {
     const col = createBustCollector();
     col.feedTool({ phase: "before", tool: "read", at: 0, args: { path: "a" } });
-    col.feedTool({ phase: "after", tool: "read", at: 500, output: "x".repeat(10) });
+    col.feedTool({
+      phase: "after",
+      tool: "read",
+      at: 500,
+      output: "x".repeat(10),
+    });
     expect(col.completed()).toHaveLength(1);
     expect(col.completed()[0]).toMatchObject({ tool: "read", bytesOut: 10 });
   });
@@ -33,7 +38,12 @@ describe("bust collector (ST-15)", () => {
 
   test("report blames the giant output behind the drop", () => {
     const col = createBustCollector({ largeOutputBytes: 100 });
-    col.feedUsage({ at: 0, newTokens: 1, cachedTokens: 100_000, totalTokens: 100_001 });
+    col.feedUsage({
+      at: 0,
+      newTokens: 1,
+      cachedTokens: 100_000,
+      totalTokens: 100_001,
+    });
     col.feedTool({ phase: "before", tool: "small", at: 5, args: {} });
     col.feedTool({
       phase: "after",
@@ -41,7 +51,12 @@ describe("bust collector (ST-15)", () => {
       at: 10,
       output: "y".repeat(200),
     });
-    col.feedUsage({ at: 20, newTokens: 90_000, cachedTokens: 10_000, totalTokens: 100_000 });
+    col.feedUsage({
+      at: 20,
+      newTokens: 90_000,
+      cachedTokens: 10_000,
+      totalTokens: 100_000,
+    });
     const busts = col.report();
     expect(busts).toHaveLength(1);
     expect(busts[0].suspect).toBe("small");
@@ -50,8 +65,18 @@ describe("bust collector (ST-15)", () => {
 
   test("idle window without calls attributes unknown-idle", () => {
     const col = createBustCollector();
-    col.feedUsage({ at: 0, newTokens: 1, cachedTokens: 100_000, totalTokens: 100_001 });
-    col.feedUsage({ at: 1000, newTokens: 90_000, cachedTokens: 10_000, totalTokens: 100_000 });
+    col.feedUsage({
+      at: 0,
+      newTokens: 1,
+      cachedTokens: 100_000,
+      totalTokens: 100_001,
+    });
+    col.feedUsage({
+      at: 1000,
+      newTokens: 90_000,
+      cachedTokens: 10_000,
+      totalTokens: 100_000,
+    });
     const busts = col.report();
     expect(busts).toHaveLength(1);
     expect(busts[0].suspect).toBe("unknown-idle");
@@ -60,13 +85,33 @@ describe("bust collector (ST-15)", () => {
 
   test("first-seen tool attributes ours tools", () => {
     const col = createBustCollector();
-    col.feedUsage({ at: 0, newTokens: 1, cachedTokens: 100_000, totalTokens: 100_001 });
+    col.feedUsage({
+      at: 0,
+      newTokens: 1,
+      cachedTokens: 100_000,
+      totalTokens: 100_001,
+    });
     col.feedTool({ phase: "before", tool: "read", at: 5, args: {} });
     col.feedTool({ phase: "after", tool: "read", at: 10, output: "x" });
-    col.feedUsage({ at: 15, newTokens: 1, cachedTokens: 100_000, totalTokens: 100_001 });
+    col.feedUsage({
+      at: 15,
+      newTokens: 1,
+      cachedTokens: 100_000,
+      totalTokens: 100_001,
+    });
     col.feedTool({ phase: "before", tool: "brand-new-tool", at: 20, args: {} });
-    col.feedTool({ phase: "after", tool: "brand-new-tool", at: 25, output: "y" });
-    col.feedUsage({ at: 30, newTokens: 90_000, cachedTokens: 10_000, totalTokens: 100_000 });
+    col.feedTool({
+      phase: "after",
+      tool: "brand-new-tool",
+      at: 25,
+      output: "y",
+    });
+    col.feedUsage({
+      at: 30,
+      newTokens: 90_000,
+      cachedTokens: 10_000,
+      totalTokens: 100_000,
+    });
     const busts = col.report();
     expect(busts).toHaveLength(1);
     expect(busts[0].suspect).toBe("brand-new-tool");
