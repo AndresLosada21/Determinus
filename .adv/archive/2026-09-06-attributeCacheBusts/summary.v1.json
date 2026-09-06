@@ -1,0 +1,15 @@
+{
+  "archived_at": "2026-09-06T00:29:58.820Z",
+  "capabilities": [],
+  "change_hash": "961168d39d44960b57daf17ac36e83e506b3fba8e3f0ba53ad9833c11886b008",
+  "change_id": "attributeCacheBusts",
+  "completed_tasks": 3,
+  "created_at": "2026-09-06T00:08:58.190Z",
+  "current_gate": "done",
+  "last_activity_at": "2026-09-06T00:29:53.813Z",
+  "status": "archived",
+  "summary_hash": "1b5f125e3d1776f8090b5299fc9f764b829d621447a40277682b5c5da29faa44",
+  "task_count": 3,
+  "title": "Attribute cache busts",
+  "version": "1"
+}

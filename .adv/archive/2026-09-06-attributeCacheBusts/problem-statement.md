@@ -1,0 +1,1 @@
+Rodape informa bust apos o fato sem apontar qual tool call (nome, bytes, mudanca de prefixo) o provocou, nem se causa e nossa ou do host. Sessao real: 121k new apos bust de 117k cached. Sem atribuicao, otimizar e tiro no escuro.

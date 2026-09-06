@@ -1,0 +1,829 @@
+{
+  "$schema": "https://raw.githubusercontent.com/AndresLosada21/Determinus/trunk/plugin/schemas/change.schema.json",
+  "id": "attributeCacheBusts",
+  "title": "Attribute cache busts",
+  "status": "archived",
+  "created_at": "2026-09-06T00:08:58.190Z",
+  "tasks": [
+    {
+      "id": "tk-f773a86ce991",
+      "title": "Attribution core puro (GH#18)",
+      "type": "code",
+      "status": "done",
+      "priority": 0,
+      "created_at": "2026-09-06T00:12:22.715Z",
+      "started_at": "2026-09-06T00:15:57.735Z",
+      "completed_at": "2026-09-06T00:17:25.861Z",
+      "verification": "T1 core: 4/4 (RED missing-module -> GREEN). First attempt correctly blocked RED_STALE (test edited between runs); cycle re-proven clean with unchanged test file.",
+      "summary": "T1 core: 4/4 (RED missing-module -> GREEN). First attempt correctly blocked RED_STALE (test edited between runs); cycle re-proven clean with unchanged test file.",
+      "filesTouched": [
+        "plugin/src/utils/cache-bust-attribution.test.ts",
+        "plugin/src/utils/cache-bust-attribution.ts"
+      ],
+      "checkpointSha": "f554632275154d7abdfcf2e54031bd6d48d4ba9c",
+      "completedAt": "2026-09-06T00:17:25.861Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "ST-15-attribution-core"
+        ],
+        "verifies": [
+          "EPIC13-acceptance-live"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    },
+    {
+      "id": "tk-79cb87dbbc92",
+      "title": "Collector nos hooks do host (GH#18)",
+      "type": "code",
+      "status": "done",
+      "priority": 1,
+      "created_at": "2026-09-06T00:12:23.513Z",
+      "started_at": "2026-09-06T00:17:37.363Z",
+      "completed_at": "2026-09-06T00:25:19.143Z",
+      "verification": "T2 collector: 12/12 (RED missing-module re-proven clean -> GREEN); dual-feed join + lookahead + carry-forward + seen-tools + byte cap; wiring in index.ts + onUsageStep in cache-runtime (swept in T3 commit; re-verified here).",
+      "summary": "T2 collector: 12/12 (RED missing-module re-proven clean -> GREEN); dual-feed join + lookahead + carry-forward + seen-tools + byte cap; wiring in index.ts + onUsageStep in cache-runtime (swept in T3 commit; re-verified here).",
+      "filesTouched": [
+        "INSTALL.md",
+        "plugin/src/cache-bust-diagnostics.test.ts",
+        "plugin/src/cache-runtime.ts",
+        "plugin/src/index.ts",
+        "plugin/src/utils/cache-bust-attribution.test.ts",
+        "plugin/src/utils/cache-bust-collector.test.ts",
+        "plugin/src/utils/cache-bust-collector.ts"
+      ],
+      "checkpointSha": "88ccc1fc807697354058e7d5840e8f927de509dc",
+      "completedAt": "2026-09-06T00:25:19.143Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "ST-15-collector"
+        ],
+        "verifies": [
+          "EPIC13-acceptance-live"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    },
+    {
+      "id": "tk-58a97b702182",
+      "title": "Expor top busts no diagnostics + docs (GH#18)",
+      "type": "code",
+      "status": "done",
+      "priority": 2,
+      "created_at": "2026-09-06T00:12:24.269Z",
+      "started_at": "2026-09-06T00:23:14.858Z",
+      "completed_at": "2026-09-06T00:24:46.495Z",
+      "verification": "T3 exposure: diagnostics 1/1 + runtime 5/5 (RED tr_mtp2jg8u missing-topBusts -> GREEN tr_mtp2ksho 18/18); real-incident regression test in core; topBusts sanitized+b bounded; INSTALL.md PT-BR docs.",
+      "summary": "T3 exposure: diagnostics 1/1 + runtime 5/5 (RED tr_mtp2jg8u missing-topBusts -> GREEN tr_mtp2ksho 18/18); real-incident regression test in core; topBusts sanitized+b bounded; INSTALL.md PT-BR docs.",
+      "filesTouched": [
+        "INSTALL.md",
+        "plugin/src/cache-bust-diagnostics.test.ts",
+        "plugin/src/cache-runtime.ts",
+        "plugin/src/index.ts",
+        "plugin/src/utils/cache-bust-attribution.test.ts",
+        "plugin/src/utils/cache-bust-collector.test.ts",
+        "plugin/src/utils/cache-bust-collector.ts"
+      ],
+      "checkpointSha": "88ccc1fc807697354058e7d5840e8f927de509dc",
+      "completedAt": "2026-09-06T00:24:46.495Z",
+      "assignedTo": "agent",
+      "contract_refs": {
+        "implements": [
+          "ST-15-exposure"
+        ],
+        "verifies": [
+          "EPIC13-acceptance-live"
+        ]
+      },
+      "evidence_plan": {
+        "policy": "test",
+        "proof_target": "Automated red/green tests evidenced by determinus_run_test",
+        "provenance": "new",
+        "stage": "stage-v2"
+      },
+      "evidence_policy": "test",
+      "metadata": {
+        "tdd_intent": "inline"
+      }
+    }
+  ],
+  "test_runs": {
+    "tk-f773a86ce991": [
+      {
+        "runId": "tr_mtp29zap_793de1fd",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 14328.497199997306,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:16:17.140Z",
+        "failure_class": "command_failure",
+        "failure_signal": "Error: Cannot fi",
+        "test_fingerprint": "file:29ea83154e5b",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "b3f8a520227b"
+      },
+      {
+        "runId": "tr_mtp2ab77_8e71abfe",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1217.1297000013292,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:16:32.566Z",
+        "failure_class": "assertion_failure",
+        "failure_signal": "AssertionError: expected 'unknown' to be 'ours' // Object.is equality",
+        "test_fingerprint": "file:29ea83154e5b",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "b3f8a520227b"
+      },
+      {
+        "runId": "tr_mtp2anil_f6871ab5",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1234.8434000015259,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:16:48.529Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  306ms (transform 15ms, setup 0ms, import 54ms, tests 4ms, environment 0ms)",
+        "test_fingerprint": "file:3d85ad73092e",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "b3f8a520227b"
+      },
+      {
+        "runId": "tr_mtp2b4oc_2a94fa68",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1239.6079999990761,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:17:10.767Z",
+        "failure_class": "module_not_found",
+        "failure_signal": "Error: Cannot find module './cache-bust-attribution' imported from C:/Users/carlos/.local/share/opencode/worktree/834720eb0e2f498aab24fefdbdbc8f67d6aba1e8/change/attributeCacheBusts/plugin/src/utils/c",
+        "test_fingerprint": "file:3d85ad73092e",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "b3f8a520227b"
+      },
+      {
+        "runId": "tr_mtp2bcdh_7494339f",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1269.915799997747,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:17:20.744Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  308ms (transform 15ms, setup 0ms, import 53ms, tests 4ms, environment 0ms)",
+        "test_fingerprint": "file:3d85ad73092e",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "b3f8a520227b"
+      }
+    ],
+    "tk-79cb87dbbc92": [
+      {
+        "runId": "tr_mtp2dvl3_ea296339",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1300.7023999989033,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:19:18.954Z",
+        "failure_class": "assertion_failure",
+        "failure_signal": "AssertionError: expected 'unknown-idle' to be 'small' // Object.is equality",
+        "test_fingerprint": "file:5ba92d8937a3",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      },
+      {
+        "runId": "tr_mtp2elk0_6806caa8",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1285.1825999990106,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:19:52.611Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  325ms (transform 32ms, setup 0ms, import 112ms, tests 11ms, environment 0ms)",
+        "test_fingerprint": "file:5ba92d8937a3",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      },
+      {
+        "runId": "tr_mtp2goe2_ebdce13d",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1268.4380000010133,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:21:29.597Z",
+        "failure_class": "assertion_failure",
+        "failure_signal": "AssertionError: expected 'unknown' to be 'ours' // Object.is equality",
+        "test_fingerprint": "file:b71e39ff0ece",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      },
+      {
+        "runId": "tr_mtp2h0et_f1fbfbac",
+        "phase": "green",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1300.0553999990225,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:21:45.176Z",
+        "failure_class": "assertion_failure",
+        "failure_signal": "AssertionError: expected 'unknown' to be 'ours' // Object.is equality",
+        "test_fingerprint": "file:b71e39ff0ece",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      },
+      {
+        "runId": "tr_mtp2hwdt_783f5098",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1295.8876000009477,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:22:26.613Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  340ms (transform 41ms, setup 0ms, import 120ms, tests 12ms, environment 0ms)",
+        "test_fingerprint": "file:b71e39ff0ece",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      },
+      {
+        "runId": "tr_mtp2la0u_af70c06e",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts",
+        "durationMs": 1298.7296000011265,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:25:04.257Z",
+        "failure_class": "module_not_found",
+        "failure_signal": "Error: Cannot find module './cache-bust-collector' imported from C:/Users/carlos/.local/share/opencode/worktree/834720eb0e2f498aab24fefdbdbc8f67d6aba1e8/change/attributeCacheBusts/plugin/src/utils/cac",
+        "test_fingerprint": "file:b71e39ff0ece",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "88ccc1fc8076"
+      },
+      {
+        "runId": "tr_mtp2liah_3a072a29",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+        "durationMs": 1314.111099999398,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:25:14.972Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  336ms (transform 34ms, setup 0ms, import 117ms, tests 12ms, environment 0ms)",
+        "test_fingerprint": "file:b71e39ff0ece",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "88ccc1fc8076"
+      },
+      {
+        "runId": "tr_mtp2pff9_282c16df",
+        "phase": "verify",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts src/cache-bust-diagnostics.test.ts src/cache-runtime.test.ts",
+        "durationMs": 1434.7826000005007,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:28:17.880Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  491ms (transform 125ms, setup 0ms, import 425ms, tests 92ms, environment 0ms)",
+        "test_fingerprint": "file:a20d4fa83986",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "88ccc1fc8076"
+      }
+    ],
+    "tk-58a97b702182": [
+      {
+        "runId": "tr_mtp2jg8u_e853fa0b",
+        "phase": "red",
+        "exitCode": 1,
+        "classification": "failed",
+        "command": "pnpm vitest run src/cache-bust-diagnostics.test.ts",
+        "durationMs": 1392.9776999987662,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:23:39.010Z",
+        "failure_class": "assertion_failure",
+        "failure_signal": "AssertionError: Target cannot be null or undefined.",
+        "test_fingerprint": "file:1e9a0b3c7efd",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      },
+      {
+        "runId": "tr_mtp2k0fo_65842f66",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/cache-bust-diagnostics.test.ts src/cache-runtime.test.ts",
+        "durationMs": 1387.4530000016093,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:24:05.176Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  443ms (transform 88ms, setup 0ms, import 273ms, tests 79ms, environment 0ms)",
+        "test_fingerprint": "file:1e9a0b3c7efd",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      },
+      {
+        "runId": "tr_mtp2ksho_0bb33472",
+        "phase": "green",
+        "exitCode": 0,
+        "classification": "passed",
+        "command": "pnpm vitest run src/utils/cache-bust-attribution.test.ts src/utils/cache-bust-collector.test.ts src/cache-bust-diagnostics.test.ts src/cache-runtime.test.ts",
+        "durationMs": 1420.0087000019848,
+        "evidence_kind": "unit",
+        "recordedAt": "2026-09-06T00:24:41.535Z",
+        "failure_class": "none",
+        "failure_signal": "Duration  468ms (transform 127ms, setup 0ms, import 402ms, tests 93ms, environment 0ms)",
+        "test_fingerprint": "file:ae09b404b745",
+        "spec_revision": "bb7307e19b8f",
+        "workspace_snapshot": "f55463227515"
+      }
+    ]
+  },
+  "deltas": {},
+  "gates": {
+    "proposal": {
+      "status": "done",
+      "completed_at": "2026-09-06T00:11:38.236Z",
+      "completed_by": "agent"
+    },
+    "discovery": {
+      "status": "done",
+      "completed_at": "2026-09-06T00:11:38.310Z",
+      "completed_by": "agent"
+    },
+    "design": {
+      "status": "done",
+      "completed_at": "2026-09-06T00:11:48.401Z",
+      "completed_by": "agent"
+    },
+    "planning": {
+      "status": "done",
+      "completed_at": "2026-09-06T00:15:50.312Z",
+      "completed_by": "agent",
+      "approval_evidence": "Owner approved 2026-09-06; 3 tasks core/collector/exposure linked GH#18"
+    },
+    "execution": {
+      "status": "done",
+      "completed_at": "2026-09-06T00:25:24.275Z",
+      "completed_by": "agent"
+    },
+    "acceptance": {
+      "status": "done",
+      "completed_at": "2026-09-06T00:28:28.931Z",
+      "completed_by": "agent",
+      "approval_evidence": "T1 core 5/5 (incl. real-incident regression), T2 collector 7/7 + wiring, T3 diagnostics 1/1 + runtime 5/5 + INSTALL docs. pnpm check green, 18/18 verify. Caveat: live host collection activates on next plugin build (session runs installed generation)."
+    },
+    "release": {
+      "status": "done",
+      "completed_at": "2026-09-06T00:29:53.813Z",
+      "completed_by": "agent",
+      "approval_evidence": "Merged 072cc80 + manifest 757055d (878 files); pushed b3f8a52..757055d; pnpm check green post-merge; Phase 9 finalization shipped; defaultBranch=main; repoRoot=C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus; pushStatus=verified; proof=pr_merged; releasedCommitSha=072cc80e795c300390caf3027d3f4be5dfe914ac; route=direct; mergeCommitOid=072cc80e795c300390caf3027d3f4be5dfe914ac"
+    }
+  },
+  "documents": {
+    "proposal": "# Attribute cache busts\n\n## Scope\n- Pesquisar opencode-beta (breakpoints cache_control, composicao do prefixo, exposicao de motivo/uso por step).\n- Rastreador puro por step: (tool_call, bytes_in/out, new/cached/total) + deteccao de queda alem de limiar + causa ours|host|unknown. Advisory permanente, sem gate.\n- Expor top busts no diagnostics/cache-*.json + docs PT-BR minimas.\n\n## Exclusions\n- Sem mudar cache/prefixo do host, sem gate novo, sem tocar compaction.\n\n## Acceptance criteria\n- Relatorio da pesquisa registrado; deteccao testada incl. borda do limiar; pnpm check verde; sem fails novos; demo ao vivo atribui bust real.\n\n## Error handling / rollback\n- Coleta em wrapper fora do hot path; falha de coleta nunca quebra execucao; remover modulo restaura estado anterior.",
+    "problemStatement": "Rodape informa bust apos o fato sem apontar qual tool call (nome, bytes, mudanca de prefixo) o provocou, nem se causa e nossa ou do host. Sessao real: 121k new apos bust de 117k cached. Sem atribuicao, otimizar e tiro no escuro.",
+    "design": "# Design — bust attribution (ST-15)\n\n## Achados beta (subagent ses_f8bf3b14)\n- Breakpoints: packages/ai/src/cache-policy.ts (CAP 4, tools->system->messages); anthropic-messages.ts EPHEMERAL_5M/1H; sem header prompt-caching.\n- Prefixo: session/model-request.ts monta system=[agent.system||SessionSystemPrompt,initial]+messages+tools; plugin/system-prompt.ts:46 muta system[0]; skills injetadas no user content; tool add/remove/reorder busta tudo abaixo; compaction reescreve.\n- Uso: message.tokens{input,cache.read/write} + time.created/completed. Sem API de causa de bust.\n- Plugin PODE: tool.execute.before/after, session hooks, event.subscribe, byte sizes, gaps, deltas de cache.read.\n\n## Desenho\n- Modulo puro src/utils/cache-bust-attribution.ts: appendStep({tool,bytesIn,bytesOut,at,newTokens,cachedTokens}) -> detecta queda de cached alem de limiar -> evento {suspect, evidence[], cause: ours|host|unknown}.\n- Heuristicas: output>50KB unico => ours; gap>4.5min => host(ttl); cwd/session-dir mudou => ours(move); tool-count mudou => ours(tools); senao unknown.\n- Coletor: fiar no que o NOSSO SDK expoe (verificar ctx tool/session/event em plugin/src/index.ts); se host nao expoe uso por step, coletor opera em modo degradado (só bytes+gaps) sem quebrar boot — mesma disciplina fail-soft do plugin.\n- Expor: agregar em diagnostics/cache-*.json (top busts) + teste de borda do limiar."
+  },
+  "same_project_dependencies": [],
+  "origin": {
+    "kind": "triage",
+    "issue_number": 18,
+    "source_artifact": "gh-18-cache-bust"
+  },
+  "projection_revision": 36,
+  "projection_commits": [
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate proposal completion",
+      "operation_id": "mutation:gate_completion:attributeCacheBusts:e8d58d76-6214-4453-b9ce-980985905143",
+      "payload_hash": "a2857b7dcadaaf38deeb195afcdca3c3b9d6316d622c423f2d94482385e6c621",
+      "prior_revision": 0,
+      "new_revision": 1,
+      "committed_at": "2026-09-06T00:11:38.240Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate discovery completion",
+      "operation_id": "mutation:gate_completion:attributeCacheBusts:51cabd25-7a31-407e-9b4b-31fceabb0100",
+      "payload_hash": "7127cb450cc6662d51ba2212ba81cc63f282c48c4fb436daa55a949ca99a3c19",
+      "prior_revision": 1,
+      "new_revision": 2,
+      "committed_at": "2026-09-06T00:11:38.313Z"
+    },
+    {
+      "mutation_kind": "artifact_update",
+      "authority_kind": "mutation",
+      "authority_reason": "change artifact update",
+      "authority_evidence": "operator-requested artifact update",
+      "operation_id": "mutation:artifact_update:attributeCacheBusts:14041d7a-29a2-4be4-950a-c569849e6630",
+      "payload_hash": "d4d90f6fb3238b353aa5f1e083d02c7d9ef5a4c0ce345879e97517cd3eb550c5",
+      "prior_revision": 2,
+      "new_revision": 3,
+      "committed_at": "2026-09-06T00:11:43.622Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate design completion",
+      "operation_id": "mutation:gate_completion:attributeCacheBusts:86d7eaf0-1c73-4375-b023-09a984d99a9e",
+      "payload_hash": "70912a8a59d509ce307998ab83a0c4633017bca85dba1e571c63c6950dd81adc",
+      "prior_revision": 3,
+      "new_revision": 4,
+      "committed_at": "2026-09-06T00:11:48.404Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-f773a86ce991",
+      "operation_id": "mutation:task_add:attributeCacheBusts:b667015e-541d-464b-ac48-4ed7bf23f9c4",
+      "payload_hash": "e023b4b8f7f7018bb24c982cfeeb6462771b48da998ee9a2d9924abc33d093b5",
+      "prior_revision": 4,
+      "new_revision": 5,
+      "committed_at": "2026-09-06T00:12:22.718Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-79cb87dbbc92",
+      "operation_id": "mutation:task_add:attributeCacheBusts:a8ad7148-7940-485b-906f-bc61a8a83398",
+      "payload_hash": "99b81431dca8a59457fc6e5781b564a44f122174ef3e0bd3335ef30f8f733718",
+      "prior_revision": 5,
+      "new_revision": 6,
+      "committed_at": "2026-09-06T00:12:23.516Z"
+    },
+    {
+      "mutation_kind": "task_add",
+      "authority_kind": "mutation",
+      "authority_reason": "add task",
+      "authority_evidence": "tk-58a97b702182",
+      "operation_id": "mutation:task_add:attributeCacheBusts:392d7e17-325e-484e-8fc6-94d56a66ce5c",
+      "payload_hash": "837888dcdeb40dcb917e418bc0a8dab35d9535b3a4fbb6fe0b831a45c2513464",
+      "prior_revision": 6,
+      "new_revision": 7,
+      "committed_at": "2026-09-06T00:12:24.273Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "Owner approved 2026-09-06; 3 tasks core/collector/exposure linked GH#18",
+      "operation_id": "mutation:gate_completion:attributeCacheBusts:26e7690a-72cb-487f-839e-2fc558d41f28",
+      "payload_hash": "d23133ca384ac83c88d2864fd1b699c3a3332e510890c361c9c4738b8ed79da5",
+      "prior_revision": 7,
+      "new_revision": 8,
+      "committed_at": "2026-09-06T00:15:50.316Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:attributeCacheBusts:cee54403-3722-479b-936e-9e641e033f94",
+      "payload_hash": "44ae77cffa28d44a556477bbd9a49ca518d2cb6fe2ade5ab606a6f5f3ec9104d",
+      "prior_revision": 8,
+      "new_revision": 9,
+      "committed_at": "2026-09-06T00:15:57.743Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:6f9274f2-cbd1-4ffa-b843-a35821807a0e",
+      "payload_hash": "e24f64e60a7f6c8d776c9c9a5f60d33940aa0d4b9610336e9ab5e1872d68f4a5",
+      "prior_revision": 9,
+      "new_revision": 10,
+      "committed_at": "2026-09-06T00:16:17.383Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:1e70b9d8-8d3c-4772-801d-b4934a44e3af",
+      "payload_hash": "efa901fc67563dde255a04f9c6c3a2e958f468111add84aed00d613ecc5f5765",
+      "prior_revision": 10,
+      "new_revision": 11,
+      "committed_at": "2026-09-06T00:16:32.763Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:ba28caf9-e464-4a45-adde-bd0223e043b4",
+      "payload_hash": "8756b4bb69c35c28e24edac0224d55b730c48c6643a788de58266f85e50d4838",
+      "prior_revision": 11,
+      "new_revision": 12,
+      "committed_at": "2026-09-06T00:16:48.722Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:2876d452-3395-47b3-974a-bc9f82f78862",
+      "payload_hash": "ef61358d8c8fff37074116677e6d88b84f518ae891df42c424b3b3c7957f8376",
+      "prior_revision": 12,
+      "new_revision": 13,
+      "committed_at": "2026-09-06T00:17:10.998Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:1d06bf1e-bea4-4a24-b0c0-1545c39622f2",
+      "payload_hash": "37d8c078835813ec7b0b79df0e40e99aa491fa71b1c7a688000af81b431e4244",
+      "prior_revision": 13,
+      "new_revision": 14,
+      "committed_at": "2026-09-06T00:17:20.936Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "f554632275154d7abdfcf2e54031bd6d48d4ba9c:T1 core: 4/4 (RED missing-module -> GREEN). First attempt correctly blocked RED_STALE (test edited between runs); cycle re-proven clean with unchanged test file.",
+      "operation_id": "mutation:task_checkpoint_completed:attributeCacheBusts:4ef5920e-e303-412c-bd1e-4eede780f25a",
+      "payload_hash": "f3afe27f24e9045f31548c42d96f486eeb25a5603f99338e6e82b123173d07dd",
+      "prior_revision": 14,
+      "new_revision": 15,
+      "committed_at": "2026-09-06T00:17:25.867Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:attributeCacheBusts:2e916302-06aa-4992-a4ac-315c802d9b90",
+      "payload_hash": "38fb8b3d302e5eea282284e54887a428e26e287c68f28d72e641db3d7a73a545",
+      "prior_revision": 15,
+      "new_revision": 16,
+      "committed_at": "2026-09-06T00:17:37.376Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:1338f5cc-a5e4-48eb-9d97-45f5e499f4cf",
+      "payload_hash": "c448349c4ec65bb889fbae456d334e4a81cd47c12a47a96bf95f91c3399cb6ac",
+      "prior_revision": 16,
+      "new_revision": 17,
+      "committed_at": "2026-09-06T00:17:42.687Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:d52960d7-3d3f-428a-8511-ec02d43488b3",
+      "payload_hash": "76914ba4d102366ea542bab10b4af77e71ea7e7a27a7fe167441b50ae895ca77",
+      "prior_revision": 17,
+      "new_revision": 18,
+      "committed_at": "2026-09-06T00:17:57.450Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:f16c15e7-1c2f-45c5-92ef-b8e36d687732",
+      "payload_hash": "260fd93809b51f9eb00f7870b80ba2a29691850df2e7c7bf35339e696b89036c",
+      "prior_revision": 18,
+      "new_revision": 19,
+      "committed_at": "2026-09-06T00:18:22.071Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:b7a9baf8-9a15-4476-962f-c1c2647c82d7",
+      "payload_hash": "7e05a7bbc27aaff6b97fae868976f3d638f0ba773508e39ee352a250993acfb8",
+      "prior_revision": 19,
+      "new_revision": 20,
+      "committed_at": "2026-09-06T00:19:19.160Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:834d9875-9c10-4463-b0cc-808943a2e4fe",
+      "payload_hash": "75b1ff1086a38d173b5de938a3a5cc1fc901ac6c17b82979d9dea579580ccdbb",
+      "prior_revision": 20,
+      "new_revision": 21,
+      "committed_at": "2026-09-06T00:19:52.829Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:b2663be8-ae9e-41e0-89c7-ea74ec9d7283",
+      "payload_hash": "eca16b881f296f0fd748b1108d170f4925b5c68aaa287b64e859e07f1cc0244c",
+      "prior_revision": 21,
+      "new_revision": 22,
+      "committed_at": "2026-09-06T00:21:29.805Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:846aad64-11ee-4163-a7cd-a24418abc5d9",
+      "payload_hash": "b105307bda2927b1d5d3f4fe9f7cd8b34731fef28a70c6a78fbe2f48430cb0f8",
+      "prior_revision": 22,
+      "new_revision": 23,
+      "committed_at": "2026-09-06T00:21:45.397Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:57061e41-14ca-41f7-9077-94d591b33e11",
+      "payload_hash": "3baea1e6a26df0edb8faeb145ca042e943eaf0eec2dc5e04b87fd2b3d3458362",
+      "prior_revision": 23,
+      "new_revision": 24,
+      "committed_at": "2026-09-06T00:22:26.824Z"
+    },
+    {
+      "mutation_kind": "task_mutation",
+      "authority_kind": "mutation",
+      "authority_reason": "task_mutation",
+      "authority_evidence": "in_progress",
+      "operation_id": "mutation:task_mutation:attributeCacheBusts:1daf4381-e599-4722-ab82-521bb9fb6435",
+      "payload_hash": "b8cb40cd0c2e0c7fd6e49dccf239f4f505c6d563dbb9315f7355cdb3438832d0",
+      "prior_revision": 24,
+      "new_revision": 25,
+      "committed_at": "2026-09-06T00:23:14.866Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/cache-bust-diagnostics.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:f2016c11-74f7-42c6-99e1-e886fddcddc2",
+      "payload_hash": "3f39a2fdc9a4c80bbda38b08bb4d04343ecaf60942110992ab8bea44f0ad6a9d",
+      "prior_revision": 25,
+      "new_revision": 26,
+      "committed_at": "2026-09-06T00:23:39.212Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/cache-bust-diagnostics.test.ts src/cache-runtime.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:ed7abe02-ed5a-43df-82c5-208011adb250",
+      "payload_hash": "7260dc44c38f22ae5d641c7347f473314d9fc3b276cb4808cf9b40e3e4aa24aa",
+      "prior_revision": 26,
+      "new_revision": 27,
+      "committed_at": "2026-09-06T00:24:05.370Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-attribution.test.ts src/utils/cache-bust-collector.test.ts src/cache-bust-diagnostics.test.ts src/cache-runtime.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:4c682ae1-2137-4d18-966d-0cc131951924",
+      "payload_hash": "070f88a2745d0eaff22adf2a4bc11569cafcb8f8a2086cbbd188012c0898823b",
+      "prior_revision": 27,
+      "new_revision": 28,
+      "committed_at": "2026-09-06T00:24:41.755Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "88ccc1fc807697354058e7d5840e8f927de509dc:T3 exposure: diagnostics 1/1 + runtime 5/5 (RED tr_mtp2jg8u missing-topBusts -> GREEN tr_mtp2ksho 18/18); real-incident regression test in core; topBusts sanitized+b bounded; INSTALL.md PT-BR docs.",
+      "operation_id": "mutation:task_checkpoint_completed:attributeCacheBusts:80f594d4-fd8f-43ab-8993-f1c0d6901ff8",
+      "payload_hash": "aac0271d4fe83d4cb25b9904c6e8e1f531202f107a85d0a03e0cc60625c56ba8",
+      "prior_revision": 28,
+      "new_revision": 29,
+      "committed_at": "2026-09-06T00:24:46.499Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:e0b31a35-8079-4666-bd33-eb2e11b8ed54",
+      "payload_hash": "468a241328d5b39bd0b4852f99e33c56fa9dead43c43f59644a10f5e774d961f",
+      "prior_revision": 29,
+      "new_revision": 30,
+      "committed_at": "2026-09-06T00:25:04.457Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:34e10989-25df-4e13-b197-4bf5edde972f",
+      "payload_hash": "6fef3e0218bd13f42610465b8e53fb3a1d9b837196ccec374cf5e97a0c63fe4a",
+      "prior_revision": 30,
+      "new_revision": 31,
+      "committed_at": "2026-09-06T00:25:15.186Z"
+    },
+    {
+      "mutation_kind": "task_checkpoint_completed",
+      "authority_kind": "mutation",
+      "authority_reason": "record task checkpoint completion",
+      "authority_evidence": "88ccc1fc807697354058e7d5840e8f927de509dc:T2 collector: 12/12 (RED missing-module re-proven clean -> GREEN); dual-feed join + lookahead + carry-forward + seen-tools + byte cap; wiring in index.ts + onUsageStep in cache-runtime (swept in T3 commit; re-verified here).",
+      "operation_id": "mutation:task_checkpoint_completed:attributeCacheBusts:28047832-788d-43ee-81b7-e2191c5af1a5",
+      "payload_hash": "26e120816c545666abb1ec5fedfb51e3bf0d654ceebf3fb7708a62c65695197b",
+      "prior_revision": 31,
+      "new_revision": 32,
+      "committed_at": "2026-09-06T00:25:19.147Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "gate execution completion",
+      "operation_id": "mutation:gate_completion:attributeCacheBusts:738719d3-7063-4811-81d8-d309b4f18fcf",
+      "payload_hash": "dabf1c49361c0956883943465e92b068f4b80e861225d3fb08b2e7283c9c3ac5",
+      "prior_revision": 32,
+      "new_revision": 33,
+      "committed_at": "2026-09-06T00:25:24.279Z"
+    },
+    {
+      "mutation_kind": "test_run_recorded",
+      "authority_kind": "mutation",
+      "authority_reason": "record test-run evidence",
+      "authority_evidence": "pnpm vitest run src/utils/cache-bust-collector.test.ts src/utils/cache-bust-attribution.test.ts src/cache-bust-diagnostics.test.ts src/cache-runtime.test.ts",
+      "operation_id": "mutation:test_run_recorded:attributeCacheBusts:a5dab4cc-d6db-4eea-af98-67237ef48ff5",
+      "payload_hash": "3cb0e917572cc432449e9ebcf39f0f0c92b7e1447d9b7836126224b694eb2963",
+      "prior_revision": 33,
+      "new_revision": 34,
+      "committed_at": "2026-09-06T00:28:18.082Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "T1 core 5/5 (incl. real-incident regression), T2 collector 7/7 + wiring, T3 diagnostics 1/1 + runtime 5/5 + INSTALL docs. pnpm check green, 18/18 verify. Caveat: live host collection activates on next plugin build (session runs installed generation).",
+      "operation_id": "mutation:gate_completion:attributeCacheBusts:bf107fff-d719-43de-ad92-8dac0d8567b0",
+      "payload_hash": "2bc3844a95c2ddab2c0bb5d560fe984bafc7bf944c86af9e8388cad4f71058e6",
+      "prior_revision": 34,
+      "new_revision": 35,
+      "committed_at": "2026-09-06T00:28:28.934Z"
+    },
+    {
+      "mutation_kind": "gate_completion",
+      "authority_kind": "mutation",
+      "authority_reason": "complete gate",
+      "authority_evidence": "Merged 072cc80 + manifest 757055d (878 files); pushed b3f8a52..757055d; pnpm check green post-merge",
+      "operation_id": "mutation:gate_completion:attributeCacheBusts:1f677797-15e4-4e5f-a896-b36d75e2d896",
+      "payload_hash": "f92d2082c6ad3688847d41d054c3a9f6acb17342942e77718bf3f9ce5475f850",
+      "prior_revision": 35,
+      "new_revision": 36,
+      "committed_at": "2026-09-06T00:29:53.831Z"
+    }
+  ]
+}
