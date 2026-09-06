@@ -58,7 +58,7 @@ export const targetPathSchema = z.object({
     .string()
     .optional()
     .describe(
-      "Optional absolute path to another ADV project. When provided, routes the operation through that project's target store.",
+      "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target store.",
     ),
   target_confirmed: z
     .literal(true)
@@ -284,7 +284,7 @@ export function resolveTargetAwareMutationCwd(input: {
 
 export const epicOwnerTargetPathSchema = {
   epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-    "Optional absolute path to the Epic owner ADV project. When provided, resolves the Epic in that project instead of the current one.",
+    "Optional absolute path to the Epic owner Determinus project. When provided, resolves the Epic in that project instead of the current one.",
   ),
   epic_owner_target_confirmed: targetPathSchema.shape.target_confirmed.describe(
     "Required for untrusted epic_owner_target_path mutation. Confirms the Epic owner project was explicitly approved.",

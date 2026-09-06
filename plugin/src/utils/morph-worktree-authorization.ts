@@ -19,18 +19,23 @@ export async function authorizeMorphWorktree(
   const taskId = typeof args.taskId === "string" ? args.taskId : null;
   if (!workdir && !taskId) return;
   if (!workdir || !taskId) {
-    throw new Error("Morph ADV workdir requires both workdir and taskId");
+    throw new Error(
+      "Morph Determinus workdir requires both workdir and taskId",
+    );
   }
   const changeId = await deps.getTaskChangeId(taskId);
   if (!changeId || !(await deps.isSetupReady(changeId))) {
-    throw new Error("Morph ADV workdir task is not setup-ready");
+    throw new Error("Morph Determinus workdir task is not setup-ready");
   }
   const expectedRoot = deps.getExpectedRoot(changeId);
-  if (!expectedRoot) throw new Error("Morph ADV workdir has no expected root");
+  if (!expectedRoot)
+    throw new Error("Morph Determinus workdir has no expected root");
   const canonicalRequested = deps.canonicalize(workdir);
   const canonicalExpected = deps.canonicalize(expectedRoot);
   if (canonicalRequested !== canonicalExpected) {
-    throw new Error("Morph ADV workdir does not match its task worktree");
+    throw new Error(
+      "Morph Determinus workdir does not match its task worktree",
+    );
   }
   Object.defineProperty(args, determinus_MORPH_WORKTREE_CAPABILITY, {
     value: { root: canonicalExpected, taskId, sessionID },

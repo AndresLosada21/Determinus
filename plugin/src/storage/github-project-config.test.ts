@@ -25,7 +25,7 @@ const SAMPLE_CONFIG: GitHubProjectConfig = {
   owner: "TestOrg",
   project_number: 2,
   project_id: "PVT_test_id",
-  title: "ADV: Test",
+  title: "Determinus: Test",
   fields: {
     determinus_type: "PVTSSF_advtype",
     priority: "PVTSSF_priority",
@@ -208,7 +208,7 @@ describe("github-project-config", () => {
       await writeGitHubProjectConfig(dir, SAMPLE_CONFIG);
       const updated: GitHubProjectConfig = {
         ...SAMPLE_CONFIG,
-        title: "ADV: Test (Updated)",
+        title: "Determinus: Test (Updated)",
         persisted_at: "2026-05-09T01:00:00.000Z",
       };
       await writeGitHubProjectConfig(dir, updated);
@@ -216,7 +216,7 @@ describe("github-project-config", () => {
       const onDisk = JSON.parse(
         await readFile(join(dir, ".adv/github-project.json"), "utf8"),
       );
-      expect(onDisk.title).toBe("ADV: Test (Updated)");
+      expect(onDisk.title).toBe("Determinus: Test (Updated)");
       expect(onDisk.persisted_at).toBe("2026-05-09T01:00:00.000Z");
     });
 

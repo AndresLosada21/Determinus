@@ -28,9 +28,9 @@ const logger = createLogger("change-projection-reader");
 
 /**
  * Default byte limit for active-projection JSON documents (change.json,
- * spec.json, epic projections). Large enough for realistic ADV projections with
+ * spec.json, epic projections). Large enough for realistic Determinus projections with
  * many tasks and reports; small enough to prevent unbounded reads from
- * blocking ADV operations on runaway/corrupt files.
+ * blocking Determinus operations on runaway/corrupt files.
  */
 export const PROJECTION_DOCUMENT_BYTE_LIMIT = 8 * 1024 * 1024; // 8 MiB
 

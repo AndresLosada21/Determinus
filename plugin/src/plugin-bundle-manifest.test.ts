@@ -429,45 +429,47 @@ describe("getPluginBundleReleasePreflightError", () => {
 
 describe("plugin bundle path resolution", () => {
   test("getPluginRoot resolves plugin root from source index.ts module", () => {
-    const srcUrl = "file:///home/user/advance/plugin/src/index.ts";
-    expect(getPluginRoot(srcUrl)).toBe("/home/user/advance/plugin");
+    const srcUrl = "file:///home/user/determinus/plugin/src/index.ts";
+    expect(getPluginRoot(srcUrl)).toBe("/home/user/determinus/plugin");
   });
 
   test("getPluginRoot resolves plugin root from bundled dist/index.js module", () => {
-    const distUrl = "file:///home/user/advance/plugin/dist/index.js";
-    expect(getPluginRoot(distUrl)).toBe("/home/user/advance/plugin");
+    const distUrl = "file:///home/user/determinus/plugin/dist/index.js";
+    expect(getPluginRoot(distUrl)).toBe("/home/user/determinus/plugin");
   });
 
   test("getPluginRoot resolves plugin root from bundled dist chunk module", () => {
-    const chunkUrl = "file:///home/user/advance/plugin/dist/chunk-PL7DRBOO.js";
-    expect(getPluginRoot(chunkUrl)).toBe("/home/user/advance/plugin");
+    const chunkUrl =
+      "file:///home/user/determinus/plugin/dist/chunk-PL7DRBOO.js";
+    expect(getPluginRoot(chunkUrl)).toBe("/home/user/determinus/plugin");
   });
 
   test("getPluginRoot resolves plugin root from bundled dist/mcp-server.js module", () => {
-    const mcpUrl = "file:///home/user/advance/plugin/dist/mcp-server.js";
-    expect(getPluginRoot(mcpUrl)).toBe("/home/user/advance/plugin");
+    const mcpUrl = "file:///home/user/determinus/plugin/dist/mcp-server.js";
+    expect(getPluginRoot(mcpUrl)).toBe("/home/user/determinus/plugin");
   });
 
   test("getPluginBundleDistDir resolves plugin/dist from source module", () => {
     const srcUrl =
-      "file:///home/user/advance/plugin/src/plugin-bundle-manifest.ts";
+      "file:///home/user/determinus/plugin/src/plugin-bundle-manifest.ts";
     expect(getPluginBundleDistDir(srcUrl)).toBe(
-      "/home/user/advance/plugin/dist",
+      "/home/user/determinus/plugin/dist",
     );
   });
 
   test("getPluginBundleDistDir resolves plugin/dist from bundled chunk module", () => {
-    const chunkUrl = "file:///home/user/advance/plugin/dist/chunk-PL7DRBOO.js";
+    const chunkUrl =
+      "file:///home/user/determinus/plugin/dist/chunk-PL7DRBOO.js";
     expect(getPluginBundleDistDir(chunkUrl)).toBe(
-      "/home/user/advance/plugin/dist",
+      "/home/user/determinus/plugin/dist",
     );
   });
 
   test("getPluginBundleDistDir returns a path inside plugin root, not repo root", () => {
-    const distUrl = "file:///home/user/advance/plugin/dist/index.js";
+    const distUrl = "file:///home/user/determinus/plugin/dist/index.js";
     const distDir = getPluginBundleDistDir(distUrl);
-    expect(distDir).not.toBe("/home/user/advance/dist");
+    expect(distDir).not.toBe("/home/user/determinus/dist");
     expect(distDir).not.toBe("/home/user/dist");
-    expect(distDir).toMatch(/\/advance\/plugin\/dist$/);
+    expect(distDir).toMatch(/\/determinus\/plugin\/dist$/);
   });
 });

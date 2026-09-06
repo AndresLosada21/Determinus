@@ -56,7 +56,7 @@ export interface WorktreeIsolationDeps {
 }
 
 export const WORKTREE_ISOLATION_REMEDIATION =
-  "Resume or create the ADV worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.";
+  "Resume or create the Determinus worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.";
 
 export function checkWorktreeIsolation(
   cwd: string,
@@ -82,7 +82,7 @@ export function checkWorktreeIsolation(
     decision: "BLOCK",
     errorClass: "WorktreeIsolationViolation",
     mainCheckoutPath: ctx.mainCheckoutPath,
-    reason: `Worktree isolation: ADV mutating operations require a worktree, not the main checkout (${ctx.mainCheckoutPath ?? cwd}).`,
+    reason: `Worktree isolation: Determinus mutating operations require a worktree, not the main checkout (${ctx.mainCheckoutPath ?? cwd}).`,
     remediation: WORKTREE_ISOLATION_REMEDIATION,
   };
 }

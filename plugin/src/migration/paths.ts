@@ -9,7 +9,7 @@
  *
  * Resolution order: `determinus_MIGRATION_STATE_DIR` (tests/ops override) → own
  * plugin root derived from the module location → the canonical deploy
- * location (`~/.local/share/Advance/migration`).
+ * location (`~/.local/share/Determinus/migration`).
  */
 
 import { existsSync } from "node:fs";
@@ -42,7 +42,7 @@ export function resolveMigrationRoot(input?: {
     input?.homeDir ?? homedir(),
     ".local",
     "share",
-    "Advance",
+    "Determinus",
     "migration",
   );
 }

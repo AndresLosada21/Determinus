@@ -21,7 +21,7 @@ import { Mutex } from "../../utils/mutex";
 import { appendDebugLog } from "../../utils/debug-log";
 
 // T7 relocation: legacy `logWarn(client, service, msg)` adapted to
-// ADV's `appendDebugLog(scope, msg)`. Client arg is unused; signature
+// Determinus's `appendDebugLog(scope, msg)`. Client arg is unused; signature
 // shim preserved so call sites need no edits.
 function logWarn(
   _client: OpencodeClient | undefined,

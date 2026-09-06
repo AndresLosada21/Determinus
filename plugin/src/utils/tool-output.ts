@@ -2,7 +2,7 @@ import { persistResult } from "./result-artifacts";
 /**
  * Tool Output Formatting
  *
- * Central utility for all ADV tool responses. Ensures:
+ * Central utility for all Determinus tool responses. Ensures:
  * 1. Compact JSON by default (saves ~15-25% tokens)
  * 2. Token-budget-aware truncation with valid JSON envelope
  * 3. Continuation protocol for paginated/truncated results

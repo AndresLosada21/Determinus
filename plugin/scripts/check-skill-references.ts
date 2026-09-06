@@ -2,7 +2,7 @@
 /**
  * CI lint script: skill-reference resolution guard.
  *
- * Enforces rq-skillReferenceIntegrity01 — an active ADV surface MUST NOT
+ * Enforces rq-skillReferenceIntegrity01 — an active Determinus surface MUST NOT
  * reference a skill that does not exist. A canonical skill reference is
  * `skill("<name>")` or a `skills/<name>/` path; each must resolve to an
  * existing `skills/<name>/SKILL.md`. Historical surfaces are excluded.
@@ -72,12 +72,12 @@ const EXEMPTIONS: Exemption[] = [
     surface: /^(\.opencode\/agents\/|docs\/specs\/)/,
     reason: "globally-installed skill declared in agent manifests and their specs",
   },
-  // Optional user-owned skill, referenced from ADV instruction docs and agent
+  // Optional user-owned skill, referenced from Determinus instruction docs and agent
   // manifests that mention it as an inline alternative.
   {
     skill: "prioritizer",
     surface: /^(ADV_INSTRUCTIONS\.md|docs\/user-intuit-protocol\.md|\.opencode\/agents\/)/,
-    reason: "optional user-owned skill referenced from ADV instruction docs and agent manifests",
+    reason: "optional user-owned skill referenced from Determinus instruction docs and agent manifests",
   },
   // Retired names surfaced in ADV_INSTRUCTIONS.md "Stale-reference note"
   // precisely to forbid them. A blind check cannot tell "call this" from

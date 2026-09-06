@@ -45,11 +45,11 @@ export type GitWorktreeLockResult =
  * Lock filename used inside the per-repository administrative lease
  * directory. Distinct from
  * `worker.lock` so singleton-worker election is not coupled to git operations.
- * The file lives under `<git-common-dir>/advance`, never in a checkout.
+ * The file lives under `<git-common-dir>/determinus`, never in a checkout.
  */
 export const GIT_WORKTREE_LOCK_FILENAME = "git-worktree.lock";
 /** Git administrative subdirectory shared by linked worktrees. */
-export const GIT_WORKTREE_LEASE_DIRECTORY = "advance";
+export const GIT_WORKTREE_LEASE_DIRECTORY = "determinus";
 /** Distinct from the process-lease contention code for legacy migration. */
 export const LEGACY_GIT_WORKTREE_FLOCK_CONFLICT_EXIT_CODE = 74;
 const LEGACY_LOCK_MAX_BYTES = 4_096;

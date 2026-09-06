@@ -1,8 +1,8 @@
 /**
- * SDK-free ADV tool catalog entries (task tk-9ad1a04909a2 / KD2).
+ * SDK-free Determinus tool catalog entries (task tk-9ad1a04909a2 / KD2).
  *
  * Pure types, pure functions, and pure derivation tables for the canonical
- * ADV tool surface. This module has ZERO `@opencode-ai/plugin` imports and
+ * Determinus tool surface. This module has ZERO `@opencode-ai/plugin` imports and
  * ZERO imports from `./tools/*` or `./storage/*` — it depends only on Zod
  * (already a peer of the plugin). The future MCP server (plugin/src/mcp-server/)
  * consumes these types and functions to build tool descriptors without
@@ -90,7 +90,7 @@ export function collectPublicToolEntries(
 // Tool catalog projections (addAdvanceMetadata AC3/C3/C4)
 // =============================================================================
 
-/** One entry in the read-only ADV tool catalog. */
+/** One entry in the read-only Determinus tool catalog. */
 export interface ToolCatalogItem {
   readonly name: string;
   readonly description: string;
@@ -149,7 +149,7 @@ export function getToolSurface(
 // =============================================================================
 
 /**
- * SC1 source baseline: the number of registered public ADV tools recorded at
+ * SC1 source baseline: the number of registered public Determinus tools recorded at
  * the start of consolidateAdvToolSurface2 implementation (2026-07-15). The
  * final canonical count must be strictly lower once a change's contracted
  * public removals land; the baseline/final exact-accounting assertion lives
@@ -207,7 +207,7 @@ export type ToolLifecycleGate =
   | "release";
 
 /**
- * Canonical descriptive metadata for every retained ADV tool.
+ * Canonical descriptive metadata for every retained Determinus tool.
  *
  * Owned facts only: realm, group, lifecycle gates, risk, and recovery-only
  * flag. This table does NOT copy authority from TOOL_ROLE_POLICY (class,

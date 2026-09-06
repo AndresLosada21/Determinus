@@ -2,7 +2,7 @@
  * Resume Freshness resolver — entrypoint + sub-resolvers.
  *
  * Computes a bounded advisory comparing a resumed change against current
- * ADV state + repo state. Emitted at ADV Step 2 Load State when the change's
+ * Determinus state + repo state. Emitted at Determinus Step 2 Load State when the change's
  * `lastActivityAgeMinutes > 60` (trigger band — C4).
  *
  * Design (D1, D5, D9, D9b): storage-side resolver; pure-formatter stays pure.
@@ -346,7 +346,7 @@ export async function resolveCodebaseDrift(
  *
  * Stateless (AC9, DONT4): no caching, no persisted dismissal memory.
  *
- * No ADV state mutation (AC4, DONT3): read-only.
+ * No Determinus state mutation (AC4, DONT3): read-only.
  *
  * Budget guard (DDC1): 8s wall-clock; on exceed, short-circuits remaining
  * sub-resolvers and appends a `freshness_limited` finding with

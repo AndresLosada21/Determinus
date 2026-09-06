@@ -42,7 +42,7 @@ describe("latency harness", () => {
 
   test("renderLatencyReport includes metadata and operation summaries", () => {
     const report = renderLatencyReport({
-      title: "ADV Latency Report",
+      title: "Determinus Latency Report",
       metadata: {
         backend_mode: "legacy",
         workdir: "/tmp/project",
@@ -62,7 +62,7 @@ describe("latency harness", () => {
       ],
     });
 
-    expect(report).toContain("# ADV Latency Report");
+    expect(report).toContain("# Determinus Latency Report");
     expect(report).toContain("backend_mode");
     expect(report).toContain("determinus_status");
     expect(report).toContain("p95");

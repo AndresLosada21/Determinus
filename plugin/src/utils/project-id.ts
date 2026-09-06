@@ -15,7 +15,7 @@
  *   When `process.env.VITEST === "true"` or `process.env.determinus_TEST_MODE === "1"`,
  *   `getProjectId` returns a path-derived synthetic ID via
  *   `synthesizeTestProjectId(directory)` so that vitest runs cannot leak
- *   fixture state into a real ADV project's external state directory AND
+ *   fixture state into a real Determinus project's external state directory AND
  *   so that fixtures using distinct target paths get isolated state dirs.
  *   `getDataHome` also redirects test-mode state under `os.tmpdir()` unless
  *   `determinus_TEST_DATA_HOME=0` explicitly opts out for XDG path assertions.
@@ -86,7 +86,7 @@ export function synthesizeTestProjectId(directory: string): string {
  *   - If `directory` is a real git repo with a root commit, return a
  *     path-derived synthetic ID via `synthesizeTestProjectId(directory)`.
  *     This prevents test runs from a real repo (e.g. the plugin's own
- *     dev checkout) leaking fixture state into that repo's real ADV
+ *     dev checkout) leaking fixture state into that repo's real Determinus
  *     external state directory.
  *   - If `directory` is not a real git repo (e.g. a `createTestProject`
  *     fixture with a stub `.git` directory and no commits), return null.
@@ -124,7 +124,7 @@ export async function getProjectId(directory: string): Promise<string | null> {
  * identity: shallow clones expose the moving graft boundary as a fake
  * root (`rev-list --max-parents=0 HEAD` returns the `.git/shallow`
  * boundary, which rewrites on `fetch --depth/--deepen/--unshallow`),
- * and grafted repos rewrite parentage the same way. Minting ADV state
+ * and grafted repos rewrite parentage the same way. Minting Determinus state
  * under such a SHA orphans the store when the boundary moves.
  */
 export type IdentityResolution =
@@ -133,7 +133,7 @@ export type IdentityResolution =
   | { kind: "unstable"; reason: "shallow" | "graft"; guidance: string };
 
 /**
- * Typed refusal raised when ADV state would be minted under an unstable
+ * Typed refusal raised when Determinus state would be minted under an unstable
  * pseudo-root identity. Carries repo path, detected reason, and the exact
  * remediation command (DDC1).
  */
@@ -171,16 +171,16 @@ function unstableIdentityGuidance(
       ? `Run \`git fetch --unshallow\` in ${repoPath} and retry.`
       : `Remove \`.git/info/grafts\` (or migrate to \`git replace\` and un-graft) in ${repoPath}, then run \`git fetch --unshallow\` if the repo is also shallow, and retry.`;
   return (
-    `ADV cannot derive a stable project identity for ${repoPath}: the repository ${cause}. ` +
-    `${fix} No ADV state was created under the unstable identity.`
+    `Determinus cannot derive a stable project identity for ${repoPath}: the repository ${cause}. ` +
+    `${fix} No Determinus state was created under the unstable identity.`
   );
 }
 
 function invalidIdentityGuidance(repoPath: string, projectId: string): string {
   return (
-    `ADV cannot derive a valid project identity for ${repoPath}: git returned ` +
+    `Determinus cannot derive a valid project identity for ${repoPath}: git returned ` +
     `the invalid candidate "${projectId}". Project identities must be exactly ` +
-    `40 lowercase hexadecimal characters. No ADV state was created under the invalid identity.`
+    `40 lowercase hexadecimal characters. No Determinus state was created under the invalid identity.`
   );
 }
 
@@ -280,7 +280,7 @@ async function resolveRootCommit(directory: string): Promise<string | null> {
 // =============================================================================
 
 /**
- * Resolve the XDG data-home root used by ADV's external mutable state.
+ * Resolve the XDG data-home root used by Determinus's external mutable state.
  *
  * Empty / unset XDG_DATA_HOME falls back to `~/.local/share`. Relative values
  * are rejected because external state and worktree guards rely on absolute
@@ -385,7 +385,7 @@ export function isPathInsideDirectory(
 /**
  * Throw when `candidatePath` escapes `directory`.
  *
- * Useful before cleanup operations that must stay within an ADV namespace.
+ * Useful before cleanup operations that must stay within an Determinus namespace.
  */
 export function assertPathInsideDirectory(
   candidatePath: string,

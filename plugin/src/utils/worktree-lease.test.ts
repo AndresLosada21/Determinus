@@ -2,7 +2,7 @@
  * Tests for worktree-lease.ts — one-writer-per-worktree lease protocol.
  *
  * Lease state keyed by (projectID, canonicalWorktreePath) with PID + heartbeat
- * liveness. Stored as JSON in ADV external state directory.
+ * liveness. Stored as JSON in Determinus external state directory.
  */
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "fs";

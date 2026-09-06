@@ -20,7 +20,7 @@ describe("resolveGitSessionContext", () => {
         "git",
         [
           "-c",
-          "user.name=ADV Test",
+          "user.name=Determinus Test",
           "-c",
           "user.email=determinus-test@example.invalid",
           "commit",

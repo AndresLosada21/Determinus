@@ -1122,7 +1122,7 @@ export const gateTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext.",
         ),
     },
     execute: async (
@@ -1323,7 +1323,7 @@ export const gateTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, mutates that project's disk-backed store.",
+          "Optional absolute path to another Determinus project. When provided, mutates that project's disk-backed store.",
         ),
       target_confirmed: z.literal(true).optional(),
       confirmationEvidence: z.string().optional(),
@@ -1738,7 +1738,7 @@ export function validateGateBoundary(
   const commandName = completedBy.split(/\s/)[0];
 
   // "agent" is the default — no boundary check possible.
-  // ADV runtime/provider actors are not slash-command IDs. Boundary validation
+  // Determinus runtime/provider actors are not slash-command IDs. Boundary validation
   // only applies when completedBy explicitly starts with a known command from
   // COMMAND_MANIFEST.
   if (commandName === "agent") return undefined;

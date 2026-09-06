@@ -336,7 +336,7 @@ export const CrossProjectLinkRelationshipSchema = z.enum([
 export const CrossProjectLinkSchema = z.object({
   /** Absolute path to the linked project repository root */
   target_path: z.string().min(1),
-  /** Stable ADV project ID for the linked repository, when known */
+  /** Stable Determinus project ID for the linked repository, when known */
   target_project_id: z
     .string()
     .regex(/^[0-9a-f]{40}$/)
@@ -365,7 +365,7 @@ export const ExternalDependencyRelationshipSchema = z.enum([
 export const ExternalDependencySchema = z.object({
   /** Absolute path to the dependency project repository root */
   target_path: z.string().min(1),
-  /** Stable ADV project ID for the dependency repository, when known */
+  /** Stable Determinus project ID for the dependency repository, when known */
   target_project_id: z
     .string()
     .regex(/^[0-9a-f]{40}$/)
@@ -434,7 +434,7 @@ export type FastFollowOf = z.infer<typeof FastFollowOfSchema>;
 
 /**
  * Ops/enabler follow-up kind. Covers migrations, backfills, deploy config,
- * monitoring, cleanup, teardown, docs, and similar enablers. Keeps ADV from
+ * monitoring, cleanup, teardown, docs, and similar enablers. Keeps Determinus from
  * drifting into a project-manager clone while preserving structural lineage.
  */
 export const OpsFollowupKindSchema = z.enum([
@@ -463,7 +463,7 @@ export type OpsRelationship = z.infer<typeof OpsRelationshipSchema>;
 
 /**
  * Follow-up status for the child/follow-up change profile. Distinct from the
- * seven ADV gates — this is the operational execution state.
+ * seven Determinus gates — this is the operational execution state.
  */
 export const OpsFollowupStatusSchema = z.enum([
   "not_started",
@@ -492,7 +492,7 @@ export type OpsFollowupStatus = z.infer<typeof OpsFollowupStatusSchema>;
 export const OpsFollowupSourceSchema = z.object({
   /** The change that originated this follow-up. */
   source_change_id: z.string().min(1),
-  /** Stable ADV project ID of the originating project, when known. */
+  /** Stable Determinus project ID of the originating project, when known. */
   source_project_id: z
     .string()
     .regex(/^[0-9a-f]{40}$/)

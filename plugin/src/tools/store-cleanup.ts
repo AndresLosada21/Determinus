@@ -2,7 +2,7 @@
  * Store Cleanup Tool — `determinus_store_cleanup` (legacy Agenda cleanup).
  *
  * Maintenance-only cleanup for legacy Agenda data across discoverable local
- * ADV stores. Supports scan → dry_run → approval-gated execute.
+ * Determinus stores. Supports scan → dry_run → approval-gated execute.
  *
  * Reuses shared store-discovery primitives plus live-lock refusal,
  * ledger-based idempotency, and manifest-before-delete.
@@ -351,7 +351,7 @@ export interface ScanStoresForCleanupOptions {
 }
 
 /**
- * Enumerate all discoverable local ADV stores and classify them by agenda
+ * Enumerate all discoverable local Determinus stores and classify them by agenda
  * presence and cleanup safety. Read-only (C3, C4).
  */
 export async function scanStoresForCleanup(

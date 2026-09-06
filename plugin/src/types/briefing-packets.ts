@@ -1,7 +1,7 @@
 /**
  * Briefing Packet Types
  *
- * Generated read projections that compose existing ADV structured state into
+ * Generated read projections that compose existing Determinus structured state into
  * bounded, lane-specific prompt slices. No live packet state is persisted.
  */
 

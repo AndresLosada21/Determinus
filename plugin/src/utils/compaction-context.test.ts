@@ -36,7 +36,7 @@ describe("buildCompactionContext stale-ledger remediation", () => {
       ],
     });
 
-    expect(output).toContain("ADV STALE LEDGER REMEDIATION");
+    expect(output).toContain("Determinus STALE LEDGER REMEDIATION");
     expect(output).toContain("determinus_change_show");
     expect(output).toContain("include.snapshot=true");
     expect(output).toContain("include.readyTasks=true");
@@ -53,7 +53,7 @@ describe("buildCompactionContext stale-ledger remediation", () => {
       ],
     });
 
-    expect(output).toContain("ADV STALE LEDGER REMEDIATION");
+    expect(output).toContain("Determinus STALE LEDGER REMEDIATION");
   });
 
   test("does not emit remediation when an active task is present", () => {
@@ -63,7 +63,7 @@ describe("buildCompactionContext stale-ledger remediation", () => {
     });
 
     expect(output).toContain("Current: tk-active");
-    expect(output).not.toContain("ADV STALE LEDGER REMEDIATION");
+    expect(output).not.toContain("Determinus STALE LEDGER REMEDIATION");
   });
 
   test("does not emit remediation for a fresh pending-only plan", () => {
@@ -72,7 +72,7 @@ describe("buildCompactionContext stale-ledger remediation", () => {
       tasks: [{ id: "tk-new", title: "New task", status: "pending" }],
     });
 
-    expect(output).not.toContain("ADV STALE LEDGER REMEDIATION");
+    expect(output).not.toContain("Determinus STALE LEDGER REMEDIATION");
   });
 
   test("does not emit remediation when execution is already done", () => {
@@ -81,7 +81,7 @@ describe("buildCompactionContext stale-ledger remediation", () => {
       tasks: [{ id: "tk-done", title: "Done task", status: "done" }],
     });
 
-    expect(output).not.toContain("ADV STALE LEDGER REMEDIATION");
+    expect(output).not.toContain("Determinus STALE LEDGER REMEDIATION");
   });
 
   test("does not emit remediation without gate data", () => {
@@ -92,7 +92,7 @@ describe("buildCompactionContext stale-ledger remediation", () => {
       ],
     });
 
-    expect(output).not.toContain("ADV STALE LEDGER REMEDIATION");
+    expect(output).not.toContain("Determinus STALE LEDGER REMEDIATION");
   });
 });
 

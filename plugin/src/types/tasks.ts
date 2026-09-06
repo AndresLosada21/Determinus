@@ -686,7 +686,7 @@ export const TaskSchema = z
     structured_output: TaskStructuredOutputSchema.optional(),
     /**
      * Typed, durable sub-agent reports submitted through
-     * determinus_subagent_report_submit. These replace ADV worker fenced-JSON report
+     * determinus_subagent_report_submit. These replace Determinus worker fenced-JSON report
      * extraction while preserving structured_output for legacy callers.
      * Task records intentionally keep the task-scoped report schema; independent
      * review/research/scanner sidecars persist on change.subagent_reports[].

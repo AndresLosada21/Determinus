@@ -96,7 +96,7 @@ describe("AC7 — oversized consumer content is persisted or full-dropped, never
 
   test("the legacy silent head/tail excerpt marker never appears for oversized tool output", () => {
     // A bash dump outside the recency window must NOT produce the old
-    // `[ADV:TOOL_OUTPUT_TRUNCATED] ... first 2000 chars ... last 2000 chars`
+    // `[Determinus:TOOL_OUTPUT_TRUNCATED] ... first 2000 chars ... last 2000 chars`
     // pattern. It must produce the honest full-drop marker instead.
     const messages = [];
     for (let i = 0; i < 8; i++) {
@@ -113,7 +113,7 @@ describe("AC7 — oversized consumer content is persisted or full-dropped, never
       expect(out).not.toContain("TOOL_OUTPUT_TRUNCATED");
       expect(out).not.toMatch(/first \d+ chars/);
       expect(out).not.toMatch(/last \d+ chars/);
-      expect(out).toMatch(/\[ADV:OUTPUT_DROPPED\]/);
+      expect(out).toMatch(/\[Determinus:OUTPUT_DROPPED\]/);
     }
   });
 
@@ -123,7 +123,7 @@ describe("AC7 — oversized consumer content is persisted or full-dropped, never
     expect(compactToolPart(part)).toBe(true);
     const out = (part as { output: string }).output;
     // Persisted marker with a path — not a head/tail excerpt.
-    expect(out).toMatch(/\[ADV:FALLBACK_RESULT_PERSISTED\]/);
+    expect(out).toMatch(/\[Determinus:FALLBACK_RESULT_PERSISTED\]/);
     expect(out).not.toContain("TOOL_OUTPUT_TRUNCATED");
     expect(out).not.toMatch(/first \d+ chars/);
     expect(out).not.toMatch(/last \d+ chars/);

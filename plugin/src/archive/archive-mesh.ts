@@ -50,7 +50,7 @@ export async function createMeshIssuesForArchive(
     if (!targetRepo || !targetRepo.gh_repo) continue;
 
     const relationship = link.relationship || "contributes_to";
-    const title = `[ADV Mesh] ${change.title} → ${targetRepo.gh_repo}`;
+    const title = `[Determinus Mesh] ${change.title} → ${targetRepo.gh_repo}`;
 
     // Build issue body from change context
     const body = buildMeshIssueBody(change, link);

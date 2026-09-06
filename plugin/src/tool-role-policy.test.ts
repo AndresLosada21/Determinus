@@ -5,16 +5,16 @@
  * Validates the code-owned, exhaustive tool-role policy in
  * `plugin/src/tool-role-policy.ts`:
  *
- *   1. Every retained canonical ADV tool (determinus_TOOL_NAMES) has exactly one
+ *   1. Every retained canonical Determinus tool (determinus_TOOL_NAMES) has exactly one
  *      role classification: orchestrator | operator-only | dual. Dual entries
  *      keep the action-level read/mutate distinction from
  *      docs/tool-ownership.md instead of flattening it.
- *   2. Every shipped agent manifest's ADV tool allowlist is EXACTLY the
+ *   2. Every shipped agent manifest's Determinus tool allowlist is EXACTLY the
  *      policy's intended allowed set — tests reject a role-irrelevant or
- *      unregistered ADV tool entry (AC6).
+ *      unregistered Determinus tool entry (AC6).
  *   3. Role scoping never crosses destructive, privacy, approval, or
  *      cross-project trust boundaries for fallback convenience (C6):
- *      operator-only tools are grantable only to the ADV orchestrator agent;
+ *      operator-only tools are grantable only to the Determinus orchestrator agent;
  *      every other agent denies every non-allowed retained tool, either by an
  *      explicit `determinus_*: false` default-deny wildcard (wildcard-first,
  *      specific-allow-after — OpenCode legacy tools convert to permission
@@ -55,7 +55,7 @@ function sorted(values: readonly string[]): string[] {
 }
 
 describe("tool role policy — exhaustive classification (AC5/AC7, DDC8)", () => {
-  test("policy covers exactly the retained canonical ADV tool names", () => {
+  test("policy covers exactly the retained canonical Determinus tool names", () => {
     expect(sorted(Object.keys(TOOL_ROLE_POLICY))).toEqual(
       sorted(determinus_TOOL_NAMES),
     );
@@ -204,7 +204,7 @@ describe("tool role policy — agent manifest exactness (SC3/AC6, C6)", () => {
     }
   });
 
-  test("policy sets reference only retained canonical ADV tools and never mix grant/deny", () => {
+  test("policy sets reference only retained canonical Determinus tools and never mix grant/deny", () => {
     const retained = new Set(determinus_TOOL_NAMES);
     for (const policy of AGENT_TOOL_POLICY) {
       for (const tool of policy.allowed) {
@@ -231,9 +231,9 @@ describe("tool role policy — agent manifest exactness (SC3/AC6, C6)", () => {
 
   test("facade tools are granted to every agent except determinus-ci-waiter (addProviderToolSearch AC5)", () => {
     // The compressed tool surface relies on every normal agent (and the
-    // orchestrator) being able to discover and dispatch ADV tools through
-    // the three Advance-owned facade tools. determinus-ci-waiter is the only
-    // exception: it is a bash-only CI poller with no ADV responsibility,
+    // orchestrator) being able to discover and dispatch Determinus tools through
+    // the three Determinus-owned facade tools. determinus-ci-waiter is the only
+    // exception: it is a bash-only CI poller with no Determinus responsibility,
     // so it keeps an empty allowlist with the deny wildcard.
     const FACADE_TOOLS = [
       "determinus_tool_catalog",
@@ -245,7 +245,7 @@ describe("tool role policy — agent manifest exactness (SC3/AC6, C6)", () => {
         for (const tool of FACADE_TOOLS) {
           expect(
             policy.allowed.includes(tool),
-            `determinus-ci-waiter must NOT carry facade tool ${tool} (no ADV surface)`,
+            `determinus-ci-waiter must NOT carry facade tool ${tool} (no Determinus surface)`,
           ).toBe(false);
         }
         continue;
@@ -254,11 +254,11 @@ describe("tool role policy — agent manifest exactness (SC3/AC6, C6)", () => {
       for (const tool of FACADE_TOOLS) {
         expect(
           allowed.has(tool),
-          `${policy.agent} must grant facade tool ${tool} so its rendered tool surface includes the compressed ADV dispatch surface`,
+          `${policy.agent} must grant facade tool ${tool} so its rendered tool surface includes the compressed Determinus dispatch surface`,
         ).toBe(true);
       }
     }
-    // Sanity: the expected facade set is exactly the three Advance-owned
+    // Sanity: the expected facade set is exactly the three Determinus-owned
     // facade tools (no more, no less). Updates here require a corresponding
     // AC / design update.
     expect(EXPECTED_FACADE_HOLDER.size).toBe(2);
@@ -310,7 +310,7 @@ function parseMode(manifestContent: string): string | undefined {
 describe("tool role policy — runtime blockable set derivation (AC5)", () => {
   const EXPECTED_UNION_FLOOR = Object.freeze([
     // Tier 1 — always top-level for every spawnable sub-agent
-    // (tierToolsReduceUpfrontSurface). All other ADV tools are invoke-only
+    // (tierToolsReduceUpfrontSurface). All other Determinus tools are invoke-only
     // (Tier 3), routed through determinus_tool_invoke.
     "determinus_change_archive",
     "determinus_change_close",

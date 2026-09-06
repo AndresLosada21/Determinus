@@ -1,5 +1,5 @@
 /**
- * ADV MCP stdio server entry point.
+ * Determinus MCP stdio server entry point.
  *
  * Exposes a minimal read surface over the Model Context Protocol:
  *   - determinus_handshake: capability/version meta-tool
@@ -44,7 +44,7 @@ async function loadVersion(): Promise<string> {
 }
 
 /**
- * Start the ADV MCP server on stdio (or the provided streams).
+ * Start the Determinus MCP server on stdio (or the provided streams).
  *
  * Resolves the project id from `process.cwd()` and binds the read tools.
  * Does not block on external services at startup; each read tool lazily creates a
@@ -56,11 +56,11 @@ export async function startServer(
   const cwd = process.cwd();
   const projectId = await getProjectId(cwd);
   if (!projectId) {
-    console.warn(`[adv] Could not resolve project id for ${cwd}`);
+    console.warn(`[determinus] Could not resolve project id for ${cwd}`);
   }
 
   const version = await loadVersion();
-  const mcp = new McpServer({ name: "adv", version });
+  const mcp = new McpServer({ name: "determinus", version });
 
   /** Accept any args so the security wrapper can inspect and reject them. */
   const anyArgsSchema = z.object({}).passthrough();
@@ -69,7 +69,7 @@ export async function startServer(
     "determinus_handshake",
     {
       description:
-        "ADV capability handshake: returns the Tier-4 tool inventory and contract version.",
+        "Determinus capability handshake: returns the Tier-4 tool inventory and contract version.",
       inputSchema: anyArgsSchema,
     },
     async (args) => {

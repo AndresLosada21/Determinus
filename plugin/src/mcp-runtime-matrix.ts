@@ -2,7 +2,7 @@
  * Explicit MCP invocation runtime matrix (rq: updateCodemodeMcpContracts).
  *
  * Deterministic model of the mode-neutral active-surface contract carried by
- * every MCP-capable Advance agent prompt (see prompt-corpus.ts):
+ * every MCP-capable Determinus agent prompt (see prompt-corpus.ts):
  *
  *   - CodeMode `execute` exposed + capability in the generated catalog
  *       -> invoke through the exact catalog path (`tools.<ns>.<name>` or

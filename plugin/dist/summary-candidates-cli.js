@@ -14830,7 +14830,7 @@ var EpicEntryKindSchema = external_exports.enum(["change", "shell"]);
 var EpicScopeRepoSchema = external_exports.object({
   /** Product config repo ID. */
   repo_id: external_exports.string(),
-  /** ADV project ID for this repo. */
+  /** Determinus project ID for this repo. */
   repo_project_id: external_exports.string(),
   /** Optional target path for reachable local/cross-project mutation. */
   path: external_exports.string().optional(),
@@ -14842,7 +14842,7 @@ var EpicScopeRepoSchema = external_exports.object({
 var EpicScopeSchema = external_exports.object({
   /** Repo-local Epic or product/multi-project Epic. */
   kind: external_exports.enum(["repo", "product"]),
-  /** ADV project ID that owns the Epic workflow. */
+  /** Determinus project ID that owns the Epic workflow. */
   owner_project_id: external_exports.string(),
   /** Product config repo ID of the owner repo when known. */
   owner_repo_id: external_exports.string().optional(),
@@ -14895,9 +14895,9 @@ var EpicProgressSummarySchema = external_exports.object({
   updated_at: external_exports.string()
 });
 var EpicChangeRefSchema = external_exports.object({
-  /** ADV change ID. */
+  /** Determinus change ID. */
   change_id: external_exports.string(),
-  /** ADV project ID where the child change lives. */
+  /** Determinus project ID where the child change lives. */
   project_id: external_exports.string(),
   /** Product config repo ID when known. */
   repo_id: external_exports.string().optional(),
@@ -14918,9 +14918,9 @@ var EpicChangeEntrySchema = external_exports.object({
   entry_id: external_exports.string(),
   /** Advisory display order within the Epic roadmap. */
   order: external_exports.number().int().min(0),
-  /** Legacy same-project ADV change ID. */
+  /** Legacy same-project Determinus change ID. */
   change_id: external_exports.string().optional(),
-  /** Project-aware ADV change reference for retrofit/product membership. */
+  /** Project-aware Determinus change reference for retrofit/product membership. */
   change_ref: EpicChangeRefSchema.optional(),
   /** Display title for the linked child entry. */
   title: external_exports.string().optional(),
@@ -15007,7 +15007,7 @@ var EpicEntrySchema = external_exports.discriminatedUnion("kind", [
   EpicShellEntrySchema
 ]);
 var EpicSchema = external_exports.object({
-  /** Epic ID — same naming convention as ADV changes (camelCase title). */
+  /** Epic ID — same naming convention as Determinus changes (camelCase title). */
   id: external_exports.string(),
   /** Human-readable Epic title. */
   title: external_exports.string(),
@@ -15039,7 +15039,7 @@ var EpicMembershipSchema = external_exports.object({
   title: external_exports.string(),
   /** ISO8601 timestamp when this change was linked to the Epic. */
   linked_at: external_exports.string(),
-  /** ADV project ID that owns the Epic workflow. */
+  /** Determinus project ID that owns the Epic workflow. */
   epic_project_id: external_exports.string().optional(),
   /** Product config repo ID for the child change when known. */
   repo_id: external_exports.string().optional(),
@@ -15282,7 +15282,7 @@ var WisdomEntrySchema = external_exports.object({
   product_id: external_exports.string().optional(),
   /** Product repo id where this entry originated. */
   origin_repo_id: external_exports.string().optional(),
-  /** Repo-local ADV project id where this entry originated. */
+  /** Repo-local Determinus project id where this entry originated. */
   origin_repo_project_id: external_exports.string().optional(),
   /** Repo root path where this entry originated. */
   origin_repo_path: external_exports.string().optional()
@@ -16500,7 +16500,7 @@ var TaskSchema = external_exports.object({
   structured_output: TaskStructuredOutputSchema.optional(),
   /**
    * Typed, durable sub-agent reports submitted through
-   * determinus_subagent_report_submit. These replace ADV worker fenced-JSON report
+   * determinus_subagent_report_submit. These replace Determinus worker fenced-JSON report
    * extraction while preserving structured_output for legacy callers.
    * Task records intentionally keep the task-scoped report schema; independent
    * review/research/scanner sidecars persist on change.subagent_reports[].
@@ -16985,7 +16985,7 @@ var CrossProjectLinkRelationshipSchema = external_exports.enum([
 var CrossProjectLinkSchema = external_exports.object({
   /** Absolute path to the linked project repository root */
   target_path: external_exports.string().min(1),
-  /** Stable ADV project ID for the linked repository, when known */
+  /** Stable Determinus project ID for the linked repository, when known */
   target_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
   /** Change ID in the linked project */
   changeId: external_exports.string().min(1),
@@ -17002,7 +17002,7 @@ var ExternalDependencyRelationshipSchema = external_exports.enum([
 var ExternalDependencySchema = external_exports.object({
   /** Absolute path to the dependency project repository root */
   target_path: external_exports.string().min(1),
-  /** Stable ADV project ID for the dependency repository, when known */
+  /** Stable Determinus project ID for the dependency repository, when known */
   target_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
   /** Change ID in the dependency project */
   changeId: external_exports.string().min(1),
@@ -17069,7 +17069,7 @@ var OpsFollowupStatusSchema = external_exports.enum([
 var OpsFollowupSourceSchema = external_exports.object({
   /** The change that originated this follow-up. */
   source_change_id: external_exports.string().min(1),
-  /** Stable ADV project ID of the originating project, when known. */
+  /** Stable Determinus project ID of the originating project, when known. */
   source_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
   /** Absolute path to the originating project repository, when known. */
   source_path: external_exports.string().min(1).optional(),
@@ -17798,7 +17798,7 @@ var RelatedRepoSchema = external_exports.object({
   trusted: external_exports.boolean().default(false),
   /** GitHub repo in owner/name format for GH CLI operations (e.g., "org/backend-api") */
   gh_repo: external_exports.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/).optional(),
-  /** Stable ADV repo project ID, when known, for product-linked resolution. */
+  /** Stable Determinus repo project ID, when known, for product-linked resolution. */
   repo_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
   /** Role this related repo plays in a product-linked topology. */
   product_role: external_exports.enum(["primary", "secondary"]).optional()
@@ -17855,7 +17855,7 @@ var FeatureFlagsSchema = external_exports.object({
   /**
    * Whether machine worktree isolation is enforced.
    * Default: true (post-rollout, rq-autoManageAdvWorktrees AC2).
-   * When omitted or true, ADV main-checkout task/gate execution mutations
+   * When omitted or true, Determinus main-checkout task/gate execution mutations
    * and the trunk write firewall are enforced. Explicit `false` preserves
    * legacy permissive behavior for projects that want to keep editing in
    * the main checkout.
@@ -17935,7 +17935,7 @@ var ProjectConfigSchema = external_exports.object({
   auto_push: external_exports.boolean().default(true),
   /** Archive finalization sub-configuration (e.g., PR title policy). */
   archive: ArchiveConfigSchema.default(() => ArchiveConfigSchema.parse({})),
-  /** Per-project feature flag overrides. All flags default to current ADV behavior. */
+  /** Per-project feature flag overrides. All flags default to current Determinus behavior. */
   features: FeatureFlagsSchema.default(() => FeatureFlagsSchema.parse({}))
 }).passthrough();
 var ProjectMetadataEntrySchema = external_exports.object({

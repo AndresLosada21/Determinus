@@ -556,7 +556,7 @@ No success criteria, no scope section.
       );
 
       const completedChange = {
-        $schema: "https://advance.dev/schemas/change.v1.json",
+        $schema: "https://determinus.dev/schemas/change.v1.json",
         id: "completedVagueChange",
         title: "Completed Vague Change",
         status: "active",
@@ -608,7 +608,7 @@ Vague in-flight work.
 `;
 
       const inFlightChange = {
-        $schema: "https://advance.dev/schemas/change.v1.json",
+        $schema: "https://determinus.dev/schemas/change.v1.json",
         id: "inFlightVagueChange",
         title: "In-Flight Vague Change",
         status: "active",
@@ -919,7 +919,7 @@ Vague in-flight work.
         await writeFile(
           join(tempDir, ".adv/changes/closedNoArchive/change.json"),
           JSON.stringify({
-            $schema: "https://advance.dev/schemas/change.v1.json",
+            $schema: "https://determinus.dev/schemas/change.v1.json",
             id: "closedNoArchive",
             title: "Closed No Archive",
             status: "closed",
@@ -936,7 +936,7 @@ Vague in-flight work.
         await writeFile(
           join(tempDir, ".adv/changes/closedWithArchive/change.json"),
           JSON.stringify({
-            $schema: "https://advance.dev/schemas/change.v1.json",
+            $schema: "https://determinus.dev/schemas/change.v1.json",
             id: "closedWithArchive",
             title: "Closed With Archive",
             status: "closed",
@@ -964,7 +964,7 @@ Vague in-flight work.
         await writeFile(
           join(tempDir, ".adv/changes/archivedLeak/change.json"),
           JSON.stringify({
-            $schema: "https://advance.dev/schemas/change.v1.json",
+            $schema: "https://determinus.dev/schemas/change.v1.json",
             id: "archivedLeak",
             title: "Archived Leak",
             status: "archived",
@@ -997,7 +997,7 @@ Vague in-flight work.
         await writeFile(
           join(tempDir, ".adv/changes/closedCached/change.json"),
           JSON.stringify({
-            $schema: "https://advance.dev/schemas/change.v1.json",
+            $schema: "https://determinus.dev/schemas/change.v1.json",
             id: "closedCached",
             title: "Closed Cached",
             status: "closed",
@@ -1039,7 +1039,7 @@ Vague in-flight work.
           await writeFile(
             join(tempDir, `.adv/changes/closed${i}/change.json`),
             JSON.stringify({
-              $schema: "https://advance.dev/schemas/change.v1.json",
+              $schema: "https://determinus.dev/schemas/change.v1.json",
               id: `closed${i}`,
               title: `Closed ${i}`,
               status: "closed",
@@ -1328,7 +1328,7 @@ Vague in-flight work.
           dataHome,
           "opencode",
           "plugins",
-          "advance",
+          "determinus",
           projectId,
         );
         const syntheticId = "0000000000000000abc123abc123abc123abc123";
@@ -1344,7 +1344,7 @@ Vague in-flight work.
             "locked",
           );
           await mkdir(
-            join(dataHome, "opencode", "plugins", "advance", syntheticId),
+            join(dataHome, "opencode", "plugins", "determinus", syntheticId),
             { recursive: true },
           );
           await mkdir(join(dataHome, "opencode", "worktree", syntheticId), {
@@ -1859,7 +1859,7 @@ Vague in-flight work.
 
     test("enrichment reuses request-local resolved documents with no duplicate reads", async () => {
       const makeDoc = (id: string) => ({
-        $schema: "https://advance.dev/schemas/change.v1.json",
+        $schema: "https://determinus.dev/schemas/change.v1.json",
         id,
         title: `Change ${id}`,
         status: "draft" as const,

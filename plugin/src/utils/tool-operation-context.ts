@@ -1,5 +1,5 @@
 /**
- * Host-only idempotency identity for one canonical ADV tool invocation.
+ * Host-only idempotency identity for one canonical Determinus tool invocation.
  *
  * Tool execution is asynchronous and may overlap with other sessions, so this
  * uses AsyncLocalStorage rather than a mutable module-level current value.

@@ -22,7 +22,7 @@ const mocks = vi.hoisted(() => ({
     digest: "sha256:" + "a".repeat(64),
     files: [{ path: "index.js", sha256: "a".repeat(64), bytes: 1 }],
     computedAt: "2026-07-16T00:00:00.000Z",
-    pluginRoot: "/deploy/Advance/plugin",
+    pluginRoot: "/deploy/Determinus/plugin",
   })),
 }));
 
@@ -106,7 +106,7 @@ describe("plugin-init loaded-build session registration (AC9/DDC5)", () => {
     vi.clearAllMocks();
     await tryInitStore(process.cwd(), undefined);
 
-    // The module-level session ID is sticky: ADV's tryInitStore is designed to
+    // The module-level session ID is sticky: Determinus's tryInitStore is designed to
     // run once per process, so the getter continues to return the originally
     // generated ID even if init is invoked again in the same process.
     expect(getCurrentSessionId()).toBe(firstSessionId);

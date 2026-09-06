@@ -57,14 +57,14 @@ const SAFE_CATALOG = "tools.lgrep.search_semantic";
 const SAFE_DIRECT = "lgrep_search_semantic";
 
 const MCP_PROMPT =
-  "RUNTIME PROBE — not an ADV workflow. Do not initialize ADV state, do not " +
+  "RUNTIME PROBE — not an Determinus workflow. Do not initialize Determinus state, do not " +
   "ask questions, do not use any adv_* tool. Do exactly two tool calls, then " +
   "reply DONE: (1) Use Context7 to resolve the library id for zod exactly " +
   "once. (2) Use lgrep search_semantic exactly once with path " +
   `${REPO_ROOT} and query codemode.`;
 
 const NO_MCP_PROMPT =
-  "RUNTIME PROBE — not an ADV workflow. Do not initialize ADV state, do not " +
+  "RUNTIME PROBE — not an Determinus workflow. Do not initialize Determinus state, do not " +
   "ask questions, do not use any adv_* tool. Immediately use Context7 to " +
   "resolve the library id for zod exactly once, then reply DONE.";
 

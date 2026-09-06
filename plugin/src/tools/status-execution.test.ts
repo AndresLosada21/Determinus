@@ -45,7 +45,7 @@ class TestScheduler {
     },
   };
 
-  async advance(ms: number): Promise<void> {
+  async determinus(ms: number): Promise<void> {
     await flushMicrotasks();
     const target = this.time + ms;
     while (this.timers.length > 0 && this.timers[0].due <= target) {
@@ -104,7 +104,7 @@ describe("request-local health execution primitive", () => {
         },
       ]),
     );
-    await scheduler.advance(EXECUTION_CUTOFF_MS);
+    await scheduler.determinus(EXECUTION_CUTOFF_MS);
     const result: HealthExecutionResult = await plan;
 
     expect(result.meta.responseDeadlineMs).toBe(RESPONSE_DEADLINE_MS);
@@ -133,7 +133,7 @@ describe("request-local health execution primitive", () => {
     const plan = executeHealthPlan(baseConfig(providers));
     expect(starts.length).toBe(MAX_CONCURRENCY);
 
-    await scheduler.advance(2000);
+    await scheduler.determinus(2000);
     await plan;
 
     expect(starts.length).toBe(5);
@@ -164,7 +164,7 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(500);
+    await scheduler.determinus(500);
     const result: HealthExecutionResult = await plan;
 
     expect(Object.keys(result.outcomes)).toEqual(["slow", "fast"]);
@@ -196,7 +196,7 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(1000);
+    await scheduler.determinus(1000);
     const result: HealthExecutionResult = await plan;
 
     expect(starts).not.toContain("dependent");
@@ -219,7 +219,7 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(1000);
+    await scheduler.determinus(1000);
     const result: HealthExecutionResult = await plan;
 
     expect(result.outcomes.abortable.kind).toBe("timeout");
@@ -251,13 +251,13 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(1000);
+    await scheduler.determinus(1000);
     const result: HealthExecutionResult = await plan;
 
     expect(result.outcomes.detach.kind).toBe("timeout");
     expect(result.outcomes.fast.kind).toBe("ok");
 
-    await scheduler.advance(3000);
+    await scheduler.determinus(3000);
     expect(providerFinished).toBe(true);
   });
 
@@ -321,7 +321,7 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(1000);
+    await scheduler.determinus(1000);
     const result: HealthExecutionResult = await plan;
 
     expect(result.outcomes.ok.kind).toBe("ok");
@@ -355,7 +355,7 @@ describe("request-local health execution primitive", () => {
     const plan = executeHealthPlan(baseConfig(providers));
     expect(starts.length).toBe(MAX_CONCURRENCY);
 
-    await scheduler.advance(RESPONSE_DEADLINE_MS);
+    await scheduler.determinus(RESPONSE_DEADLINE_MS);
     const result: HealthExecutionResult = await plan;
 
     expect(starts).toHaveLength(MAX_CONCURRENCY);
@@ -387,7 +387,7 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(1000);
+    await scheduler.determinus(1000);
     const result: HealthExecutionResult = await plan;
 
     expect(result.outcomes.a.kind).toBe("stale");
@@ -426,7 +426,7 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(1000);
+    await scheduler.determinus(1000);
     const result: HealthExecutionResult = await plan;
 
     expect(result.meta.complete).toBe(false);
@@ -447,7 +447,7 @@ describe("request-local health execution primitive", () => {
     ];
 
     const plan = executeHealthPlan(baseConfig(providers));
-    await scheduler.advance(1000);
+    await scheduler.determinus(1000);
     const result: HealthExecutionResult = await plan;
 
     expect(result.outcomes.fast.kind).toBe("ok");

@@ -62,7 +62,7 @@ describe("CLI bridge command contracts", () => {
         expect(content).toMatch(/do not .*recommendations/i);
       });
 
-      test("does not instruct ADV MCP fanout", () => {
+      test("does not instruct Determinus MCP fanout", () => {
         const content = readFileSync(absPath, "utf8");
         const found = FORBIDDEN_FANOUT_TOKENS.filter((token) =>
           content.includes(token),

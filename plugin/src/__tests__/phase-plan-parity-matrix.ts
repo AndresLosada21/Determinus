@@ -75,7 +75,7 @@ export interface ParityExpectation {
   planGateId?: GateId;
   /** Actionable rows only: the routed command (manifest primary). */
   planCommand?: string;
-  /** Actionable rows only: initial start vs advance. */
+  /** Actionable rows only: initial start vs determinus. */
   planInitial?: boolean;
   /** Legacy adapter action kind (absent when no directive is derivable). */
   directiveActionKind?: DirectiveActionKind;

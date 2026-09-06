@@ -31,7 +31,7 @@ async function tempDir(prefix: string): Promise<string> {
 }
 
 const DEPLOYED_WORKER =
-  "/home/x/.local/share/Advance/plugin/dist/temporal/worker.js";
+  "/home/x/.local/share/Determinus/plugin/dist/temporal/worker.js";
 const BOOT_MS = 1_700_000_000_000;
 
 function addProc(
@@ -74,7 +74,7 @@ describe("collectProcessInventory", () => {
       proc,
       200,
       "node",
-      ["node", "/home/x/dev/advance/plugin/dist/temporal/worker.js"],
+      ["node", "/home/x/dev/determinus/plugin/dist/temporal/worker.js"],
       "600",
     );
     addProc(proc, 300, "opencode", ["opencode", "--agent", "adv"], "700");
@@ -88,7 +88,7 @@ describe("collectProcessInventory", () => {
     expect(deployed?.root).toBe("deployed");
     expect(foreign?.root).toBe("foreign");
     expect(foreign?.workerScriptPath).toBe(
-      "/home/x/dev/advance/plugin/dist/temporal/worker.js",
+      "/home/x/dev/determinus/plugin/dist/temporal/worker.js",
     );
     expect(inv.sessions.map((s) => s.pid)).toEqual([300]);
     // start ticks 500 @100Hz after boot → +5s
@@ -101,7 +101,7 @@ describe("collectProcessInventory", () => {
       proc,
       150,
       "node",
-      ["tsx", "/home/x/dev/advance/plugin/src/temporal/worker.ts"],
+      ["tsx", "/home/x/dev/determinus/plugin/src/temporal/worker.ts"],
       "500",
     );
     const inv = scan({ procRoot: proc });

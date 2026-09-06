@@ -284,11 +284,11 @@ const CATEGORY_IMPROVEMENT_SUGGESTIONS: Partial<
   Record<ReflectionFrictionCategory, string>
 > = {
   tool_gap:
-    "Tooling gap detected — add or improve MCP/ADV tool support so future agents can complete this step without manual workaround.",
+    "Tooling gap detected — add or improve MCP/Determinus tool support so future agents can complete this step without manual workaround.",
   docs_gap:
     "Documentation gap detected — update command docs, AGENTS.md, or relevant spec text with the discovered rule or gotcha.",
   missing_capability:
-    "Missing capability detected — consider a focused follow-up change that turns the repeated pattern into a first-class ADV capability.",
+    "Missing capability detected — consider a focused follow-up change that turns the repeated pattern into a first-class Determinus capability.",
   ux_friction:
     "UX friction detected — simplify the agent/user workflow or clarify prompts so future operators have an obvious next action.",
   provider_specific:
@@ -582,7 +582,7 @@ export const reflectionTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. Reads a snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. Reads a snapshot and returns _projectContext.",
         ),
     },
     execute: async (

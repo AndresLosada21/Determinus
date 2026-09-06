@@ -42,7 +42,7 @@ export const WisdomEntrySchema = z.object({
   product_id: z.string().optional(),
   /** Product repo id where this entry originated. */
   origin_repo_id: z.string().optional(),
-  /** Repo-local ADV project id where this entry originated. */
+  /** Repo-local Determinus project id where this entry originated. */
   origin_repo_project_id: z.string().optional(),
   /** Repo root path where this entry originated. */
   origin_repo_path: z.string().optional(),

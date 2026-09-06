@@ -1,7 +1,7 @@
 /**
  * Epic schema contract tests.
  *
- * Verifies shape, validation, and backward compatibility for Advance Epics
+ * Verifies shape, validation, and backward compatibility for Determinus Epics
  * schema foundation (Slice A).
  */
 

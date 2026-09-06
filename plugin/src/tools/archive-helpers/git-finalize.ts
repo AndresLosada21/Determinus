@@ -346,7 +346,7 @@ export interface DeleteChangeBranchResult {
  * Remote deletion is best-effort; failure is recorded but does not block.
  *
  * rq-archiveBranchCleanup01: post-merge local branch cleanup for archived
- * ADV changes must be squash-merge-safe and not rely on `git branch --merged`.
+ * Determinus changes must be squash-merge-safe and not rely on `git branch --merged`.
  */
 export function deleteChangeBranch(
   repoRoot: string,
@@ -1877,7 +1877,7 @@ export function createArchivePullRequest(
     "--title",
     title,
     "--body",
-    `ADV Phase 9 archive finalization for ${input.branch}.`,
+    `Determinus Phase 9 archive finalization for ${input.branch}.`,
   ]);
   if (result.status !== 0) {
     return {
@@ -3720,7 +3720,7 @@ export async function finalizeRelease(
       pushStatus: "not_attempted",
       blocked: {
         reason: "WORKTREE_PROJECT_MISMATCH",
-        remediation: `Worktree ${ctx.workdir} belongs to ${repoRoot}, expected ${ctx.expectedRepoRoot}. rq-releaseFinalization01 requires finalization inside this ADV project.`,
+        remediation: `Worktree ${ctx.workdir} belongs to ${repoRoot}, expected ${ctx.expectedRepoRoot}. rq-releaseFinalization01 requires finalization inside this Determinus project.`,
       },
     };
   }
@@ -4077,7 +4077,7 @@ export async function finalizeRelease(
               prBranch: sourceBranch,
               blocked: {
                 reason: route.reason ?? "PR_MANUAL_REQUIRED",
-                remediation: `Default branch push failed and ADV could not arm auto-merge. Manually open or merge PR for ${sourceBranch}, then rerun archive finalization (rq-releaseFinalization01).`,
+                remediation: `Default branch push failed and Determinus could not arm auto-merge. Manually open or merge PR for ${sourceBranch}, then rerun archive finalization (rq-releaseFinalization01).`,
                 details: [push.reason, ...(route.details ?? [])],
               },
             };

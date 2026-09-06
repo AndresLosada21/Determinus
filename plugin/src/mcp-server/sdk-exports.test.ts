@@ -1,6 +1,6 @@
 /**
  * Smoke test: verifies that `@modelcontextprotocol/sdk` v1.x exposes the
- * server-side primitives the ADV MCP server depends on.
+ * server-side primitives the Determinus MCP server depends on.
  *
  * This is the gate for task tk-58f607bd3ba1 (Phase A0 — SDK install). It must
  * fail before `pnpm add @modelcontextprotocol/sdk@^1` and pass after.
@@ -14,7 +14,7 @@
  *     Has `setRequestHandler` (protocol-level). Does NOT have `registerTool`.
  *   - `McpServer` (high-level) — exported from `@modelcontextprotocol/sdk/server/mcp.js`.
  *     Wraps `Server`; provides `registerTool`/`tool` (deprecated → registerTool)
- *     with schema validation. The ADV MCP server uses McpServer.
+ *     with schema validation. The Determinus MCP server uses McpServer.
  *   - `StdioServerTransport` — exported from `@modelcontextprotocol/sdk/server/stdio.js`.
  *   - `registerTool` is a method on `McpServer`, NOT on `Server`.
  */
@@ -55,7 +55,7 @@ describe("@modelcontextprotocol/sdk v1.x server exports", () => {
       await import("@modelcontextprotocol/sdk/server/mcp.js");
     const { z } = await import("zod");
     const mcp = new McpServer({ name: "smoke", version: "0.0.0" });
-    // Should not throw — registers a tool with Zod schema (the API the ADV MCP server uses)
+    // Should not throw — registers a tool with Zod schema (the API the Determinus MCP server uses)
     expect(() =>
       mcp.registerTool(
         "smoke-tool",

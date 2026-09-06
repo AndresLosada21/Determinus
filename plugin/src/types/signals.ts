@@ -938,7 +938,7 @@ export type ShellAddedSignalPayload = z.infer<
 >;
 
 /**
- * Promote a shell entry to a linked ADV change. Idempotent by
+ * Promote a shell entry to a linked Determinus change. Idempotent by
  * idempotencyKey and shell entry ID: retries return the already-linked
  * change without creating duplicate rows.
  */
@@ -954,7 +954,7 @@ export type ShellPromotedSignalPayload = z.infer<
 >;
 
 /**
- * Link an existing ADV change as a new Epic entry.
+ * Link an existing Determinus change as a new Epic entry.
  */
 export const ChangeLinkedSignalPayloadSchema = z.object({
   entryId: z.string().min(1),

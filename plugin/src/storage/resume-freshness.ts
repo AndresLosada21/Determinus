@@ -2,7 +2,7 @@
  * Resume Freshness resolver types.
  *
  * Foundational type definitions for the resume-freshness advisory emitted
- * at ADV Step 2 Load State when a resumed change's `lastActivityAgeMinutes`
+ * at Determinus Step 2 Load State when a resumed change's `lastActivityAgeMinutes`
  * exceeds the trigger band (default 60 minutes).
  *
  * Design: D1 (new module under `plugin/src/storage/`). Pure types only —
@@ -19,7 +19,7 @@
  * (`.opencode/command/determinus-coordinate.md:101-108`). No new label space.
  *
  * - `repo_backed_fact`   — HIGH-confidence finding backed by repo evidence (commits, file overlap)
- * - `determinus_backed_fact`    — HIGH-confidence finding backed by ADV state (active/archived changes)
+ * - `determinus_backed_fact`    — HIGH-confidence finding backed by Determinus state (active/archived changes)
  * - `judgment_call`      — MEDIUM-confidence finding; overlap exists but evidence is partial
  * - `freshness_limited`  — could not reach a conclusion; missing/stale evidence or budget exceeded
  */
@@ -31,7 +31,7 @@ export type ResumeFreshnessLabel =
 
 /**
  * Stable, machine-classifiable finding codes emitted by the resume-freshness
- * advisory. Greppable, testable, disjoint from other ADV code namespaces
+ * advisory. Greppable, testable, disjoint from other Determinus code namespaces
  * (`archive:`, `cleanup:`, etc.) via the `resume:` prefix.
  *
  * - `resume:sibling_overlap`    — active sibling change touches same capability/paths

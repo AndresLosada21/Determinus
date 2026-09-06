@@ -186,7 +186,7 @@ describe("deploy-local plugin manifest publication", () => {
 
       const runtimePlugin = join(
         fixture.tempHome,
-        ".local/share/Advance/plugin",
+        ".local/share/Determinus/plugin",
       );
       const deployedIndex = join(runtimePlugin, "dist", "index.js");
       expect(existsSync(deployedIndex)).toBe(true);

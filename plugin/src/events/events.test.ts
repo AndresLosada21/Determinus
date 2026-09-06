@@ -28,19 +28,19 @@ import { updateTerminalStatus, cleanupTerminal } from "./terminal";
 describe("Status Markers", () => {
   describe("getStatusMarker", () => {
     it("returns correct marker for WORK", () => {
-      expect(getStatusMarker("WORK")).toBe("[ADV:WORK]");
+      expect(getStatusMarker("WORK")).toBe("[Determinus:WORK]");
     });
 
     it("returns correct marker for TOOLING", () => {
-      expect(getStatusMarker("TOOLING")).toBe("[ADV:TOOLING]");
+      expect(getStatusMarker("TOOLING")).toBe("[Determinus:TOOLING]");
     });
 
     it("returns correct marker for ATTN", () => {
-      expect(getStatusMarker("ATTN")).toBe("[ADV:ATTN]");
+      expect(getStatusMarker("ATTN")).toBe("[Determinus:ATTN]");
     });
 
     it("returns correct marker for BLOCKED", () => {
-      expect(getStatusMarker("BLOCKED")).toBe("[ADV:BLOCKED]");
+      expect(getStatusMarker("BLOCKED")).toBe("[Determinus:BLOCKED]");
     });
 
     it("all markers match STATUS_MARKERS constant", () => {
@@ -68,7 +68,7 @@ describe("Status State Management", () => {
     // Idempotency tests for change `fixWorktreeSessionRoot` task tk-f96182eff2ad.
     //
     // Required because OpenCode's InstanceState cache is keyed by directory.
-    // In post-warp scenarios, ADV's plugin is instantiated twice (once for
+    // In post-warp scenarios, Determinus's plugin is instantiated twice (once for
     // trunk, once for the worktree). The second instantiation calls
     // initializeStatus(projectName) again — must preserve in-flight state.
 

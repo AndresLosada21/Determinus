@@ -35,7 +35,7 @@
  * # Warnings
  *
  * Unrecognized scoring-shaped lines (e.g., a future `Risk=high` or
- * `Confidence=low` field that ADV doesn't currently emit) are NOT
+ * `Confidence=low` field that Determinus doesn't currently emit) are NOT
  * stripped — they're surfaced as warnings so a human can review and
  * decide. This avoids over-stripping based on guesswork.
  */
@@ -45,7 +45,7 @@ interface SanitizeResult {
   warnings: string[];
 }
 
-// Score field names ADV currently emits via /determinus-triage Phase 4
+// Score field names Determinus currently emits via /determinus-triage Phase 4
 // scoring template. Lock these to the canonical set; expand only via
 // rq-roadmapOriginSanitize01 amendments.
 const KNOWN_SCORE_FIELDS = [

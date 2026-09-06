@@ -16,7 +16,7 @@ describe("checkWorktreeIsolation", () => {
     mainCheckoutPath: "/repo/main",
   };
 
-  test("blocks ADV mutations from main checkout", () => {
+  test("blocks Determinus mutations from main checkout", () => {
     const result = checkWorktreeIsolation("/repo/main", {
       getSessionContext: () => mainCheckout,
     });
@@ -26,13 +26,13 @@ describe("checkWorktreeIsolation", () => {
       errorClass: "WorktreeIsolationViolation",
       mainCheckoutPath: "/repo/main",
       remediation:
-        "Resume or create the ADV worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.",
+        "Resume or create the Determinus worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.",
     });
     expect(result.remediation).not.toContain("determinus_gate_complete");
     expect(result.reason).toContain("main checkout");
   });
 
-  test("allows ADV mutations from worktrees", () => {
+  test("allows Determinus mutations from worktrees", () => {
     expect(
       checkWorktreeIsolation("/repo/wt/change", {
         getSessionContext: () => worktree,

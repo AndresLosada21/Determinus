@@ -2,7 +2,7 @@
 /**
  * Content-search benchmark (P2.3).
  *
- * Decision input for: should ADV adopt MiniSearch, or is a plain linear
+ * Decision input for: should Determinus adopt MiniSearch, or is a plain linear
  * scan good enough for change titles + wisdom entries at 552-change scale?
  *
  * Acceptance bar (per design.md § KD-3):

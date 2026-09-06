@@ -326,7 +326,7 @@ export const wisdomTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. Reads a snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. Reads a snapshot and returns _projectContext.",
         ),
       project_only: z
         .boolean()

@@ -1,7 +1,7 @@
 /**
  * determinus_resume_projection — MCP tool adapter for the resume projection kernel.
  *
- * ADV tool `class: orchestrator` (pure-read, no mutation surface). Loads
+ * Determinus tool `class: orchestrator` (pure-read, no mutation surface). Loads
  * changes + epics from the store, maps to kernel input types, calls
  * buildResumeProjection, returns the typed projection.
  *

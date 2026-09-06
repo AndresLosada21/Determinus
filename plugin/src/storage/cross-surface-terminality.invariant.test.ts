@@ -21,7 +21,7 @@ function gates(status: "done" | "pending") {
 
 function change(id: string, status: "draft" | "archived"): Change {
   return {
-    $schema: "https://advance.dev/schemas/change.v1.json",
+    $schema: "https://determinus.dev/schemas/change.v1.json",
     id,
     title: `${status === "archived" ? "Archived" : "Stale"} ${id}`,
     status,

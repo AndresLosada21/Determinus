@@ -366,7 +366,7 @@ describe("loadValidationContext", () => {
       result.conflictInventory.entries.push({} as never);
     }).toThrow();
 
-    // Advance further to let the late list promise settle; result must not change.
+    // Determinus further to let the late list promise settle; result must not change.
     await vi.advanceTimersByTimeAsync(1000);
     expect(result.conflictInventory.entries).toHaveLength(0);
   });

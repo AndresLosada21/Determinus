@@ -1,5 +1,5 @@
 /**
- * ADV capability handshake meta-tool.
+ * Determinus capability handshake meta-tool.
  *
  * ServerInfo is reserved for MCP `name` + `version` only (KD7). determinus-specific
  * compatibility data (Tier-4 tool inventory, contract version) is surfaced
@@ -12,17 +12,17 @@ import { TIER_4_MCP_TOOLS, type Tier4McpTool } from "../tool-tier4-catalog.js";
 export type { Tier4McpTool };
 
 /**
- * Tier-4 read surface exposed by the ADV MCP server. These are the local
+ * Tier-4 read surface exposed by the Determinus MCP server. These are the local
  * (unprefixed) tool names returned by `tools/list` when projected by
  * OpenCode as `tools.adv.*`.
  *
- * Source: KD9 — read-oriented ADV tools. Re-sourced from
+ * Source: KD9 — read-oriented Determinus tools. Re-sourced from
  * `../tool-tier4-catalog.js` so the handshake and policy share one catalog.
  */
 export const HANDSHAKE_TIER4_TOOLS = TIER_4_MCP_TOOLS;
 
 /**
- * ADV MCP handshake schema version.
+ * Determinus MCP handshake schema version.
  *
  * Semantic: tracks the shape of `HandshakeResult` (tier4_tools list +
  * determinus_contract_version). Bump on breaking changes to the handshake payload
@@ -41,7 +41,7 @@ export interface HandshakeResult {
 }
 
 /**
- * Return the ADV capability handshake payload.
+ * Return the Determinus capability handshake payload.
  */
 export function handleHandshake(): HandshakeResult {
   return {

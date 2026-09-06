@@ -2,7 +2,7 @@
 /**
  * System Block Assembler
  *
- * Single ordered emitter for the ADV plugin's system-context contributions.
+ * Single ordered emitter for the Determinus plugin's system-context contributions.
  * Replaces the previous pattern of multiple `output.system.push(...)` calls
  * inside `determinus.system.turn` and `buildFactoryFailureHooks`,
  * which broke OpenAI-compat providers (multiple system entries trigger
@@ -17,13 +17,13 @@
  *     for this turn.
  *   - Stable header (degraded → health → worktree → activeChange) is
  *     separated from the volatile suffix (wisdomPrompt) by a
- *     `--- ADV:VOLATILE ---` sentinel (per AC8). The sentinel is emitted
+ *     `--- Determinus:VOLATILE ---` sentinel (per AC8). The sentinel is emitted
  *     only when both stable and volatile content exist, avoiding orphan
  *     dividers.
  *   - Internal-call detection (per JC-3): when the existing
  *     `output.system[0]` matches one of the OpenCode internal-call
  *     patterns (title generation, compaction, agent generation), the
- *     assembler returns null so ADV content does not pollute internal flows.
+ *     assembler returns null so Determinus content does not pollute internal flows.
  *
  * Contract:
  *   - This module is a pure formatter. No IO, no side effects, no state
@@ -67,8 +67,8 @@ export interface AssembleSystemBlockState {
    * Tasks carrying wisdom drafts in the `suggested` state, populated by the
    * plugin from live task state. Drives the rq-wisdomAutoSurfacing01 /
    * AC8 draft-aware nudge. When non-empty, the assembler emits a
-   * `[ADV:WISDOM_DRAFTS]` prompt that replaces the retired
-   * `[ADV:RECORD_WISDOM]` lastCompletedTask-based nudge.
+   * `[Determinus:WISDOM_DRAFTS]` prompt that replaces the retired
+   * `[Determinus:RECORD_WISDOM]` lastCompletedTask-based nudge.
    */
   pendingWisdomDraftTasks?: Array<{
     id: string;
@@ -97,14 +97,14 @@ export interface AssembleSystemBlockInput {
  *
  *  Future cache_control optimization (P2 deferred) can split a single
  *  system entry on this token to mark the cacheable prefix. */
-export const VOLATILE_SENTINEL = "--- ADV:VOLATILE ---";
+export const VOLATILE_SENTINEL = "--- Determinus:VOLATILE ---";
 
 /** Patterns match the opening sentence of OpenCode's three internal prompts:
  *  `agent/prompt/title.txt`, `agent/prompt/compaction.txt`, and
  *  `agent/generate.txt`. The drift test verifies these anchors against the
  *  installed binary. Conservative bias: a positive match here causes the
- *  assembler to return null, skipping ADV content. False negatives default
- *  to including ADV content, which may pollute the internal prompt. */
+ *  assembler to return null, skipping Determinus content. False negatives default
+ *  to including Determinus content, which may pollute the internal prompt. */
 const INTERNAL_CALL_PATTERNS: readonly RegExp[] = [
   /You are a title generator\. You output ONLY a thread title/i,
   /You are a context summarization agent\./i,
@@ -122,7 +122,7 @@ export function isInternalCall(existingSystem: string | null): boolean {
 
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
-/** Format the [ADV:DEGRADED] banner that surfaces in every system prompt
+/** Format the [Determinus:DEGRADED] banner that surfaces in every system prompt
  *  when the plugin is running in any degraded state.
  *
  *  Stage labels:
@@ -138,17 +138,17 @@ export function formatDegradedBanner(
       ? "Plugin factory threw before initialization completed"
       : "Plugin store initialization failed";
   return [
-    `[ADV:DEGRADED] ADV plugin is running in degraded mode — ${stageMsg}.`,
+    `[Determinus:DEGRADED] Determinus plugin is running in degraded mode — ${stageMsg}.`,
     `Reason: ${error.message}`,
     "Every `determinus_*` tool is stubbed and will return determinus_PLUGIN_INIT_FAILED.",
-    "× Do NOT proceed with any ADV workflow (proposal, discover, design, prep, apply, review, harden, archive). They will silently break.",
+    "× Do NOT proceed with any Determinus workflow (proposal, discover, design, prep, apply, review, harden, archive). They will silently break.",
     "✓ Allowed in this mode: read files, surface this diagnosis, recommend remediation, run /determinus-idea or /determinus-problem (no tool calls required).",
     "× Forbidden in this mode: drafting markdown as substitute for determinus_change_create, fabricating change-ids or gate transitions, declaring tools 'unavailable' without surfacing this banner verbatim.",
-    "Remediation: rebuild the plugin (`pnpm --filter @sharperflow/advance build`), confirm `~/.config/opencode/opencode.json` plugin path is current, then restart OpenCode.",
+    "Remediation: rebuild the plugin (`pnpm --dir plugin run build` from the repo root), confirm `~/.config/opencode/opencode.json` plugin path is current, then restart OpenCode.",
   ].join("\n");
 }
 
-/** Format the [ADV:SESSION_HEALTH] banner surfacing detected session
+/** Format the [Determinus:SESSION_HEALTH] banner surfacing detected session
  *  hazards (compacted prompt history, session.error events). */
 export function formatSessionHealthBanner(
   issue: SessionHealthIssue,
@@ -156,15 +156,15 @@ export function formatSessionHealthBanner(
 ): string {
   const changeHint = changeId
     ? ` Known active change: ${changeId}. Open a fresh OpenCode session and resume by changeId.`
-    : " Open a fresh OpenCode session and resume by changeId if this was ADV work.";
+    : " Open a fresh OpenCode session and resume by changeId if this was Determinus work.";
   return [
-    `[ADV:SESSION_HEALTH] ${issue.kind}: ${issue.message}`,
+    `[Determinus:SESSION_HEALTH] ${issue.kind}: ${issue.message}`,
     "Current session may be unsafe to continue from chat history.",
     `${changeHint} Do not rely on prior chat history as source of truth.`,
   ].join("\n");
 }
 
-/** Format the [ADV:PLUGIN_BUNDLE_STALE] banner surfacing a deployed plugin
+/** Format the [Determinus:PLUGIN_BUNDLE_STALE] banner surfacing a deployed plugin
  *  bundle that is newer than the bundle loaded into the running OpenCode
  *  session. Never overwrites session-health state; this is an independent
  *  deployment advisory. */
@@ -172,7 +172,7 @@ export function formatPluginBundleStaleBanner(
   freshness: PluginBundleFreshness,
 ): string {
   return [
-    "[ADV:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale.",
+    "[Determinus:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale.",
     `Loaded generation: ${freshness.loadedGeneration ?? "unknown"}`,
     `Deployed generation: ${freshness.deployedGeneration ?? "unknown"}`,
     `${freshness.recovery}`,
@@ -221,9 +221,9 @@ function worktreeSection(input: AssembleSystemBlockInput): string | null {
   const { isWorktree, activeChange } = input.state;
   if (!isWorktree || !activeChange.id) return null;
   return (
-    `[ADV:WORKTREE_SESSION] You are working in a git worktree. ` +
+    `[Determinus:WORKTREE_SESSION] You are working in a git worktree. ` +
     `Active change: ${activeChange.id}. ` +
-    `All ADV state (changes, tasks, wisdom) is shared via external storage. ` +
+    `All Determinus state (changes, tasks, wisdom) is shared via external storage. ` +
     `Use determinus_change_show and determinus_task_ready to pick up where the parent session left off.`
   );
 }
@@ -232,13 +232,13 @@ function worktreeSection(input: AssembleSystemBlockInput): string | null {
 function activeChangeSection(input: AssembleSystemBlockInput): string | null {
   const { activeChange } = input.state;
   if (!activeChange.id) return null;
-  return `[ADV] Active change: ${activeChange.id}`;
+  return `[Determinus] Active change: ${activeChange.id}`;
 }
 
 /**
  * Volatile: wisdom-draft review prompt (rq-wisdomAutoSurfacing01 / AC8).
  *
- * Retires the generic `[ADV:RECORD_WISDOM]` lastCompletedTask nudge and
+ * Retires the generic `[Determinus:RECORD_WISDOM]` lastCompletedTask nudge and
  * replaces it with a draft-aware prompt that fires ONLY when one or more
  * tasks carry wisdom drafts in the `suggested` state. The prompt is
  * idempotent — it keeps firing as long as drafts are pending review and
@@ -266,7 +266,7 @@ function wisdomPromptSection(input: AssembleSystemBlockInput): string | null {
     )
     .join("\n");
   return (
-    `[ADV:WISDOM_DRAFTS] ${totalDrafts} wisdom draft(s) pending review across ${pending.length} task(s).\n` +
+    `[Determinus:WISDOM_DRAFTS] ${totalDrafts} wisdom draft(s) pending review across ${pending.length} task(s).\n` +
     `${taskLines}\n` +
     `Promote via determinus_wisdom_add from_draft_id, or dismiss explicitly. ` +
     `Unreviewed drafts will be auto-dismissed at checkpoint.`
@@ -293,7 +293,7 @@ export interface ApplyAdvSystemBlockResult {
 }
 
 /**
- * Append the assembled ADV system block to `output.system[0]` (single
+ * Append the assembled Determinus system block to `output.system[0]` (single
  * ordered append per AC1). Mutates the array in place; never grows past
  * one entry. Returns details so the caller can perform follow-on state
  * cleanup (e.g. clearing per-turn volatile state).
@@ -330,7 +330,7 @@ export function applyAdvSystemBlock(
 }
 
 /**
- * Assemble the single ADV system-context block.
+ * Assemble the single Determinus system-context block.
  *
  * Returns null when:
  *   - The call is detected as an OpenCode internal call

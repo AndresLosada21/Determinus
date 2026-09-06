@@ -402,7 +402,7 @@ function bindToolWithContext<TArgs>(
 }
 
 /**
- * Build the complete tool map for the ADV plugin.
+ * Build the complete tool map for the Determinus plugin.
  *
  * Encapsulates all 36+ tool registrations so index.ts stays under 500 lines.
  * Uses bindTool for store-based tools. Special cases (type coercion, extra
@@ -880,7 +880,7 @@ export function createToolMap(
  * (consolidateAdvToolSurface2 — SC1/SC2/AC5/C5, DDC1/DDC2/DDC3).
  *
  * This readonly, type-checked inventory is the single source of truth for the
- * full canonical ADV tool surface. Canonical names (determinus_TOOL_NAMES) and the
+ * full canonical Determinus tool surface. Canonical names (determinus_TOOL_NAMES) and the
  * warrant-visible argument surface (getToolSurface) are BOTH derived from it,
  * so discovery metadata can no longer drift from the exported `*Tools`
  * groups. `createFullToolMap` above uses `bindGroup` for group-granular
@@ -891,14 +891,14 @@ export function createToolMap(
  */
 
 /**
- * Read-only catalog and describe tools for the canonical ADV tool surface.
+ * Read-only catalog and describe tools for the canonical Determinus tool surface.
  * They project the existing definition inventory and metadata; they never
  * execute a handler or grant access (C1/DONT1/DONT2/DONT3).
  */
 export const toolCatalogTools = {
   determinus_tool_catalog: {
     description:
-      "Bounded read-only catalog of all canonical ADV tools. Returns each tool's name, description, argument keys, and visibility metadata (realm, group, lifecycle gates, risk, recovery-only). Restriction labels are descriptive only and do not grant access.",
+      "Bounded read-only catalog of all canonical Determinus tools. Returns each tool's name, description, argument keys, and visibility metadata (realm, group, lifecycle gates, risk, recovery-only). Restriction labels are descriptive only and do not grant access.",
     args: {
       limit: z
         .number()
@@ -956,13 +956,13 @@ export const toolCatalogTools = {
 
   determinus_tool_describe: {
     description:
-      "Describe a single canonical ADV tool by exact name. Returns metadata, argument keys, and a JSON Schema representation of the tool's input arguments. Does not execute the tool or grant access.",
+      "Describe a single canonical Determinus tool by exact name. Returns metadata, argument keys, and a JSON Schema representation of the tool's input arguments. Does not execute the tool or grant access.",
     args: {
       name: z
         .string()
         .min(1)
         .describe(
-          "Exact canonical ADV tool name (e.g. determinus_change_show)",
+          "Exact canonical Determinus tool name (e.g. determinus_change_show)",
         ),
     },
     execute: async (
@@ -1029,7 +1029,7 @@ export const PUBLIC_TOOL_ENTRIES: readonly PublicToolEntry[] = Object.freeze(
 );
 
 /**
- * Registered ADV tool definitions for init-time schema telemetry. The entries
+ * Registered Determinus tool definitions for init-time schema telemetry. The entries
  * intentionally reuse the inventory that parity-tests against createToolMap.
  */
 export function getRegisteredAdvToolEntries(): readonly PublicToolEntry[] {
@@ -1049,7 +1049,7 @@ export function getToolSurface(): Map<string, Set<string>> {
 }
 
 /**
- * Canonical list of all ADV tool names, derived from PUBLIC_TOOL_GROUPS.
+ * Canonical list of all Determinus tool names, derived from PUBLIC_TOOL_GROUPS.
  * Duplicates are rejected at module load by collectPublicToolEntries before
  * this array is constructed (DDC2). createDegradedToolMap registers a stub
  * for every name; exact-set parity with createToolMap and getToolSurface is
@@ -1084,18 +1084,18 @@ export function createDegradedToolMap(
     {
       status: "determinus_PLUGIN_INIT_FAILED",
       message:
-        "ADV plugin failed to initialize. Every determinus_* tool is stubbed until the underlying issue is resolved. Restart the OpenCode session after applying a fix.",
+        "Determinus plugin failed to initialize. Every determinus_* tool is stubbed until the underlying issue is resolved. Restart the OpenCode session after applying a fix.",
       error: initError.message,
       directory,
       remediation: [
-        "Run `pnpm --filter @sharperflow/advance build` from the repo root (or `pnpm build` in plugin/) to ensure plugin/dist/ is current",
+        "Run `pnpm --dir plugin run build` from the repo root to ensure plugin/dist/ is current",
         "Check ~/.config/opencode/opencode.json — the .plugin array must point to the built plugin directory",
-        "If project.json is present, verify it is valid JSON and matches the ADV ProjectConfig schema",
+        "If project.json is present, verify it is valid JSON and matches the Determinus ProjectConfig schema",
         "Check the ADV external state dir (~/.local/share/opencode/plugins/advance/{project-id}/) for malformed change/spec JSON; repair the artifact, then restart OpenCode",
         "Set determinus_DEBUG=1 in your shell and restart OpenCode to capture init errors in $determinus_CACHE_DIR/determinus-debug.log",
       ],
       readinessHint:
-        "When initialized, ADV mutation tools are gated per-target by a session-readiness probe. If the target queue is not yet adopted, mutations return determinus_SESSION_NOT_READY. Set determinus_SESSION_READINESS_BYPASS=1 to skip this gate (tests/dev only). This degraded stub is not a readiness authority and cannot know the per-target queue state.",
+        "When initialized, Determinus mutation tools are gated per-target by a session-readiness probe. If the target queue is not yet adopted, mutations return determinus_SESSION_NOT_READY. Set determinus_SESSION_READINESS_BYPASS=1 to skip this gate (tests/dev only). This degraded stub is not a readiness authority and cannot know the per-target queue state.",
     },
     null,
     2,
@@ -1106,7 +1106,7 @@ export function createDegradedToolMap(
   const map: Record<string, ReturnType<typeof registerTool>> = {};
   for (const name of DIRECT_TOOL_NAMES) {
     map[name] = registerTool(
-      `[ADV plugin init failed — ${name} stub] ${initError.message.slice(0, 160)} (readiness hint: when initialized, mutation tools may be gated by session readiness; set determinus_SESSION_READINESS_BYPASS=1 to skip)`,
+      `[Determinus plugin init failed — ${name} stub] ${initError.message.slice(0, 160)} (readiness hint: when initialized, mutation tools may be gated by session readiness; set determinus_SESSION_READINESS_BYPASS=1 to skip)`,
       {} as ToolArgsSchema,
       namedExecute(name, stubExecute),
     );

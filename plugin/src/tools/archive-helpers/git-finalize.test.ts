@@ -70,7 +70,7 @@ function git(cwd: string, args: string[]): string {
 async function initRepo(root: string, defaultBranch = "trunk"): Promise<void> {
   git(root, ["init", "-q", "-b", defaultBranch]);
   git(root, ["config", "user.email", "determinus-test@example.invalid"]);
-  git(root, ["config", "user.name", "ADV Test"]);
+  git(root, ["config", "user.name", "Determinus Test"]);
   await writeFile(join(root, "README.md"), "initial\n");
   git(root, ["add", "README.md"]);
   git(root, ["commit", "-m", "initial"]);
@@ -477,7 +477,7 @@ describe("git-finalize helpers", () => {
         if (args.join(" ") === "remote get-url origin") {
           return {
             status: 0,
-            stdout: "https://github.com/Sharper-Flow/Advance.git\n",
+            stdout: "https://github.com/Sharper-Flow/Determinus.git\n",
             stderr: "",
           };
         }
@@ -487,7 +487,7 @@ describe("git-finalize helpers", () => {
         if (args[0] === "api" && args[1].includes("/rules/branches/")) {
           return { status: 0, stdout: "[]", stderr: "" };
         }
-        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Determinus") {
           return { status: 0, stdout: "true\n", stderr: "" };
         }
         return { status: 1, stdout: "", stderr: "unexpected" };
@@ -495,7 +495,7 @@ describe("git-finalize helpers", () => {
     });
     expect(direct).toMatchObject({
       route: "direct",
-      repo: "Sharper-Flow/Advance",
+      repo: "Sharper-Flow/Determinus",
     });
 
     const protectedAuto = classifyFinalizationRoute("/repo", "trunk", {
@@ -503,7 +503,7 @@ describe("git-finalize helpers", () => {
         if (args.join(" ") === "remote get-url origin") {
           return {
             status: 0,
-            stdout: "git@github.com:Sharper-Flow/Advance.git\n",
+            stdout: "git@github.com:Sharper-Flow/Determinus.git\n",
             stderr: "",
           };
         }
@@ -517,7 +517,7 @@ describe("git-finalize helpers", () => {
             stderr: "",
           };
         }
-        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Determinus") {
           return { status: 0, stdout: "true\n", stderr: "" };
         }
         return { status: 1, stdout: "", stderr: "unexpected" };
@@ -534,7 +534,7 @@ describe("git-finalize helpers", () => {
         if (args.join(" ") === "remote get-url origin") {
           return {
             status: 0,
-            stdout: "https://github.com/Sharper-Flow/Advance.git\n",
+            stdout: "https://github.com/Sharper-Flow/Determinus.git\n",
             stderr: "",
           };
         }
@@ -794,7 +794,7 @@ describe("git-finalize helpers", () => {
         if (args.join(" ") === "remote get-url origin") {
           return {
             status: 0,
-            stdout: "https://github.com/Sharper-Flow/Advance.git\n",
+            stdout: "https://github.com/Sharper-Flow/Determinus.git\n",
             stderr: "",
           };
         }
@@ -813,7 +813,7 @@ describe("git-finalize helpers", () => {
     });
     expect(result).toMatchObject({
       route: "merge_queue",
-      repo: "Sharper-Flow/Advance",
+      repo: "Sharper-Flow/Determinus",
       protected: true,
       mergeQueueRequired: true,
     });
@@ -825,7 +825,7 @@ describe("git-finalize helpers", () => {
         if (args.join(" ") === "remote get-url origin") {
           return {
             status: 0,
-            stdout: "https://github.com/Sharper-Flow/Advance.git\n",
+            stdout: "https://github.com/Sharper-Flow/Determinus.git\n",
             stderr: "",
           };
         }
@@ -849,7 +849,7 @@ describe("git-finalize helpers", () => {
         if (args.join(" ") === "remote get-url origin") {
           return {
             status: 0,
-            stdout: "https://github.com/Sharper-Flow/Advance.git\n",
+            stdout: "https://github.com/Sharper-Flow/Determinus.git\n",
             stderr: "",
           };
         }
@@ -901,13 +901,13 @@ describe("git-finalize helpers", () => {
   it("coercePrWorkflowRoute passes merge_queue through unchanged", () => {
     const route = coercePrWorkflowRoute({
       route: "merge_queue",
-      repo: "Sharper-Flow/Advance",
+      repo: "Sharper-Flow/Determinus",
       protected: true,
       mergeQueueRequired: true,
     });
     expect(route).toMatchObject({
       route: "merge_queue",
-      repo: "Sharper-Flow/Advance",
+      repo: "Sharper-Flow/Determinus",
       protected: true,
       mergeQueueRequired: true,
     });
@@ -919,7 +919,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "example",
-        route: { route: "pr_auto_merge", repo: "Sharper-Flow/Advance" },
+        route: { route: "pr_auto_merge", repo: "Sharper-Flow/Determinus" },
         prNumber: 12,
       },
       {
@@ -929,7 +929,7 @@ describe("git-finalize helpers", () => {
             "view",
             "12",
             "--repo",
-            "Sharper-Flow/Advance",
+            "Sharper-Flow/Determinus",
             "--json",
             "state,mergedAt,mergeCommit,autoMergeRequest",
           ]);
@@ -963,14 +963,14 @@ describe("git-finalize helpers", () => {
     }
 
     const runRead = (stdout: string) =>
-      readPrMergeState("/repo", "Sharper-Flow/Advance", 12, {
+      readPrMergeState("/repo", "Sharper-Flow/Determinus", 12, {
         runGh: (_cwd, args) => {
           expect(args).toEqual([
             "pr",
             "view",
             "12",
             "--repo",
-            "Sharper-Flow/Advance",
+            "Sharper-Flow/Determinus",
             "--json",
             "state,mergedAt,mergeCommit,autoMergeRequest",
           ]);
@@ -994,7 +994,7 @@ describe("git-finalize helpers", () => {
 
   it("preserves NO_MERGED_PR_FOUND while retaining malformed gh diagnostics", () => {
     const discover = (stdout: string) =>
-      discoverMergedPr("/repo", "Sharper-Flow/Advance", "example", {
+      discoverMergedPr("/repo", "Sharper-Flow/Determinus", "example", {
         runGh: () => ({ status: 0, stdout, stderr: "" }),
       });
 
@@ -1012,7 +1012,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         prNumber: 159,
       },
       {
@@ -1067,7 +1067,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "squash-rescue",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         prNumber: 160,
       },
       {
@@ -1165,7 +1165,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixPhase9SquashMergeRedetect",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         changeTipSha: "tip123abc",
       },
       {
@@ -1233,7 +1233,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
       },
       {
         runGit: (_cwd, args) => {
@@ -1274,7 +1274,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         prNumber: 159,
       },
       {
@@ -1321,7 +1321,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         prNumber: 159,
       },
       {
@@ -1363,7 +1363,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         // no prNumber — should be auto-discovered
       },
       {
@@ -1431,7 +1431,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         prNumber: 200,
       },
       {
@@ -1486,7 +1486,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
       },
       {
         runGit: (_cwd, args) => {
@@ -1552,7 +1552,7 @@ describe("git-finalize helpers", () => {
         changeId: "preArchiveFallback",
         changeTipSha: "post-tip",
         preArchiveTipSha: "pre-tip",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
       },
       {
         runGit: (_cwd, args) => {
@@ -1614,7 +1614,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
         prNumber: 159,
       },
       {
@@ -1678,7 +1678,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixSquashMergeRelease",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
       },
       {
         runGit: (_cwd, args) => {
@@ -1742,7 +1742,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "unresolvedRef",
-        route: { route: "direct", repo: "Sharper-Flow/Advance" },
+        route: { route: "direct", repo: "Sharper-Flow/Determinus" },
       },
       {
         runGit: (_cwd, args) => {
@@ -1823,7 +1823,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixPhase9PrDetection",
-        route: { route: "pr_auto_merge", repo: "Sharper-Flow/Advance" },
+        route: { route: "pr_auto_merge", repo: "Sharper-Flow/Determinus" },
       },
       {
         runGit: (_cwd, args) => {
@@ -1879,7 +1879,7 @@ describe("git-finalize helpers", () => {
         repoRoot: "/repo",
         defaultBranch: "trunk",
         changeId: "fixPhase9PrDetection",
-        route: { route: "pr_auto_merge", repo: "Sharper-Flow/Advance" },
+        route: { route: "pr_auto_merge", repo: "Sharper-Flow/Determinus" },
       },
       {
         runGit: (_cwd, args) => {
@@ -2029,7 +2029,7 @@ describe("git-finalize helpers", () => {
           defaultBranch: "trunk",
           changeId: "manualPrMerged",
           prNumber: 77,
-          route: { route: "pr_manual", repo: "Sharper-Flow/Advance" },
+          route: { route: "pr_manual", repo: "Sharper-Flow/Determinus" },
         },
         {
           runGit: (_cwd, args) => {
@@ -2070,7 +2070,7 @@ describe("git-finalize helpers", () => {
           defaultBranch: "trunk",
           changeId: "manualPrOpen",
           prNumber: 78,
-          route: { route: "pr_manual", repo: "Sharper-Flow/Advance" },
+          route: { route: "pr_manual", repo: "Sharper-Flow/Determinus" },
         },
         {
           runGit: (_cwd, args) => {
@@ -2112,7 +2112,7 @@ describe("git-finalize helpers", () => {
           prNumber: 99,
           route: {
             route: "merge_queue",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             mergeQueueRequired: true,
           },
         },
@@ -2157,7 +2157,7 @@ describe("git-finalize helpers", () => {
           changeTipSha: "tip999xyz",
           route: {
             route: "merge_queue",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             mergeQueueRequired: true,
           },
         },
@@ -2767,7 +2767,7 @@ describe("git-finalize helpers", () => {
           if (args.join(" ") === "remote get-url origin") {
             return {
               status: 0,
-              stdout: "https://github.com/Sharper-Flow/Advance.git\n",
+              stdout: "https://github.com/Sharper-Flow/Determinus.git\n",
               stderr: "",
             };
           }
@@ -2789,7 +2789,10 @@ describe("git-finalize helpers", () => {
               stderr: "",
             };
           }
-          if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+          if (
+            args[0] === "api" &&
+            args[1] === "repos/Sharper-Flow/Determinus"
+          ) {
             return { status: 0, stdout: "true\n", stderr: "" };
           }
           if (args[0] === "pr" && args[1] === "view") {
@@ -2799,7 +2802,7 @@ describe("git-finalize helpers", () => {
                 status: 0,
                 stdout: JSON.stringify({
                   number: 42,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                   state: "OPEN",
                   autoMergeRequest: null,
                 }),
@@ -2847,7 +2850,7 @@ describe("git-finalize helpers", () => {
       "merge",
       "42",
       "--repo",
-      "Sharper-Flow/Advance",
+      "Sharper-Flow/Determinus",
       "--squash",
       "--auto",
     ]);
@@ -2923,11 +2926,11 @@ describe("git-finalize helpers", () => {
     git(repo, ["commit", "-m", "branch work"]);
     const branchTip = git(repo, ["rev-parse", "HEAD"]);
 
-    // Advance trunk with a separate, non-conflicting commit
+    // Determinus trunk with a separate, non-conflicting commit
     git(repo, ["checkout", "trunk"]);
     await writeFile(join(repo, "trunk.txt"), "trunk\n");
     git(repo, ["add", "trunk.txt"]);
-    git(repo, ["commit", "-m", "trunk advance"]);
+    git(repo, ["commit", "-m", "trunk determinus"]);
     const trunkBefore = git(repo, ["rev-parse", "HEAD"]);
 
     const result = mergeChangeBranch(repo, "trunk", "diverged", {
@@ -3197,7 +3200,7 @@ describe("git-finalize helpers", () => {
       "remote",
       "add",
       "origin",
-      "https://github.com/Sharper-Flow/Advance.git",
+      "https://github.com/Sharper-Flow/Determinus.git",
     ]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -3249,7 +3252,7 @@ describe("git-finalize helpers", () => {
                 status: 0,
                 stdout: JSON.stringify({
                   number: 42,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                   state: "OPEN",
                   autoMergeRequest: null,
                 }),
@@ -3272,7 +3275,7 @@ describe("git-finalize helpers", () => {
           if (args[0] === "pr" && args[1] === "create") {
             return {
               status: 0,
-              stdout: "https://github.com/Sharper-Flow/Advance/pull/42\n",
+              stdout: "https://github.com/Sharper-Flow/Determinus/pull/42\n",
               stderr: "",
             };
           }
@@ -3292,7 +3295,7 @@ describe("git-finalize helpers", () => {
     expect(result.prBranch).toBe("change/example");
     expect(result.prNumber).toBe(42);
     expect(result.prUrl).toBe(
-      "https://github.com/Sharper-Flow/Advance/pull/42",
+      "https://github.com/Sharper-Flow/Determinus/pull/42",
     );
     expect(result.autoMergeArmed).toBe(true);
     expect(result.pushStatus).toBe("pushed");
@@ -3398,7 +3401,10 @@ describe("git-finalize helpers", () => {
             };
           }
           // Repo allow_auto_merge query (route classification)
-          if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+          if (
+            args[0] === "api" &&
+            args[1] === "repos/Sharper-Flow/Determinus"
+          ) {
             return { status: 0, stdout: "true\n", stderr: "" };
           }
           // verifyDirectMergedPrProof: gh pr list --state merged --head ...
@@ -3413,7 +3419,7 @@ describe("git-finalize helpers", () => {
               stdout: JSON.stringify([
                 {
                   number: 1347,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/1347",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/1347",
                   state: "MERGED",
                   mergedAt: "2026-08-17T12:00:00Z",
                   mergeCommit: { oid: "merge-commit-sha" },
@@ -3422,8 +3428,8 @@ describe("git-finalize helpers", () => {
                   baseRefName: "trunk",
                   headRepositoryOwner: { login: "Sharper-Flow" },
                   headRepository: {
-                    name: "Advance",
-                    nameWithOwner: "Sharper-Flow/Advance",
+                    name: "Determinus",
+                    nameWithOwner: "Sharper-Flow/Determinus",
                   },
                   isCrossRepository: false,
                 },
@@ -3445,7 +3451,7 @@ describe("git-finalize helpers", () => {
         "remote",
         "add",
         "origin",
-        "https://github.com/Sharper-Flow/Advance.git",
+        "https://github.com/Sharper-Flow/Determinus.git",
       ]);
       git(main, ["worktree", "add", "-b", "change/example", worktree]);
       await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -3474,7 +3480,7 @@ describe("git-finalize helpers", () => {
         status: "shipped",
         route: "pr_auto_merge",
         prNumber: 1347,
-        prUrl: "https://github.com/Sharper-Flow/Advance/pull/1347",
+        prUrl: "https://github.com/Sharper-Flow/Determinus/pull/1347",
         mergeCommitSha: "merge-commit-sha",
         prHeadSha: actualPrHeadSha,
         defaultBranchSha: "current-default-sha",
@@ -3499,7 +3505,7 @@ describe("git-finalize helpers", () => {
         "remote",
         "add",
         "origin",
-        "https://github.com/Sharper-Flow/Advance.git",
+        "https://github.com/Sharper-Flow/Determinus.git",
       ]);
       git(main, ["worktree", "add", "-b", "change/example", worktree]);
       await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -3520,7 +3526,7 @@ describe("git-finalize helpers", () => {
             stderr: "",
           };
         }
-        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Determinus") {
           return { status: 0, stdout: "true\n", stderr: "" };
         }
         if (args[0] === "pr" && args[1] === "list" && args.includes("merged")) {
@@ -3555,7 +3561,7 @@ describe("git-finalize helpers", () => {
         "remote",
         "add",
         "origin",
-        "https://github.com/Sharper-Flow/Advance.git",
+        "https://github.com/Sharper-Flow/Determinus.git",
       ]);
       git(main, ["worktree", "add", "-b", "change/example", worktree]);
       await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -3578,7 +3584,7 @@ describe("git-finalize helpers", () => {
             stderr: "",
           };
         }
-        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+        if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Determinus") {
           return { status: 0, stdout: "true\n", stderr: "" };
         }
         if (args[0] === "pr" && args[1] === "list" && args.includes("merged")) {
@@ -3599,7 +3605,7 @@ describe("git-finalize helpers", () => {
               status: 0,
               stdout: JSON.stringify({
                 number: 42,
-                url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                 state: "OPEN",
                 autoMergeRequest: null,
               }),
@@ -3622,7 +3628,7 @@ describe("git-finalize helpers", () => {
         if (args[0] === "pr" && args[1] === "create") {
           return {
             status: 0,
-            stdout: "https://github.com/Sharper-Flow/Advance/pull/42\n",
+            stdout: "https://github.com/Sharper-Flow/Determinus/pull/42\n",
             stderr: "",
           };
         }
@@ -3683,7 +3689,7 @@ describe("git-finalize helpers", () => {
       "remote",
       "add",
       "origin",
-      "https://github.com/Sharper-Flow/Advance.git",
+      "https://github.com/Sharper-Flow/Determinus.git",
     ]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -3733,7 +3739,10 @@ describe("git-finalize helpers", () => {
               stderr: "",
             };
           }
-          if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+          if (
+            args[0] === "api" &&
+            args[1] === "repos/Sharper-Flow/Determinus"
+          ) {
             return { status: 0, stdout: "true\n", stderr: "" };
           }
           if (args[0] === "pr" && args[1] === "view") {
@@ -3751,7 +3760,7 @@ describe("git-finalize helpers", () => {
                 status: 0,
                 stdout: JSON.stringify({
                   number: 42,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                   state: "OPEN",
                   autoMergeRequest: null,
                 }),
@@ -3774,7 +3783,7 @@ describe("git-finalize helpers", () => {
           if (args[0] === "pr" && args[1] === "create") {
             return {
               status: 0,
-              stdout: "https://github.com/Sharper-Flow/Advance/pull/42\n",
+              stdout: "https://github.com/Sharper-Flow/Determinus/pull/42\n",
               stderr: "",
             };
           }
@@ -3795,7 +3804,7 @@ describe("git-finalize helpers", () => {
       route: "pr_auto_merge",
       prBranch: "change/example",
       prNumber: 42,
-      prUrl: "https://github.com/Sharper-Flow/Advance/pull/42",
+      prUrl: "https://github.com/Sharper-Flow/Determinus/pull/42",
       autoMergeArmed: true,
       pushStatus: "pushed",
     });
@@ -3804,7 +3813,7 @@ describe("git-finalize helpers", () => {
       "merge",
       "42",
       "--repo",
-      "Sharper-Flow/Advance",
+      "Sharper-Flow/Determinus",
       "--squash",
       "--auto",
     ]);
@@ -3822,7 +3831,7 @@ describe("git-finalize helpers", () => {
       "remote",
       "add",
       "origin",
-      "https://github.com/Sharper-Flow/Advance.git",
+      "https://github.com/Sharper-Flow/Determinus.git",
     ]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
@@ -3863,7 +3872,10 @@ describe("git-finalize helpers", () => {
               stderr: "",
             };
           }
-          if (args[0] === "api" && args[1] === "repos/Sharper-Flow/Advance") {
+          if (
+            args[0] === "api" &&
+            args[1] === "repos/Sharper-Flow/Determinus"
+          ) {
             return { status: 0, stdout: "true\n", stderr: "" };
           }
           if (args[0] === "pr" && args[1] === "view") {
@@ -3873,7 +3885,7 @@ describe("git-finalize helpers", () => {
                 status: 0,
                 stdout: JSON.stringify({
                   number: 42,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                   state: "OPEN",
                   autoMergeRequest: null,
                 }),
@@ -3932,16 +3944,16 @@ describe("git-finalize helpers", () => {
 
     git(tempRoot, ["clone", "-q", remote, main]);
     git(main, ["config", "user.email", "determinus-test@example.invalid"]);
-    git(main, ["config", "user.name", "ADV Test"]);
+    git(main, ["config", "user.name", "Determinus Test"]);
     git(tempRoot, ["clone", "-q", remote, advancer]);
     git(advancer, ["config", "user.email", "determinus-test@example.invalid"]);
-    git(advancer, ["config", "user.name", "ADV Test"]);
+    git(advancer, ["config", "user.name", "Determinus Test"]);
 
-    // Advance the remote default branch from a separate clone so main's
+    // Determinus the remote default branch from a separate clone so main's
     // local origin/trunk ref is stale.
-    await writeFile(join(advancer, "remote-advance.txt"), "advanced\n");
-    git(advancer, ["add", "remote-advance.txt"]);
-    git(advancer, ["commit", "-m", "remote advance"]);
+    await writeFile(join(advancer, "remote-determinus.txt"), "advanced\n");
+    git(advancer, ["add", "remote-determinus.txt"]);
+    git(advancer, ["commit", "-m", "remote determinus"]);
     git(advancer, ["push", "origin", "trunk"]);
 
     const staleOriginTrunk = git(main, ["rev-parse", "origin/trunk"]);
@@ -3965,7 +3977,7 @@ describe("git-finalize helpers", () => {
 
     const remoteHead = git(remote, ["rev-parse", "refs/heads/trunk"]);
     expect(result.releasedCommitSha).toBe(remoteHead);
-    expect(git(remote, ["show", `${remoteHead}:remote-advance.txt`])).toBe(
+    expect(git(remote, ["show", `${remoteHead}:remote-determinus.txt`])).toBe(
       "advanced",
     );
     expect(git(remote, ["show", `${remoteHead}:feature.txt`])).toBe("feature");
@@ -3988,14 +4000,14 @@ describe("git-finalize helpers", () => {
     git(seed, ["push", "origin", "trunk"]);
     git(tempRoot, ["clone", "-q", remote, main]);
     git(main, ["config", "user.email", "determinus-test@example.invalid"]);
-    git(main, ["config", "user.name", "ADV Test"]);
+    git(main, ["config", "user.name", "Determinus Test"]);
     git(tempRoot, ["clone", "-q", remote, mergeClone]);
     git(mergeClone, [
       "config",
       "user.email",
       "determinus-test@example.invalid",
     ]);
-    git(mergeClone, ["config", "user.name", "ADV Test"]);
+    git(mergeClone, ["config", "user.name", "Determinus Test"]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
     git(worktree, ["add", "feature.txt"]);
@@ -4098,14 +4110,14 @@ describe("git-finalize helpers", () => {
     git(seed, ["push", "origin", "trunk"]);
     git(tempRoot, ["clone", "-q", remote, main]);
     git(main, ["config", "user.email", "determinus-test@example.invalid"]);
-    git(main, ["config", "user.name", "ADV Test"]);
+    git(main, ["config", "user.name", "Determinus Test"]);
     git(tempRoot, ["clone", "-q", remote, mergeClone]);
     git(mergeClone, [
       "config",
       "user.email",
       "determinus-test@example.invalid",
     ]);
-    git(mergeClone, ["config", "user.name", "ADV Test"]);
+    git(mergeClone, ["config", "user.name", "Determinus Test"]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
     git(worktree, ["add", "feature.txt"]);
@@ -4209,14 +4221,14 @@ describe("git-finalize helpers", () => {
     git(seed, ["push", "origin", "trunk"]);
     git(tempRoot, ["clone", "-q", remote, main]);
     git(main, ["config", "user.email", "determinus-test@example.invalid"]);
-    git(main, ["config", "user.name", "ADV Test"]);
+    git(main, ["config", "user.name", "Determinus Test"]);
     git(tempRoot, ["clone", "-q", remote, mergeClone]);
     git(mergeClone, [
       "config",
       "user.email",
       "determinus-test@example.invalid",
     ]);
-    git(mergeClone, ["config", "user.name", "ADV Test"]);
+    git(mergeClone, ["config", "user.name", "Determinus Test"]);
     git(main, ["worktree", "add", "-b", "change/example", worktree]);
     await writeFile(join(worktree, "feature.txt"), "feature\n");
     git(worktree, ["add", "feature.txt"]);
@@ -4450,9 +4462,9 @@ describe("git-finalize helpers", () => {
       behind,
       "trunk",
     ]);
-    await writeFile(join(repo, "advance.txt"), "trunk advanced\n");
-    git(repo, ["add", "advance.txt"]);
-    git(repo, ["commit", "-m", "advance trunk"]);
+    await writeFile(join(repo, "determinus.txt"), "trunk advanced\n");
+    git(repo, ["add", "determinus.txt"]);
+    git(repo, ["commit", "-m", "determinus trunk"]);
     git(repo, ["push", "origin", "trunk"]);
     const behindResult = validateArchiveDeltaRepairWorktree(
       behind,
@@ -4850,7 +4862,7 @@ describe("git-finalize helpers", () => {
       git(origin, ["init", "-q", "--bare", "-b", "trunk"]);
       git(main, ["init", "-q", "-b", "trunk"]);
       git(main, ["config", "user.email", "determinus-test@example.invalid"]);
-      git(main, ["config", "user.name", "ADV Test"]);
+      git(main, ["config", "user.name", "Determinus Test"]);
       git(main, ["remote", "add", "origin", origin]);
       await writeFile(join(main, "README.md"), "initial\n");
       git(main, ["add", "README.md"]);
@@ -4875,7 +4887,7 @@ describe("git-finalize helpers", () => {
           await writeFile(join(main, "default.txt"), "default\n");
         }
         git(main, ["add", "."]);
-        git(main, ["commit", "-m", "default advance"]);
+        git(main, ["commit", "-m", "default determinus"]);
         git(main, ["push", "origin", "trunk"]);
       }
 
@@ -4996,7 +5008,7 @@ describe("git-finalize helpers", () => {
                 status: 0,
                 stdout: JSON.stringify({
                   number: 42,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                   state: finalState,
                   autoMergeRequest:
                     finalState === "OPEN"
@@ -5017,7 +5029,7 @@ describe("git-finalize helpers", () => {
               status: 0,
               stdout: JSON.stringify({
                 number: 42,
-                url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                 state: "OPEN",
                 autoMergeRequest: null,
               }),
@@ -5027,7 +5039,7 @@ describe("git-finalize helpers", () => {
           if (args[0] === "pr" && args[1] === "create") {
             return {
               status: 0,
-              stdout: "https://github.com/Sharper-Flow/Advance/pull/42\n",
+              stdout: "https://github.com/Sharper-Flow/Determinus/pull/42\n",
               stderr: "",
             };
           }
@@ -5107,7 +5119,7 @@ describe("git-finalize helpers", () => {
           changeId: "example",
           route: {
             route: "merge_queue",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             mergeQueueRequired: true,
           },
           changeTipSha: "a".repeat(40),
@@ -5123,7 +5135,7 @@ describe("git-finalize helpers", () => {
         route: "merge_queue",
         prBranch: "change/example",
         prNumber: 42,
-        prUrl: "https://github.com/Sharper-Flow/Advance/pull/42",
+        prUrl: "https://github.com/Sharper-Flow/Determinus/pull/42",
         autoMergeArmed: true,
         pushStatus: "pushed",
         changeTipSha: "a".repeat(40),
@@ -5142,7 +5154,7 @@ describe("git-finalize helpers", () => {
           changeId: "example",
           route: {
             route: "merge_queue",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             mergeQueueRequired: true,
           },
         },
@@ -5173,7 +5185,7 @@ describe("git-finalize helpers", () => {
           changeId: "example",
           route: {
             route: "merge_queue",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             mergeQueueRequired: true,
           },
         },
@@ -5196,13 +5208,13 @@ describe("git-finalize helpers", () => {
         {
           repoRoot: "/main",
           workdir: "/workdir",
-          repo: "Sharper-Flow/Advance",
+          repo: "Sharper-Flow/Determinus",
           branch: "change/example",
           defaultBranch: "trunk",
           changeId: "example",
           route: {
             route: "pr_auto_merge",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             protected: true,
             autoMergeAllowed: true,
           },
@@ -5238,7 +5250,7 @@ describe("git-finalize helpers", () => {
                 status: 0,
                 stdout: JSON.stringify({
                   number: 42,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                   state: "OPEN",
                   autoMergeRequest: null,
                 }),
@@ -5248,7 +5260,7 @@ describe("git-finalize helpers", () => {
             if (args[0] === "pr" && args[1] === "create") {
               return {
                 status: 0,
-                stdout: "https://github.com/Sharper-Flow/Advance/pull/42\n",
+                stdout: "https://github.com/Sharper-Flow/Determinus/pull/42\n",
                 stderr: "",
               };
             }
@@ -5320,7 +5332,7 @@ describe("git-finalize helpers", () => {
           changeId: "example",
           route: {
             route: "merge_queue",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             mergeQueueRequired: true,
           },
         },
@@ -5337,13 +5349,13 @@ describe("git-finalize helpers", () => {
         {
           repoRoot: "/main",
           workdir: "/workdir",
-          repo: "Sharper-Flow/Advance",
+          repo: "Sharper-Flow/Determinus",
           branch: "change/example",
           defaultBranch: "trunk",
           changeId: "example",
           route: {
             route: "pr_auto_merge",
-            repo: "Sharper-Flow/Advance",
+            repo: "Sharper-Flow/Determinus",
             protected: true,
             autoMergeAllowed: true,
           },
@@ -5379,7 +5391,7 @@ describe("git-finalize helpers", () => {
                 status: 0,
                 stdout: JSON.stringify({
                   number: 42,
-                  url: "https://github.com/Sharper-Flow/Advance/pull/42",
+                  url: "https://github.com/Sharper-Flow/Determinus/pull/42",
                   state: "OPEN",
                   autoMergeRequest: null,
                 }),
@@ -5389,7 +5401,7 @@ describe("git-finalize helpers", () => {
             if (args[0] === "pr" && args[1] === "create") {
               return {
                 status: 0,
-                stdout: "https://github.com/Sharper-Flow/Advance/pull/42\n",
+                stdout: "https://github.com/Sharper-Flow/Determinus/pull/42\n",
                 stderr: "",
               };
             }
@@ -5468,7 +5480,7 @@ describe("git-finalize helpers", () => {
       };
       const result = armPullRequestAutoMerge(
         "/main",
-        "Sharper-Flow/Advance",
+        "Sharper-Flow/Determinus",
         42,
         "Remove external artist resolvers",
         options.prTitle,
@@ -5488,7 +5500,7 @@ describe("git-finalize helpers", () => {
         "merge",
         "42",
         "--repo",
-        "Sharper-Flow/Advance",
+        "Sharper-Flow/Determinus",
         "--squash",
         "--auto",
       ]);
@@ -5651,7 +5663,7 @@ describe("git-finalize helpers", () => {
       };
       const result = armPullRequestAutoMerge(
         "/main",
-        "Sharper-Flow/Advance",
+        "Sharper-Flow/Determinus",
         42,
         "Remove external artist resolvers",
         undefined,
@@ -5689,7 +5701,7 @@ describe("git-finalize helpers", () => {
       };
       const result = armPullRequestAutoMerge(
         "/main",
-        "Sharper-Flow/Advance",
+        "Sharper-Flow/Determinus",
         42,
         "Remove external artist resolvers",
         undefined,
@@ -5792,7 +5804,11 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
         return { status: 0, stdout: "", stderr: "" };
       }
       if (args[0] === "var") {
-        return { status: 0, stdout: "ADV Test <adv@test>\n", stderr: "" };
+        return {
+          status: 0,
+          stdout: "Determinus Test <adv@test>\n",
+          stderr: "",
+        };
       }
       if (args[0] === "ls-files") {
         return { status: 0, stdout: "", stderr: "" };
@@ -6071,7 +6087,7 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
         if (args[0] === "pr" && args[1] === "create") {
           return {
             status: 0,
-            stdout: "https://github.com/Sharper-Flow/Advance/pull/42\n",
+            stdout: "https://github.com/Sharper-Flow/Determinus/pull/42\n",
             stderr: "",
           };
         }
@@ -6080,7 +6096,7 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
       const result = createArchivePullRequest(
         {
           repoRoot: "/main",
-          repo: "Sharper-Flow/Advance",
+          repo: "Sharper-Flow/Determinus",
           branch: "change/example",
           defaultBranch: "trunk",
           changeId: "example",
@@ -6102,7 +6118,7 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
       const { result, title } = runCreate(undefined, undefined);
       expect(result).toEqual({
         ok: true,
-        url: "https://github.com/Sharper-Flow/Advance/pull/42",
+        url: "https://github.com/Sharper-Flow/Determinus/pull/42",
       });
       expect(title).toBe("Archive example");
     });
@@ -6111,7 +6127,7 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
       const { result, title } = runCreate({ format: "plain" }, "fix");
       expect(result).toEqual({
         ok: true,
-        url: "https://github.com/Sharper-Flow/Advance/pull/42",
+        url: "https://github.com/Sharper-Flow/Determinus/pull/42",
       });
       expect(title).toBe("Archive example");
     });
@@ -6120,7 +6136,7 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
       const { result, title } = runCreate({ format: "conventional" }, "fix");
       expect(result).toEqual({
         ok: true,
-        url: "https://github.com/Sharper-Flow/Advance/pull/42",
+        url: "https://github.com/Sharper-Flow/Determinus/pull/42",
       });
       expect(title).toBe("fix: Remove external artist resolvers");
     });
@@ -6151,7 +6167,7 @@ describe("FinalizeInvocationState accumulator (rq-optimizePhase9GitCalls)", () =
  * unit-level armer or title-construction helpers.
  */
 describe("archive PR title policy end-to-end integration (AC1-AC5)", () => {
-  const repo = "Sharper-Flow/Advance";
+  const repo = "Sharper-Flow/Determinus";
   const changeId = "removeExternalArtistResolvers";
   const branch = `change/${changeId}`;
   const changeTitle = "Remove external artist resolvers";

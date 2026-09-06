@@ -4,7 +4,7 @@ export const determinus_PLUGIN_INIT_FAILED_STATUS =
   "determinus_PLUGIN_INIT_FAILED" as const;
 export const NO_POLLER_CLASS = "no_poller" as const;
 export const determinus_SESSION_READINESS_RETRY_HINT =
-  "ADV session not ready; orphan-adoption heartbeat runs on a ~10s cadence. retry-after-heartbeat: wait for the next heartbeat and retry. Do not rely on an exact ETA because poller staleness cannot distinguish queue saturation from shutdown." as const;
+  "Determinus session not ready; orphan-adoption heartbeat runs on a ~10s cadence. retry-after-heartbeat: wait for the next heartbeat and retry. Do not rely on an exact ETA because poller staleness cannot distinguish queue saturation from shutdown." as const;
 
 export interface AdvSessionNotReadyRetryHint {
   heartbeatCadenceMs: 10_000;

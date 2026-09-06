@@ -434,7 +434,7 @@ describe("tool-formatters", () => {
             build_marker_path: "/p/dist/oca-build.json",
             build_marker_found: false,
             worker_script_path: "/p/dist/worker.js",
-            reload_caveat: "Restart OpenCode after rebuilding Advance",
+            reload_caveat: "Restart OpenCode after rebuilding Determinus",
             dist_index_path: "/p/dist/index.js",
             dist_mtime_iso: "2026-05-08T11:00:00.000Z",
             source_index_path: "/p/src/index.ts",
@@ -458,7 +458,7 @@ describe("tool-formatters", () => {
             build_marker_path: "/p/dist/oca-build.json",
             build_marker_found: false,
             worker_script_path: "/p/dist/worker.js",
-            reload_caveat: "Restart OpenCode after rebuilding Advance",
+            reload_caveat: "Restart OpenCode after rebuilding Determinus",
             dist_index_path: "/p/dist/index.js",
             dist_mtime_iso: "2026-05-08T11:00:00.000Z",
             source_index_path: "/p/src/index.ts",
@@ -490,7 +490,7 @@ describe("tool-formatters", () => {
             build_marker_path: "/p/dist/oca-build.json",
             build_marker_found: false,
             worker_script_path: "/p/dist/worker.js",
-            reload_caveat: "Restart OpenCode after rebuilding Advance",
+            reload_caveat: "Restart OpenCode after rebuilding Determinus",
             dist_index_path: "/p/dist/index.js",
             dist_mtime_iso: "2026-05-08T13:00:00.000Z",
             source_index_path: "/p/src/index.ts",
@@ -529,7 +529,9 @@ describe("tool-formatters", () => {
               "Restart OpenCode to load the current plugin bundle.",
           },
         });
-        expect(result.healthSection).toContain("[ADV:PLUGIN_BUNDLE_STALE]");
+        expect(result.healthSection).toContain(
+          "[Determinus:PLUGIN_BUNDLE_STALE]",
+        );
         expect(result.healthSection).toContain("loaded-gen");
         expect(result.healthSection).toContain("deployed-gen");
         expect(result.healthSection).toContain("Restart OpenCode");
@@ -547,7 +549,9 @@ describe("tool-formatters", () => {
             plugin_bundle_recovery: null,
           },
         });
-        expect(result.healthSection).not.toContain("[ADV:PLUGIN_BUNDLE_STALE]");
+        expect(result.healthSection).not.toContain(
+          "[Determinus:PLUGIN_BUNDLE_STALE]",
+        );
       });
 
       it("does NOT add plugin bundle stale lines when unknown", () => {
@@ -562,7 +566,9 @@ describe("tool-formatters", () => {
             plugin_bundle_recovery: "Manifest state is unreadable.",
           },
         });
-        expect(result.healthSection).not.toContain("[ADV:PLUGIN_BUNDLE_STALE]");
+        expect(result.healthSection).not.toContain(
+          "[Determinus:PLUGIN_BUNDLE_STALE]",
+        );
       });
     });
   });
@@ -645,7 +651,7 @@ describe("tool-formatters", () => {
         ],
       });
       expect(result.inDoomLoop).toBe(true);
-      expect(result.banner).toContain("[ADV:BLOCKED]");
+      expect(result.banner).toContain("[Determinus:BLOCKED]");
       expect(result.attemptSummary).toContain("3 attempts");
       expect(result.suggestedAction).toBeDefined();
     });
@@ -694,7 +700,7 @@ describe("tool-formatters", () => {
         // The predicate is >=, so clamping to exactly max_retries keeps
         // escalation firing. A > comparison would silently never fire again.
         expect(result.inDoomLoop).toBe(true);
-        expect(result.banner).toContain("[ADV:BLOCKED]");
+        expect(result.banner).toContain("[Determinus:BLOCKED]");
         expect(result.suggestedAction).toContain("Escalate to user");
       });
 
@@ -711,7 +717,7 @@ describe("tool-formatters", () => {
         const result = formatDoomLoopDiagnostics(clampedAtCap);
         // The banner is the loudest operator-facing surface; it must not read
         // "3/3 retries exhausted" when 12 attempts occurred.
-        expect(result.banner).toContain("[ADV:BLOCKED]");
+        expect(result.banner).toContain("[Determinus:BLOCKED]");
         expect(result.banner).toContain("12 attempts");
         expect(result.banner).not.toMatch(/\(3\/3 retries exhausted\)/);
       });

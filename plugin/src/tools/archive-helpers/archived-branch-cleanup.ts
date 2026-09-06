@@ -1,9 +1,9 @@
 /**
  * Archived merged-branch cleanup (rq-archiveBranchCleanup01).
  *
- * Operator-explicit git-branch hygiene for archived ADV changes whose
+ * Operator-explicit git-branch hygiene for archived Determinus changes whose
  * `change/{id}` branch is fully merged into the default branch
- * (squash-merge-safe detection). This is git maintenance, not ADV recovery
+ * (squash-merge-safe detection). This is git maintenance, not Determinus recovery
  * state, so it lives behind `determinus_worktree_cleanup mode=archived_branches`
  * rather than the retired archive-repair surface.
  *
@@ -331,7 +331,7 @@ function buildPartialResult(params: {
 }
 
 /**
- * Scan local `change/*` branches tied to archived ADV changes, detect the
+ * Scan local `change/*` branches tied to archived Determinus changes, detect the
  * fully-merged ones, and (unless dryRun) delete the safe candidates.
  *
  * Returns the structured tool-output payload. `mode` is set to

@@ -94,7 +94,7 @@ export async function computeExternalStateHygiene(
     : false;
 
   const syntheticProjectDirs = (
-    await listSubdirs(join(dataHome, "opencode", "plugins", "advance"))
+    await listSubdirs(join(dataHome, "opencode", "plugins", "determinus"))
   ).filter((dir) => dir.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).length;
   const syntheticWorktreeDirs = (
     await listSubdirs(join(dataHome, "opencode", "worktree"))
@@ -152,7 +152,7 @@ export async function computeExternalStateHygiene(
   }
   if (syntheticProjectDirs > 0 || syntheticWorktreeDirs > 0) {
     const dataHome = getDataHome();
-    const projectsGlob = `"${join(dataHome, "opencode", "plugins", "advance")}/${SYNTHETIC_TEST_PROJECT_ID_PREFIX}*"`;
+    const projectsGlob = `"${join(dataHome, "opencode", "plugins", "determinus")}/${SYNTHETIC_TEST_PROJECT_ID_PREFIX}*"`;
     const worktreesGlob = `"${join(dataHome, "opencode", "worktree")}/${SYNTHETIC_TEST_PROJECT_ID_PREFIX}*"`;
     recommendations.push(
       `dry-run: ${syntheticProjectDirs} synthetic test project dir(s) + ${syntheticWorktreeDirs} synthetic worktree dir(s) detected (prefix ${SYNTHETIC_TEST_PROJECT_ID_PREFIX})\n` +

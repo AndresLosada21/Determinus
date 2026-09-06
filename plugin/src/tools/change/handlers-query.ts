@@ -968,7 +968,7 @@ export const queryChangeTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When artifact include flags are requested, reads that project's persisted documents; otherwise reads a disk snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. When artifact include flags are requested, reads that project's persisted documents; otherwise reads a disk snapshot and returns _projectContext.",
         ),
       include: z
         .object({
@@ -1163,7 +1163,7 @@ export const queryChangeTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext.",
         ),
       scope: z
         .enum(["repo", "product"])

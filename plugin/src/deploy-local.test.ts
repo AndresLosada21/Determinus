@@ -236,7 +236,7 @@ describe("deploy-local.sh", () => {
 
     test("deploys runtime plugin to stable .local share path", () => {
       expect(content).toContain(
-        'LOCAL_DEPLOY_ROOT="${determinus_LOCAL_DEPLOY_ROOT:-$HOME/.local/share/Advance}"',
+        'LOCAL_DEPLOY_ROOT="${determinus_LOCAL_DEPLOY_ROOT:-$HOME/.local/share/Determinus}"',
       );
       expect(content).toContain(
         'determinus_SOURCE_PLUGIN_PATH="$ASSET_ROOT/plugin"',
@@ -271,7 +271,7 @@ describe("deploy-local.sh", () => {
       );
     });
 
-    test("removes legacy non-ADV commands", () => {
+    test("removes legacy non-Determinus commands", () => {
       expect(content).toContain("for stale in openprompt.md; do");
     });
 
@@ -301,21 +301,21 @@ describe("deploy-local.sh", () => {
       expect(content).toContain("is not valid JSON");
     });
 
-    test("checks for ADV plugin in .plugin array", () => {
+    test("checks for Determinus plugin in .plugin array", () => {
       expect(content).toContain("determinus_PLUGIN_PATH=");
-      expect(content).toContain("plugin: ADV plugin registered");
-      expect(content).toContain("plugin: ADV plugin path missing");
+      expect(content).toContain("plugin: Determinus plugin registered");
+      expect(content).toContain("plugin: Determinus plugin path missing");
     });
 
-    // rq-scopedAdvInstructions01: sync must scope ADV protocol body to the
-    // ADV runtime agent and remove legacy global instruction registration.
-    test("rejects ADV instruction in global .instructions array", () => {
+    // rq-scopedAdvInstructions01: sync must scope Determinus protocol body to the
+    // Determinus runtime agent and remove legacy global instruction registration.
+    test("rejects Determinus instruction in global .instructions array", () => {
       expect(content).toContain("determinus_INSTRUCTION_PATH=");
       expect(content).toContain(
         "instructions: determinus_INSTRUCTIONS.md should not be globally registered",
       );
       expect(content).toContain(
-        "instructions: determinus_INSTRUCTIONS.md scoped to ADV runtime agent",
+        "instructions: determinus_INSTRUCTIONS.md scoped to Determinus runtime agent",
       );
       expect(content).not.toContain(
         "instructions: determinus_INSTRUCTIONS.md missing from .instructions array",
@@ -333,7 +333,7 @@ describe("deploy-local.sh", () => {
       expect(content).toContain("has unique mapping keys");
     });
 
-    test("primary ADV agent frontmatter has no duplicate mapping keys", () => {
+    test("primary Determinus agent frontmatter has no duplicate mapping keys", () => {
       expect(
         duplicateFrontmatterKeys(readFileSync(determinus_AGENT_PATH, "utf8")),
       ).toEqual([]);
@@ -419,7 +419,7 @@ describe("deploy-local.sh", () => {
       );
     });
 
-    test("derives ADV runtime plugin path from stable local deploy root", () => {
+    test("derives Determinus runtime plugin path from stable local deploy root", () => {
       expect(content).not.toContain(
         'determinus_PLUGIN_PATH="$REPO_ROOT/plugin"',
       );
@@ -433,15 +433,15 @@ describe("deploy-local.sh", () => {
   });
 
   // -----------------------------------------------------------------------
-  // Single ADV runtime agent (providerAdvAgentAssemblySystem retired)
+  // Single Determinus runtime agent (providerAdvAgentAssemblySystem retired)
   // -----------------------------------------------------------------------
-  describe("single ADV runtime agent sync", () => {
-    test("sync script assembles one complete ADV runtime agent", () => {
+  describe("single Determinus runtime agent sync", () => {
+    test("sync script assembles one complete Determinus runtime agent", () => {
       expect(content).toContain("sync_determinus_runtime_agent");
       expect(content).toContain("runtime_text");
       expect(content).not.toContain("instructions_text");
       expect(content).not.toContain("canonical_text +");
-      expect(content).toContain("assembled ADV runtime agent: adv.md");
+      expect(content).toContain("assembled Determinus runtime agent: adv.md");
     });
 
     test("sync script does not generate provider runtime agents or prompt refs", () => {
@@ -473,8 +473,8 @@ describe("deploy-local.sh", () => {
       expect(providerEval).toContain("voice_contract_allowance");
       expect(providerEval).toContain("selected_agent_runtime_prompt");
       expect(providerEval).toContain("avoided_provider_variant_duplication");
-      expect(providerEval).toContain("Lean ADV runtime prompt");
-      expect(providerEval).toContain("ADV reference protocol");
+      expect(providerEval).toContain("Lean Determinus runtime prompt");
+      expect(providerEval).toContain("Determinus reference protocol");
       expect(providerEval).toContain("Selected runtime prompt");
       expect(providerEval).not.toContain("determinus_protocol_instructions");
     });
@@ -485,9 +485,9 @@ describe("deploy-local.sh", () => {
       expect(providerEval).not.toContain("generated_provider_file");
     });
 
-    test("provider eval models single ADV runtime prompt plus optional hint", () => {
+    test("provider eval models single Determinus runtime prompt plus optional hint", () => {
       expect(providerEval).toContain(
-        "single ADV runtime prompt, no provider hint",
+        "single Determinus runtime prompt, no provider hint",
       );
       expect(providerEval).toContain("composeSystemPrompt");
       expect(providerEval).not.toContain("stripped.indexOf(endMarker)");
@@ -512,7 +512,7 @@ describe("deploy-local.sh", () => {
       });
 
       expect(runtimePrompt).toBe(
-        "ADV body\nline 2\n\n<!-- PROVIDER_HINT:gpt -->\nHint",
+        "Determinus body\nline 2\n\n<!-- PROVIDER_HINT:gpt -->\nHint",
       );
       expect(metrics.lean_determinus_runtime_prompt).toMatchObject({
         lines: 2,
@@ -537,7 +537,7 @@ describe("deploy-local.sh", () => {
       (r.scenarios ?? []).map((s) => s.id),
     );
 
-    test("provider docs describe single ADV runtime hints, manual migration, and metrics", () => {
+    test("provider docs describe single Determinus runtime hints, manual migration, and metrics", () => {
       for (const required of [
         "one runtime orchestrator agent: `adv`",
         "Runtime Hint Mapping",
@@ -555,7 +555,7 @@ describe("deploy-local.sh", () => {
       }
       expect(assemblyDoc).toContain("lean canonical runtime prompt");
       expect(assemblyDoc).not.toContain(
-        "global adv.md = canonical ADV body + determinus_INSTRUCTIONS.md",
+        "global adv.md = canonical Determinus body + determinus_INSTRUCTIONS.md",
       );
     });
 
@@ -568,7 +568,7 @@ describe("deploy-local.sh", () => {
       expect(`${agentsDoc}\n${projectDoc}`).toContain(
         "rsync` for runtime plugin deployment",
       );
-      expect(setupDoc).not.toContain("generated ADV provider prompts");
+      expect(setupDoc).not.toContain("generated Determinus provider prompts");
     });
 
     test("advance-meta spec contains provider runtime and metrics requirements", () => {
@@ -593,25 +593,25 @@ describe("deploy-local.sh", () => {
       expect(specDoc).toContain("**ID:** `rq-clarifyEnforcementAudit01`");
       expect(specDoc).toContain("**ID:** `rq-noSourceChecklistReads01`");
       expect(specDoc).toContain("**ID:** `rq-advCliLocalInstall01`");
-      expect(specDoc).toContain("$HOME/.local/share/Advance/bin");
+      expect(specDoc).toContain("$HOME/.local/share/Determinus/bin");
     });
 
     test("advance-meta spec no longer requires full determinus_INSTRUCTIONS runtime append", () => {
       const specText = readFileSync(ADVANCE_META_SPEC_PATH, "utf8");
 
-      expect(specText).toContain("lean ADV runtime prompt");
+      expect(specText).toContain("lean Determinus runtime prompt");
       expect(specText).toContain("runtime protocol coverage inventory");
       expect(specText).toContain("determinus_reference_protocol");
       expect(specText).toContain("voice_contract_allowance");
       expect(specText).not.toContain(
-        "Global adv.md contains the canonical ADV body and determinus_INSTRUCTIONS.md protocol content",
+        "Global adv.md contains the canonical Determinus body and determinus_INSTRUCTIONS.md protocol content",
       );
       expect(specText).not.toContain(
-        "The effective static prompt order is canonical ADV body, then determinus_INSTRUCTIONS.md body",
+        "The effective static prompt order is canonical Determinus body, then determinus_INSTRUCTIONS.md body",
       );
     });
 
-    test("runtime protocol coverage inventory preserves critical ADV invariants", () => {
+    test("runtime protocol coverage inventory preserves critical Determinus invariants", () => {
       const coverageDoc = readFileSync(RUNTIME_PROTOCOL_COVERAGE_PATH, "utf8");
       const advAgent = readFileSync(determinus_AGENT_PATH, "utf8");
 
@@ -619,7 +619,7 @@ describe("deploy-local.sh", () => {
         "slash-command boundary",
         "gate sequencing",
         "human checkpoints",
-        "ADV state access",
+        "Determinus state access",
         "worktree isolation",
         "due-diligence routing",
         "intent routing",
@@ -639,7 +639,7 @@ describe("deploy-local.sh", () => {
       expect(advAgent).toContain("## Slash Command Boundary");
       expect(advAgent).toContain("## Step 3: Gate Machine");
       expect(advAgent).toContain("### Human Checkpoints vs Auto-Continue");
-      expect(advAgent).toContain("## ADV State Access Policy");
+      expect(advAgent).toContain("## Determinus State Access Policy");
       expect(advAgent).toContain("### Worktree Isolation Routing");
     });
 
@@ -735,7 +735,7 @@ describe("deploy-local.sh", () => {
       );
     });
 
-    test("worktree-lifecycle spec captures ADV mutation guard", () => {
+    test("worktree-lifecycle spec captures Determinus mutation guard", () => {
       const worktreeSpec = JSON.parse(
         readFileSync(WORKTREE_LIFECYCLE_SPEC_PATH, "utf8"),
       );
@@ -748,7 +748,7 @@ describe("deploy-local.sh", () => {
       expect(guard?.body).toContain("main checkout");
       expect(guard?.body).toContain("proposal gate");
       // Existing-worktree exception: guarded mutations from main are ALLOWED
-      // when a setup-ready ADV worktree already exists, marker-independent.
+      // when a setup-ready Determinus worktree already exists, marker-independent.
       expect(guard?.body).toContain("setup-ready");
       expect(guard?.body).toContain("worktree_auto_managed");
       expect(guard?.scenarios?.map((s) => s.id)).toEqual(
@@ -792,16 +792,16 @@ describe("deploy-local.sh", () => {
     });
   });
 
-  describe("canonical ADV prompt compression", () => {
+  describe("canonical Determinus prompt compression", () => {
     const advAgent = readFileSync(determinus_AGENT_PATH, "utf8");
 
-    test("canonical ADV prompt stays under the safe compression ceiling", () => {
+    test("canonical Determinus prompt stays under the safe compression ceiling", () => {
       const lines = advAgent.split(/\r?\n/).length;
       // Ceiling raised from 368 → 400 after adding Epic tools to the canonical
       // allowlist, Epic context-loading instructions, and lifecycle-state
-      // invariant guidance to the canonical ADV agent.
+      // invariant guidance to the canonical Determinus agent.
       // Ceiling raised from 368 → 371 after documenting the change-lifecycle
-      // state invariant in the canonical ADV prompt.
+      // state invariant in the canonical Determinus prompt.
       // Ceiling raised from 362 → 363 after adding the release-stage
       // determinus-reviewer phase mapping needed for typed worker packets.
       // Ceiling raised from 361 → 362 after adding explicit typed worker
@@ -815,15 +815,15 @@ describe("deploy-local.sh", () => {
       // determinus_design_concern_disposition and we added it to the allowlists.
       // Ceiling raised from 411 → 412 after trunk added determinus_tool_invoke,
       // determinus_archive_purge, determinus_contract_mint, and determinus_snapshot_health to the
-      // canonical ADV agent allowlist.
+      // canonical Determinus agent allowlist.
       // Re-ratchet here once the prompt has been audited for excess.
       expect(lines).toBeLessThanOrEqual(416);
     });
 
-    test("canonical ADV prompt keeps safety-critical markers", () => {
+    test("canonical Determinus prompt keeps safety-critical markers", () => {
       for (const marker of [
         "Human Checkpoints",
-        "ADV State Access Policy",
+        "Determinus State Access Policy",
         "Sign-Off Boundary",
         "TDD Protocol",
         "Worktree",

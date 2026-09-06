@@ -3,7 +3,7 @@
  *
  * - AC1: zero `output.system.push(` call sites remain in plugin/src/index.ts
  *   (only doc comments may reference the prior pattern).
- * - AC8: assembleSystemBlock() places `--- ADV:VOLATILE ---` between stable
+ * - AC8: assembleSystemBlock() places `--- Determinus:VOLATILE ---` between stable
  *   header and volatile suffix ONLY when both exist; never as an orphan
  *   divider (no leading or trailing sentinel).
  *

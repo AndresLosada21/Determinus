@@ -82,7 +82,7 @@ mechanisms introduced.
       join(tempDir, ".adv/specs/api-gateway/spec.json"),
       JSON.stringify(
         {
-          $schema: "https://advance.dev/schemas/spec.v1.json",
+          $schema: "https://determinus.dev/schemas/spec.v1.json",
           name: "api-gateway",
           title: "API Gateway",
           purpose: "HTTP API gateway with middleware pipeline",

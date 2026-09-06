@@ -1,12 +1,12 @@
 /**
  * Synthetic Validation Draft Detector
  *
- * Shared predicate that matches change IDs / summaries used by ADV's
+ * Shared predicate that matches change IDs / summaries used by Determinus's
  * own automated validation, parity, latency, and roundtrip workflows.
  *
  * Background: pre-cull integration tests created changes with these
  * predictable patterns and never cleaned up after themselves. Result:
- * ~600 stale records leaked across 16 ADV project directories. The
+ * ~600 stale records leaked across 16 Determinus project directories. The
  * leak was reaped manually (see audit 2026-05-07), and the
  * determinus_change_create tool now rejects these patterns at change-creation
  * time. This module re-exports that predicate so the lower-level

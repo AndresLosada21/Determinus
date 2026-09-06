@@ -496,7 +496,7 @@ export const testTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, records evidence in that project's disk-backed store.",
+          "Optional absolute path to another Determinus project. When provided, records evidence in that project's disk-backed store.",
         ),
       target_confirmed: z.literal(true).optional(),
       confirmationEvidence: z.string().optional(),

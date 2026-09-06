@@ -17,7 +17,7 @@ declare function resolveGitSessionContext(directory: string, worktree: string | 
  * Host surface is v2-only (see default export below):
  * - ctx.tool.transform / ctx.tool.hook("execute.before"/"execute.after")
  * - ctx.event.subscribe (+ installCacheRuntime)
- * Legacy `advancePluginImpl` below is an internal adapter preserving the
+ * Legacy `determinusPluginImpl` below is an internal adapter preserving the
  * pre-v2 tool/event behavior for tests; its `determinus.system.turn` and
  * `determinus.compaction.turn` entries are served on the v2 host through
  * `ctx.session.hook("context")` (see the setup wrapper), never as legacy
@@ -41,7 +41,7 @@ declare const fallbackPersistedMarker: (source: string, content: string, filePat
 declare const compactToolPart: (part: unknown) => boolean;
 /**
  * OpenCode 2 message shape is `{ role, content }`, not the v1
- * `{ info, parts }` shape used by the original ADV hook.  The compatibility
+ * `{ info, parts }` shape used by the original Determinus hook.  The compatibility
  * adapter used to shallow-cast v2 messages, silently making output compaction
  * a no-op.  Compact the native ToolResultPart in place as well.
  */
@@ -57,7 +57,9 @@ declare const enforcePromptHistoryBudget: (messages: Array<any>) => {
     retainedChars: any;
     limit: null;
 };
+declare const DeterminusPlugin: Plugin;
+/** @deprecated Use DeterminusPlugin. Kept for external consumers. */
 declare const AdvancePlugin: Plugin;
 declare const _default: any;
 
-export { AdvancePlugin, compactPromptMessages, compactToolPart, compactV2ToolResultPart, _default as default, enforcePromptHistoryBudget, fallbackPersistedMarker, persistFallbackContent, resolveGitSessionContext };
+export { AdvancePlugin, DeterminusPlugin, compactPromptMessages, compactToolPart, compactV2ToolResultPart, _default as default, enforcePromptHistoryBudget, fallbackPersistedMarker, persistFallbackContent, resolveGitSessionContext };

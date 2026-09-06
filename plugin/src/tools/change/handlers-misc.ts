@@ -205,7 +205,7 @@ export const miscChangeTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, routes the re-entry through that project's disk-backed store.",
+          "Optional absolute path to another Determinus project. When provided, routes the re-entry through that project's disk-backed store.",
         ),
       target_confirmed: z
         .literal(true)

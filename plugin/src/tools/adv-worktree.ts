@@ -1,5 +1,5 @@
 /**
- * ADV Worktree Tools (T24 — KD-8 phase 1)
+ * Determinus Worktree Tools (T24 — KD-8 phase 1)
  *
  * Tool definitions for `determinus_worktree_create`, `determinus_worktree_delete`,
  * `determinus_worktree_cleanup`, and `determinus_worktree_triage`.
@@ -122,7 +122,7 @@ function clampToSafeBudget(requestedMs: number | undefined): {
   return { effectiveTimeoutMs: requested, wasClamped: false };
 }
 
-/** Simple no-op-ish logger for ADV worktree tools. */
+/** Simple no-op-ish logger for Determinus worktree tools. */
 function createLogger(): {
   debug: (msg: string) => void;
   info: (msg: string) => void;
@@ -196,7 +196,7 @@ const targetWorktreeMutationArgSchemas = {
     .string()
     .optional()
     .describe(
-      "Optional absolute path to another ADV project. When provided, routes the operation through that project's target worktree store.",
+      "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target worktree store.",
     ),
   target_confirmed: z
     .literal(true)
@@ -451,7 +451,7 @@ async function executeWorktreeCleanup(
   context?: TargetProjectContext,
 ): Promise<string> {
   // rq-archiveBranchCleanup01: archived-branch hygiene is git maintenance,
-  // not ADV recovery state. It owns no workflow signals, so it routes before
+  // not Determinus recovery state. It owns no workflow signals, so it routes before
   // the queued-cleanup DB/timeout machinery.
   if (args.mode === "archived_branches") {
     // rq-archivedBranchCleanupInversion01: clamp the caller budget and pass
@@ -566,7 +566,7 @@ async function executeWorktreeCleanup(
   if ("_timedOut" in result && result._timedOut) {
     // Snapshot the stage synchronously, before any await. The inner promise is
     // still running (withTimeout is non-cancelling), so awaiting first would
-    // yield the event loop and let it advance the stage — reporting a
+    // yield the event loop and let it determinus the stage — reporting a
     // post-timeout value instead of the one in flight when the budget expired
     // (DONT5).
     const stageAtTimeout = currentStage;
@@ -861,7 +861,7 @@ const advWorktreeToolDefinitions = {
       changeId: z
         .string()
         .optional()
-        .describe("Existing ADV change ID to resume."),
+        .describe("Existing Determinus change ID to resume."),
       resume: z
         .boolean()
         .optional()
@@ -1024,7 +1024,7 @@ const advWorktreeToolDefinitions = {
 
   determinus_worktree_cleanup: {
     description:
-      "Discover terminal cleanup candidates and retry queued worktree deletions. Safe: skips worktrees still used as a process CWD, preserves dirty/unmerged unsafe worktrees, and keeps retained items queued. Opt-in mode=archived_branches instead scans local change/* branches tied to archived ADV changes, detects fully-merged ones (squash-merge-safe), and deletes the safe ones — post-merge branch hygiene moved here from the retired archive-repair surface so worktree cleanup has a single recovery purpose.",
+      "Discover terminal cleanup candidates and retry queued worktree deletions. Safe: skips worktrees still used as a process CWD, preserves dirty/unmerged unsafe worktrees, and keeps retained items queued. Opt-in mode=archived_branches instead scans local change/* branches tied to archived Determinus changes, detects fully-merged ones (squash-merge-safe), and deletes the safe ones — post-merge branch hygiene moved here from the retired archive-repair surface so worktree cleanup has a single recovery purpose.",
     args: {
       reason: z
         .string()
@@ -1059,7 +1059,7 @@ const advWorktreeToolDefinitions = {
         .enum(["worktrees", "archived_branches"])
         .optional()
         .describe(
-          "worktrees (default) = retry queued worktree deletions; archived_branches = opt-in scan/delete of fully-merged local change/* branches tied to archived ADV changes (operator-explicit, rq-archiveBranchCleanup01)",
+          "worktrees (default) = retry queued worktree deletions; archived_branches = opt-in scan/delete of fully-merged local change/* branches tied to archived Determinus changes (operator-explicit, rq-archiveBranchCleanup01)",
         ),
       changeId: z
         .string()
@@ -1097,7 +1097,7 @@ const advWorktreeToolDefinitions = {
   /* Internal-only handler retained for future maintenance callers. */
   determinus_worktree_detach: {
     description:
-      "Operator-only directory-only worktree detach. Removes only the worktree directory for a set of exact branches, preserves the local branch and ADV change record, and writes a durable dematerialize receipt on the owning change workflow. Requires approvalEvidence in apply mode. Never invoked by reapers, triage, startup cleanup, or migration automation.",
+      "Operator-only directory-only worktree detach. Removes only the worktree directory for a set of exact branches, preserves the local branch and Determinus change record, and writes a durable dematerialize receipt on the owning change workflow. Requires approvalEvidence in apply mode. Never invoked by reapers, triage, startup cleanup, or migration automation.",
     args: {
       branches: z
         .array(z.string().min(1))

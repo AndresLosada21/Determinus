@@ -6,7 +6,7 @@ import { join } from "path";
 import { cleanupTempDir } from "./setup";
 import { cleanupSyntheticAdvDirs } from "./synthetic-cleanup";
 
-describe("synthetic ADV cleanup guard", () => {
+describe("synthetic Determinus cleanup guard", () => {
   test("removes stale and newly created synthetic dirs while preserving real project IDs", async () => {
     const dataHome = await mkdtemp(join(tmpdir(), "determinus-synth-clean-"));
     try {

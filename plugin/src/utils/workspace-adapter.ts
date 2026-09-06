@@ -75,7 +75,7 @@ const getAdvWorktreeDirectory = (info: WorkspaceInfo): string => {
 /**
  * OpenCode workspace adapter for determinus-managed git worktrees.
  *
- * ADV creates and removes the git worktree itself. This adapter only teaches
+ * Determinus creates and removes the git worktree itself. This adapter only teaches
  * OpenCode how to route a workspace row to that already-existing local path.
  */
 export function buildAdvWorktreeAdapter(): WorkspaceAdapter {

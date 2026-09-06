@@ -26,7 +26,7 @@ proposal → discovery → design → planning → execution → acceptance → 
 | `release` | Finalização no trunk (`RELEASE_REQUIRES_TRUNK_MERGE` sem merge) |
 
 - **TDD hard por padrão** (`strict`, configurável para `advisory`/`off`): `determinus_task_checkpoint` falha sem red→green; o gate de execução exige pareamento completo.
-- **Worktrees isoladas**: mutações ADV rodam em worktrees `change/<id>`, nunca no checkout principal.
+- **Worktrees isoladas**: mutações Determinus rodam em worktrees `change/<id>`, nunca no checkout principal.
 - **Sem sombra no host**: só o agente `determinus` é instalado; os agentes nativos `build`/`plan` nunca são modificados.
 
 ## Uso

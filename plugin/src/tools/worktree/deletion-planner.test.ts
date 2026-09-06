@@ -24,13 +24,13 @@ function makeFixture(): {
   const worktree = `${root}-linked`;
   git(root, "init", "-b", "main");
   git(root, "config", "user.email", "test@example.invalid");
-  git(root, "config", "user.name", "ADV test");
+  git(root, "config", "user.name", "Determinus test");
   execFileSync("touch", [join(root, "README.md")]);
   git(root, "add", ".");
   git(root, "commit", "-m", "initial");
   git(root, "worktree", "add", "-b", "release/v1", worktree);
   git(worktree, "config", "user.email", "test@example.invalid");
-  git(worktree, "config", "user.name", "ADV test");
+  git(worktree, "config", "user.name", "Determinus test");
   git(worktree, "commit", "--allow-empty", "-m", "release");
   git(root, "merge", "--ff-only", "release/v1");
   return {
@@ -78,7 +78,7 @@ describe("WorktreeDeletionPlanner", () => {
     try {
       git(root, "init", "-b", "trunk");
       git(root, "config", "user.email", "test@example.invalid");
-      git(root, "config", "user.name", "ADV test");
+      git(root, "config", "user.name", "Determinus test");
       execFileSync("touch", [join(root, "README.md")]);
       git(root, "add", ".");
       git(root, "commit", "-m", "initial");
@@ -281,7 +281,7 @@ describe("WorktreeDeletionPlanner", () => {
       expect(result.reason).toBe("malformed_census");
   });
 
-  it("does not initialize an ADV store while resolving a large target", async () => {
+  it("does not initialize an Determinus store while resolving a large target", async () => {
     let initialized = false;
     const result = await new WorktreeDeletionPlanner({
       targetResolver: async (input) => ({

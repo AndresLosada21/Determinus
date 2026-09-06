@@ -1,7 +1,7 @@
 /**
  * Briefing Packet Renderer
  *
- * Pure, storage-free renderer that composes already-loaded ADV structured state
+ * Pure, storage-free renderer that composes already-loaded Determinus structured state
  * into a lane-specific briefing packet. The renderer never loads state itself;
  * callers (storage/tool adapters) pass hydrated input.
  *

@@ -1,5 +1,5 @@
 /**
- * Runtime role firewall for ADV tools.
+ * Runtime role firewall for Determinus tools.
  *
  * Enforces the fail-closed, session-derived rule from Decision 3: a tool in
  * the blockable set (complement of the sub-agent union allowlist) is allowed
@@ -72,8 +72,8 @@ function matchesPolicyBlockableSet(blockable: readonly string[]): boolean {
  * Decision 5 / Option A: runtime derivation failure fails closed. If the
  * blockable set cannot be computed from AGENT_TOOL_POLICY, fall back to
  * treating the union floor as the only sub-agent-allowed set and blocking
- * every other ADV tool from non-main sessions. If even the union floor cannot
- * be derived, block every ADV tool.
+ * every other Determinus tool from non-main sessions. If even the union floor cannot
+ * be derived, block every Determinus tool.
  */
 export function resolveBlockableSet(): {
   blockable: Set<string>;

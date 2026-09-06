@@ -61,7 +61,7 @@ function git(cwd: string, args: string[]): string {
 async function initRepo(root: string, defaultBranch = "trunk"): Promise<void> {
   git(root, ["init", "-q", "-b", defaultBranch]);
   git(root, ["config", "user.email", "determinus-test@example.invalid"]);
-  git(root, ["config", "user.name", "ADV Test"]);
+  git(root, ["config", "user.name", "Determinus Test"]);
   await writeFile(join(root, "README.md"), "initial\n");
   git(root, ["add", "README.md"]);
   git(root, ["commit", "-m", "initial"]);

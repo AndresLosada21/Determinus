@@ -1,4 +1,4 @@
-/** Process facts for an active ADV session. */
+/** Process facts for an active Determinus session. */
 export interface SessionRecord {
   sessionId: string;
   worktreeBranch?: string;

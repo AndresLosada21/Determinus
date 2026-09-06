@@ -187,13 +187,13 @@ const LIVE_PR_407_SHAPE = {
   baseRefName: "trunk",
   headRepository: {
     id: "R_kgDOQ-sRJg",
-    name: "Advance",
-    nameWithOwner: "Sharper-Flow/Advance",
+    name: "Determinus",
+    nameWithOwner: "Sharper-Flow/Determinus",
   },
   headRepositoryOwner: { id: "O_kgDOBrdsJg", login: "Sharper-Flow" },
   isCrossRepository: false,
   mergeCommit: { oid: "019de4a97560953acca5f3c425070d6bf3b64985" },
-  url: "https://github.com/Sharper-Flow/Advance/pull/407",
+  url: "https://github.com/Sharper-Flow/Determinus/pull/407",
 } as const;
 
 /**
@@ -713,7 +713,7 @@ describe.skipIf(!isLinux)("determinus-safe worktree delete (T9)", () => {
     await expect(getPendingDeletes(deps.database)).resolves.toEqual([]);
   });
 
-  it("retains pending delete when non-ADV integration check exceeds operation budget", async () => {
+  it("retains pending delete when non-Determinus integration check exceeds operation budget", async () => {
     const branch = "feature/slow-integration";
     const wtPath = addWorktree(repoRoot, branch);
 
@@ -785,7 +785,7 @@ describe.skipIf(!isLinux)("determinus-safe worktree delete (T9)", () => {
     });
   });
 
-  it("#38 deletes clean merged non-ADV worktree branch without archived change", async () => {
+  it("#38 deletes clean merged non-Determinus worktree branch without archived change", async () => {
     const branch = "feature/non-determinus-clean";
     const wtPath = addWorktree(repoRoot, branch);
     const deps = createMockDeps(repoRoot, wtPath);
@@ -801,7 +801,7 @@ describe.skipIf(!isLinux)("determinus-safe worktree delete (T9)", () => {
     ).not.toContain(branch);
   });
 
-  it("#38 blocks dirty non-ADV worktree branch", async () => {
+  it("#38 blocks dirty non-Determinus worktree branch", async () => {
     const branch = "feature/non-determinus-dirty";
     const wtPath = addWorktree(repoRoot, branch);
     writeFileSync(join(wtPath, "dirty.txt"), "dirty");
@@ -821,7 +821,7 @@ describe.skipIf(!isLinux)("determinus-safe worktree delete (T9)", () => {
     ).toContain(branch);
   });
 
-  it("#38 blocks unmerged non-ADV worktree branch", async () => {
+  it("#38 blocks unmerged non-Determinus worktree branch", async () => {
     const branch = "feature/non-determinus-unmerged";
     const wtPath = addWorktree(repoRoot, branch);
     writeFileSync(join(wtPath, "unmerged.txt"), "unmerged");

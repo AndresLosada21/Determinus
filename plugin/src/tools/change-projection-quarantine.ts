@@ -110,7 +110,7 @@ const changeProjectionQuarantineToolDefinitions = {
         .string()
         .min(1)
         .describe(
-          "ADV change ID whose active projection will be diagnosed and quarantined.",
+          "Determinus change ID whose active projection will be diagnosed and quarantined.",
         ),
       approvedByUser: z
         .boolean()
@@ -210,7 +210,7 @@ export async function executeQuarantine(
       code: "INVALID_CHANGE_ID",
       change_id: changeId,
       reason: "invalid_change_id",
-      details: `changeId '${changeId}' is not a canonical ADV change identifier.`,
+      details: `changeId '${changeId}' is not a canonical Determinus change identifier.`,
     };
   }
 

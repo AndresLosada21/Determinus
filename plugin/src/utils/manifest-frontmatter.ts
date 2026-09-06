@@ -93,7 +93,7 @@ export interface PolicyMatchResult {
 }
 
 /**
- * For a manifest containing an ADV tool policy, verify its parsed `tools`
+ * For a manifest containing an Determinus tool policy, verify its parsed `tools`
  * map is non-empty and its `determinus_*` grants exactly match the agent's
  * declared `AGENT_TOOL_POLICY.allowed` set.
  *
@@ -253,7 +253,9 @@ export function runtimeFrontmatterCheck(
         const result = parseFrontmatter(fullPath);
         if (!result.ok) {
           failures++;
-          console.warn(`[ADV] frontmatter: ${fullPath} — ${result.error}`);
+          console.warn(
+            `[Determinus] frontmatter: ${fullPath} — ${result.error}`,
+          );
         }
       }
     }
@@ -268,12 +270,12 @@ export function runtimeFrontmatterCheck(
 
   if (failures > 0) {
     console.warn(
-      `[ADV] frontmatter: ${failures} unparseable manifest(s) in ${checked} checked (${elapsedMs.toFixed(0)}ms)`,
+      `[Determinus] frontmatter: ${failures} unparseable manifest(s) in ${checked} checked (${elapsedMs.toFixed(0)}ms)`,
     );
   }
   if (budgetExceeded) {
     console.warn(
-      `[ADV] frontmatter: scan budget exceeded (${elapsedMs.toFixed(0)}ms > ${budgetMs}ms), some files not checked`,
+      `[Determinus] frontmatter: scan budget exceeded (${elapsedMs.toFixed(0)}ms > ${budgetMs}ms), some files not checked`,
     );
   }
 

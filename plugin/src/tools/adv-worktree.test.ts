@@ -1,5 +1,5 @@
 /**
- * Smoke tests for ADV worktree tool wrappers.
+ * Smoke tests for Determinus worktree tool wrappers.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

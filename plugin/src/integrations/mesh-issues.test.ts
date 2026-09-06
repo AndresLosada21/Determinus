@@ -45,7 +45,7 @@ describe("buildMeshPayload", () => {
   test("includes determinus_created_at timestamp", () => {
     const payload = buildMeshPayload({
       changeId: "ch-test",
-      capability: "advance-delivery",
+      capability: "determinus-delivery",
       relationship: "depends_on",
       sourceProject: "/project",
       body: "test",

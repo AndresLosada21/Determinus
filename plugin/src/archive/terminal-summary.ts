@@ -1,7 +1,7 @@
 /**
  * Archive Terminal Summary
  *
- * Versioned, schema-validated lightweight terminal summary sidecar for ADV
+ * Versioned, schema-validated lightweight terminal summary sidecar for Determinus
  * archive bundles.  The sidecar is small enough to enumerate large terminal
  * histories without parsing the full change.json, while still carrying enough
  * structural fields to reconstruct a ChangeListResponse row or ChangeSummary.

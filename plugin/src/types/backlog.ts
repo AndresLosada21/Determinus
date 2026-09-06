@@ -2,7 +2,7 @@
  * Repo Backlog Domain Types
  *
  * In-repo JSONL store for future work items that are not yet ready for an
- * active Epic or ADV change.
+ * active Epic or Determinus change.
  */
 
 import { z } from "zod";

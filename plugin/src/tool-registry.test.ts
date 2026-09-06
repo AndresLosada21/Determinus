@@ -128,7 +128,7 @@ describe("createDegradedToolMap parity with createToolMap", () => {
     expect(parsed.readinessHint).toMatch(/not a readiness authority/i);
   });
 
-  test("every registered ADV tool name has a display title", () => {
+  test("every registered Determinus tool name has a display title", () => {
     for (const name of determinus_TOOL_NAMES) {
       expect(hasExplicitAdvToolTitle(name), `explicit title for ${name}`).toBe(
         true,

@@ -308,7 +308,7 @@ export function checkMissingErrorHandling(
  * - findings: all ambiguity issues found (all are warnings, never errors)
  * - passed: true only when no findings exist
  *
- * @param change - The Change object from ADV state
+ * @param change - The Change object from Determinus state
  * @param proposalText - The raw proposal.md content
  */
 export function runClarifyReadinessChecks(

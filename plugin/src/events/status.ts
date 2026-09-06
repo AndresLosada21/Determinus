@@ -1,7 +1,7 @@
 /**
  * Status Management
  *
- * Manages ADV status markers and state transitions.
+ * Manages Determinus status markers and state transitions.
  */
 
 import type { StatusMarker } from "../types";
@@ -49,12 +49,12 @@ function getOrCreateSessionState(): StatusState {
  * resetting.
  *
  * Required because OpenCode's InstanceState cache is keyed by directory, so a
- * post-warp scenario instantiates a SECOND ADV plugin instance against the
+ * post-warp scenario instantiates a SECOND Determinus plugin instance against the
  * worktree directory. That second instance calls initializeStatus(projectName)
  * again — pre-fix, this destructively reset activeChangeId, blowing away the
  * terminal status marker mid-change. projectName stays anchored to the first
  * init value so tab title remains anchored to the initial project identity
- * when no ADV change is active instead of dynamically changing to the
+ * when no Determinus change is active instead of dynamically changing to the
  * worktree basename.
  *
  * Source invariant: status initialization is idempotent across duplicate

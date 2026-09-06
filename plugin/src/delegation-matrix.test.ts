@@ -146,7 +146,7 @@ const RESTORE_DEL_DEFAULTS10_ARCHIVE_DELTA: Extract<
   target_id: "rq-delDefaults10",
   changes: {
     title: "Engineer-First Frontend Dispatch with Designer Follow-up",
-    body: "For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to determinus-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch determinus-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select determinus-designer first for classified frontend work. determinus-designer remains apply-phase only and MUST NOT own review or harden; determinus-reviewer retains review and harden ownership.",
+    body: "For delegated code tasks with metadata.frontend set to true, Determinus MUST route initial implementation to determinus-engineer. After successful same-task, same-cycle engineer evidence, Determinus MUST dispatch determinus-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, Determinus MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select determinus-designer first for classified frontend work. determinus-designer remains apply-phase only and MUST NOT own review or harden; determinus-reviewer retains review and harden ownership.",
     tags: ["delegation", "frontend", "engineer-first", "designer-follow-up"],
     scenarios: [
       {
@@ -156,10 +156,10 @@ const RESTORE_DEL_DEFAULTS10_ARCHIVE_DELTA: Extract<
           "A code task has metadata.frontend set to true",
           "No step-4 risk signal forces inline implementation",
         ],
-        when: "ADV selects an initial implementation lane",
+        when: "Determinus selects an initial implementation lane",
         then: [
-          "ADV dispatches determinus-engineer before determinus-designer",
-          "ADV does not dispatch determinus-designer as the initial implementation lane",
+          "Determinus dispatches determinus-engineer before determinus-designer",
+          "Determinus does not dispatch determinus-designer as the initial implementation lane",
         ],
       },
       {
@@ -171,7 +171,7 @@ const RESTORE_DEL_DEFAULTS10_ARCHIVE_DELTA: Extract<
         ],
         when: "Initial implementation completes",
         then: [
-          "ADV dispatches a matching-cycle determinus-designer follow-up",
+          "Determinus dispatches a matching-cycle determinus-designer follow-up",
           "Designer provenance references the engineer report or inline receipt",
           "Missing, stale, or mismatched provenance is rejected",
         ],
@@ -203,7 +203,7 @@ const FIX_FRONTEND_BIND_DELTA: Extract<Delta, { operation: "modify" }> = {
   target_id: "rq-delDefaults10",
   changes: {
     title: "Engineer-First Frontend Dispatch with Designer Follow-up",
-    body: "For delegated code tasks with metadata.frontend set to true, ADV MUST route initial implementation to determinus-engineer. After successful same-task, same-cycle engineer evidence, ADV MUST dispatch determinus-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, ADV MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select determinus-designer first for classified frontend work. The matching implementation cycle MUST be bound under report.apply_context.implementation_cycle_id with a valid implementation_provenance (kind: engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected by the strict report schema. determinus-designer remains apply-phase only and MUST NOT own review or harden; determinus-reviewer retains review and harden ownership.",
+    body: "For delegated code tasks with metadata.frontend set to true, Determinus MUST route initial implementation to determinus-engineer. After successful same-task, same-cycle engineer evidence, Determinus MUST dispatch determinus-designer as a bounded UI/UX follow-up with engineer-report provenance. When risk signals force inline implementation, Determinus MUST dispatch the same designer follow-up with bounded inline provenance. An explicit metadata.delegation_hint remains an override only among valid initial implementation routes and MUST NOT select determinus-designer first for classified frontend work. The matching implementation cycle MUST be bound under report.apply_context.implementation_cycle_id with a valid implementation_provenance (kind: engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected by the strict report schema. determinus-designer remains apply-phase only and MUST NOT own review or harden; determinus-reviewer retains review and harden ownership.",
     tags: [
       "delegation",
       "frontend",
@@ -219,10 +219,10 @@ const FIX_FRONTEND_BIND_DELTA: Extract<Delta, { operation: "modify" }> = {
           "A code task has metadata.frontend set to true",
           "No step-4 risk signal forces inline implementation",
         ],
-        when: "ADV selects an initial implementation lane",
+        when: "Determinus selects an initial implementation lane",
         then: [
-          "ADV dispatches determinus-engineer before determinus-designer",
-          "ADV does not dispatch determinus-designer as the initial implementation lane",
+          "Determinus dispatches determinus-engineer before determinus-designer",
+          "Determinus does not dispatch determinus-designer as the initial implementation lane",
         ],
       },
       {
@@ -234,7 +234,7 @@ const FIX_FRONTEND_BIND_DELTA: Extract<Delta, { operation: "modify" }> = {
         ],
         when: "Initial implementation completes",
         then: [
-          "ADV dispatches a matching-cycle determinus-designer follow-up",
+          "Determinus dispatches a matching-cycle determinus-designer follow-up",
           "Designer provenance references the engineer report or inline receipt",
           "The implementation cycle is carried under report.apply_context.implementation_cycle_id with a valid implementation_provenance (engineer, engineer_report, or inline); a top-level implementation_cycle_id is rejected",
           "Missing, stale, or mismatched provenance is rejected",
@@ -894,21 +894,21 @@ describe("delegation matrix coverage", () => {
       (scenario) => scenario.id === "rq-delDefaults10.1",
     );
     expect(initialLane).toMatchObject({
-      when: "ADV selects an initial implementation lane",
+      when: "Determinus selects an initial implementation lane",
       then: [
-        "ADV dispatches determinus-engineer before determinus-designer",
-        "ADV does not dispatch determinus-designer as the initial implementation lane",
+        "Determinus dispatches determinus-engineer before determinus-designer",
+        "Determinus does not dispatch determinus-designer as the initial implementation lane",
       ],
     });
     expect(initialLane?.then).not.toContain(
-      "ADV dispatches determinus-designer as the initial implementation lane",
+      "Determinus dispatches determinus-designer as the initial implementation lane",
     );
 
     const followUp = requirement?.scenarios?.find(
       (scenario) => scenario.id === "rq-delDefaults10.2",
     );
     expect(followUp?.then).toContain(
-      "ADV dispatches a matching-cycle determinus-designer follow-up",
+      "Determinus dispatches a matching-cycle determinus-designer follow-up",
     );
   });
 
@@ -960,7 +960,7 @@ describe("delegation matrix coverage", () => {
       ),
     ).toBe(true);
     expect(followUp?.then).toContain(
-      "ADV dispatches a matching-cycle determinus-designer follow-up",
+      "Determinus dispatches a matching-cycle determinus-designer follow-up",
     );
 
     // Scenarios .1 and .3 unchanged (additivity).
@@ -968,7 +968,7 @@ describe("delegation matrix coverage", () => {
       (scenario) => scenario.id === "rq-delDefaults10.1",
     );
     expect(initialLane?.then).toContain(
-      "ADV dispatches determinus-engineer before determinus-designer",
+      "Determinus dispatches determinus-engineer before determinus-designer",
     );
     const reviewer = requirement?.scenarios?.find(
       (scenario) => scenario.id === "rq-delDefaults10.3",
@@ -1012,7 +1012,7 @@ describe("delegation matrix coverage", () => {
     expect(block).toMatch(/no\s+sub[- ]?agents/i);
     expect(block).toMatch(/runs\s+inline/i);
 
-    // Provider-specific ADV runtime agents must be forbidden, not expected.
+    // Provider-specific Determinus runtime agents must be forbidden, not expected.
     for (const forbidden of [
       "determinus-gpt",
       "determinus-claude",

@@ -45,7 +45,7 @@ export function evaluateTodoWriteGuard(input: {
   if (input.scope.degraded) {
     return {
       kind: "warn",
-      message: `TodoWrite ADV guard warning: ${input.scope.reason ?? "ADV state unavailable"}`,
+      message: `TodoWrite Determinus guard warning: ${input.scope.reason ?? "Determinus state unavailable"}`,
     };
   }
 
@@ -68,7 +68,7 @@ export function evaluateTodoWriteGuard(input: {
       if (!task) {
         return {
           kind: "block",
-          message: `TodoWrite references unknown ADV task ${taskId}. Use the ADV task projection for ${activeChangeId}.`,
+          message: `TodoWrite references unknown Determinus task ${taskId}. Use the Determinus task projection for ${activeChangeId}.`,
         };
       }
       if (task.changeId !== activeChangeId) {
@@ -80,7 +80,7 @@ export function evaluateTodoWriteGuard(input: {
       if (status === "completed" && task.status !== "done") {
         return {
           kind: "block",
-          message: `TodoWrite cannot mark ${taskId} completed until ADV task state is done.`,
+          message: `TodoWrite cannot mark ${taskId} completed until Determinus task state is done.`,
         };
       }
     }
@@ -90,7 +90,7 @@ export function evaluateTodoWriteGuard(input: {
     return {
       kind: "warn",
       message:
-        "TodoWrite ADV guard warning: entries without tk-* IDs are scratchpad-only during active ADV execution.",
+        "TodoWrite Determinus guard warning: entries without tk-* IDs are scratchpad-only during active Determinus execution.",
     };
   }
 

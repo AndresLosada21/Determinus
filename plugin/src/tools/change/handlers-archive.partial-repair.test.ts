@@ -745,7 +745,9 @@ describe("determinus_change_archive partial archive-delta repair", () => {
     const canonicalBundlePath = join(root, "canonical", CHANGE_ID);
     try {
       execFileSync("git", ["init", "-q", "-b", "main"], { cwd: root });
-      execFileSync("git", ["config", "user.name", "ADV test"], { cwd: root });
+      execFileSync("git", ["config", "user.name", "Determinus test"], {
+        cwd: root,
+      });
       execFileSync("git", ["config", "user.email", "adv@example.test"], {
         cwd: root,
       });

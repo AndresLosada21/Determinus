@@ -47,7 +47,7 @@ describe("registerLoadedBuildSession", () => {
       migrationRoot: root,
       projectId: "0000100000000000000000000000000000000000",
       buildDigest: DIGEST,
-      pluginRoot: "/deploy/Advance/plugin",
+      pluginRoot: "/deploy/Determinus/plugin",
       pid: 4321,
       startTicks: "777",
       now: new Date("2026-07-16T01:00:00.000Z"),
@@ -70,7 +70,7 @@ describe("registerLoadedBuildSession", () => {
       migrationRoot: root,
       projectId: "0000100000000000000000000000000000000000",
       buildDigest: DIGEST,
-      pluginRoot: "/deploy/Advance/plugin",
+      pluginRoot: "/deploy/Determinus/plugin",
       pid: 1,
       now: new Date("2026-07-16T01:00:00.000Z"),
     });
@@ -78,7 +78,7 @@ describe("registerLoadedBuildSession", () => {
       migrationRoot: root,
       projectId: "0000200000000000000000000000000000000000",
       buildDigest: DIGEST,
-      pluginRoot: "/deploy/Advance/plugin",
+      pluginRoot: "/deploy/Determinus/plugin",
       pid: 1,
       now: new Date("2026-07-16T02:00:00.000Z"),
     });

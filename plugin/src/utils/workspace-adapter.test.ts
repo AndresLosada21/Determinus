@@ -38,7 +38,7 @@ describe("buildAdvWorktreeAdapter", () => {
     rmSync(worktreeRoot, { recursive: true, force: true });
   });
 
-  it("identifies the custom ADV worktree adapter", () => {
+  it("identifies the custom Determinus worktree adapter", () => {
     const adapter = buildAdvWorktreeAdapter();
 
     expect(adapter.name).toBe("determinus-worktree");
@@ -134,7 +134,7 @@ describe("buildAdvWorktreeAdapter", () => {
     );
   });
 
-  it("rejects target rows whose configured directory does not match ADV metadata", async () => {
+  it("rejects target rows whose configured directory does not match Determinus metadata", async () => {
     const adapter = buildAdvWorktreeAdapter();
 
     await expect(
@@ -150,7 +150,7 @@ describe("buildAdvWorktreeAdapter", () => {
     );
   });
 
-  it("rejects directories outside the ADV worktree namespace", async () => {
+  it("rejects directories outside the Determinus worktree namespace", async () => {
     const adapter = buildAdvWorktreeAdapter();
 
     await expect(
@@ -179,7 +179,7 @@ describe("buildAdvWorktreeAdapter", () => {
     );
   });
 
-  it("leaves git worktree create and remove ownership to ADV", async () => {
+  it("leaves git worktree create and remove ownership to Determinus", async () => {
     const adapter = buildAdvWorktreeAdapter();
 
     await expect(adapter.create(baseInfo(), {})).resolves.toBeUndefined();

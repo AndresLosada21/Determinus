@@ -1,7 +1,7 @@
 /**
  * Tool Output Formatters
  *
- * Pure functions that convert structured ADV tool data into pre-formatted
+ * Pure functions that convert structured Determinus tool data into pre-formatted
  * display strings. Agent passes these through verbatim instead of
  * reconstructing formatted output from raw data.
  *
@@ -239,7 +239,7 @@ export function truncate(str: string, maxLen: number): string {
   return str.slice(0, maxLen - 3) + "...";
 }
 
-// rq-todoProjection01: TodoWrite projection rows are generated from ADV task state.
+// rq-todoProjection01: TodoWrite projection rows are generated from Determinus task state.
 export function buildTodoProjection(input: {
   current?: { id: string; title: string; status: string } | null;
   ready: Array<{ id: string; title: string; status: string }>;
@@ -442,7 +442,7 @@ export function formatStatusOutput(input: StatusInput): FormattedStatus {
   // the health section. Current and unknown states intentionally emit no line.
   if (input.pluginRuntime?.plugin_bundle_freshness === "stale") {
     healthLines.push(
-      "[ADV:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale.",
+      "[Determinus:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale.",
     );
     healthLines.push(
       `  loaded generation: ${input.pluginRuntime.loaded_plugin_generation ?? "unknown"}`,
@@ -642,7 +642,7 @@ export function formatDoomLoopDiagnostics(
       : `${input.retry_count}/${input.max_retries} retries used`;
 
   const banner = inDoomLoop
-    ? `[ADV:BLOCKED] Doom loop detected (${attemptCount} attempt${
+    ? `[Determinus:BLOCKED] Doom loop detected (${attemptCount} attempt${
         attemptCount === 1 ? "" : "s"
       }, ${input.retry_count}/${input.max_retries} retry budget exhausted)`
     : "";

@@ -29,7 +29,7 @@ export interface ReflectionEntry {
   product_id?: string;
   /** Product repo id where this reflection originated. */
   origin_repo_id?: string;
-  /** Repo-local ADV project id where this reflection originated. */
+  /** Repo-local Determinus project id where this reflection originated. */
   origin_repo_project_id?: string;
   /** Repo root path where this reflection originated. */
   origin_repo_path?: string;

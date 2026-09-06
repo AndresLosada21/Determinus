@@ -166,7 +166,7 @@ export function generateChangeId(summary: string): string {
 }
 
 /**
- * Canonical ADV change identifier pattern.
+ * Canonical Determinus change identifier pattern.
  *
  * Change IDs are camelCase titles: leading lowercase letter, followed by
  * alphanumeric characters. This is a strict identity check, not a sanitization
@@ -174,11 +174,11 @@ export function generateChangeId(summary: string): string {
  */
 export const CHANGE_ID_PATTERN = /^[a-z][a-zA-Z0-9]+$/;
 
-/** Maximum length for a canonical ADV change identifier. */
+/** Maximum length for a canonical Determinus change identifier. */
 export const MAX_CHANGE_ID_LENGTH = 64;
 
 /**
- * Validate that a change ID is a safe, canonical ADV identifier.
+ * Validate that a change ID is a safe, canonical Determinus identifier.
  *
  * Rejects path traversal, separators, and non-identifier characters by only
  * accepting the canonical pattern. No normalization is performed.

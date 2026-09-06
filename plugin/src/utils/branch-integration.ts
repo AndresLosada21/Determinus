@@ -2,7 +2,7 @@
  * Branch Integration Gate (T29)
  *
  * 3-condition check before deleting an determinus-managed worktree branch:
- *   1. Terminal — corresponding ADV change has status: "archived" or "closed"
+ *   1. Terminal — corresponding Determinus change has status: "archived" or "closed"
  *   2. Merged   — branch appears in `git branch --merged <defaultBranch>`
  *   3. Clean    — worktree path has empty `git status --porcelain`
  *

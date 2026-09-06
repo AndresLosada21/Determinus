@@ -144,7 +144,7 @@ async function resolvePrimaryProjectId(input: {
       productProjectId: input.repoProjectId,
       degraded: true,
       warning:
-        "Product primary could not be resolved; isolated policy uses repo-local ADV state.",
+        "Product primary could not be resolved; isolated policy uses repo-local Determinus state.",
     };
   }
 
@@ -153,7 +153,7 @@ async function resolvePrimaryProjectId(input: {
   );
 }
 
-/** Resolve repo-local and product-level ADV identity for a checkout. */
+/** Resolve repo-local and product-level Determinus identity for a checkout. */
 export async function resolveProductContext(
   root: string,
 ): Promise<ProductContext> {

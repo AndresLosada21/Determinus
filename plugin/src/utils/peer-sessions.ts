@@ -2,7 +2,7 @@
  * Peer Session Detection (T17 — KD-14, replaces concurrent-sessions.ts)
  *
  * Detects other OpenCode processes that share the same project as the
- * current session. Uses git-common-dir + ADV project-id matching (NOT
+ * current session. Uses git-common-dir + Determinus project-id matching (NOT
  * CWD-equality) so peers in sibling worktrees, subdirectories, or
  * different checkout paths of the same project are reliably found.
  *
@@ -36,7 +36,7 @@ import { readProcessStartTicks } from "../migration/procfs";
  *
  * `matchVia` records WHY this process was classified as a peer:
  *   - `"common-dir"` — same `git rev-parse --git-common-dir` (worktree-aware)
- *   - `"project-id"` — same ADV project-id (root commit SHA) via different path
+ *   - `"project-id"` — same Determinus project-id (root commit SHA) via different path
  *
  * PID + full cwd are internal. Public consumers MUST project to the
  * privacy-defensive schema (session_id + started_at + workdir-basename).
@@ -132,7 +132,7 @@ export function __resetProcessScannerForTests(): void {
  * Matching rules (first match wins):
  *   1. Same `git rev-parse --git-common-dir` → `matchVia: "common-dir"`
  *      Catches sibling worktrees + subdirectory CWDs of the same checkout.
- *   2. Same ADV project-id (root commit SHA) → `matchVia: "project-id"`
+ *   2. Same Determinus project-id (root commit SHA) → `matchVia: "project-id"`
  *      Catches sessions in different checkout paths of the same repo.
  *
  * Excludes the current process (`process.pid`).

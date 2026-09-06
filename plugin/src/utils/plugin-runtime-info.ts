@@ -262,7 +262,7 @@ export async function getPluginRuntimeInfo(
     loaded_module_path: loadedModulePath,
     process_started_at: processStartedAt,
     reload_caveat:
-      "Restart OpenCode after rebuilding Advance; host-loaded plugin tool code is not hot-reloaded.",
+      "Restart OpenCode after rebuilding Determinus; host-loaded plugin tool code is not hot-reloaded.",
     dist_index_path: distIndexPath,
     dist_mtime_iso: distMtimeIso,
     source_index_path: sourceIndexPath,

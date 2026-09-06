@@ -74,13 +74,13 @@ const RECURSIVE_TOOL_NAMES: ReadonlySet<string> = new Set([
 export const advInvokeTools = {
   determinus_tool_invoke: {
     description:
-      "Invoke a canonical ADV tool by exact name with typed arguments. Dispatches through the same wrapped ToolDefinition.execute path used by direct calls, preserving ToolContext, validation, authorization, approvals, recovery restrictions, and timeouts.",
+      "Invoke a canonical Determinus tool by exact name with typed arguments. Dispatches through the same wrapped ToolDefinition.execute path used by direct calls, preserving ToolContext, validation, authorization, approvals, recovery restrictions, and timeouts.",
     args: {
       name: z
         .string()
         .min(1)
         .describe(
-          "Exact canonical ADV tool name to invoke (e.g. determinus_change_show)",
+          "Exact canonical Determinus tool name to invoke (e.g. determinus_change_show)",
         ),
       args: z
         .record(z.string(), z.unknown())
@@ -147,7 +147,7 @@ export const advInvokeTools = {
       // `determinus_tool_calls` for every facaded operation.
       recordFacadedAdvToolTarget(args.name);
 
-      // Normalise the dispatch result into a string. Every registered ADV
+      // Normalise the dispatch result into a string. Every registered Determinus
       // tool is wrapped through `safeExecute` which returns `Promise<string>`,
       // so `result` is a string in practice. The defensive `typeof` /
       // `JSON.stringify` fallback only matters if a future custom-registered

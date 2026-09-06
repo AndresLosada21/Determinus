@@ -46,7 +46,7 @@ function emptyManifest(): ToolSchemaManifest {
 }
 
 /**
- * Measure the same JSON Schema payload OpenCode receives for each ADV tool.
+ * Measure the same JSON Schema payload OpenCode receives for each Determinus tool.
  * Conversion failure is isolated to a tool so plugin initialization remains
  * fail-open and the health surface can expose the invalid definition.
  */

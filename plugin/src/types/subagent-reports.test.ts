@@ -804,10 +804,10 @@ describe("Subagent report schemas", () => {
       targets: [
         {
           kind: "ci_check",
-          repo: "Sharper-Flow/Advance",
+          repo: "Sharper-Flow/Determinus",
           check_name: "test",
           head_sha: "0123456789abcdef0123456789abcdef01234567",
-          run_url: "https://github.com/Sharper-Flow/Advance/actions/runs/1",
+          run_url: "https://github.com/Sharper-Flow/Determinus/actions/runs/1",
           conclusion: "failure",
         },
       ],

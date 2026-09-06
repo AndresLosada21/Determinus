@@ -45,7 +45,7 @@ function makeDeployment(root: string): {
   pluginRoot: string;
   digest: string;
 } {
-  const deployRoot = join(root, "Advance");
+  const deployRoot = join(root, "Determinus");
   const pluginRoot = join(deployRoot, "plugin");
   mkdirSync(join(pluginRoot, "dist"), { recursive: true });
   writeFileSync(join(pluginRoot, "dist", "index.js"), "export {};\n");
@@ -54,7 +54,7 @@ function makeDeployment(root: string): {
 }
 
 function makeProjectState(root: string, projectId: string): void {
-  mkdirSync(join(root, "opencode", "plugins", "advance", projectId), {
+  mkdirSync(join(root, "opencode", "plugins", "determinus", projectId), {
     recursive: true,
   });
 }

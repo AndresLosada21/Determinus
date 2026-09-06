@@ -28,7 +28,7 @@ describe("todowrite-guard", () => {
     expect(normalizeTodoWriteItems({})).toEqual([]);
   });
 
-  it("allows todos outside active ADV guard scope", () => {
+  it("allows todos outside active Determinus guard scope", () => {
     expect(
       evaluateTodoWriteGuard({
         scope: { active: false },
@@ -38,7 +38,7 @@ describe("todowrite-guard", () => {
     ).toEqual({ kind: "allow" });
   });
 
-  it("blocks unknown task IDs during active ADV execution", () => {
+  it("blocks unknown task IDs during active Determinus execution", () => {
     expect(
       evaluateTodoWriteGuard({
         scope: { active: true, activeChangeId: "change-a" },
@@ -58,7 +58,7 @@ describe("todowrite-guard", () => {
     ).toMatchObject({ kind: "block" });
   });
 
-  it("blocks completed todos until ADV task state is done", () => {
+  it("blocks completed todos until Determinus task state is done", () => {
     expect(
       evaluateTodoWriteGuard({
         scope: { active: true, activeChangeId: "change-a" },

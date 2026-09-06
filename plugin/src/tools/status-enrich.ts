@@ -439,8 +439,8 @@ export function appendResumeFreshnessRecommendation(
 
   // D8 wording guard: NEVER use "one-click" or imply button-click auto-execution.
   // Always: "one-command accept (copy-paste and run)" + explicit
-  // "ADV does not auto-execute close."
-  const message = `🔍 Possible duplicate: archived \`${archivedDupId}\` may have already shipped this scope. To close it as superseded (ADV does not auto-execute close), copy and run:\n\n  ${snippet}`;
+  // "Determinus does not auto-execute close."
+  const message = `🔍 Possible duplicate: archived \`${archivedDupId}\` may have already shipped this scope. To close it as superseded (Determinus does not auto-execute close), copy and run:\n\n  ${snippet}`;
 
   pushStatusRecommendation(recommendations, {
     kind: "next_gate",

@@ -56,7 +56,7 @@ export async function createTempGitWorktree(
         stdio: "ignore",
       },
     );
-    execFileSync("git", ["config", "user.name", "ADV Test"], {
+    execFileSync("git", ["config", "user.name", "Determinus Test"], {
       cwd: repoRoot,
       stdio: "ignore",
     });
@@ -163,7 +163,7 @@ export async function createTestProject(
 // =============================================================================
 
 export const SAMPLE_SPEC = {
-  $schema: "https://advance.dev/schemas/spec.v1.json",
+  $schema: "https://determinus.dev/schemas/spec.v1.json",
   name: "test-capability",
   title: "Test Capability",
   purpose: "A capability for testing purposes",
@@ -205,7 +205,7 @@ export const SAMPLE_SPEC = {
 };
 
 export const SAMPLE_CHANGE = {
-  $schema: "https://advance.dev/schemas/change.v1.json",
+  $schema: "https://determinus.dev/schemas/change.v1.json",
   id: "addFeature",
   title: "Add New Feature",
   status: "active",

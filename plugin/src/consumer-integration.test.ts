@@ -195,7 +195,7 @@ describe("AC14 — boundary preservation (no new mutation verbs)", () => {
   test("determinus-status.md remains a read-only command", () => {
     const content = readCmd("determinus-status.md");
     // determinus-status is explicitly read-only.
-    expect(content).toMatch(/Do not call ADV tools|read-only/i);
+    expect(content).toMatch(/Do not call Determinus tools|read-only/i);
   });
 
   test("determinus-triage.md remains order-advisory", () => {

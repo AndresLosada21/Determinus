@@ -1,7 +1,7 @@
 /**
  * Sub-agent Report Types
  *
- * Typed payloads submitted by ADV sub-agents through
+ * Typed payloads submitted by Determinus sub-agents through
  * `determinus_subagent_report_submit`. These schemas are intentionally strict at the
  * ingest boundary: unknown fields are rejected instead of silently becoming
  * LLM-parsed prose state.
@@ -20,7 +20,7 @@ export const SUBAGENT_REPORT_SCHEMA_VERSION = "1.0";
  * Single source of truth by necessity, not just tidiness. This value is also
  * the ceiling `ErrorRecoverySchema` enforces on read (`attempts.length` must
  * not exceed `max_retries`), so a writer using a different literal than the
- * reader produces state ADV refuses to load. It previously lived as a bare `3`
+ * reader produces state Determinus refuses to load. It previously lived as a bare `3`
  * at both write sites; during a 2026-08-04 incident an operator raised the
  * budget on the disk projection to unbrick a change and the workflow
  * immediately re-emitted its own hardcoded `3`, re-bricking it. Divergent

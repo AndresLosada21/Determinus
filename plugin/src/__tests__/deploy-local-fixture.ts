@@ -203,7 +203,7 @@ export function createDeployFixture(): DeployFixtureContext {
     tempHome,
     ".local",
     "share",
-    "Advance",
+    "Determinus",
     "plugin",
   );
   mkdirSync(configDir, { recursive: true });

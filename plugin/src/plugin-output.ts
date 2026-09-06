@@ -1,5 +1,5 @@
 /**
- * Helpers for ADV plugin hook bookkeeping.
+ * Helpers for Determinus plugin hook bookkeeping.
  *
  * Keep these helpers outside `src/index.ts`. OpenCode 1.14.x initializes plugin
  * modules by invoking every function export from the entrypoint. Exporting

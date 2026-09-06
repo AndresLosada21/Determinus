@@ -1,7 +1,7 @@
 /**
  * Git binary resolution + spawn helpers.
  *
- * Background: ADV worktree / archive / snapshot tools shell out to `git`
+ * Background: Determinus worktree / archive / snapshot tools shell out to `git`
  * from the plugin host process. When the host runtime (typically Bun
  * inside OpenCode) is launched from a desktop launcher, systemd unit, or
  * any non-shell context, `process.env.PATH` may be missing or minimal.

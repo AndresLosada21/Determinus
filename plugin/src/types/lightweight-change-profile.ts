@@ -1,7 +1,7 @@
 /**
  * Lightweight Change Profile Types
  *
- * Typed, fail-closed eligibility state for small, low-risk ADV changes.
+ * Typed, fail-closed eligibility state for small, low-risk Determinus changes.
  * The profile preserves the seven-gate lifecycle while allowing bounded
  * omission of optional advisory work only when all six structural criteria
  * are explicitly satisfied.

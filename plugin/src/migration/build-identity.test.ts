@@ -37,7 +37,7 @@ async function tempDir(prefix: string): Promise<string> {
 
 /** Create a minimal deployed-plugin-shaped tree: pluginRoot/dist/... */
 function makePluginTree(root: string, files: Record<string, string>): string {
-  const pluginRoot = join(root, "Advance", "plugin");
+  const pluginRoot = join(root, "Determinus", "plugin");
   for (const [rel, content] of Object.entries(files)) {
     const path = join(pluginRoot, "dist", rel);
     mkdirSync(join(path, ".."), { recursive: true });

@@ -1,5 +1,5 @@
 /**
- * Loop Ledger — typed read/projection model over existing ADV loop evidence.
+ * Loop Ledger — typed read/projection model over existing Determinus loop evidence.
  *
  * This module is intentionally pure and workflow-safe: it imports only `zod`
  * so it can be reached from storage, the tool layer, and tests

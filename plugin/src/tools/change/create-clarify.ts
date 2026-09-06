@@ -338,7 +338,7 @@ export function buildSyntheticValidationDraftError(
   return {
     error:
       `Synthetic validation draft summary "${summary}" is reserved for parity/validation flows. ` +
-      "Use isolated temp/test storage instead of live ADV state.",
+      "Use isolated temp/test storage instead of live Determinus state.",
   };
 }
 // Defensive bypass-resilience guard. Preflight in tool-arg-preflight.ts now

@@ -15669,7 +15669,7 @@ var init_epics = __esm({
     EpicScopeRepoSchema = external_exports.object({
       /** Product config repo ID. */
       repo_id: external_exports.string(),
-      /** ADV project ID for this repo. */
+      /** Determinus project ID for this repo. */
       repo_project_id: external_exports.string(),
       /** Optional target path for reachable local/cross-project mutation. */
       path: external_exports.string().optional(),
@@ -15681,7 +15681,7 @@ var init_epics = __esm({
     EpicScopeSchema = external_exports.object({
       /** Repo-local Epic or product/multi-project Epic. */
       kind: external_exports.enum(["repo", "product"]),
-      /** ADV project ID that owns the Epic workflow. */
+      /** Determinus project ID that owns the Epic workflow. */
       owner_project_id: external_exports.string(),
       /** Product config repo ID of the owner repo when known. */
       owner_repo_id: external_exports.string().optional(),
@@ -15734,9 +15734,9 @@ var init_epics = __esm({
       updated_at: external_exports.string()
     });
     EpicChangeRefSchema = external_exports.object({
-      /** ADV change ID. */
+      /** Determinus change ID. */
       change_id: external_exports.string(),
-      /** ADV project ID where the child change lives. */
+      /** Determinus project ID where the child change lives. */
       project_id: external_exports.string(),
       /** Product config repo ID when known. */
       repo_id: external_exports.string().optional(),
@@ -15757,9 +15757,9 @@ var init_epics = __esm({
       entry_id: external_exports.string(),
       /** Advisory display order within the Epic roadmap. */
       order: external_exports.number().int().min(0),
-      /** Legacy same-project ADV change ID. */
+      /** Legacy same-project Determinus change ID. */
       change_id: external_exports.string().optional(),
-      /** Project-aware ADV change reference for retrofit/product membership. */
+      /** Project-aware Determinus change reference for retrofit/product membership. */
       change_ref: EpicChangeRefSchema.optional(),
       /** Display title for the linked child entry. */
       title: external_exports.string().optional(),
@@ -15846,7 +15846,7 @@ var init_epics = __esm({
       EpicShellEntrySchema
     ]);
     EpicSchema = external_exports.object({
-      /** Epic ID — same naming convention as ADV changes (camelCase title). */
+      /** Epic ID — same naming convention as Determinus changes (camelCase title). */
       id: external_exports.string(),
       /** Human-readable Epic title. */
       title: external_exports.string(),
@@ -15878,7 +15878,7 @@ var init_epics = __esm({
       title: external_exports.string(),
       /** ISO8601 timestamp when this change was linked to the Epic. */
       linked_at: external_exports.string(),
-      /** ADV project ID that owns the Epic workflow. */
+      /** Determinus project ID that owns the Epic workflow. */
       epic_project_id: external_exports.string().optional(),
       /** Product config repo ID for the child change when known. */
       repo_id: external_exports.string().optional(),
@@ -16176,7 +16176,7 @@ var init_wisdom = __esm({
       product_id: external_exports.string().optional(),
       /** Product repo id where this entry originated. */
       origin_repo_id: external_exports.string().optional(),
-      /** Repo-local ADV project id where this entry originated. */
+      /** Repo-local Determinus project id where this entry originated. */
       origin_repo_project_id: external_exports.string().optional(),
       /** Repo root path where this entry originated. */
       origin_repo_path: external_exports.string().optional()
@@ -17647,7 +17647,7 @@ var init_tasks = __esm({
       structured_output: TaskStructuredOutputSchema.optional(),
       /**
        * Typed, durable sub-agent reports submitted through
-       * determinus_subagent_report_submit. These replace ADV worker fenced-JSON report
+       * determinus_subagent_report_submit. These replace Determinus worker fenced-JSON report
        * extraction while preserving structured_output for legacy callers.
        * Task records intentionally keep the task-scoped report schema; independent
        * review/research/scanner sidecars persist on change.subagent_reports[].
@@ -18426,7 +18426,7 @@ var init_changes = __esm({
     CrossProjectLinkSchema = external_exports.object({
       /** Absolute path to the linked project repository root */
       target_path: external_exports.string().min(1),
-      /** Stable ADV project ID for the linked repository, when known */
+      /** Stable Determinus project ID for the linked repository, when known */
       target_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Change ID in the linked project */
       changeId: external_exports.string().min(1),
@@ -18443,7 +18443,7 @@ var init_changes = __esm({
     ExternalDependencySchema = external_exports.object({
       /** Absolute path to the dependency project repository root */
       target_path: external_exports.string().min(1),
-      /** Stable ADV project ID for the dependency repository, when known */
+      /** Stable Determinus project ID for the dependency repository, when known */
       target_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Change ID in the dependency project */
       changeId: external_exports.string().min(1),
@@ -18510,7 +18510,7 @@ var init_changes = __esm({
     OpsFollowupSourceSchema = external_exports.object({
       /** The change that originated this follow-up. */
       source_change_id: external_exports.string().min(1),
-      /** Stable ADV project ID of the originating project, when known. */
+      /** Stable Determinus project ID of the originating project, when known. */
       source_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Absolute path to the originating project repository, when known. */
       source_path: external_exports.string().min(1).optional(),
@@ -19273,7 +19273,7 @@ var init_project = __esm({
       trusted: external_exports.boolean().default(false),
       /** GitHub repo in owner/name format for GH CLI operations (e.g., "org/backend-api") */
       gh_repo: external_exports.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/).optional(),
-      /** Stable ADV repo project ID, when known, for product-linked resolution. */
+      /** Stable Determinus repo project ID, when known, for product-linked resolution. */
       repo_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Role this related repo plays in a product-linked topology. */
       product_role: external_exports.enum(["primary", "secondary"]).optional()
@@ -19330,7 +19330,7 @@ var init_project = __esm({
       /**
        * Whether machine worktree isolation is enforced.
        * Default: true (post-rollout, rq-autoManageAdvWorktrees AC2).
-       * When omitted or true, ADV main-checkout task/gate execution mutations
+       * When omitted or true, Determinus main-checkout task/gate execution mutations
        * and the trunk write firewall are enforced. Explicit `false` preserves
        * legacy permissive behavior for projects that want to keep editing in
        * the main checkout.
@@ -19410,7 +19410,7 @@ var init_project = __esm({
       auto_push: external_exports.boolean().default(true),
       /** Archive finalization sub-configuration (e.g., PR title policy). */
       archive: ArchiveConfigSchema.default(() => ArchiveConfigSchema.parse({})),
-      /** Per-project feature flag overrides. All flags default to current ADV behavior. */
+      /** Per-project feature flag overrides. All flags default to current Determinus behavior. */
       features: FeatureFlagsSchema.default(() => FeatureFlagsSchema.parse({}))
     }).passthrough();
     ProjectMetadataEntrySchema = external_exports.object({
@@ -20887,7 +20887,7 @@ async function saveProjectConfig(root, config2) {
 async function saveChange(changesDir, change) {
   if (isSyntheticValidationDraftPattern(change.id)) {
     throw new Error(
-      `Refusing to write change with synthetic-validation-draft ID "${change.id}": matches reserved pattern (changeRoundtrip*, gateParity*, parityLegacy*, latencyLegacy*, etc). These IDs are reserved for ADV's own validation/parity/latency/roundtrip workflows which must use isolated temp storage, not live ADV state. Spec: rq-synthstate01.`
+      `Refusing to write change with synthetic-validation-draft ID "${change.id}": matches reserved pattern (changeRoundtrip*, gateParity*, parityLegacy*, latencyLegacy*, etc). These IDs are reserved for Determinus's own validation/parity/latency/roundtrip workflows which must use isolated temp storage, not live Determinus state. Spec: rq-synthstate01.`
     );
   }
   const changeDir = join5(changesDir, change.id);
@@ -24809,10 +24809,10 @@ async function getProjectId(directory) {
 function unstableIdentityGuidance(repoPath, reason) {
   const cause = reason === "shallow" ? "is a shallow clone (its root commit is a moving shallow-fetch boundary)" : "has commit grafts (its root commit is rewritten parentage)";
   const fix = reason === "shallow" ? `Run \`git fetch --unshallow\` in ${repoPath} and retry.` : `Remove \`.git/info/grafts\` (or migrate to \`git replace\` and un-graft) in ${repoPath}, then run \`git fetch --unshallow\` if the repo is also shallow, and retry.`;
-  return `ADV cannot derive a stable project identity for ${repoPath}: the repository ${cause}. ${fix} No ADV state was created under the unstable identity.`;
+  return `Determinus cannot derive a stable project identity for ${repoPath}: the repository ${cause}. ${fix} No Determinus state was created under the unstable identity.`;
 }
 function invalidIdentityGuidance(repoPath, projectId) {
-  return `ADV cannot derive a valid project identity for ${repoPath}: git returned the invalid candidate "${projectId}". Project identities must be exactly 40 lowercase hexadecimal characters. No ADV state was created under the invalid identity.`;
+  return `Determinus cannot derive a valid project identity for ${repoPath}: git returned the invalid candidate "${projectId}". Project identities must be exactly 40 lowercase hexadecimal characters. No Determinus state was created under the invalid identity.`;
 }
 async function resolveProjectIdentity(directory) {
   let gitDir;
@@ -25100,7 +25100,7 @@ function resolveMigrationRoot(input) {
     input?.homeDir ?? homedir2(),
     ".local",
     "share",
-    "Advance",
+    "Determinus",
     "migration"
   );
 }
@@ -33641,7 +33641,7 @@ var init_tool_title = __esm({
     STATIC_TITLES = {
       determinus_change_list: { title: "List changes", titleKind: "read" },
       determinus_wip_state: { title: "Show WIP state", titleKind: "read" },
-      determinus_status: { title: "Show ADV status", titleKind: "read" },
+      determinus_status: { title: "Show Determinus status", titleKind: "read" },
       determinus_project_context: {
         title: "Show project context",
         titleKind: "read"
@@ -33652,10 +33652,16 @@ var init_tool_title = __esm({
         title: "Clean up worktrees",
         titleKind: "operator"
       },
-      determinus_tool_catalog: { title: "Catalog ADV tools", titleKind: "read" },
-      determinus_tool_describe: { title: "Describe ADV tool", titleKind: "read" },
+      determinus_tool_catalog: {
+        title: "Catalog Determinus tools",
+        titleKind: "read"
+      },
+      determinus_tool_describe: {
+        title: "Describe Determinus tool",
+        titleKind: "read"
+      },
       determinus_tool_invoke: {
-        title: "Invoke ADV tool",
+        title: "Invoke Determinus tool",
         titleKind: "execute"
       }
     };
@@ -39313,7 +39319,7 @@ var init_git_worktree_flock = __esm({
     init_process_liveness();
     init_git_binary();
     GIT_WORKTREE_LOCK_FILENAME = "git-worktree.lock";
-    GIT_WORKTREE_LEASE_DIRECTORY = "advance";
+    GIT_WORKTREE_LEASE_DIRECTORY = "determinus";
     LEGACY_GIT_WORKTREE_FLOCK_CONFLICT_EXIT_CODE = 74;
     LEGACY_LOCK_MAX_BYTES = 4096;
     LEGACY_REMOVE_SCRIPT = 'test ! -L "$1" && test -f "$1" && mv -- "$1" "$2" && rm -f -- "$2"';
@@ -41453,7 +41459,7 @@ async function advWorktreeCreate(branch, opts = {}, deps) {
       error: "BRANCH_IN_USE",
       branch,
       ownerChangeIds,
-      hint: "Branch is already registered by an active ADV change workflow"
+      hint: "Branch is already registered by an active Determinus change workflow"
     };
   }
   const existingWorktree = await findGitWorktreeByBranch(repoRoot, branch);
@@ -42581,7 +42587,7 @@ async function loadWorktreeConfig(directory, log3) {
   // Documentation: https://github.com/kdcokenny/ocx
 
   // Worktree session mode:
-  // - "warp" (default): register the ADV worktree as an OpenCode workspace
+  // - "warp" (default): register the Determinus worktree as an OpenCode workspace
   //   and warp this session into it. Requires OPENCODE_EXPERIMENTAL_WORKSPACES=true.
   // - "terminal": stay in this session and use workdir= per tool (legacy inline behavior).
   // - "spawn": open a new terminal with a forked OpenCode session (legacy non-inline behavior).
@@ -43430,7 +43436,7 @@ var init_target_project = __esm({
     };
     targetPathSchema = external_exports.object({
       target_path: external_exports.string().optional().describe(
-        "Optional absolute path to another ADV project. When provided, routes the operation through that project's target store."
+        "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target store."
       ),
       target_confirmed: external_exports.literal(true).optional().describe(
         "Required for untrusted target_path mutation. Confirms the target project was explicitly approved."
@@ -43441,7 +43447,7 @@ var init_target_project = __esm({
     });
     epicOwnerTargetPathSchema = {
       epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-        "Optional absolute path to the Epic owner ADV project. When provided, resolves the Epic in that project instead of the current one."
+        "Optional absolute path to the Epic owner Determinus project. When provided, resolves the Epic in that project instead of the current one."
       ),
       epic_owner_target_confirmed: targetPathSchema.shape.target_confirmed.describe(
         "Required for untrusted epic_owner_target_path mutation. Confirms the Epic owner project was explicitly approved."
@@ -46324,7 +46330,7 @@ function isSyntheticValidationDraftSummary(summary) {
 }
 function buildSyntheticValidationDraftError(summary) {
   return {
-    error: `Synthetic validation draft summary "${summary}" is reserved for parity/validation flows. Use isolated temp/test storage instead of live ADV state.`
+    error: `Synthetic validation draft summary "${summary}" is reserved for parity/validation flows. Use isolated temp/test storage instead of live Determinus state.`
   };
 }
 function collectBlankCreateArtifactOrLinkageFields(input) {
@@ -48043,7 +48049,7 @@ function createArchivePullRequest(input, deps = {}) {
     "--title",
     title,
     "--body",
-    `ADV Phase 9 archive finalization for ${input.branch}.`
+    `Determinus Phase 9 archive finalization for ${input.branch}.`
   ]);
   if (result3.status !== 0) {
     return {
@@ -49162,7 +49168,7 @@ async function finalizeRelease(ctx, deps = {}) {
       pushStatus: "not_attempted",
       blocked: {
         reason: "WORKTREE_PROJECT_MISMATCH",
-        remediation: `Worktree ${ctx.workdir} belongs to ${repoRoot}, expected ${ctx.expectedRepoRoot}. rq-releaseFinalization01 requires finalization inside this ADV project.`
+        remediation: `Worktree ${ctx.workdir} belongs to ${repoRoot}, expected ${ctx.expectedRepoRoot}. rq-releaseFinalization01 requires finalization inside this Determinus project.`
       }
     };
   }
@@ -49480,7 +49486,7 @@ async function finalizeRelease(ctx, deps = {}) {
               prBranch: sourceBranch,
               blocked: {
                 reason: route.reason ?? "PR_MANUAL_REQUIRED",
-                remediation: `Default branch push failed and ADV could not arm auto-merge. Manually open or merge PR for ${sourceBranch}, then rerun archive finalization (rq-releaseFinalization01).`,
+                remediation: `Default branch push failed and Determinus could not arm auto-merge. Manually open or merge PR for ${sourceBranch}, then rerun archive finalization (rq-releaseFinalization01).`,
                 details: [push.reason, ...route.details ?? []]
               }
             };
@@ -51986,7 +51992,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("b799232cd9e501bb42279a676dc9de09c7c0c802419ac7585c372ea8d5c0a94b") ? "b799232cd9e501bb42279a676dc9de09c7c0c802419ac7585c372ea8d5c0a94b" : null;
+  return /^[0-9a-f]{64}$/.test("eebc420c4af9108fbec21e6bb2437e390cf3090398943fb4ec80ea3abbd5b3f1") ? "eebc420c4af9108fbec21e6bb2437e390cf3090398943fb4ec80ea3abbd5b3f1" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -55531,7 +55537,9 @@ var init_epic = __esm({
     init_target_project();
     init_epic_convergence();
     init_project_id();
-    EPIC_ID_SCHEMA = external_exports.string().min(1).describe("Epic ID using ADV change naming convention (camelCase title).");
+    EPIC_ID_SCHEMA = external_exports.string().min(1).describe(
+      "Epic ID using Determinus change naming convention (camelCase title)."
+    );
     COMPACT_HISTORY_LIMIT = 5;
     COMPACT_NEXT_WORK_LIMIT = 3;
     EPIC_RETIRE_STORE_ERROR_CODES = /* @__PURE__ */ new Set([
@@ -55541,7 +55549,7 @@ var init_epic = __esm({
     ]);
     epicTools = {
       determinus_epic_create: {
-        description: "Create a new Advance Epic. Epics are durable initiative containers that group ADV changes and lightweight shell entries. Epic order is advisory.",
+        description: "Create a new Determinus Epic. Epics are durable initiative containers that group Determinus changes and lightweight shell entries. Epic order is advisory.",
         args: {
           epic_id: EPIC_ID_SCHEMA,
           title: external_exports.string().min(1).describe("Human-readable Epic title."),
@@ -55983,7 +55991,7 @@ var init_epic = __esm({
         }
       },
       determinus_epic_promote_shell: {
-        description: "Promote an Epic shell entry into a linked ADV change. Replaces the shell row in-place with a change row carrying promotion provenance. Idempotent by shell entry + change ID.",
+        description: "Promote an Epic shell entry into a linked Determinus change. Replaces the shell row in-place with a change row carrying promotion provenance. Idempotent by shell entry + change ID.",
         args: {
           epic_id: EPIC_ID_SCHEMA,
           entry_id: external_exports.string().min(1).describe("Shell entry ID to promote."),
@@ -56127,10 +56135,10 @@ ${shell.success_hint}
         }
       },
       determinus_epic_link_change: {
-        description: "Link an existing ADV change from the current project or a target_path project as a new Epic entry and project compact epic_membership onto the child change.",
+        description: "Link an existing Determinus change from the current project or a target_path project as a new Epic entry and project compact epic_membership onto the child change.",
         args: {
           epic_id: EPIC_ID_SCHEMA,
-          change_id: external_exports.string().min(1).describe("Existing ADV change ID to link."),
+          change_id: external_exports.string().min(1).describe("Existing Determinus change ID to link."),
           title: external_exports.string().min(1).optional().describe("Display title for the entry. Defaults to the change title."),
           entry_id: external_exports.string().min(1).optional(),
           order: external_exports.number().int().min(0).optional(),
@@ -56143,7 +56151,7 @@ ${shell.success_hint}
           target_confirmed: targetPathSchema.shape.target_confirmed,
           confirmationEvidence: targetPathSchema.shape.confirmationEvidence,
           epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-            "Optional absolute path to the Epic owner ADV project. When provided, resolves the Epic in that project instead of the current one."
+            "Optional absolute path to the Epic owner Determinus project. When provided, resolves the Epic in that project instead of the current one."
           ),
           epic_owner_target_confirmed: targetPathSchema.shape.target_confirmed.describe(
             "Required for untrusted epic_owner_target_path mutation. Confirms the Epic owner project was explicitly approved."
@@ -56511,7 +56519,7 @@ ${shell.success_hint}
           target_confirmed: targetPathSchema.shape.target_confirmed,
           confirmationEvidence: targetPathSchema.shape.confirmationEvidence,
           epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-            "Optional absolute path to the Epic owner ADV project. When provided, resolves the Epic in that project instead of the current one."
+            "Optional absolute path to the Epic owner Determinus project. When provided, resolves the Epic in that project instead of the current one."
           ),
           epic_owner_target_confirmed: targetPathSchema.shape.target_confirmed.describe(
             "Required for untrusted epic_owner_target_path mutation. Confirms the Epic owner project was explicitly approved."
@@ -56637,7 +56645,7 @@ ${shell.success_hint}
           target_confirmed: targetPathSchema.shape.target_confirmed,
           confirmationEvidence: targetPathSchema.shape.confirmationEvidence,
           epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-            "Optional absolute path to the Epic owner ADV project. When provided, resolves both source and destination Epics in that project instead of the current one."
+            "Optional absolute path to the Epic owner Determinus project. When provided, resolves both source and destination Epics in that project instead of the current one."
           ),
           epic_owner_target_confirmed: targetPathSchema.shape.target_confirmed.describe(
             "Required for untrusted epic_owner_target_path mutation. Confirms the Epic owner project was explicitly approved."
@@ -57629,7 +57637,7 @@ var init_handlers_lifecycle = __esm({
             "Required with target_confirmed for untrusted target_path mutation. Cite user approval evidence."
           ),
           epic_owner_target_path: external_exports.string().optional().describe(
-            "Optional absolute path to the Epic owner ADV project. When provided with epic_id/entry_id/epic_title, seeds Epic membership in a remote-owner Epic instead of the current project."
+            "Optional absolute path to the Epic owner Determinus project. When provided with epic_id/entry_id/epic_title, seeds Epic membership in a remote-owner Epic instead of the current project."
           ),
           epic_owner_target_confirmed: external_exports.literal(true).optional().describe(
             "Required for untrusted epic_owner_target_path mutation. Confirms the Epic owner project was explicitly approved."
@@ -57691,7 +57699,7 @@ var init_handlers_lifecycle = __esm({
             "New executive-summary.md content (overwrites existing). Omit to leave unchanged. At least one of `proposal`, `problemStatement`, `agreement`, `design`, or `executiveSummary` MUST be provided."
           ),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, mutates that project's disk-backed store."
+            "Optional absolute path to another Determinus project. When provided, mutates that project's disk-backed store."
           ),
           target_confirmed: external_exports.literal(true).optional().describe(
             "Required for untrusted target_path mutation. Confirms the target project was explicitly approved."
@@ -58940,7 +58948,7 @@ var init_manifest = __esm({
       // ---- Core Workflow ----
       "determinus-status": {
         name: "determinus-status",
-        description: "Show fast ADV status table",
+        description: "Show fast Determinus status table",
         phase: "core",
         requiresChangeId: false,
         prerequisites: [],
@@ -59533,7 +59541,7 @@ function checkWorktreeIsolation(cwd, deps = {}) {
     decision: "BLOCK",
     errorClass: "WorktreeIsolationViolation",
     mainCheckoutPath: ctx.mainCheckoutPath,
-    reason: `Worktree isolation: ADV mutating operations require a worktree, not the main checkout (${ctx.mainCheckoutPath ?? cwd}).`,
+    reason: `Worktree isolation: Determinus mutating operations require a worktree, not the main checkout (${ctx.mainCheckoutPath ?? cwd}).`,
     remediation: WORKTREE_ISOLATION_REMEDIATION
   };
 }
@@ -59542,7 +59550,7 @@ var init_worktree_isolation_guard = __esm({
   "src/tools/worktree-isolation-guard.ts"() {
     "use strict";
     init_git_session();
-    WORKTREE_ISOLATION_REMEDIATION = "Resume or create the ADV worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.";
+    WORKTREE_ISOLATION_REMEDIATION = "Resume or create the Determinus worktree with determinus_worktree_resume / determinus_worktree_create, switch the session or tool workdir to the returned path, then retry from inside that worktree.";
   }
 });
 
@@ -59701,7 +59709,7 @@ function mapResumeFailure(result3, mainCheckoutPath) {
         mainCheckoutPath,
         errorClass: "WorktreeBranchCollision",
         code: "BRANCH_IN_USE_BY_OTHER_CHANGE",
-        reason: `Branch ${result3.branch} is already owned by other ADV change workflow(s): ${result3.ownerChangeIds.join(", ")}. ${result3.hint}`
+        reason: `Branch ${result3.branch} is already owned by other Determinus change workflow(s): ${result3.ownerChangeIds.join(", ")}. ${result3.hint}`
       });
     case "BRANCH_LOCKED":
       return autoCreateFailure({
@@ -61291,7 +61299,7 @@ var init_gate = __esm({
             "Change ID \u2014 must match an existing change from `determinus_change_list`. Returns the full gate map (proposal, discovery, design, planning, execution, acceptance, release) plus `nextGate` and `canArchive` flags."
           ),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext."
           )
         },
         execute: async ({ changeId, target_path }, store) => {
@@ -61427,7 +61435,7 @@ var init_gate = __esm({
             "Required for acceptance gate recovery only (human checkpoint, AC6). Not required for release gate recovery. Must cite the prior user acceptance approval evidence."
           ),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, mutates that project's disk-backed store."
+            "Optional absolute path to another Determinus project. When provided, mutates that project's disk-backed store."
           ),
           target_confirmed: external_exports.literal(true).optional(),
           confirmationEvidence: external_exports.string().optional(),
@@ -61853,7 +61861,7 @@ ${input.archivedCount} total`;
   }
   if (input.pluginRuntime?.plugin_bundle_freshness === "stale") {
     healthLines.push(
-      "[ADV:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale."
+      "[Determinus:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale."
     );
     healthLines.push(
       `  loaded generation: ${input.pluginRuntime.loaded_plugin_generation ?? "unknown"}`
@@ -61994,7 +62002,7 @@ function formatDoomLoopDiagnostics(input) {
   const attemptCount = observedAttemptCount(input);
   const elidedCount = attemptCount - retainedAttempts.length;
   const attemptSummary = retainedAttempts.length > 0 ? `${attemptCount} attempts${elidedCount > 0 ? ` (most recent ${retainedAttempts.length} retained)` : ""}: ${retainedAttempts.map((a) => a.strategy_label || a.error).join(" \u2192 ")}` : `${input.retry_count}/${input.max_retries} retries used`;
-  const banner = inDoomLoop ? `[ADV:BLOCKED] Doom loop detected (${attemptCount} attempt${attemptCount === 1 ? "" : "s"}, ${input.retry_count}/${input.max_retries} retry budget exhausted)` : "";
+  const banner = inDoomLoop ? `[Determinus:BLOCKED] Doom loop detected (${attemptCount} attempt${attemptCount === 1 ? "" : "s"}, ${input.retry_count}/${input.max_retries} retry budget exhausted)` : "";
   const suggestedAction = inDoomLoop ? "Escalate to user \u2014 retry budget exhausted" : input.retry_count > 0 ? `Retry ${input.retry_count}/${input.max_retries} \u2014 ${input.max_retries - input.retry_count} remaining` : "";
   const budgetWarning = input.budget_warning;
   return { inDoomLoop, attemptSummary, banner, suggestedAction, budgetWarning };
@@ -62053,7 +62061,7 @@ var init_phase_directive_content = __esm({
     "use strict";
     init_command_payload_hash();
     init_phase_plan();
-    determinus_REVIEW_DIRECTIVE_CONTENT = '# ADV Review \u2014 Acceptance-Stage Deliverable Review\nOrchestrate multi-dimensional review of the delivered work. Command is part of the acceptance stage, emits `REVIEW_FINDINGS`, and now carries the post-execution acceptance/sign-off flow directly.\n## Exits\n| Exit | Condition |\n|------|-----------|\n| \u2705 APPROVED | No blockers/issues; findings emitted and ready for acceptance |\n| \u{1F501} CHANGES_REQUESTED | Issues found \u2192 agent fixes \u2192 re-verifies |\n| \u{1F3A4} BLOCKED | Blockers found \u2192 user decides |\n\n> **SUB-AGENT CONTEXT**: Return findings as JSON. Skip status markers.\n## Phase 0: Embedded Methodology\n\n### Review Methodology\n\n#### Purpose\n\nReusable code review methodology for ADV review workflows. Provides the 12-dimension framework, conventional comment labels, evidence-backed clean verdict rules, and review-owned validation responsibilities.\n\n**Runtime source:** this embedded section provides the review methodology needed during command execution.\n\n#### Review Ownership\n\nReview owns delivered-work validation: contract traceability, correctness, security, tests/TDD evidence, and scope conformance. Harden owns release/deploy/production/docs/cleanup readiness. **Critical blocker backstop:** review may still flag security, data-loss, contract, or release-safety blockers discovered during acceptance review.\n\n#### 12-Dimension Framework\n\nEvery review must assess each dimension:\n\n| # | Dimension | Focus |\n|---|-----------|-------|\n| 1 | Design | Architecture, system integration, timing |\n| 2 | Functionality | Correctness, edge cases, concurrency |\n| 3 | Complexity | Understandable quickly? Over-engineered? |\n| 4 | Tests | Coverage adequate? Tests fail when code breaks? |\n| 5 | Naming | Clear, communicative, appropriate length |\n| 6 | Comments | Explain "why" not "what" |\n| 7 | Style | Style guide conformance |\n| 8 | Documentation | READMEs, API docs updated |\n| 9 | Security | Auth, validation, secrets, OWASP top 10 |\n| 10 | Performance | Degradation risks, optimization |\n| 11 | Error Handling | Correct, user-friendly, debuggable |\n| 12 | Consistency | Matches existing patterns |\n\nAll 12 must be checked. Skipping requires explicit justification.\n\n#### Conventional Comment Labels\n\n| Label | Meaning | Blocking? |\n|-------|---------|-----------|\n| `blocker:` | Must fix before merge | YES |\n| `issue:` | Should fix, real problem | YES |\n| `suggestion:` | Would improve code | NO |\n| `nit:` | Minor style/preference | NO |\n| `question:` | Need clarification | MAYBE |\n| `praise:` | Good work worth noting | NO |\n\nFormat: `{label}: [{file}:{line}] {what}` + `Why: {why}` + `Fix: {how}` (optional).\n\n#### Constraints\n\n- **Read-only guidance** \u2014 this methodology block does not mutate ADV state\n- **No gate completion** \u2014 command owns the review gate\n- **Runtime source** \u2014 use this embedded methodology during command execution\n- **No workflow sequencing** \u2014 command owns phase ordering and sub-agent orchestration\n\n## Phase 1: Pre-flight\n### Load Context\n`determinus_change_show changeId: <target> include: { snapshot: true }` \u2014 returns change + rendered gate snapshot in one call. Verify tasks are done \u2014 if no implementation, stop: "Run `/determinus-apply` first."\n### Gate Check\nRead gate state from the included snapshot or inspect `gates` field on the response. If execution gate NOT complete \u2192 emit REVIEW BLOCKED banner \u2192 stop. Fall back to `determinus_gate_status` only if a structured per-gate breakdown is needed.\n### Cancellation & Cross-Repo Audit\n**Step 1:** Check cancelled tasks for `cancellation.approved_by_user === true`. If any lack approval \u2192 REVIEW BLOCKED \u2192 stop.\n\n**Step 2:** Check cross-repo tasks (`target_repo`/`target_path`) are `done`. If incomplete \u2192 REVIEW BLOCKED \u2192 stop.\n\n**Step 3:** For cross-project coordination, inspect `_externalDependencyStatus` from `determinus_change_show`. Unmet advisory dependencies are warnings, not blockers by themselves; block only if the agreement explicitly made a dependency mandatory or the implementation violates accepted scope.\n\n**Step 4:** Verify target-project contribution workflow used ADV tools with `target_path`: target reads via `snapshot-ok`, target mutations via `authoritative`, and untrusted mutations include `target_confirmed` plus `confirmationEvidence`.\n### Extract Context\nFrom change data: affected files, spec scenarios, task completion evidence, `change.contract` if present, and `epic_membership` if present (load compact Epic context with `determinus_epic_show epic_id: {epic_id}` and include it in sub-agent prompts).\n### Worktree Context\n`pwd` \u2192 record as `{workdir}`. Include `WORKING DIRECTORY: {workdir}` in every sub-agent prompt. Critical in worktrees \u2014 sub-agents inherit default project root, not worktree path.\n\n### Lightweight Change Profile (acceptance boundary)\n\nThe lightweight profile is re-evaluated automatically before acceptance selection. If the profile result is `qualified`, the bounded omission policy in the workflow directive (`_directive.lightweightProfile`) applies:\n\n- `omitDeepScans` \u2014 skip optional deep codebase scans\n- `omitGenericExternalResearch` \u2014 skip generic external research\n- `omitOpportunityScouting` \u2014 skip opportunity scouting\n- `omitDefaultSpecialistDelegation` \u2014 skip default specialist delegation\n\nThis policy never overrides explicit `delegation_hint`, risk-forced inline routing, spec/conflict checks, the 12-dimension review, human acceptance, worktree isolation, or release checks. If the profile is `ineligible` or `downgraded`, run the standard review workflow with no omissions.\n\n### Structured Criterion Reading Guidance\n\n`change.contract.items` may carry an optional `variant` annotation. Reviewers must treat the canonical `id`, `text`, `kind`, and `evidencePolicy` as the contract authority; the variant is a presentation aid only.\n\n| Variant | What to verify |\n|---|---|\n| **behavioral** | `context`, `trigger`, and `outcome` match the canonical text; the variant does not add, remove, or soften any obligation. |\n| **evidence** | `subject` and `method`/`source` align with the canonical text and the item\'s evidence policy. |\n| **spec_law** | The referenced `spec` exists and the implementation covers the stated `requirement`; the variant does not replace a task contract ref or review-matrix row. |\n| **constraint** | `obligation` and optional `scope` are respected by implementation and tests. |\n\nDo not treat parse-safe syntax as proof that the criterion is met. Review-matrix coverage, evidence, and task `contract_refs` remain the acceptance authority.\n\n---\n## 12-Dimension Review Framework\nApply the 12-dimension matrix defined once in the embedded methodology above (Phase 0 \u2192 Review Methodology \u2192 12-Dimension Framework). Every review must assess all 12 dimensions \u2014 including Security\'s OWASP top 10 scope; skipping any dimension requires explicit justification. The scanner fan-out, dimension contracts, and inline fallbacks below execute this framework; they do not replace it.\n---\n## Sub-Agent Resilience\nEmpty/failed result = transient failure (empty string, missing `"dimension"` key, error-only).\n\nProtocol: retry once \u2192 if still fails \u2192 inline analysis for that dimension \u2192 never skip.\n| Dimension | Inline Fallback |\n|-----------|----------------|\n| Requirement Traceability | Search files for scenario keywords |\n| Logic & Edge Cases | Read functions, check null/off-by-one/unreachable |\n| Security | Scan for hardcoded secrets, unvalidated input, injection |\n| Architecture & Quality | Check function length >50, duplicated blocks, naming |\n| Cross-Repo | Check target_repo tasks status === "done" |\n\n---\n## Phase 2: Spawn Analysis Sub-Agents\n\nFor every spawned packet, generate the lane-specific briefing packet via `determinus_change_show include: { briefingPacket: true, briefingPacketLane: "<lane>" }` and inject `_briefingPacket` into the packet. Do not reconstruct `affected_files`, `contract`, `epic_context`, or `scope` manually.\n\n#### Review Scanner Context Packet\n\nInject into every `explore` scanner spawn prompt:\n\n```\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nATTEMPT: {attempt-number, starting at 1 for this spawned worker}\nBRIEFING PACKET: inject the generated `_briefingPacket` (lane: scanner) here \u2014 includes identity_anchors, scope, contract, affected_files, EPIC CONTEXT (`epic_context`), durable_facts, unavailable_state\nTASK EVIDENCE SUMMARY:\n  - {task-id}: {title} | {status} | type: {type} | evidence_policy: {evidence_policy} | tdd: {phase}\n  - ...\nEXPECTED OUTPUT: {dimension-specific JSON schema}\n```\n\nThis scanner-only packet gives `explore` agents grounded context without ADV tool access. Build the packet from `determinus_task_list` and `determinus_change_show` outputs at spawn time. Inject verbatim \u2014 do NOT give explore agents ADV tool access and do NOT ask scanners to call `determinus_subagent_report_submit`.\n\nAfter scanner synthesis, the orchestrator submits one compact scanner bundle. Individual scanners do not submit reports.\n\n```\nSCANNER_BUNDLE_REPORT:\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nSCOPE KEY: scanner-bundle:review\nPHASE: review\nATTEMPT: {attempt-number, starting at 1 for this orchestrator-submitted bundle}\nREPORT PAYLOAD:\n{\n  "schema_version": "1.0",\n  "change_id": "{change-id}",\n  "attempt": 1,\n  "workdir_used": "{workdir}",\n  "scope": { "kind": "change", "scope_key": "scanner-bundle:review" },\n  "agent": "determinus-scanner-bundle",\n  "phase": "review",\n  "scanner_count": {selected_scanner_count},\n  "dimensions": [\n    "contract-traceability",\n    "correctness-edge-cases",\n    "security",\n    "tests-tdd-evidence",\n    "scope-conformance"\n  ],\n  "summary": "bounded synthesis",\n  "findings": [],\n  "follow_ups": []\n}\nEXPECTED ACTION: orchestrator calls determinus_subagent_report_submit with SCANNER_BUNDLE_REPORT after synthesis\n```\n\n### Risk-Triggered Scanner Routing\n\nReview uses risk-triggered scanner selection instead of fixed broad fan-out.\n\nAlways assess and record evidence for the review-owned dimensions: contract traceability, correctness/edge cases, security surface, tests/TDD evidence, scope conformance, touched-scope bad-test cleanup, and non-code deliverable evidence policy. For narrow low-risk changes, the orchestrator may perform these checks inline and submit a scanner bundle with the checked dimensions. Spawn `explore` scanners only when risk triggers apply.\n\nRisk triggers requiring dedicated scanner workers:\n\n- Contract, acceptance-criteria, task-evidence, or cross-repo changes \u2192 contract/scope scanner.\n- Logic/control-flow/concurrency/error-handling changes \u2192 correctness/edge-case scanner.\n- User input, auth, secrets, permissions, external calls, or persistence changes \u2192 security scanner.\n- Risky logic or broad implementation changes \u2192 tests/TDD evidence scanner.\n- Evidence of flaky, tautological, permanently skipped, or implementation-coupled tests in the touched subsystem \u2192 touched-scope bad-test cleanup scanner.\n- Broad multi-file, architectural, or unfamiliar subsystem changes \u2192 architecture/scope scanner.\n\n### Scanner Dimension Contracts\n\nEach selected scanner receives the Review Scanner Context Packet above plus dimension-specific instructions.\n\n#### Contract Traceability / Scope\nFor each scenario and contract item \u2192 search files/tasks for implementation evidence \u2192 calculate coverage \u2192 flag untraced or out-of-scope work. Return: `dimension`, `coverage_percent`, `traced`, `untraced`, `issues`.\n#### Correctness & Edge Cases\nCheck: off-by-one, null/undefined handling, boolean logic, unreachable code, edge cases (empty/zero/max), concurrency. Return: `dimension`, `issues` (label, category, file, line, what, why, fix), `edge_cases_checked`.\n#### Security\nOWASP-based: A01 Broken Access Control, A02 Crypto Failures, A03 Injection, A04 Insecure Design, A05 Misconfiguration, A06 Vulnerable Components, A07 Auth Failures, A08 Data Integrity, A09 Logging Failures, A10 SSRF. Return: `dimension`, `issues`, `auth_assessment`, `secrets_scan`.\n#### Tests / TDD Evidence\nVerify tests fail when code breaks where practical, task evidence includes red/green or justified N/A, and risky touched code has adequate coverage. Evaluate the task\'s `evidence_plan` (policy + proof target) when determining whether non-test routes are valid; a behavior-critical non-test route requires a bounded rationale and a linked `review_conclusion`. Return: `dimension`, `issues`, `tdd_audit`, `coverage_assessment`.\n\n#### Touched-Scope Bad-Test Cleanup\nFor each directly touched subsystem, identify clearly bad tests (flaky, tautological, permanently skipped, or implementation-coupled). Remediate them when the fix is safe and local; record verification with the task\'s evidence path. Broader cleanup outside the touched subsystem remains out of scope and must be recorded as a follow-up or rejected with evidence. Return: `dimension`, `issues`, `remediated`, `out_of_scope_followups`. <!-- rq-reviewBadTestCleanup01 -->\n\n#### Architecture & Quality\nCheck: pattern conformance, module boundaries, naming, complexity (>50 lines, cyclomatic >10), DRY violations, SOLID. Return: `dimension`, `issues`, `complexity_hotspots`, `praise_worthy`.\n\n#### Non-Code Deliverables / Evidence Policy\nFor each non-code task (`type` is `docs`, `research`, `approval`, `ops`, or non-`code` verification), evaluate the deliverable against the contract items it `implements`, `verifies`, or `respects` using its `evidence_plan` (`evidence_policy` + `proof_target`). Check:\n\n- `source_citation` \u2014 citations are present and include source-quality/audit notes where credibility matters. Do not accept bare citation lists.\n- `source_audit` \u2014 audit scope, sources checked, and findings are recorded.\n- `rubric_review` \u2014 rubric criteria are listed with pass/fail per criterion.\n- `stakeholder_acceptance` \u2014 stakeholder/decision and acceptance evidence are named.\n- `artifact_reference` \u2014 referenced artifact and checkpoint/version are identified.\n- `not_applicable` \u2014 `contract_refs.not_applicable_reason` is present and bounded.\n\nReturn: `dimension`, `issues`, `evidence_policy_status` (per non-code task and contract item).\n\n---\n\n## Phase 3: Synthesis\n> Anti-Loop: after sub-agents \u2192 `>>> SYNTHESIS COMPLETE <<<` \u2192 aggregate immediately.\n1. Combine all issues \u2192 group by label (blocker > issue > suggestion > nit) \u2192 deduplicate\n2. Cross-reference with spec scenarios\n### Evidence-Backed Clean Verdict\nIf no blocker/issue findings remain \u2192 require evidence-backed clean verdict with checked dimensions and red-flag invalidators evaluated per the Review Methodology section above. Do not manufacture findings to satisfy a count. Mandatory remediation remains required for blockers/issues and validated in-scope findings.\n### Verdict\n| Verdict | Criteria |\n|---------|----------|\n| BLOCKED | Any `blocker:` |\n| CHANGES_REQUESTED | Any `issue:` (no blockers) |\n| APPROVED | Only suggestion/nit/none |\n\nApprove when change "definitely improves overall code health." Block only on: security vulns, correctness bugs, system health degradation, missing tests for risky changes. \xD7 Don\'t block on style preferences, minor optimizations, equivalent alternatives.\n\nWhen APPROVED with unresolved `suggestion:` or `question:` findings, note in the `REVIEW_FINDINGS` block that these are deferred to `/determinus-harden` for validation and implementation. The harden phase will validate each and either implement or reject with evidence before archive.\n\n---\n## Phase 4: Display Summary\nEmit a CODE REVIEW report with the following shape:\n\n### Executive Summary\nOne concise paragraph: overall verdict, total findings by severity, fixes applied (if remediation ran), and remaining concerns. No process mechanics \u2014 summarize outcome only.\n\n### Verdict\nState the verdict explicitly (APPROVED / CHANGES_REQUESTED / BLOCKED) on its own line.\n\n### Findings Overview\n1. **Severity breakdown**: counts per label (blockers, issues, suggestions, nits, praise).\n2. **Per-dimension status**: one line per dimension with pass/flag status.\n3. **Remediation summary** (if remediation ran): ordered list of fixes applied with verification status. Nest sub-details (file, what changed) under each fix.\n\nExample shape:\n```\n### Executive Summary\n{Verdict} with {N} findings ({B} blockers, {I} issues, {S} suggestions, {N} nits). {M} fixes applied during remediation. {Remaining concerns or "None"}.\n\n### Verdict\n{VERDICT}\n\n### Findings Overview\n1. Severity: {B} blocker(s), {I} issue(s), {S} suggestion(s), {N} nit(s), {P} praise\n2. Dimensions:\n   - Requirement Traceability: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Logic & Edge Cases: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Security: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Architecture & Quality: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Cross-Repo: \u2713 pass / \u26A0 flagged ({n} issues)\n3. Remediation (if applicable):\n   1. [{finding-id}] {what was fixed} \u2014 {verification status}\n      - File: {file}:{line}\n      - Detail: {change description}\n```\n\n---\n## Phase 5: Remediation (if issues found)\nIf APPROVED \u2192 skip to completion.\n\nIf CHANGES_REQUESTED/BLOCKED \u2192 auto-remediation is mandatory:\n1. **Fix all blockers/issues** \u2014 no partial fix mode. Use the review step\'s conditional remediation routing; do not introduce ad-hoc workers.\n   - **Scoped review-style fixes** (single file or local subsystem, no architectural risk) \u2192 spawn `determinus-reviewer` sub-agent; expect persisted `REVIEWER_REPORT` state submitted via `determinus_subagent_report_submit` per `.opencode/agents/determinus-reviewer.md`.\n   - **Primary implementation fixes** (multi-file, architectural, risky) \u2192 spawn `determinus-engineer` sub-agent; expect persisted `ENGINEER_REPORT` state submitted via `determinus_subagent_report_submit` per `.opencode/agents/determinus-engineer.md`.\n   - **Non-trivial fix research** (control flow, error handling, security code, module boundaries, 3+ files, multiple viable approaches) \u2192 spawn `determinus-researcher` first, then implement through the appropriate remediation worker above.\n2. **Investigate suggestions/questions** \u2014 validate against specs/tests/code \u2192 implement if validated, reject with evidence if not.\n\n#### Review Reviewer Remediation Packet\n\nUse when spawning `determinus-reviewer` for scoped review-style fixes:\n\n```\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nTASK: {task-id} | {task-title} | source finding: {finding-id}\n# Advisory remediation instruction, not a strict packet-identity anchor.\nREPORT_SCOPE: { "kind": "task", "task_id": "{task-id}" }\nPHASE: review\nATTEMPT: {attempt-number, starting at 1 for this remediation worker}\nTASK_SCOPE: scoped review remediation for listed finding(s)\nIN_SCOPE:\n  - {finding-id}: {file}:{line} and directly affected local subsystem\nOUT_OF_SCOPE:\n  - unrelated findings, new features, agreement changes without orchestrator re-entry\nDONE_WHEN:\n  - listed finding(s) fixed or reported as blocked with evidence\nSTOP_WHEN:\n  - contract/security/release blocker, scope conflict, unsafe edit, or impossible verification\nVERIFICATION:\n  required_when_possible:\n    - {targeted test/lint/static check for fixed finding(s)}\n  optional_additional_checks: true\nSCOPE: fix only the listed in-scope review finding(s); honor drift rule before edits\nFINDINGS TO FIX:\n  - {finding-id}: {label} | {file}:{line} | {what} | fix: {fix}\nBRIEFING PACKET: inject the generated `_briefingPacket` (lane: reviewer) here \u2014 includes identity_anchors, scope, contract, tasks, affected_files, EPIC CONTEXT (`epic_context`), verification_expectations, durable_facts, unavailable_state\nFRONTEND DESIGN REVIEW SKILL: when the change includes frontend/design implementation scope (any task with metadata.frontend == "true" or an agreement-declared design scope), populate this anchor. Otherwise the anchor MAY be omitted.\n  Primary: load `skill("determinus-frontend-review")` for the canonical 6-dimension methodology.\n  Fallback (inline checklist for offline reviewers or older deployments without the skill):\n    - semantic HTML & accessibility \u2014 semantic elements, landmark structure, ARIA only when native semantics are insufficient, focus management\n    - responsive behavior \u2014 layout works across supported viewports, touch targets, overflow\n    - visual polish \u2014 spacing, alignment, typography, color, motion match design tokens already in use\n    - matching site design \u2014 new UI looks like it belongs with the rest of the page/site, not styled in isolation\n    - finer details \u2014 hover/focus/active/disabled states, empty/loading/error states, keyboard navigation, copy correctness\n    - component correctness \u2014 props, state, events, behavior match the intended contract; no regressions in adjacent component behavior\nReview/harden ownership remains with `determinus-reviewer`; `determinus-designer` is apply-phase only and MUST NOT be spawned here.\nEXPECTED OUTPUT: fix scoped review finding(s), run verification, call determinus_subagent_report_submit with REVIEWER_REPORT per .opencode/agents/determinus-reviewer.md\n```\n\n#### Review Engineer Remediation Packet\n\nUse when spawning `determinus-engineer` for primary implementation fixes:\n\n```\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nTASK: {task-id} | {task-title} | source finding: {finding-id}\nREPORT_SCOPE: { "kind": "task", "task_id": "{task-id}" }\nATTEMPT: {attempt-number, starting at 1 for this remediation worker}\nTASK_SCOPE: primary implementation remediation for listed review fix\nIN_SCOPE:\n  - {finding-id}: {file}:{line} and directly affected implementation files\nOUT_OF_SCOPE:\n  - unrelated findings, new features, agreement changes without orchestrator re-entry\nDONE_WHEN:\n  - listed implementation fix is complete and verified\nSTOP_WHEN:\n  - contract/security/release blocker, unsafe edit, or impossible verification\nVERIFICATION:\n  required_when_possible:\n    - {targeted test/lint/static check for implementation fix}\n  optional_additional_checks: true\nSCOPE: implement only the listed in-scope review fix; honor drift rule before edits\nFINDINGS TO FIX:\n  - {finding-id}: {label} | {file}:{line} | {what} | fix: {fix}\nBRIEFING PACKET: inject the generated `_briefingPacket` (lane: engineer) here \u2014 includes identity_anchors, scope, contract, tasks, affected_files, EPIC CONTEXT (`epic_context`), verification_expectations, durable_facts, unavailable_state\nEXPECTED OUTPUT: implement the fix, record proof selected by its typed deliverable, `evidence_policy`, `proof_target`, and `tdd_intent`, then call determinus_subagent_report_submit with ENGINEER_REPORT per .opencode/agents/determinus-engineer.md. A valid non-test route needs no `determinus_run_test` or red/green; titles, agent prose, and coverage desire do not create test requirements.\n```\n\n### Drift Detection Rule (CRITICAL)\n\nBefore applying ANY fix, evaluate: **"If I apply this fix, will any agreement acceptance criterion (`AC*`), constraint (`C*`), avoidance (`DONT*`), or out-of-scope boundary (`OOS*`) need to change?"**\n\n- **NO** \u2192 auto-remediate (proceed with fix)\n- **YES** \u2192 **STOP** \u2014 present the finding and proposed fix to user via `question` tool:\n  - **Approve fix and update scope** \u2014 user agrees the scope should expand\n  - **Reject with evidence / split** \u2014 finding is valid but outside current scope; use `rejected_with_evidence` for in-scope rejected findings or split/fast-follow for out-of-scope work\n  - **Cancel review** \u2014 user wants to reconsider\n\nThis is the single declarative drift detection rule. It applies to every finding, every fix, every auto-remediation action.\n3. **Cleanup pass** \u2014 remove temp artifacts, debug code, dead imports, stale comments.\n4. **Verification** \u2014 re-run tests for touched areas, update finding status (fixed/unresolved).\n5. **Recompute verdict** \u2014 APPROVED only when no unresolved blocker/issue remains and all validated in-scope suggestions are implemented. No future-work deferral for validated in-scope findings.\n### Fix Validation Protocol\n| Fix Type | Research Required? |\n|----------|-------------------|\n| Typos, naming, comments, dead code removal, lint fixes | No (trivial) |\n| Control flow, error handling, security code, module boundaries, 3+ files, multiple viable approaches | Yes \u2014 spawn `determinus-researcher` (independent validator) first |\n\nIf research reveals finding was incorrect \u2192 downgrade to `nit:` or reject with evidence.\n\n---\n## Phase 5.5: Post-Remediation Re-Verification\nAfter remediation fixes are applied, re-verify affected dimensions before recomputing verdict:\n1. For each dimension that had findings fixed, spawn a **targeted** `explore` scanner with the Review Scanner Context Packet plus:\n   - `PRIOR FINDINGS: [{finding_id, original_issue, fix_applied}]`\n   - `SCOPE: evaluate only whether the listed findings are resolved`\n   - `EXPECTED OUTPUT: { finding_id, status: "resolved"|"unresolved", evidence }`\n2. If resolved \u2192 update finding status to `fixed`.\n3. If unresolved \u2192 flag for orchestrator to retry fix or escalate.\n4. **New findings** discovered during re-scan \u2192 queue for next review cycle, NOT added to current verdict. This prevents scope creep in the re-verification loop.\n\n\xD7 Do NOT re-run all 5 dimensions. Only re-scan dimensions with fixed findings.\n\n---\n## Phase 6: Final Report\n### Report\nEmit a structured final report using ordered and nested lists:\n\n1. **Verdict** \u2014 state APPROVED / CHANGES_REQUESTED / BLOCKED on its own line.\n2. **Per-dimension summaries** \u2014 numbered list, one entry per dimension:\n   1. Design: {pass/flag summary}\n   2. Functionality: {pass/flag summary}\n   3. ... (all 12 dimensions)\n3. **Numbered review comments** \u2014 grouped by severity (blockers \u2192 issues \u2192 suggestions \u2192 nits), each with:\n   - Label, file:line, what, why, fix\n   - Nest sub-details (e.g., root cause analysis, affected callers) as indented sub-items under each finding\n4. **Positive notes** \u2014 `praise:` findings listed concisely.\n5. **Fixes applied** (if remediation ran) \u2014 ordered list with verification status:\n   1. [{finding-id}] {what was fixed} \u2014 {verification status}\n      - File: {file}:{line}\n      - Change: {description of fix}\n\nGroup findings by severity tier. Within each tier, order by file path for scanability. Use nested sub-lists for multi-file findings or findings with multiple remediation steps.\n\n### Contract Review Matrix\n\nIf `change.contract` exists, build and persist `contract.reviewMatrix` before acceptance sign-off by calling `determinus_contract_review_matrix_set`. The tool validates rows against existing contract item IDs and persists through the `contractReviewMatrixSetSignal`-backed mutation path. This is the first required proof write in the no-late-homework sequence: proof required for acceptance must exist before the approval prompt, not after.\n\nRules:\n\n- Create one row per required contract item.\n- Use task verification, review findings, static checks, and design proof as evidence.\n- Status values: `pass`, `fail`, `respected`, `violated`, `unknown`, `not_applicable`.\n- `AC*` rows must be `pass` or `not_applicable` with rationale before acceptance.\n- `C*`, `DONT*`, and `OOS*` rows must be `respected`, `pass`, or `not_applicable` with rationale.\n- Any required contract item with `fail`, `violated`, `unknown`, or missing evidence blocks acceptance until remediated or formally amended/re-entered.\n- Keep evidence bounded and structured; do not paste raw logs into the matrix.\n- Poisoned-history recovery is internalized: `determinus_contract_review_matrix_set` and `determinus_gate_complete` auto-classify the workflow state via `determinus_doctor` when needed. The only remaining human checkpoint fields are `compatibilityReason` and `priorApprovalEvidence`. This repairs the disk projection only and does not heal the poisoned workflow.\n\n#### Non-Code Evidence Policy in the Review Matrix\n\nFor each non-code task, create or verify `contract.reviewMatrix` rows using the task\'s `evidence_policy`:\n\n- `source_citation` \u2014 cite sources; include source-quality/audit notes where credibility matters. Do not accept bare citation lists.\n- `source_audit` \u2014 record audit scope, sources checked, and findings.\n- `rubric_review` \u2014 list rubric criteria and pass/fail status per criterion.\n- `stakeholder_acceptance` \u2014 name the stakeholder/decision and acceptance evidence.\n- `artifact_reference` \u2014 identify the artifact and version/checkpoint.\n- `not_applicable` \u2014 requires `contract_refs.not_applicable_reason`.\n\nEach applicable `AC*`/`SC*` row must have `pass` or `fail` status (or `not_applicable` with rationale). Failing, `unknown`, or missing evidence blocks acceptance.\n\n#### Ops Runbook Acceptance Proof\n\nFor ops/enabler changes, acceptance proof must inspect `ops_followup` source state and compact link readbacks, not parent snapshots alone.\n\n- Verify any runbook-shaped ops task has an `ops_followup.runs[]` entry with env, action, bounds, evidence policy, rollback/cleanup plan, and append-only `determinus_ops_run_evidence_add` evidence.\n- For production-impacting execute steps, confirm either approval evidence exists for `approval_required` or the step is explicitly `bounded_low_risk_autonomous` with rationale and bounds.\n- For completion claims, require completion signal, health verification, and rollback/cleanup disposition.\n- For linked obligations, read compact `ops_followup_links[].status_source` and `ops_followup_links[].completion_proof`; `status_source: "parent_snapshot"` or `completion_proof: "unverified"` is not acceptance proof for blocking/required-handoff work.\n- Evidence in the review matrix must be bounded and secret-safe; cite run IDs/artifact pointers/summaries, not raw prod logs or credentials.\n\n#### Designer Concern Enforcement (structural)\n\nDesign-quality enforcement is STRUCTURAL, not reviewer-prose. The gate-readiness evaluator (`checkUnresolvedDesignConcerns`) reads persisted `determinus-designer` reports from change state and emits a `DESIGN_CONCERN_UNRESOLVED` blocker that blocks the acceptance and release gates while the latest designer report for any task has an undispositioned `design_dimensions` concern or `neighboring_recommendation`. You cannot complete acceptance while that blocker is present \u2014 this is enforced by code, not by remembering to look.\n\nTo clear a blocked concern, do exactly one of:\n\n- Fix it and have `determinus-designer` submit an updated (higher-attempt) all-pass report for the task.\n- Record a typed disposition via `determinus_design_concern_disposition` (`changeId`, `taskId`, `concernKey`, `disposition` \u2208 `fixed | rejected_with_evidence | split | fast_follow`, non-blank `evidence`). There is no debt-acceptance disposition.\n\nAdvisory only: on report submit, each concern and `neighboring_recommendation` surfaces a `design_concern_promoted` consumer warning (deduped) so it is never silently lost \u2014 but the warning is routing, not the gate authority.\n\nWhen synthesizing acceptance proof, additionally map relevant `DESIGNER_REPORT.design_dimensions` / `required_main_agent_actions` into `contract.reviewMatrix` rows using `design_proof`, `rubric_review`, `review`, `static_check`, or `test` evidence policies. Browser/design proof for runnable visual surfaces must include viewport context; a missing runnable surface requires explicit fallback rationale. Review/harden ownership remains with `determinus-reviewer`; `determinus-designer` remains apply-phase only.\n\nThe acceptance summary must include a contract proof line: required rows passed/respected, failed/violated/unknown counts, and remaining caveats.\n\n`contract.reviewMatrix`, generated `acceptance.md`, and workflow-visible `executive-summary.md` metadata are the authoritative acceptance proof. On gate completion, the workflow writes a generated acceptance.md projection from `ChangeContract` items and the review matrix, verifies executive-summary evidence, and only then marks acceptance done. Do not manually edit acceptance.md as proof; fix the typed matrix or formally amend/re-enter the contract instead.\n\n### Emit REVIEW_FINDINGS Block\nAlways emit regardless of verdict:\n```\nREVIEW_FINDINGS:\nchange: {change-id}\nverdict: {verdict}\nreviewed_at: {ISO timestamp}\nfindings:\n  - id: {dimension}-{n}\n    label: {label}\n    file: {file}\n    line: {N}\n    what: {what}\n    status: {unresolved|fixed|rejected_with_evidence}\n    fix_notes: {details}\nEND_REVIEW_FINDINGS\n```\n\nStatus rules: `unresolved` at emission time. Terminal states are `fixed` or `rejected_with_evidence`. `/determinus-harden` checks task notes for fix evidence and rejection evidence. `nit:` excluded from harden blocking.\n\n---\n### Finding Routing\n\nOut-of-scope findings surfaced mid-lifecycle MUST be routed to the durable backlog with `determinus_backlog_add` \u2014 not reflexive change creation, not prose-only notes; `determinus_backlog_promote` is the bridge back to a tracked change when the item is later picked up. Findings in scope for the current change stay in the REVIEW_FINDINGS block; findings outside the change\'s contract get a durable backlog record.\n\n## Phase 7: Acceptance Sign-Off\n### Pre-Acceptance Checks\n- `determinus_change_show`\n- `determinus_task_list`\n- `determinus_gate_status`\n\nVerify execution work is complete enough to review. If implementation/execution work is still incomplete, stop and direct user to `/determinus-apply` first.\n\n### Preview URL Proof\n\nBefore acceptance summary or acceptance approval prompt, determine the preview state from `agreement.md`, task evidence, and implementation evidence:\n\n| State | Required evidence | Acceptance effect |\n|---|---|---|\n| `live` | `visual_surface: true` or visual-output work detected; `Preview URL: {url}` sanitized for durable evidence; exact-route/state/hydration/viewport/freshness proof with verification method, result/status, reviewed timestamp/context, 375px or documented project-equivalent viewport when runnable, and matching `contract.reviewMatrix` evidence | Acceptance may proceed |\n| `not_applicable` | `visual_surface: false`; no front-end, browser-visible, or visual-output work detected; rationale recorded in `contract.reviewMatrix` | Acceptance may proceed |\n| `blocked` | `visual_surface: unknown`, visual-output drift, missing URL, URL-source-only evidence, missing exact-route proof, missing hydration/readiness proof, missing required viewport proof, fixture/mock presented as live, stale/error/cached preview, or missing matrix evidence | Stop before acceptance checkpoint |\n\nRules:\n\n- Use front-end, browser-visible, or any visual output as the applicability scope.\n- File-path heuristics may assist drift detection, but they are advisory only; do not use heuristics as the sole authority to mark `not_applicable`.\n- If implementation evidence contradicts `visual_surface`, actual implementation evidence wins for safety. Report `Preview URL: blocked` with a visual-surface drift reason and re-enter or clarify the agreement before acceptance.\n- Valid preview URLs target user-facing visual output only. Internal services, CI dashboards, databases, admin panels, runtime UI, and other non-visual infrastructure URLs are invalid.\n- Do not fabricate URLs. A bare unverified URL is insufficient.\n- Sanitize URLs before recording durable evidence: strip token, key, session, and auth query parameters; record origin + path + non-sensitive params only.\n- URL-source evidence (agent-observed dev-server output, CI/deploy log URL assignment, or user-confirmed URL) establishes where the URL came from; URL-source-only evidence is insufficient for visual proof.\n- Legacy reachability evidence is URL provenance only unless paired with exact-route visual proof.\n- For runnable visual surfaces, acceptable proof includes browser-open evidence or equivalent reviewed visual-surface evidence for the exact route/path and affected state/data source the user will open, after hydration/readiness when applicable, with viewport context including 375px width or documented project equivalent unless unavailable with rationale.\n- Fixture/mock preview evidence must be explicitly labeled and must not be presented as user-facing live proof unless allowed by the agreement. A stale/error/cached preview requires fresh-session, cache-busted, or equivalent freshness evidence before it can pass. Do not perform arbitrary HTTP probing of untrusted URLs to satisfy this requirement.\n- `blocked` requires a concrete reason and remediation hint. Produce the acceptance summary with `Preview URL: blocked`, but do not present the acceptance approval prompt or complete the acceptance gate.\n- The acceptance summary MUST include `Preview URL: {url}`, `Preview URL: not_applicable`, or `Preview URL: blocked` before the user acceptance prompt.\n\n### Build Acceptance Summary\nUsing `agreement.md`, produce:\n1. **Delivered work summary**\n2. **Acceptance Criteria checklist**\n3. **Constraints respected / avoidances honored**\n4. **Preview URL** \u2014 report `live`, `not_applicable`, or `blocked` state from Preview URL Proof. For `live`, include URL + exact-route/state/hydration/viewport/freshness proof. For `not_applicable`, include rationale. For `blocked`, stop before asking for acceptance.\n5. **Outstanding caveats**\n\nKeep concise; user-facing.\n\n### Build Approval Consequence Context\n\nBefore the acceptance approval prompt, render `Approval Consequence Context` using the shared renderer/model contract in `plugin/src/utils/approval-consequence-context.ts` (`buildApprovalConsequenceContext`). This is part of the existing acceptance prompt, not a new checkpoint.\n\nRows MUST use the shared stable order and exact category meanings:\n\n1. delivered value\n2. enabling-only/follow-up dependency\n3. ops readiness\n4. migration/data impact\n5. frontend/preview impact\n6. collision/release risk\n7. open follow-ups\n8. next action\n\nAcceptance-time evidence sources:\n\n- Delivered value: acceptance summary + task implementation summaries + contract review matrix.\n- Enabling-only/follow-up dependency: agreement scope, ops_followup links, required follow-up reports, and task summaries.\n- Ops readiness: acceptance evidence if already proven; otherwise `pending` with evidence `harden owns release/deploy/production/docs/cleanup readiness`.\n- Migration/data impact: implementation evidence and contract constraints; if not applicable, render `n/a` with a source-backed rationale.\n- Frontend/preview impact: Preview URL Proof (`live`, `not_applicable`, or `blocked`) and matching contract matrix row.\n- Collision/release risk: acceptance review findings and known branch/scope collision evidence; harden/archive may refine later.\n- Open follow-ups: required follow-ups, ops obligations, or `n/a` with explicit no-open-follow-ups evidence.\n- Next action: acceptance approval proceeds inline to `/determinus-harden {change-id}`; fixes/re-entry/split/stop follow the existing reply parser.\n\nEach row MUST include a status plus a brief source/evidence pointer. Empty categories get a brief source-backed `n/a`; missing or unreadable evidence MUST render `warning`, `pending`, or `blocked`, never `n/a`. Do not include raw logs, diffs, task spam, or full scanner reports.\n\n### Persist Executive Summary\n\nBefore acceptance prompt, persist durable executive summary for non-technical release-approval readers. Translate task/gate evidence into plain English first; keep technical terms only as parenthetical supporting detail. Use evidence-only impact wording: user/business benefit appears only when proposal, agreement, task, review, harden, archive, or follow-up evidence supports it.\n\n1. Use `determinus_change_show` task/gate evidence already loaded for review: task counts, implementation summaries, verification notes, retry summaries, and gate state.\n2. Compose from acceptance summary + task/gate evidence:\n   ```\n   # Executive Summary\n\n   ## Outcome\n   {1\u20132 sentence plain-English release-approval verdict: what changes and what decision the approver is making.}\n\n   ## Why It Matters\n   {Evidence-only impact: delivered value, operational/risk impact, or enabling value supported by source evidence. No unsupported business/user claims.}\n\n   ## Verdict\n   {APPROVED | CHANGES_REQUESTED | BLOCKED}\n\n   ## What Was Built\n   1. {ordered list from change.tasks, using implementation_summary; lead with user/release meaning, then technical terms only as parenthetical supporting detail}\n\n   ## What Was Verified\n   - Verdict: {verdict} with {N} findings ({severity breakdown})\n   - Tests: {pass/fail summary}\n   - Preview URL: {sanitized url + exact-route/state/hydration/viewport/freshness proof + verification timestamp | not_applicable + rationale | blocked + reason}\n   - Contract matrix: {required rows passed/respected, if contract exists}\n\n   ## Remaining Concerns\n   {risks/follow-ups/open items or "None". Include blocking vs non-blocking status when known.}\n\n   ## Supporting Evidence\n   {Brief pointers to task IDs, review reports, tests, contract matrix, release evidence, and supporting technical evidence that support the summary. No raw logs, diffs, task spam, or full scanner reports.}\n\n   ## Consequence Context\n   {Rendered Approval Consequence Context from `buildApprovalConsequenceContext`, including all 8 required categories and source/evidence pointers.}\n   ```\n3. `determinus_change_update changeId: {id} executiveSummary: "{composed markdown}"`\n4. Verify: `determinus_change_show changeId: {id} include: { executiveSummary: true }` \u2192 `_executiveSummary` present and workflow-visible executive-summary artifact metadata exists with content-hash evidence.\n\nAfter user accepts, artifact already exists and is workflow-visible. No extra acceptance-step write. If the executive-summary write or metadata signal fails, stop before the acceptance prompt; chat approval alone is not durable acceptance proof.\n\n### Pre-Acceptance Contract Preflight\n\nBefore acceptance summary or **Inline Approval prompt**, load `determinus_change_show`; verify:\n\n- `change.contract` exists.\n- `contract.reviewMatrix` exists when contract items require it.\n- `executive-summary.md` exists, is non-blank/substantive, and has workflow-visible artifact metadata with content-hash evidence.\n- `executive-summary.md` includes `## Consequence Context` rendered before acceptance, with all 8 Approval Consequence Context categories and no missing evidence disguised as `n/a`.\n- Preview proof has matching `contract.reviewMatrix` evidence when `visual_surface` is true or false. `visual_surface: unknown` or visual-surface drift blocks before acceptance and must be clarified or re-entered before a matrix pass row is expected.\n- Required rows have no `fail`, `violated`, `unknown`, or missing evidence.\n- Required new MCP tool is callable in current session. If source registered it but live registry lacks it, stop: tell user to build/reload plugin and open fresh OpenCode session. Do not ask for acceptance until proof path exists.\n\nPreflight fail \u2192 surface blocker + remediation. Do not continue to acceptance checkpoint.\n\nNo-late-homework rule: required acceptance proof (`contract.reviewMatrix`, generated/generatable `acceptance.md`, and workflow-visible `executive-summary.md`) must be persisted and verified before this checkpoint. If proof persistence fails after the user replies, acceptance remains pending/stuck until proof is persisted or an audited completed/poisoned workflow recovery validates the same evidence.\n\n### Ask for Acceptance (Inline)\nEmit the acceptance summary inline, including the rendered `Approval Consequence Context`, followed by the **Inline Approval prompt (Tier A)** per `docs/command-voice-standard.md` \xA7 Inline Approval Voice:\n\n```\nReply `accept` (or `approve`, `continue`, `looks good`, `lgtm`) to accept the delivered work and proceed inline to /determinus-harden,\nor run `/determinus-harden {change-id}`.\nWant fixes before acceptance? Reply with what needs adjustment.\nWant to reopen an earlier gate (scope expansion)? Reply `reopen {gate-name}` (e.g. `reopen discovery`) or `/determinus-clarify {change-id}` for ambiguity.\nWant to split discovered scope into a fast-follow change? Reply `split` \u2014 creates a new child change linked to this one.\nWant to stop here? Reply `stop` or `defer`.\n\nSee `docs/scope-discovery-protocol.md` for the full protocol on scope discovery during review.\n```\n\n**Reply parsing (Tier A):**\n\n| Reply | Action |\n|---|---|\n| Tier A whitelist match | Call `determinus_gate_complete gateId: \'acceptance\'`, begin `/determinus-harden` inline |\n| `/determinus-harden {change-id}` | No-op; OpenCode dispatches |\n| `reopen {gate-name}` or `re-enter {gate-name}` | Invoke `determinus_change_reenter fromGate: {gate-name}` (scope expansion) |\n| `split` | Create new fast-follow change via `determinus_change_create parent_change_id: <current>` for the discovered scope |\n| Free-form text | Treat as "needs fixes before acceptance"; route back to remediation; do NOT complete gate |\n| `stop` / `defer` | Halt; do not complete gate |\n\n**Anchor phrase:** `Reply `accept``\n\nIf user identifies new objectives or AC requiring scope expansion: `reopen {gate}` triggers `determinus_change_reenter` from earliest affected gate. `split` creates fast-follow child change; current change keeps momentum.\n\n### Complete Gate\nOn acceptance:\n`determinus_gate_complete changeId: {change-id} gateId: acceptance`\n\nFor completed/poisoned workflow acceptance recovery, `determinus_gate_complete` auto-classifies the workflow state internally. The only required human checkpoint fields are `compatibilityReason` and `priorApprovalEvidence`; without both, no disk-projection repair may occur.\n\n`workflowGateStatus: "stuck"` \u2192 inspect `readinessBlockers` + `stuckReason`, fix missing/failing contract rows or artifact-generation failures, retry. Do not present acceptance complete until tool succeeds.\n\n---\n## Output\n\nUse the Gate Handoff Voice spine (see `docs/command-voice-standard.md \xA7 Gate Handoff Voice`):\n\n```\n## Problem\n{One-line restatement of the problem this change addresses.}\n\n## Chosen direction\nWhat was reviewed and user-accepted.\n\n## Delivered\n- Verdict: {APPROVED|CHANGES_REQUESTED|BLOCKED}\n- {fix_count} fixes applied\n- User acceptance recorded\n- {Remaining caveats, if any}\n\n---\n\n> **{change-id}**\n> acceptance \u2713 \u2192 release\n>\n> \u2192 `/determinus-harden {change-id}`\n```\n\n**Auto-continue:** After user acceptance, immediately begin `/determinus-harden` inline. Do not stop or ask "shall I proceed?" \u2014 user\'s acceptance is the go-ahead.\n---\n## Anti-Patterns\n| \xD7 Anti-Pattern | \u2713 Fix |\n|----------------|-------|\n| Perfection-seeking | Seek "better" not "perfect" |\n| Style-only blocking | Only block on style guide rules |\n| Missing "why" | Explain reasoning |\n| Unresearched fixes | Research non-trivial fixes first |\n\n---\n## Key Tools\n| Purpose | Tool |\n|---------|------|\n| Load change | `determinus_change_show` |\n| List tasks | `determinus_task_list` |\n| Spawn analysis | Task tool (explore) |\n| Spawn research | Task tool (determinus-researcher) |\n| Spawn review remediation | Task tool (determinus-reviewer or determinus-engineer) |\n| Spawn fixes | Task tool (determinus-engineer) |';
+    determinus_REVIEW_DIRECTIVE_CONTENT = '# Determinus Review \u2014 Acceptance-Stage Deliverable Review\nOrchestrate multi-dimensional review of the delivered work. Command is part of the acceptance stage, emits `REVIEW_FINDINGS`, and now carries the post-execution acceptance/sign-off flow directly.\n## Exits\n| Exit | Condition |\n|------|-----------|\n| \u2705 APPROVED | No blockers/issues; findings emitted and ready for acceptance |\n| \u{1F501} CHANGES_REQUESTED | Issues found \u2192 agent fixes \u2192 re-verifies |\n| \u{1F3A4} BLOCKED | Blockers found \u2192 user decides |\n\n> **SUB-AGENT CONTEXT**: Return findings as JSON. Skip status markers.\n## Phase 0: Embedded Methodology\n\n### Review Methodology\n\n#### Purpose\n\nReusable code review methodology for Determinus review workflows. Provides the 12-dimension framework, conventional comment labels, evidence-backed clean verdict rules, and review-owned validation responsibilities.\n\n**Runtime source:** this embedded section provides the review methodology needed during command execution.\n\n#### Review Ownership\n\nReview owns delivered-work validation: contract traceability, correctness, security, tests/TDD evidence, and scope conformance. Harden owns release/deploy/production/docs/cleanup readiness. **Critical blocker backstop:** review may still flag security, data-loss, contract, or release-safety blockers discovered during acceptance review.\n\n#### 12-Dimension Framework\n\nEvery review must assess each dimension:\n\n| # | Dimension | Focus |\n|---|-----------|-------|\n| 1 | Design | Architecture, system integration, timing |\n| 2 | Functionality | Correctness, edge cases, concurrency |\n| 3 | Complexity | Understandable quickly? Over-engineered? |\n| 4 | Tests | Coverage adequate? Tests fail when code breaks? |\n| 5 | Naming | Clear, communicative, appropriate length |\n| 6 | Comments | Explain "why" not "what" |\n| 7 | Style | Style guide conformance |\n| 8 | Documentation | READMEs, API docs updated |\n| 9 | Security | Auth, validation, secrets, OWASP top 10 |\n| 10 | Performance | Degradation risks, optimization |\n| 11 | Error Handling | Correct, user-friendly, debuggable |\n| 12 | Consistency | Matches existing patterns |\n\nAll 12 must be checked. Skipping requires explicit justification.\n\n#### Conventional Comment Labels\n\n| Label | Meaning | Blocking? |\n|-------|---------|-----------|\n| `blocker:` | Must fix before merge | YES |\n| `issue:` | Should fix, real problem | YES |\n| `suggestion:` | Would improve code | NO |\n| `nit:` | Minor style/preference | NO |\n| `question:` | Need clarification | MAYBE |\n| `praise:` | Good work worth noting | NO |\n\nFormat: `{label}: [{file}:{line}] {what}` + `Why: {why}` + `Fix: {how}` (optional).\n\n#### Constraints\n\n- **Read-only guidance** \u2014 this methodology block does not mutate Determinus state\n- **No gate completion** \u2014 command owns the review gate\n- **Runtime source** \u2014 use this embedded methodology during command execution\n- **No workflow sequencing** \u2014 command owns phase ordering and sub-agent orchestration\n\n## Phase 1: Pre-flight\n### Load Context\n`determinus_change_show changeId: <target> include: { snapshot: true }` \u2014 returns change + rendered gate snapshot in one call. Verify tasks are done \u2014 if no implementation, stop: "Run `/determinus-apply` first."\n### Gate Check\nRead gate state from the included snapshot or inspect `gates` field on the response. If execution gate NOT complete \u2192 emit REVIEW BLOCKED banner \u2192 stop. Fall back to `determinus_gate_status` only if a structured per-gate breakdown is needed.\n### Cancellation & Cross-Repo Audit\n**Step 1:** Check cancelled tasks for `cancellation.approved_by_user === true`. If any lack approval \u2192 REVIEW BLOCKED \u2192 stop.\n\n**Step 2:** Check cross-repo tasks (`target_repo`/`target_path`) are `done`. If incomplete \u2192 REVIEW BLOCKED \u2192 stop.\n\n**Step 3:** For cross-project coordination, inspect `_externalDependencyStatus` from `determinus_change_show`. Unmet advisory dependencies are warnings, not blockers by themselves; block only if the agreement explicitly made a dependency mandatory or the implementation violates accepted scope.\n\n**Step 4:** Verify target-project contribution workflow used Determinus tools with `target_path`: target reads via `snapshot-ok`, target mutations via `authoritative`, and untrusted mutations include `target_confirmed` plus `confirmationEvidence`.\n### Extract Context\nFrom change data: affected files, spec scenarios, task completion evidence, `change.contract` if present, and `epic_membership` if present (load compact Epic context with `determinus_epic_show epic_id: {epic_id}` and include it in sub-agent prompts).\n### Worktree Context\n`pwd` \u2192 record as `{workdir}`. Include `WORKING DIRECTORY: {workdir}` in every sub-agent prompt. Critical in worktrees \u2014 sub-agents inherit default project root, not worktree path.\n\n### Lightweight Change Profile (acceptance boundary)\n\nThe lightweight profile is re-evaluated automatically before acceptance selection. If the profile result is `qualified`, the bounded omission policy in the workflow directive (`_directive.lightweightProfile`) applies:\n\n- `omitDeepScans` \u2014 skip optional deep codebase scans\n- `omitGenericExternalResearch` \u2014 skip generic external research\n- `omitOpportunityScouting` \u2014 skip opportunity scouting\n- `omitDefaultSpecialistDelegation` \u2014 skip default specialist delegation\n\nThis policy never overrides explicit `delegation_hint`, risk-forced inline routing, spec/conflict checks, the 12-dimension review, human acceptance, worktree isolation, or release checks. If the profile is `ineligible` or `downgraded`, run the standard review workflow with no omissions.\n\n### Structured Criterion Reading Guidance\n\n`change.contract.items` may carry an optional `variant` annotation. Reviewers must treat the canonical `id`, `text`, `kind`, and `evidencePolicy` as the contract authority; the variant is a presentation aid only.\n\n| Variant | What to verify |\n|---|---|\n| **behavioral** | `context`, `trigger`, and `outcome` match the canonical text; the variant does not add, remove, or soften any obligation. |\n| **evidence** | `subject` and `method`/`source` align with the canonical text and the item\'s evidence policy. |\n| **spec_law** | The referenced `spec` exists and the implementation covers the stated `requirement`; the variant does not replace a task contract ref or review-matrix row. |\n| **constraint** | `obligation` and optional `scope` are respected by implementation and tests. |\n\nDo not treat parse-safe syntax as proof that the criterion is met. Review-matrix coverage, evidence, and task `contract_refs` remain the acceptance authority.\n\n---\n## 12-Dimension Review Framework\nApply the 12-dimension matrix defined once in the embedded methodology above (Phase 0 \u2192 Review Methodology \u2192 12-Dimension Framework). Every review must assess all 12 dimensions \u2014 including Security\'s OWASP top 10 scope; skipping any dimension requires explicit justification. The scanner fan-out, dimension contracts, and inline fallbacks below execute this framework; they do not replace it.\n---\n## Sub-Agent Resilience\nEmpty/failed result = transient failure (empty string, missing `"dimension"` key, error-only).\n\nProtocol: retry once \u2192 if still fails \u2192 inline analysis for that dimension \u2192 never skip.\n| Dimension | Inline Fallback |\n|-----------|----------------|\n| Requirement Traceability | Search files for scenario keywords |\n| Logic & Edge Cases | Read functions, check null/off-by-one/unreachable |\n| Security | Scan for hardcoded secrets, unvalidated input, injection |\n| Architecture & Quality | Check function length >50, duplicated blocks, naming |\n| Cross-Repo | Check target_repo tasks status === "done" |\n\n---\n## Phase 2: Spawn Analysis Sub-Agents\n\nFor every spawned packet, generate the lane-specific briefing packet via `determinus_change_show include: { briefingPacket: true, briefingPacketLane: "<lane>" }` and inject `_briefingPacket` into the packet. Do not reconstruct `affected_files`, `contract`, `epic_context`, or `scope` manually.\n\n#### Review Scanner Context Packet\n\nInject into every `explore` scanner spawn prompt:\n\n```\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nATTEMPT: {attempt-number, starting at 1 for this spawned worker}\nBRIEFING PACKET: inject the generated `_briefingPacket` (lane: scanner) here \u2014 includes identity_anchors, scope, contract, affected_files, EPIC CONTEXT (`epic_context`), durable_facts, unavailable_state\nTASK EVIDENCE SUMMARY:\n  - {task-id}: {title} | {status} | type: {type} | evidence_policy: {evidence_policy} | tdd: {phase}\n  - ...\nEXPECTED OUTPUT: {dimension-specific JSON schema}\n```\n\nThis scanner-only packet gives `explore` agents grounded context without Determinus tool access. Build the packet from `determinus_task_list` and `determinus_change_show` outputs at spawn time. Inject verbatim \u2014 do NOT give explore agents Determinus tool access and do NOT ask scanners to call `determinus_subagent_report_submit`.\n\nAfter scanner synthesis, the orchestrator submits one compact scanner bundle. Individual scanners do not submit reports.\n\n```\nSCANNER_BUNDLE_REPORT:\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nSCOPE KEY: scanner-bundle:review\nPHASE: review\nATTEMPT: {attempt-number, starting at 1 for this orchestrator-submitted bundle}\nREPORT PAYLOAD:\n{\n  "schema_version": "1.0",\n  "change_id": "{change-id}",\n  "attempt": 1,\n  "workdir_used": "{workdir}",\n  "scope": { "kind": "change", "scope_key": "scanner-bundle:review" },\n  "agent": "determinus-scanner-bundle",\n  "phase": "review",\n  "scanner_count": {selected_scanner_count},\n  "dimensions": [\n    "contract-traceability",\n    "correctness-edge-cases",\n    "security",\n    "tests-tdd-evidence",\n    "scope-conformance"\n  ],\n  "summary": "bounded synthesis",\n  "findings": [],\n  "follow_ups": []\n}\nEXPECTED ACTION: orchestrator calls determinus_subagent_report_submit with SCANNER_BUNDLE_REPORT after synthesis\n```\n\n### Risk-Triggered Scanner Routing\n\nReview uses risk-triggered scanner selection instead of fixed broad fan-out.\n\nAlways assess and record evidence for the review-owned dimensions: contract traceability, correctness/edge cases, security surface, tests/TDD evidence, scope conformance, touched-scope bad-test cleanup, and non-code deliverable evidence policy. For narrow low-risk changes, the orchestrator may perform these checks inline and submit a scanner bundle with the checked dimensions. Spawn `explore` scanners only when risk triggers apply.\n\nRisk triggers requiring dedicated scanner workers:\n\n- Contract, acceptance-criteria, task-evidence, or cross-repo changes \u2192 contract/scope scanner.\n- Logic/control-flow/concurrency/error-handling changes \u2192 correctness/edge-case scanner.\n- User input, auth, secrets, permissions, external calls, or persistence changes \u2192 security scanner.\n- Risky logic or broad implementation changes \u2192 tests/TDD evidence scanner.\n- Evidence of flaky, tautological, permanently skipped, or implementation-coupled tests in the touched subsystem \u2192 touched-scope bad-test cleanup scanner.\n- Broad multi-file, architectural, or unfamiliar subsystem changes \u2192 architecture/scope scanner.\n\n### Scanner Dimension Contracts\n\nEach selected scanner receives the Review Scanner Context Packet above plus dimension-specific instructions.\n\n#### Contract Traceability / Scope\nFor each scenario and contract item \u2192 search files/tasks for implementation evidence \u2192 calculate coverage \u2192 flag untraced or out-of-scope work. Return: `dimension`, `coverage_percent`, `traced`, `untraced`, `issues`.\n#### Correctness & Edge Cases\nCheck: off-by-one, null/undefined handling, boolean logic, unreachable code, edge cases (empty/zero/max), concurrency. Return: `dimension`, `issues` (label, category, file, line, what, why, fix), `edge_cases_checked`.\n#### Security\nOWASP-based: A01 Broken Access Control, A02 Crypto Failures, A03 Injection, A04 Insecure Design, A05 Misconfiguration, A06 Vulnerable Components, A07 Auth Failures, A08 Data Integrity, A09 Logging Failures, A10 SSRF. Return: `dimension`, `issues`, `auth_assessment`, `secrets_scan`.\n#### Tests / TDD Evidence\nVerify tests fail when code breaks where practical, task evidence includes red/green or justified N/A, and risky touched code has adequate coverage. Evaluate the task\'s `evidence_plan` (policy + proof target) when determining whether non-test routes are valid; a behavior-critical non-test route requires a bounded rationale and a linked `review_conclusion`. Return: `dimension`, `issues`, `tdd_audit`, `coverage_assessment`.\n\n#### Touched-Scope Bad-Test Cleanup\nFor each directly touched subsystem, identify clearly bad tests (flaky, tautological, permanently skipped, or implementation-coupled). Remediate them when the fix is safe and local; record verification with the task\'s evidence path. Broader cleanup outside the touched subsystem remains out of scope and must be recorded as a follow-up or rejected with evidence. Return: `dimension`, `issues`, `remediated`, `out_of_scope_followups`. <!-- rq-reviewBadTestCleanup01 -->\n\n#### Architecture & Quality\nCheck: pattern conformance, module boundaries, naming, complexity (>50 lines, cyclomatic >10), DRY violations, SOLID. Return: `dimension`, `issues`, `complexity_hotspots`, `praise_worthy`.\n\n#### Non-Code Deliverables / Evidence Policy\nFor each non-code task (`type` is `docs`, `research`, `approval`, `ops`, or non-`code` verification), evaluate the deliverable against the contract items it `implements`, `verifies`, or `respects` using its `evidence_plan` (`evidence_policy` + `proof_target`). Check:\n\n- `source_citation` \u2014 citations are present and include source-quality/audit notes where credibility matters. Do not accept bare citation lists.\n- `source_audit` \u2014 audit scope, sources checked, and findings are recorded.\n- `rubric_review` \u2014 rubric criteria are listed with pass/fail per criterion.\n- `stakeholder_acceptance` \u2014 stakeholder/decision and acceptance evidence are named.\n- `artifact_reference` \u2014 referenced artifact and checkpoint/version are identified.\n- `not_applicable` \u2014 `contract_refs.not_applicable_reason` is present and bounded.\n\nReturn: `dimension`, `issues`, `evidence_policy_status` (per non-code task and contract item).\n\n---\n\n## Phase 3: Synthesis\n> Anti-Loop: after sub-agents \u2192 `>>> SYNTHESIS COMPLETE <<<` \u2192 aggregate immediately.\n1. Combine all issues \u2192 group by label (blocker > issue > suggestion > nit) \u2192 deduplicate\n2. Cross-reference with spec scenarios\n### Evidence-Backed Clean Verdict\nIf no blocker/issue findings remain \u2192 require evidence-backed clean verdict with checked dimensions and red-flag invalidators evaluated per the Review Methodology section above. Do not manufacture findings to satisfy a count. Mandatory remediation remains required for blockers/issues and validated in-scope findings.\n### Verdict\n| Verdict | Criteria |\n|---------|----------|\n| BLOCKED | Any `blocker:` |\n| CHANGES_REQUESTED | Any `issue:` (no blockers) |\n| APPROVED | Only suggestion/nit/none |\n\nApprove when change "definitely improves overall code health." Block only on: security vulns, correctness bugs, system health degradation, missing tests for risky changes. \xD7 Don\'t block on style preferences, minor optimizations, equivalent alternatives.\n\nWhen APPROVED with unresolved `suggestion:` or `question:` findings, note in the `REVIEW_FINDINGS` block that these are deferred to `/determinus-harden` for validation and implementation. The harden phase will validate each and either implement or reject with evidence before archive.\n\n---\n## Phase 4: Display Summary\nEmit a CODE REVIEW report with the following shape:\n\n### Executive Summary\nOne concise paragraph: overall verdict, total findings by severity, fixes applied (if remediation ran), and remaining concerns. No process mechanics \u2014 summarize outcome only.\n\n### Verdict\nState the verdict explicitly (APPROVED / CHANGES_REQUESTED / BLOCKED) on its own line.\n\n### Findings Overview\n1. **Severity breakdown**: counts per label (blockers, issues, suggestions, nits, praise).\n2. **Per-dimension status**: one line per dimension with pass/flag status.\n3. **Remediation summary** (if remediation ran): ordered list of fixes applied with verification status. Nest sub-details (file, what changed) under each fix.\n\nExample shape:\n```\n### Executive Summary\n{Verdict} with {N} findings ({B} blockers, {I} issues, {S} suggestions, {N} nits). {M} fixes applied during remediation. {Remaining concerns or "None"}.\n\n### Verdict\n{VERDICT}\n\n### Findings Overview\n1. Severity: {B} blocker(s), {I} issue(s), {S} suggestion(s), {N} nit(s), {P} praise\n2. Dimensions:\n   - Requirement Traceability: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Logic & Edge Cases: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Security: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Architecture & Quality: \u2713 pass / \u26A0 flagged ({n} issues)\n   - Cross-Repo: \u2713 pass / \u26A0 flagged ({n} issues)\n3. Remediation (if applicable):\n   1. [{finding-id}] {what was fixed} \u2014 {verification status}\n      - File: {file}:{line}\n      - Detail: {change description}\n```\n\n---\n## Phase 5: Remediation (if issues found)\nIf APPROVED \u2192 skip to completion.\n\nIf CHANGES_REQUESTED/BLOCKED \u2192 auto-remediation is mandatory:\n1. **Fix all blockers/issues** \u2014 no partial fix mode. Use the review step\'s conditional remediation routing; do not introduce ad-hoc workers.\n   - **Scoped review-style fixes** (single file or local subsystem, no architectural risk) \u2192 spawn `determinus-reviewer` sub-agent; expect persisted `REVIEWER_REPORT` state submitted via `determinus_subagent_report_submit` per `.opencode/agents/determinus-reviewer.md`.\n   - **Primary implementation fixes** (multi-file, architectural, risky) \u2192 spawn `determinus-engineer` sub-agent; expect persisted `ENGINEER_REPORT` state submitted via `determinus_subagent_report_submit` per `.opencode/agents/determinus-engineer.md`.\n   - **Non-trivial fix research** (control flow, error handling, security code, module boundaries, 3+ files, multiple viable approaches) \u2192 spawn `determinus-researcher` first, then implement through the appropriate remediation worker above.\n2. **Investigate suggestions/questions** \u2014 validate against specs/tests/code \u2192 implement if validated, reject with evidence if not.\n\n#### Review Reviewer Remediation Packet\n\nUse when spawning `determinus-reviewer` for scoped review-style fixes:\n\n```\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nTASK: {task-id} | {task-title} | source finding: {finding-id}\n# Advisory remediation instruction, not a strict packet-identity anchor.\nREPORT_SCOPE: { "kind": "task", "task_id": "{task-id}" }\nPHASE: review\nATTEMPT: {attempt-number, starting at 1 for this remediation worker}\nTASK_SCOPE: scoped review remediation for listed finding(s)\nIN_SCOPE:\n  - {finding-id}: {file}:{line} and directly affected local subsystem\nOUT_OF_SCOPE:\n  - unrelated findings, new features, agreement changes without orchestrator re-entry\nDONE_WHEN:\n  - listed finding(s) fixed or reported as blocked with evidence\nSTOP_WHEN:\n  - contract/security/release blocker, scope conflict, unsafe edit, or impossible verification\nVERIFICATION:\n  required_when_possible:\n    - {targeted test/lint/static check for fixed finding(s)}\n  optional_additional_checks: true\nSCOPE: fix only the listed in-scope review finding(s); honor drift rule before edits\nFINDINGS TO FIX:\n  - {finding-id}: {label} | {file}:{line} | {what} | fix: {fix}\nBRIEFING PACKET: inject the generated `_briefingPacket` (lane: reviewer) here \u2014 includes identity_anchors, scope, contract, tasks, affected_files, EPIC CONTEXT (`epic_context`), verification_expectations, durable_facts, unavailable_state\nFRONTEND DESIGN REVIEW SKILL: when the change includes frontend/design implementation scope (any task with metadata.frontend == "true" or an agreement-declared design scope), populate this anchor. Otherwise the anchor MAY be omitted.\n  Primary: load `skill("determinus-frontend-review")` for the canonical 6-dimension methodology.\n  Fallback (inline checklist for offline reviewers or older deployments without the skill):\n    - semantic HTML & accessibility \u2014 semantic elements, landmark structure, ARIA only when native semantics are insufficient, focus management\n    - responsive behavior \u2014 layout works across supported viewports, touch targets, overflow\n    - visual polish \u2014 spacing, alignment, typography, color, motion match design tokens already in use\n    - matching site design \u2014 new UI looks like it belongs with the rest of the page/site, not styled in isolation\n    - finer details \u2014 hover/focus/active/disabled states, empty/loading/error states, keyboard navigation, copy correctness\n    - component correctness \u2014 props, state, events, behavior match the intended contract; no regressions in adjacent component behavior\nReview/harden ownership remains with `determinus-reviewer`; `determinus-designer` is apply-phase only and MUST NOT be spawned here.\nEXPECTED OUTPUT: fix scoped review finding(s), run verification, call determinus_subagent_report_submit with REVIEWER_REPORT per .opencode/agents/determinus-reviewer.md\n```\n\n#### Review Engineer Remediation Packet\n\nUse when spawning `determinus-engineer` for primary implementation fixes:\n\n```\nWORKING DIRECTORY: {workdir}\nCHANGE: {change-id} | {title} | gate: review\nTASK: {task-id} | {task-title} | source finding: {finding-id}\nREPORT_SCOPE: { "kind": "task", "task_id": "{task-id}" }\nATTEMPT: {attempt-number, starting at 1 for this remediation worker}\nTASK_SCOPE: primary implementation remediation for listed review fix\nIN_SCOPE:\n  - {finding-id}: {file}:{line} and directly affected implementation files\nOUT_OF_SCOPE:\n  - unrelated findings, new features, agreement changes without orchestrator re-entry\nDONE_WHEN:\n  - listed implementation fix is complete and verified\nSTOP_WHEN:\n  - contract/security/release blocker, unsafe edit, or impossible verification\nVERIFICATION:\n  required_when_possible:\n    - {targeted test/lint/static check for implementation fix}\n  optional_additional_checks: true\nSCOPE: implement only the listed in-scope review fix; honor drift rule before edits\nFINDINGS TO FIX:\n  - {finding-id}: {label} | {file}:{line} | {what} | fix: {fix}\nBRIEFING PACKET: inject the generated `_briefingPacket` (lane: engineer) here \u2014 includes identity_anchors, scope, contract, tasks, affected_files, EPIC CONTEXT (`epic_context`), verification_expectations, durable_facts, unavailable_state\nEXPECTED OUTPUT: implement the fix, record proof selected by its typed deliverable, `evidence_policy`, `proof_target`, and `tdd_intent`, then call determinus_subagent_report_submit with ENGINEER_REPORT per .opencode/agents/determinus-engineer.md. A valid non-test route needs no `determinus_run_test` or red/green; titles, agent prose, and coverage desire do not create test requirements.\n```\n\n### Drift Detection Rule (CRITICAL)\n\nBefore applying ANY fix, evaluate: **"If I apply this fix, will any agreement acceptance criterion (`AC*`), constraint (`C*`), avoidance (`DONT*`), or out-of-scope boundary (`OOS*`) need to change?"**\n\n- **NO** \u2192 auto-remediate (proceed with fix)\n- **YES** \u2192 **STOP** \u2014 present the finding and proposed fix to user via `question` tool:\n  - **Approve fix and update scope** \u2014 user agrees the scope should expand\n  - **Reject with evidence / split** \u2014 finding is valid but outside current scope; use `rejected_with_evidence` for in-scope rejected findings or split/fast-follow for out-of-scope work\n  - **Cancel review** \u2014 user wants to reconsider\n\nThis is the single declarative drift detection rule. It applies to every finding, every fix, every auto-remediation action.\n3. **Cleanup pass** \u2014 remove temp artifacts, debug code, dead imports, stale comments.\n4. **Verification** \u2014 re-run tests for touched areas, update finding status (fixed/unresolved).\n5. **Recompute verdict** \u2014 APPROVED only when no unresolved blocker/issue remains and all validated in-scope suggestions are implemented. No future-work deferral for validated in-scope findings.\n### Fix Validation Protocol\n| Fix Type | Research Required? |\n|----------|-------------------|\n| Typos, naming, comments, dead code removal, lint fixes | No (trivial) |\n| Control flow, error handling, security code, module boundaries, 3+ files, multiple viable approaches | Yes \u2014 spawn `determinus-researcher` (independent validator) first |\n\nIf research reveals finding was incorrect \u2192 downgrade to `nit:` or reject with evidence.\n\n---\n## Phase 5.5: Post-Remediation Re-Verification\nAfter remediation fixes are applied, re-verify affected dimensions before recomputing verdict:\n1. For each dimension that had findings fixed, spawn a **targeted** `explore` scanner with the Review Scanner Context Packet plus:\n   - `PRIOR FINDINGS: [{finding_id, original_issue, fix_applied}]`\n   - `SCOPE: evaluate only whether the listed findings are resolved`\n   - `EXPECTED OUTPUT: { finding_id, status: "resolved"|"unresolved", evidence }`\n2. If resolved \u2192 update finding status to `fixed`.\n3. If unresolved \u2192 flag for orchestrator to retry fix or escalate.\n4. **New findings** discovered during re-scan \u2192 queue for next review cycle, NOT added to current verdict. This prevents scope creep in the re-verification loop.\n\n\xD7 Do NOT re-run all 5 dimensions. Only re-scan dimensions with fixed findings.\n\n---\n## Phase 6: Final Report\n### Report\nEmit a structured final report using ordered and nested lists:\n\n1. **Verdict** \u2014 state APPROVED / CHANGES_REQUESTED / BLOCKED on its own line.\n2. **Per-dimension summaries** \u2014 numbered list, one entry per dimension:\n   1. Design: {pass/flag summary}\n   2. Functionality: {pass/flag summary}\n   3. ... (all 12 dimensions)\n3. **Numbered review comments** \u2014 grouped by severity (blockers \u2192 issues \u2192 suggestions \u2192 nits), each with:\n   - Label, file:line, what, why, fix\n   - Nest sub-details (e.g., root cause analysis, affected callers) as indented sub-items under each finding\n4. **Positive notes** \u2014 `praise:` findings listed concisely.\n5. **Fixes applied** (if remediation ran) \u2014 ordered list with verification status:\n   1. [{finding-id}] {what was fixed} \u2014 {verification status}\n      - File: {file}:{line}\n      - Change: {description of fix}\n\nGroup findings by severity tier. Within each tier, order by file path for scanability. Use nested sub-lists for multi-file findings or findings with multiple remediation steps.\n\n### Contract Review Matrix\n\nIf `change.contract` exists, build and persist `contract.reviewMatrix` before acceptance sign-off by calling `determinus_contract_review_matrix_set`. The tool validates rows against existing contract item IDs and persists through the `contractReviewMatrixSetSignal`-backed mutation path. This is the first required proof write in the no-late-homework sequence: proof required for acceptance must exist before the approval prompt, not after.\n\nRules:\n\n- Create one row per required contract item.\n- Use task verification, review findings, static checks, and design proof as evidence.\n- Status values: `pass`, `fail`, `respected`, `violated`, `unknown`, `not_applicable`.\n- `AC*` rows must be `pass` or `not_applicable` with rationale before acceptance.\n- `C*`, `DONT*`, and `OOS*` rows must be `respected`, `pass`, or `not_applicable` with rationale.\n- Any required contract item with `fail`, `violated`, `unknown`, or missing evidence blocks acceptance until remediated or formally amended/re-entered.\n- Keep evidence bounded and structured; do not paste raw logs into the matrix.\n- Poisoned-history recovery is internalized: `determinus_contract_review_matrix_set` and `determinus_gate_complete` auto-classify the workflow state via `determinus_doctor` when needed. The only remaining human checkpoint fields are `compatibilityReason` and `priorApprovalEvidence`. This repairs the disk projection only and does not heal the poisoned workflow.\n\n#### Non-Code Evidence Policy in the Review Matrix\n\nFor each non-code task, create or verify `contract.reviewMatrix` rows using the task\'s `evidence_policy`:\n\n- `source_citation` \u2014 cite sources; include source-quality/audit notes where credibility matters. Do not accept bare citation lists.\n- `source_audit` \u2014 record audit scope, sources checked, and findings.\n- `rubric_review` \u2014 list rubric criteria and pass/fail status per criterion.\n- `stakeholder_acceptance` \u2014 name the stakeholder/decision and acceptance evidence.\n- `artifact_reference` \u2014 identify the artifact and version/checkpoint.\n- `not_applicable` \u2014 requires `contract_refs.not_applicable_reason`.\n\nEach applicable `AC*`/`SC*` row must have `pass` or `fail` status (or `not_applicable` with rationale). Failing, `unknown`, or missing evidence blocks acceptance.\n\n#### Ops Runbook Acceptance Proof\n\nFor ops/enabler changes, acceptance proof must inspect `ops_followup` source state and compact link readbacks, not parent snapshots alone.\n\n- Verify any runbook-shaped ops task has an `ops_followup.runs[]` entry with env, action, bounds, evidence policy, rollback/cleanup plan, and append-only `determinus_ops_run_evidence_add` evidence.\n- For production-impacting execute steps, confirm either approval evidence exists for `approval_required` or the step is explicitly `bounded_low_risk_autonomous` with rationale and bounds.\n- For completion claims, require completion signal, health verification, and rollback/cleanup disposition.\n- For linked obligations, read compact `ops_followup_links[].status_source` and `ops_followup_links[].completion_proof`; `status_source: "parent_snapshot"` or `completion_proof: "unverified"` is not acceptance proof for blocking/required-handoff work.\n- Evidence in the review matrix must be bounded and secret-safe; cite run IDs/artifact pointers/summaries, not raw prod logs or credentials.\n\n#### Designer Concern Enforcement (structural)\n\nDesign-quality enforcement is STRUCTURAL, not reviewer-prose. The gate-readiness evaluator (`checkUnresolvedDesignConcerns`) reads persisted `determinus-designer` reports from change state and emits a `DESIGN_CONCERN_UNRESOLVED` blocker that blocks the acceptance and release gates while the latest designer report for any task has an undispositioned `design_dimensions` concern or `neighboring_recommendation`. You cannot complete acceptance while that blocker is present \u2014 this is enforced by code, not by remembering to look.\n\nTo clear a blocked concern, do exactly one of:\n\n- Fix it and have `determinus-designer` submit an updated (higher-attempt) all-pass report for the task.\n- Record a typed disposition via `determinus_design_concern_disposition` (`changeId`, `taskId`, `concernKey`, `disposition` \u2208 `fixed | rejected_with_evidence | split | fast_follow`, non-blank `evidence`). There is no debt-acceptance disposition.\n\nAdvisory only: on report submit, each concern and `neighboring_recommendation` surfaces a `design_concern_promoted` consumer warning (deduped) so it is never silently lost \u2014 but the warning is routing, not the gate authority.\n\nWhen synthesizing acceptance proof, additionally map relevant `DESIGNER_REPORT.design_dimensions` / `required_main_agent_actions` into `contract.reviewMatrix` rows using `design_proof`, `rubric_review`, `review`, `static_check`, or `test` evidence policies. Browser/design proof for runnable visual surfaces must include viewport context; a missing runnable surface requires explicit fallback rationale. Review/harden ownership remains with `determinus-reviewer`; `determinus-designer` remains apply-phase only.\n\nThe acceptance summary must include a contract proof line: required rows passed/respected, failed/violated/unknown counts, and remaining caveats.\n\n`contract.reviewMatrix`, generated `acceptance.md`, and workflow-visible `executive-summary.md` metadata are the authoritative acceptance proof. On gate completion, the workflow writes a generated acceptance.md projection from `ChangeContract` items and the review matrix, verifies executive-summary evidence, and only then marks acceptance done. Do not manually edit acceptance.md as proof; fix the typed matrix or formally amend/re-enter the contract instead.\n\n### Emit REVIEW_FINDINGS Block\nAlways emit regardless of verdict:\n```\nREVIEW_FINDINGS:\nchange: {change-id}\nverdict: {verdict}\nreviewed_at: {ISO timestamp}\nfindings:\n  - id: {dimension}-{n}\n    label: {label}\n    file: {file}\n    line: {N}\n    what: {what}\n    status: {unresolved|fixed|rejected_with_evidence}\n    fix_notes: {details}\nEND_REVIEW_FINDINGS\n```\n\nStatus rules: `unresolved` at emission time. Terminal states are `fixed` or `rejected_with_evidence`. `/determinus-harden` checks task notes for fix evidence and rejection evidence. `nit:` excluded from harden blocking.\n\n---\n### Finding Routing\n\nOut-of-scope findings surfaced mid-lifecycle MUST be routed to the durable backlog with `determinus_backlog_add` \u2014 not reflexive change creation, not prose-only notes; `determinus_backlog_promote` is the bridge back to a tracked change when the item is later picked up. Findings in scope for the current change stay in the REVIEW_FINDINGS block; findings outside the change\'s contract get a durable backlog record.\n\n## Phase 7: Acceptance Sign-Off\n### Pre-Acceptance Checks\n- `determinus_change_show`\n- `determinus_task_list`\n- `determinus_gate_status`\n\nVerify execution work is complete enough to review. If implementation/execution work is still incomplete, stop and direct user to `/determinus-apply` first.\n\n### Preview URL Proof\n\nBefore acceptance summary or acceptance approval prompt, determine the preview state from `agreement.md`, task evidence, and implementation evidence:\n\n| State | Required evidence | Acceptance effect |\n|---|---|---|\n| `live` | `visual_surface: true` or visual-output work detected; `Preview URL: {url}` sanitized for durable evidence; exact-route/state/hydration/viewport/freshness proof with verification method, result/status, reviewed timestamp/context, 375px or documented project-equivalent viewport when runnable, and matching `contract.reviewMatrix` evidence | Acceptance may proceed |\n| `not_applicable` | `visual_surface: false`; no front-end, browser-visible, or visual-output work detected; rationale recorded in `contract.reviewMatrix` | Acceptance may proceed |\n| `blocked` | `visual_surface: unknown`, visual-output drift, missing URL, URL-source-only evidence, missing exact-route proof, missing hydration/readiness proof, missing required viewport proof, fixture/mock presented as live, stale/error/cached preview, or missing matrix evidence | Stop before acceptance checkpoint |\n\nRules:\n\n- Use front-end, browser-visible, or any visual output as the applicability scope.\n- File-path heuristics may assist drift detection, but they are advisory only; do not use heuristics as the sole authority to mark `not_applicable`.\n- If implementation evidence contradicts `visual_surface`, actual implementation evidence wins for safety. Report `Preview URL: blocked` with a visual-surface drift reason and re-enter or clarify the agreement before acceptance.\n- Valid preview URLs target user-facing visual output only. Internal services, CI dashboards, databases, admin panels, runtime UI, and other non-visual infrastructure URLs are invalid.\n- Do not fabricate URLs. A bare unverified URL is insufficient.\n- Sanitize URLs before recording durable evidence: strip token, key, session, and auth query parameters; record origin + path + non-sensitive params only.\n- URL-source evidence (agent-observed dev-server output, CI/deploy log URL assignment, or user-confirmed URL) establishes where the URL came from; URL-source-only evidence is insufficient for visual proof.\n- Legacy reachability evidence is URL provenance only unless paired with exact-route visual proof.\n- For runnable visual surfaces, acceptable proof includes browser-open evidence or equivalent reviewed visual-surface evidence for the exact route/path and affected state/data source the user will open, after hydration/readiness when applicable, with viewport context including 375px width or documented project equivalent unless unavailable with rationale.\n- Fixture/mock preview evidence must be explicitly labeled and must not be presented as user-facing live proof unless allowed by the agreement. A stale/error/cached preview requires fresh-session, cache-busted, or equivalent freshness evidence before it can pass. Do not perform arbitrary HTTP probing of untrusted URLs to satisfy this requirement.\n- `blocked` requires a concrete reason and remediation hint. Produce the acceptance summary with `Preview URL: blocked`, but do not present the acceptance approval prompt or complete the acceptance gate.\n- The acceptance summary MUST include `Preview URL: {url}`, `Preview URL: not_applicable`, or `Preview URL: blocked` before the user acceptance prompt.\n\n### Build Acceptance Summary\nUsing `agreement.md`, produce:\n1. **Delivered work summary**\n2. **Acceptance Criteria checklist**\n3. **Constraints respected / avoidances honored**\n4. **Preview URL** \u2014 report `live`, `not_applicable`, or `blocked` state from Preview URL Proof. For `live`, include URL + exact-route/state/hydration/viewport/freshness proof. For `not_applicable`, include rationale. For `blocked`, stop before asking for acceptance.\n5. **Outstanding caveats**\n\nKeep concise; user-facing.\n\n### Build Approval Consequence Context\n\nBefore the acceptance approval prompt, render `Approval Consequence Context` using the shared renderer/model contract in `plugin/src/utils/approval-consequence-context.ts` (`buildApprovalConsequenceContext`). This is part of the existing acceptance prompt, not a new checkpoint.\n\nRows MUST use the shared stable order and exact category meanings:\n\n1. delivered value\n2. enabling-only/follow-up dependency\n3. ops readiness\n4. migration/data impact\n5. frontend/preview impact\n6. collision/release risk\n7. open follow-ups\n8. next action\n\nAcceptance-time evidence sources:\n\n- Delivered value: acceptance summary + task implementation summaries + contract review matrix.\n- Enabling-only/follow-up dependency: agreement scope, ops_followup links, required follow-up reports, and task summaries.\n- Ops readiness: acceptance evidence if already proven; otherwise `pending` with evidence `harden owns release/deploy/production/docs/cleanup readiness`.\n- Migration/data impact: implementation evidence and contract constraints; if not applicable, render `n/a` with a source-backed rationale.\n- Frontend/preview impact: Preview URL Proof (`live`, `not_applicable`, or `blocked`) and matching contract matrix row.\n- Collision/release risk: acceptance review findings and known branch/scope collision evidence; harden/archive may refine later.\n- Open follow-ups: required follow-ups, ops obligations, or `n/a` with explicit no-open-follow-ups evidence.\n- Next action: acceptance approval proceeds inline to `/determinus-harden {change-id}`; fixes/re-entry/split/stop follow the existing reply parser.\n\nEach row MUST include a status plus a brief source/evidence pointer. Empty categories get a brief source-backed `n/a`; missing or unreadable evidence MUST render `warning`, `pending`, or `blocked`, never `n/a`. Do not include raw logs, diffs, task spam, or full scanner reports.\n\n### Persist Executive Summary\n\nBefore acceptance prompt, persist durable executive summary for non-technical release-approval readers. Translate task/gate evidence into plain English first; keep technical terms only as parenthetical supporting detail. Use evidence-only impact wording: user/business benefit appears only when proposal, agreement, task, review, harden, archive, or follow-up evidence supports it.\n\n1. Use `determinus_change_show` task/gate evidence already loaded for review: task counts, implementation summaries, verification notes, retry summaries, and gate state.\n2. Compose from acceptance summary + task/gate evidence:\n   ```\n   # Executive Summary\n\n   ## Outcome\n   {1\u20132 sentence plain-English release-approval verdict: what changes and what decision the approver is making.}\n\n   ## Why It Matters\n   {Evidence-only impact: delivered value, operational/risk impact, or enabling value supported by source evidence. No unsupported business/user claims.}\n\n   ## Verdict\n   {APPROVED | CHANGES_REQUESTED | BLOCKED}\n\n   ## What Was Built\n   1. {ordered list from change.tasks, using implementation_summary; lead with user/release meaning, then technical terms only as parenthetical supporting detail}\n\n   ## What Was Verified\n   - Verdict: {verdict} with {N} findings ({severity breakdown})\n   - Tests: {pass/fail summary}\n   - Preview URL: {sanitized url + exact-route/state/hydration/viewport/freshness proof + verification timestamp | not_applicable + rationale | blocked + reason}\n   - Contract matrix: {required rows passed/respected, if contract exists}\n\n   ## Remaining Concerns\n   {risks/follow-ups/open items or "None". Include blocking vs non-blocking status when known.}\n\n   ## Supporting Evidence\n   {Brief pointers to task IDs, review reports, tests, contract matrix, release evidence, and supporting technical evidence that support the summary. No raw logs, diffs, task spam, or full scanner reports.}\n\n   ## Consequence Context\n   {Rendered Approval Consequence Context from `buildApprovalConsequenceContext`, including all 8 required categories and source/evidence pointers.}\n   ```\n3. `determinus_change_update changeId: {id} executiveSummary: "{composed markdown}"`\n4. Verify: `determinus_change_show changeId: {id} include: { executiveSummary: true }` \u2192 `_executiveSummary` present and workflow-visible executive-summary artifact metadata exists with content-hash evidence.\n\nAfter user accepts, artifact already exists and is workflow-visible. No extra acceptance-step write. If the executive-summary write or metadata signal fails, stop before the acceptance prompt; chat approval alone is not durable acceptance proof.\n\n### Pre-Acceptance Contract Preflight\n\nBefore acceptance summary or **Inline Approval prompt**, load `determinus_change_show`; verify:\n\n- `change.contract` exists.\n- `contract.reviewMatrix` exists when contract items require it.\n- `executive-summary.md` exists, is non-blank/substantive, and has workflow-visible artifact metadata with content-hash evidence.\n- `executive-summary.md` includes `## Consequence Context` rendered before acceptance, with all 8 Approval Consequence Context categories and no missing evidence disguised as `n/a`.\n- Preview proof has matching `contract.reviewMatrix` evidence when `visual_surface` is true or false. `visual_surface: unknown` or visual-surface drift blocks before acceptance and must be clarified or re-entered before a matrix pass row is expected.\n- Required rows have no `fail`, `violated`, `unknown`, or missing evidence.\n- Required new MCP tool is callable in current session. If source registered it but live registry lacks it, stop: tell user to build/reload plugin and open fresh OpenCode session. Do not ask for acceptance until proof path exists.\n\nPreflight fail \u2192 surface blocker + remediation. Do not continue to acceptance checkpoint.\n\nNo-late-homework rule: required acceptance proof (`contract.reviewMatrix`, generated/generatable `acceptance.md`, and workflow-visible `executive-summary.md`) must be persisted and verified before this checkpoint. If proof persistence fails after the user replies, acceptance remains pending/stuck until proof is persisted or an audited completed/poisoned workflow recovery validates the same evidence.\n\n### Ask for Acceptance (Inline)\nEmit the acceptance summary inline, including the rendered `Approval Consequence Context`, followed by the **Inline Approval prompt (Tier A)** per `docs/command-voice-standard.md` \xA7 Inline Approval Voice:\n\n```\nReply `accept` (or `approve`, `continue`, `looks good`, `lgtm`) to accept the delivered work and proceed inline to /determinus-harden,\nor run `/determinus-harden {change-id}`.\nWant fixes before acceptance? Reply with what needs adjustment.\nWant to reopen an earlier gate (scope expansion)? Reply `reopen {gate-name}` (e.g. `reopen discovery`) or `/determinus-clarify {change-id}` for ambiguity.\nWant to split discovered scope into a fast-follow change? Reply `split` \u2014 creates a new child change linked to this one.\nWant to stop here? Reply `stop` or `defer`.\n\nSee `docs/scope-discovery-protocol.md` for the full protocol on scope discovery during review.\n```\n\n**Reply parsing (Tier A):**\n\n| Reply | Action |\n|---|---|\n| Tier A whitelist match | Call `determinus_gate_complete gateId: \'acceptance\'`, begin `/determinus-harden` inline |\n| `/determinus-harden {change-id}` | No-op; OpenCode dispatches |\n| `reopen {gate-name}` or `re-enter {gate-name}` | Invoke `determinus_change_reenter fromGate: {gate-name}` (scope expansion) |\n| `split` | Create new fast-follow change via `determinus_change_create parent_change_id: <current>` for the discovered scope |\n| Free-form text | Treat as "needs fixes before acceptance"; route back to remediation; do NOT complete gate |\n| `stop` / `defer` | Halt; do not complete gate |\n\n**Anchor phrase:** `Reply `accept``\n\nIf user identifies new objectives or AC requiring scope expansion: `reopen {gate}` triggers `determinus_change_reenter` from earliest affected gate. `split` creates fast-follow child change; current change keeps momentum.\n\n### Complete Gate\nOn acceptance:\n`determinus_gate_complete changeId: {change-id} gateId: acceptance`\n\nFor completed/poisoned workflow acceptance recovery, `determinus_gate_complete` auto-classifies the workflow state internally. The only required human checkpoint fields are `compatibilityReason` and `priorApprovalEvidence`; without both, no disk-projection repair may occur.\n\n`workflowGateStatus: "stuck"` \u2192 inspect `readinessBlockers` + `stuckReason`, fix missing/failing contract rows or artifact-generation failures, retry. Do not present acceptance complete until tool succeeds.\n\n---\n## Output\n\nUse the Gate Handoff Voice spine (see `docs/command-voice-standard.md \xA7 Gate Handoff Voice`):\n\n```\n## Problem\n{One-line restatement of the problem this change addresses.}\n\n## Chosen direction\nWhat was reviewed and user-accepted.\n\n## Delivered\n- Verdict: {APPROVED|CHANGES_REQUESTED|BLOCKED}\n- {fix_count} fixes applied\n- User acceptance recorded\n- {Remaining caveats, if any}\n\n---\n\n> **{change-id}**\n> acceptance \u2713 \u2192 release\n>\n> \u2192 `/determinus-harden {change-id}`\n```\n\n**Auto-continue:** After user acceptance, immediately begin `/determinus-harden` inline. Do not stop or ask "shall I proceed?" \u2014 user\'s acceptance is the go-ahead.\n---\n## Anti-Patterns\n| \xD7 Anti-Pattern | \u2713 Fix |\n|----------------|-------|\n| Perfection-seeking | Seek "better" not "perfect" |\n| Style-only blocking | Only block on style guide rules |\n| Missing "why" | Explain reasoning |\n| Unresearched fixes | Research non-trivial fixes first |\n\n---\n## Key Tools\n| Purpose | Tool |\n|---------|------|\n| Load change | `determinus_change_show` |\n| List tasks | `determinus_task_list` |\n| Spawn analysis | Task tool (explore) |\n| Spawn research | Task tool (determinus-researcher) |\n| Spawn review remediation | Task tool (determinus-reviewer or determinus-engineer) |\n| Spawn fixes | Task tool (determinus-engineer) |';
     PHASE_DIRECTIVES = buildRegistry();
   }
 });
@@ -62419,7 +62427,7 @@ var init_backlog_shell = __esm({
         }
       },
       determinus_backlog_promote: {
-        description: "Promote a repo backlog item to an ADV change or Epic shell entry. Idempotent on (itemId, targetId). Refuses promotion of archived items.",
+        description: "Promote a repo backlog item to an Determinus change or Epic shell entry. Idempotent on (itemId, targetId). Refuses promotion of archived items.",
         args: {
           id: external_exports.string().min(1).describe("Backlog item id."),
           kind: external_exports.enum(["change", "epic_shell"]).describe("Promotion target kind."),
@@ -63159,7 +63167,7 @@ var init_handlers_query = __esm({
           limit: external_exports.number().optional().describe("Max tasks to return (default: 50)"),
           offset: external_exports.number().optional().describe("Task offset for pagination (default: 0)"),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When artifact include flags are requested, reads that project's persisted documents; otherwise reads a disk snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. When artifact include flags are requested, reads that project's persisted documents; otherwise reads a disk snapshot and returns _projectContext."
           ),
           include: external_exports.object({
             ledger: external_exports.boolean().optional().describe(
@@ -63252,7 +63260,7 @@ var init_handlers_query = __esm({
           limit: external_exports.number().optional().describe("Max changes to return (default: 50)"),
           offset: external_exports.number().optional().describe("Offset for pagination (default: 0)"),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext."
           ),
           scope: external_exports.enum(["repo", "product"]).optional().default("repo").describe(
             "Product-linked visibility scope. `repo` (default) shows changes scoped to the current repo; `product` shows all product changes."
@@ -63416,7 +63424,7 @@ var init_handlers_misc = __esm({
           ),
           dryRun: external_exports.boolean().optional().describe("Preview re-entry without firing gate reset signal."),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, routes the re-entry through that project's disk-backed store."
+            "Optional absolute path to another Determinus project. When provided, routes the re-entry through that project's disk-backed store."
           ),
           target_confirmed: external_exports.literal(true).optional().describe(
             "Required for untrusted target_path mutation. Confirms the target project was explicitly approved."
@@ -65143,7 +65151,7 @@ var init_task = __esm({
         args: {
           taskId: external_exports.string().describe("Task ID (e.g., 'tk-Hf7dK2mN')"),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext."
           )
         },
         execute: async ({ taskId, target_path }, store) => {
@@ -65225,7 +65233,7 @@ var init_task = __esm({
           limit: external_exports.number().optional().describe("Max tasks to return (default: 50)"),
           offset: external_exports.number().optional().describe("Offset for pagination (default: 0)"),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext."
           ),
           outputMode: external_exports.enum(["compact", "pretty"]).optional().describe(
             "Output mode: compact (default) or pretty. Overrides determinus_TOOL_OUTPUT_MODE env var for this call."
@@ -65281,7 +65289,7 @@ var init_task = __esm({
             "Change ID \u2014 must match an existing change from `determinus_change_list`. Returns ready (unblocked) tasks plus the blocked list with their blockedBy references."
           ),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext."
           ),
           ...includeSnapshotSchema.shape
         },
@@ -65376,7 +65384,7 @@ var init_task = __esm({
             "When starting an in-progress frontend task, supersedes its existing implementation cycle. Normal resumes preserve the current cycle."
           ),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, mutates that project's disk-backed store."
+            "Optional absolute path to another Determinus project. When provided, mutates that project's disk-backed store."
           ),
           target_confirmed: external_exports.literal(true).optional().describe(
             "Required for untrusted target_path mutation. Confirms the target project was explicitly approved."
@@ -66560,7 +66568,7 @@ function invalidTaskAnchorOutput(input) {
         id: task.id,
         title: task.title
       })),
-      guidance: "Task-scoped reports must use an existing ADV task ID. Independent review/harden reports must use the change-scoped reviewer variant. Scanner lanes must not call determinus_subagent_report_submit directly."
+      guidance: "Task-scoped reports must use an existing Determinus task ID. Independent review/harden reports must use the change-scoped reviewer variant. Scanner lanes must not call determinus_subagent_report_submit directly."
     }),
     input.projectContext
   );
@@ -67213,7 +67221,7 @@ var init_subagent_report = __esm({
     }).passthrough();
     targetArgs2 = {
       target_path: external_exports.string().optional().describe(
-        "Optional absolute path to another ADV project. When provided, routes the operation through that project's target store."
+        "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target store."
       ),
       target_confirmed: external_exports.literal(true).optional().describe(
         "Required for untrusted target_path mutation. Confirms the target project was explicitly approved."
@@ -67242,7 +67250,7 @@ var init_subagent_report = __esm({
     ];
     subagentReportTools = {
       determinus_subagent_report_submit: {
-        description: "Submit a typed, Zod-validated sub-agent report and persist it on the owning ADV change/task scope.",
+        description: "Submit a typed, Zod-validated sub-agent report and persist it on the owning Determinus change/task scope.",
         args: {
           report: ScopedSubagentReportSchema.describe(
             "Typed sub-agent report payload. v1 supports determinus-engineer, determinus-reviewer, determinus-designer, determinus-researcher, determinus-tron, orchestrator-submitted determinus-scanner-bundle reports, and orchestrator-submitted determinus-verification-triage-bundle reports. For canonical REVIEWER_REPORT shapes (READY + CONFLICT), see .opencode/agents/determinus-reviewer.md \xA7 REVIEWER_REPORT Payload \u2014 discrimination is by `agent` field; each variant has distinct required fields (e.g., determinus-reviewer requires scope, verification, scope_drift, required_main_agent_actions)."
@@ -67252,9 +67260,9 @@ var init_subagent_report = __esm({
           ),
           ...targetArgs2
         },
-        // OpenCode otherwise rejects the strict report union before ADV can return
+        // OpenCode otherwise rejects the strict report union before Determinus can return
         // nested issue paths. This schema admits only the report object envelope;
-        // canonical args above remain ADV catalog/preflight authority.
+        // canonical args above remain Determinus catalog/preflight authority.
         transportArgs: {
           report: external_exports.record(external_exports.string(), external_exports.unknown()),
           dryRun: external_exports.boolean().optional(),
@@ -67509,7 +67517,7 @@ var init_wisdom2 = __esm({
             "For linked products: repo (default) filters to current repo plus promoted/global wisdom; product returns all product wisdom"
           ),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. Reads a snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. Reads a snapshot and returns _projectContext."
           ),
           project_only: external_exports.boolean().optional().describe(
             "When true, list only project-level wisdom (durable learnings promoted across changes). Cannot be combined with changeId or query."
@@ -68318,7 +68326,7 @@ async function getPluginRuntimeInfo(opts = {}) {
   return {
     loaded_module_path: loadedModulePath,
     process_started_at: processStartedAt,
-    reload_caveat: "Restart OpenCode after rebuilding Advance; host-loaded plugin tool code is not hot-reloaded.",
+    reload_caveat: "Restart OpenCode after rebuilding Determinus; host-loaded plugin tool code is not hot-reloaded.",
     dist_index_path: distIndexPath,
     dist_mtime_iso: distMtimeIso,
     source_index_path: sourceIndexPath,
@@ -70060,7 +70068,7 @@ function appendResumeFreshnessRecommendation(recommendations, changeId, resumeFr
   const archivedDupId = finding.evidenceChangeIds?.[0];
   if (!archivedDupId) return;
   const snippet = `determinus_change_close changeId: ${archivedDupId} reason: "superseded" supersededBy: ${changeId} approvedByUser: true approvalEvidence: "resume:archived_duplicate HIGH-confidence overlap detected"`;
-  const message = `\u{1F50D} Possible duplicate: archived \`${archivedDupId}\` may have already shipped this scope. To close it as superseded (ADV does not auto-execute close), copy and run:
+  const message = `\u{1F50D} Possible duplicate: archived \`${archivedDupId}\` may have already shipped this scope. To close it as superseded (Determinus does not auto-execute close), copy and run:
 
   ${snippet}`;
   pushStatusRecommendation(recommendations, {
@@ -70490,7 +70498,7 @@ async function computeExternalStateHygiene(store) {
   const recommendations = [];
   const nestedAdvDir = externalRoot ? await pathExists3(join50(externalRoot, ".adv")) : false;
   const staleDbDir = externalRoot ? await pathExists3(join50(externalRoot, "db")) : false;
-  const syntheticProjectDirs = (await listSubdirs2(join50(dataHome, "opencode", "plugins", "advance"))).filter((dir) => dir.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).length;
+  const syntheticProjectDirs = (await listSubdirs2(join50(dataHome, "opencode", "plugins", "determinus"))).filter((dir) => dir.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).length;
   const syntheticWorktreeDirs = (await listSubdirs2(join50(dataHome, "opencode", "worktree"))).filter((dir) => dir.startsWith(SYNTHETIC_TEST_PROJECT_ID_PREFIX)).length;
   const emptyWorktreePrefixDirs = [];
   if (projectId) {
@@ -70530,7 +70538,7 @@ async function computeExternalStateHygiene(store) {
   }
   if (syntheticProjectDirs > 0 || syntheticWorktreeDirs > 0) {
     const dataHome2 = getDataHome();
-    const projectsGlob = `"${join50(dataHome2, "opencode", "plugins", "advance")}/${SYNTHETIC_TEST_PROJECT_ID_PREFIX}*"`;
+    const projectsGlob = `"${join50(dataHome2, "opencode", "plugins", "determinus")}/${SYNTHETIC_TEST_PROJECT_ID_PREFIX}*"`;
     const worktreesGlob = `"${join50(dataHome2, "opencode", "worktree")}/${SYNTHETIC_TEST_PROJECT_ID_PREFIX}*"`;
     recommendations.push(
       `dry-run: ${syntheticProjectDirs} synthetic test project dir(s) + ${syntheticWorktreeDirs} synthetic worktree dir(s) detected (prefix ${SYNTHETIC_TEST_PROJECT_ID_PREFIX})
@@ -71857,7 +71865,7 @@ var init_status2 = __esm({
         description: "Show project overview: specs, active changes, and next-step recommendations. Use the optional `view` selector to scope the response: `summary` (default) returns lightweight orientation; `health` returns disk, worktree, session-debt, and metrics diagnostics; `changes` returns full active-change detail; `hygiene` returns leak detection + recommendations + project metadata.",
         args: {
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext."
           ),
           view: external_exports.enum(["summary", "health", "changes", "hygiene"]).optional().default("summary").describe(
             "Output view selector. `summary` (default) omits hygiene archaeology and full diagnostics; `health` surfaces disk/worktree/session-debt detail + metrics counters; `changes` returns the full recent-change list; `hygiene` surfaces archived/closed leaks + recommendations + project metadata."
@@ -73084,7 +73092,7 @@ ${TRUNCATION_SUFFIX}`;
             "Optional wall-clock timeout in milliseconds. Default 30000. Range [1000, 300000]. Use a higher value for slow commands like full test suites or `pnpm run check` (cap 5min anti-runaway)."
           ),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. When provided, records evidence in that project's disk-backed store."
+            "Optional absolute path to another Determinus project. When provided, records evidence in that project's disk-backed store."
           ),
           target_confirmed: external_exports.literal(true).optional(),
           confirmationEvidence: external_exports.string().optional()
@@ -74664,9 +74672,9 @@ var init_reflection2 = __esm({
       "contract compromise"
     ];
     CATEGORY_IMPROVEMENT_SUGGESTIONS = {
-      tool_gap: "Tooling gap detected \u2014 add or improve MCP/ADV tool support so future agents can complete this step without manual workaround.",
+      tool_gap: "Tooling gap detected \u2014 add or improve MCP/Determinus tool support so future agents can complete this step without manual workaround.",
       docs_gap: "Documentation gap detected \u2014 update command docs, AGENTS.md, or relevant spec text with the discovered rule or gotcha.",
-      missing_capability: "Missing capability detected \u2014 consider a focused follow-up change that turns the repeated pattern into a first-class ADV capability.",
+      missing_capability: "Missing capability detected \u2014 consider a focused follow-up change that turns the repeated pattern into a first-class Determinus capability.",
       ux_friction: "UX friction detected \u2014 simplify the agent/user workflow or clarify prompts so future operators have an obvious next action.",
       provider_specific: "Provider-specific friction detected \u2014 document provider caveat or add provider-aware guardrails/tests."
     };
@@ -74681,7 +74689,7 @@ var init_reflection2 = __esm({
           scope: external_exports.enum(["repo", "product"]).optional().describe("Product-linked visibility scope; defaults to repo"),
           maxEntries: external_exports.number().int().min(1).max(MAX_REFLECTION_LIST_LIMIT).optional().describe("Maximum reflection entries to return"),
           target_path: external_exports.string().optional().describe(
-            "Optional absolute path to another ADV project. Reads a snapshot and returns _projectContext."
+            "Optional absolute path to another Determinus project. Reads a snapshot and returns _projectContext."
           )
         },
         execute: async ({
@@ -76110,7 +76118,7 @@ var init_adv_worktree = __esm({
     DISCOVERY_GIT_BUDGET_CEILING_MS = 2e3;
     targetWorktreeMutationArgSchemas = {
       target_path: external_exports.string().optional().describe(
-        "Optional absolute path to another ADV project. When provided, routes the operation through that project's target worktree store."
+        "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target worktree store."
       ),
       target_confirmed: external_exports.literal(true).optional().describe(
         "Required for untrusted target_path mutation. Confirms the target project was explicitly approved."
@@ -76134,7 +76142,7 @@ var init_adv_worktree = __esm({
           branch: external_exports.string().describe("Branch name for the worktree (e.g., 'feature/dark-mode')"),
           base: external_exports.string().optional().describe("Base branch to create from (defaults to HEAD)"),
           force: external_exports.boolean().optional().describe("Force creation even if branch exists"),
-          changeId: external_exports.string().optional().describe("Existing ADV change ID to resume."),
+          changeId: external_exports.string().optional().describe("Existing Determinus change ID to resume."),
           resume: external_exports.boolean().optional().describe("Resume an existing worktree instead of creating a new one."),
           ...targetWorktreeMutationArgSchemas
         },
@@ -76246,7 +76254,7 @@ var init_adv_worktree = __esm({
         }
       },
       determinus_worktree_cleanup: {
-        description: "Discover terminal cleanup candidates and retry queued worktree deletions. Safe: skips worktrees still used as a process CWD, preserves dirty/unmerged unsafe worktrees, and keeps retained items queued. Opt-in mode=archived_branches instead scans local change/* branches tied to archived ADV changes, detects fully-merged ones (squash-merge-safe), and deletes the safe ones \u2014 post-merge branch hygiene moved here from the retired archive-repair surface so worktree cleanup has a single recovery purpose.",
+        description: "Discover terminal cleanup candidates and retry queued worktree deletions. Safe: skips worktrees still used as a process CWD, preserves dirty/unmerged unsafe worktrees, and keeps retained items queued. Opt-in mode=archived_branches instead scans local change/* branches tied to archived Determinus changes, detects fully-merged ones (squash-merge-safe), and deletes the safe ones \u2014 post-merge branch hygiene moved here from the retired archive-repair surface so worktree cleanup has a single recovery purpose.",
         args: {
           reason: external_exports.string().describe("Brief explanation of why you are running cleanup"),
           dryRun: external_exports.boolean().optional().describe(
@@ -76262,7 +76270,7 @@ var init_adv_worktree = __esm({
             `Optional wall-clock timeout for the cleanup pass. Defaults to ${WORKTREE_TOOL_SAFE_TIMEOUT_MS}ms (the safe tool budget below these tools' 50s execute override). Values exceeding the safe budget are clamped automatically. The effective timeout is reported in the response as effectiveTimeoutMs. Applies to both mode=worktrees and mode=archived_branches; in archived_branches mode the helper self-bounds and returns typed partial results (partial:true + omissions) rather than a hard timeout when the budget is exhausted.`
           ),
           mode: external_exports.enum(["worktrees", "archived_branches"]).optional().describe(
-            "worktrees (default) = retry queued worktree deletions; archived_branches = opt-in scan/delete of fully-merged local change/* branches tied to archived ADV changes (operator-explicit, rq-archiveBranchCleanup01)"
+            "worktrees (default) = retry queued worktree deletions; archived_branches = opt-in scan/delete of fully-merged local change/* branches tied to archived Determinus changes (operator-explicit, rq-archiveBranchCleanup01)"
           ),
           changeId: external_exports.string().optional().describe(
             "Optional archived change ID restricting mode=archived_branches to a single change"
@@ -76288,7 +76296,7 @@ var init_adv_worktree = __esm({
       },
       /* Internal-only handler retained for future maintenance callers. */
       determinus_worktree_detach: {
-        description: "Operator-only directory-only worktree detach. Removes only the worktree directory for a set of exact branches, preserves the local branch and ADV change record, and writes a durable dematerialize receipt on the owning change workflow. Requires approvalEvidence in apply mode. Never invoked by reapers, triage, startup cleanup, or migration automation.",
+        description: "Operator-only directory-only worktree detach. Removes only the worktree directory for a set of exact branches, preserves the local branch and Determinus change record, and writes a durable dematerialize receipt on the owning change workflow. Requires approvalEvidence in apply mode. Never invoked by reapers, triage, startup cleanup, or migration automation.",
         args: {
           branches: external_exports.array(external_exports.string().min(1)).min(1).describe(
             "Exact branch identifiers to detach (no globbing or age inference)"
@@ -76375,10 +76383,10 @@ var init_adv_invoke = __esm({
     ]);
     advInvokeTools = {
       determinus_tool_invoke: {
-        description: "Invoke a canonical ADV tool by exact name with typed arguments. Dispatches through the same wrapped ToolDefinition.execute path used by direct calls, preserving ToolContext, validation, authorization, approvals, recovery restrictions, and timeouts.",
+        description: "Invoke a canonical Determinus tool by exact name with typed arguments. Dispatches through the same wrapped ToolDefinition.execute path used by direct calls, preserving ToolContext, validation, authorization, approvals, recovery restrictions, and timeouts.",
         args: {
           name: external_exports.string().min(1).describe(
-            "Exact canonical ADV tool name to invoke (e.g. determinus_change_show)"
+            "Exact canonical Determinus tool name to invoke (e.g. determinus_change_show)"
           ),
           args: external_exports.record(external_exports.string(), external_exports.unknown()).describe(
             "Arguments object for the target tool; must match the target's canonical Zod schema"
@@ -76939,17 +76947,17 @@ function createDegradedToolMap(initError, directory) {
   const payload = JSON.stringify(
     {
       status: "determinus_PLUGIN_INIT_FAILED",
-      message: "ADV plugin failed to initialize. Every determinus_* tool is stubbed until the underlying issue is resolved. Restart the OpenCode session after applying a fix.",
+      message: "Determinus plugin failed to initialize. Every determinus_* tool is stubbed until the underlying issue is resolved. Restart the OpenCode session after applying a fix.",
       error: initError.message,
       directory,
       remediation: [
-        "Run `pnpm --filter @sharperflow/advance build` from the repo root (or `pnpm build` in plugin/) to ensure plugin/dist/ is current",
+        "Run `pnpm --dir plugin run build` from the repo root to ensure plugin/dist/ is current",
         "Check ~/.config/opencode/opencode.json \u2014 the .plugin array must point to the built plugin directory",
-        "If project.json is present, verify it is valid JSON and matches the ADV ProjectConfig schema",
+        "If project.json is present, verify it is valid JSON and matches the Determinus ProjectConfig schema",
         "Check the ADV external state dir (~/.local/share/opencode/plugins/advance/{project-id}/) for malformed change/spec JSON; repair the artifact, then restart OpenCode",
         "Set determinus_DEBUG=1 in your shell and restart OpenCode to capture init errors in $determinus_CACHE_DIR/determinus-debug.log"
       ],
-      readinessHint: "When initialized, ADV mutation tools are gated per-target by a session-readiness probe. If the target queue is not yet adopted, mutations return determinus_SESSION_NOT_READY. Set determinus_SESSION_READINESS_BYPASS=1 to skip this gate (tests/dev only). This degraded stub is not a readiness authority and cannot know the per-target queue state."
+      readinessHint: "When initialized, Determinus mutation tools are gated per-target by a session-readiness probe. If the target queue is not yet adopted, mutations return determinus_SESSION_NOT_READY. Set determinus_SESSION_READINESS_BYPASS=1 to skip this gate (tests/dev only). This degraded stub is not a readiness authority and cannot know the per-target queue state."
     },
     null,
     2
@@ -76958,7 +76966,7 @@ function createDegradedToolMap(initError, directory) {
   const map11 = {};
   for (const name of DIRECT_TOOL_NAMES) {
     map11[name] = registerTool(
-      `[ADV plugin init failed \u2014 ${name} stub] ${initError.message.slice(0, 160)} (readiness hint: when initialized, mutation tools may be gated by session readiness; set determinus_SESSION_READINESS_BYPASS=1 to skip)`,
+      `[Determinus plugin init failed \u2014 ${name} stub] ${initError.message.slice(0, 160)} (readiness hint: when initialized, mutation tools may be gated by session readiness; set determinus_SESSION_READINESS_BYPASS=1 to skip)`,
       {},
       namedExecute(name, stubExecute)
     );
@@ -77032,7 +77040,7 @@ var init_tool_registry = __esm({
     ]);
     toolCatalogTools = {
       determinus_tool_catalog: {
-        description: "Bounded read-only catalog of all canonical ADV tools. Returns each tool's name, description, argument keys, and visibility metadata (realm, group, lifecycle gates, risk, recovery-only). Restriction labels are descriptive only and do not grant access.",
+        description: "Bounded read-only catalog of all canonical Determinus tools. Returns each tool's name, description, argument keys, and visibility metadata (realm, group, lifecycle gates, risk, recovery-only). Restriction labels are descriptive only and do not grant access.",
         args: {
           limit: external_exports.number().int().min(1).max(100).optional().describe(
             "Maximum number of catalog entries to return (1-100, default 50)"
@@ -77074,10 +77082,10 @@ var init_tool_registry = __esm({
         }
       },
       determinus_tool_describe: {
-        description: "Describe a single canonical ADV tool by exact name. Returns metadata, argument keys, and a JSON Schema representation of the tool's input arguments. Does not execute the tool or grant access.",
+        description: "Describe a single canonical Determinus tool by exact name. Returns metadata, argument keys, and a JSON Schema representation of the tool's input arguments. Does not execute the tool or grant access.",
         args: {
           name: external_exports.string().min(1).describe(
-            "Exact canonical ADV tool name (e.g. determinus_change_show)"
+            "Exact canonical Determinus tool name (e.g. determinus_change_show)"
           )
         },
         execute: async (args2, _store) => {
@@ -77190,7 +77198,7 @@ var init_tool_role_policy = __esm({
     TOOL_ROLE_POLICY = {
       // ── Operator-only (9) ────────────────────────────────────────────────
       // Maintenance/recovery tools with destructive, wedged-state, or store-level
-      // blast radius. Grantable only to the ADV orchestrator, which invokes them
+      // blast radius. Grantable only to the Determinus orchestrator, which invokes them
       // solely on explicit operator instruction with approval evidence (C6).
       // ── Dual (8) ─────────────────────────────────────────────────────────
       // Read actions agent-reachable; mutation/refresh surfaces operator-owned.
@@ -77215,7 +77223,7 @@ var init_tool_role_policy = __esm({
         operatorActions: []
       },
       // ── Orchestrator (63) ────────────────────────────────────────────────
-      // Routine ADV command-workflow and agent tools. Several mutations remain
+      // Routine Determinus command-workflow and agent tools. Several mutations remain
       // approval-gated, driven by the orchestrator through gate/command workflows
       // with human checkpoints. Safety-distinct families (archive/purge/repair,
       // task checkpoint/update/cancel, projection repair, cross-project trust
@@ -77342,7 +77350,7 @@ var init_tool_role_policy = __esm({
       },
       determinus_tool_catalog: {
         class: "orchestrator",
-        rationale: "Read-only bounded catalog of canonical ADV tools; descriptive visibility metadata only."
+        rationale: "Read-only bounded catalog of canonical Determinus tools; descriptive visibility metadata only."
       },
       determinus_tool_describe: {
         class: "orchestrator",
@@ -77379,77 +77387,77 @@ var init_tool_role_policy = __esm({
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "ADV orchestrator: Tier 1 direct surface (16 entries). All other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Determinus orchestrator: Tier 1 direct surface (16 entries). All other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "determinus-ci-waiter",
         allowed: [],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "CI-only poller driving the oc-ci-wait CLI via bash; no ADV tool is part of its documented responsibility."
+        rationale: "CI-only poller driving the oc-ci-wait CLI via bash; no Determinus tool is part of its documented responsibility."
       },
       {
         agent: "determinus-designer",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "determinus-engineer",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "determinus-researcher",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "determinus-reviewer",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "determinus-tron",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "determinus-verifier",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "determinus-visual-review",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "build",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       },
       {
         agent: "plan",
         allowed: [...TIER_1_ALLOWLIST],
         explicitBlocked: [],
         denyWildcard: true,
-        rationale: "Tier 1 surface only; all other ADV tools dispatched through determinus_tool_invoke."
+        rationale: "Tier 1 surface only; all other Determinus tools dispatched through determinus_tool_invoke."
       }
     ];
     SPAWNABLE_SUBAGENT_ROSTER = Object.freeze([
@@ -77620,7 +77628,9 @@ function runtimeFrontmatterCheck(budgetMs = 300, dirs) {
         const result3 = parseFrontmatter(fullPath);
         if (!result3.ok) {
           failures++;
-          console.warn(`[ADV] frontmatter: ${fullPath} \u2014 ${result3.error}`);
+          console.warn(
+            `[Determinus] frontmatter: ${fullPath} \u2014 ${result3.error}`
+          );
         }
       }
     }
@@ -77632,12 +77642,12 @@ function runtimeFrontmatterCheck(budgetMs = 300, dirs) {
   const budgetExceeded = elapsedMs > budgetMs;
   if (failures > 0) {
     console.warn(
-      `[ADV] frontmatter: ${failures} unparseable manifest(s) in ${checked} checked (${elapsedMs.toFixed(0)}ms)`
+      `[Determinus] frontmatter: ${failures} unparseable manifest(s) in ${checked} checked (${elapsedMs.toFixed(0)}ms)`
     );
   }
   if (budgetExceeded) {
     console.warn(
-      `[ADV] frontmatter: scan budget exceeded (${elapsedMs.toFixed(0)}ms > ${budgetMs}ms), some files not checked`
+      `[Determinus] frontmatter: scan budget exceeded (${elapsedMs.toFixed(0)}ms > ${budgetMs}ms), some files not checked`
     );
   }
   return { checked, failures, elapsedMs, budgetExceeded };
@@ -100181,7 +100191,7 @@ async function resolvePrimaryProjectId(input) {
     return {
       productProjectId: input.repoProjectId,
       degraded: true,
-      warning: "Product primary could not be resolved; isolated policy uses repo-local ADV state."
+      warning: "Product primary could not be resolved; isolated policy uses repo-local Determinus state."
     };
   }
   throw new ProductContextError(
@@ -100461,7 +100471,7 @@ async function resolveProjectContext(directory, project, worktree) {
 }
 
 // src/utils/system-block.ts
-var VOLATILE_SENTINEL = "--- ADV:VOLATILE ---";
+var VOLATILE_SENTINEL = "--- Determinus:VOLATILE ---";
 var INTERNAL_CALL_PATTERNS = [
   /You are a title generator\. You output ONLY a thread title/i,
   /You are a context summarization agent\./i,
@@ -100474,26 +100484,26 @@ function isInternalCall(existingSystem) {
 function formatDegradedBanner(error51, stage) {
   const stageMsg = stage === "factory" ? "Plugin factory threw before initialization completed" : "Plugin store initialization failed";
   return [
-    `[ADV:DEGRADED] ADV plugin is running in degraded mode \u2014 ${stageMsg}.`,
+    `[Determinus:DEGRADED] Determinus plugin is running in degraded mode \u2014 ${stageMsg}.`,
     `Reason: ${error51.message}`,
     "Every `determinus_*` tool is stubbed and will return determinus_PLUGIN_INIT_FAILED.",
-    "\xD7 Do NOT proceed with any ADV workflow (proposal, discover, design, prep, apply, review, harden, archive). They will silently break.",
+    "\xD7 Do NOT proceed with any Determinus workflow (proposal, discover, design, prep, apply, review, harden, archive). They will silently break.",
     "\u2713 Allowed in this mode: read files, surface this diagnosis, recommend remediation, run /determinus-idea or /determinus-problem (no tool calls required).",
     "\xD7 Forbidden in this mode: drafting markdown as substitute for determinus_change_create, fabricating change-ids or gate transitions, declaring tools 'unavailable' without surfacing this banner verbatim.",
-    "Remediation: rebuild the plugin (`pnpm --filter @sharperflow/advance build`), confirm `~/.config/opencode/opencode.json` plugin path is current, then restart OpenCode."
+    "Remediation: rebuild the plugin (`pnpm --dir plugin run build` from the repo root), confirm `~/.config/opencode/opencode.json` plugin path is current, then restart OpenCode."
   ].join("\n");
 }
 function formatSessionHealthBanner(issue2, changeId) {
-  const changeHint = changeId ? ` Known active change: ${changeId}. Open a fresh OpenCode session and resume by changeId.` : " Open a fresh OpenCode session and resume by changeId if this was ADV work.";
+  const changeHint = changeId ? ` Known active change: ${changeId}. Open a fresh OpenCode session and resume by changeId.` : " Open a fresh OpenCode session and resume by changeId if this was Determinus work.";
   return [
-    `[ADV:SESSION_HEALTH] ${issue2.kind}: ${issue2.message}`,
+    `[Determinus:SESSION_HEALTH] ${issue2.kind}: ${issue2.message}`,
     "Current session may be unsafe to continue from chat history.",
     `${changeHint} Do not rely on prior chat history as source of truth.`
   ].join("\n");
 }
 function formatPluginBundleStaleBanner(freshness) {
   return [
-    "[ADV:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale.",
+    "[Determinus:PLUGIN_BUNDLE_STALE] Loaded plugin bundle is stale.",
     `Loaded generation: ${freshness.loadedGeneration ?? "unknown"}`,
     `Deployed generation: ${freshness.deployedGeneration ?? "unknown"}`,
     `${freshness.recovery}`
@@ -100521,12 +100531,12 @@ function pluginBundleStaleSection(input) {
 function worktreeSection(input) {
   const { isWorktree, activeChange } = input.state;
   if (!isWorktree || !activeChange.id) return null;
-  return `[ADV:WORKTREE_SESSION] You are working in a git worktree. Active change: ${activeChange.id}. All ADV state (changes, tasks, wisdom) is shared via external storage. Use determinus_change_show and determinus_task_ready to pick up where the parent session left off.`;
+  return `[Determinus:WORKTREE_SESSION] You are working in a git worktree. Active change: ${activeChange.id}. All Determinus state (changes, tasks, wisdom) is shared via external storage. Use determinus_change_show and determinus_task_ready to pick up where the parent session left off.`;
 }
 function activeChangeSection(input) {
   const { activeChange } = input.state;
   if (!activeChange.id) return null;
-  return `[ADV] Active change: ${activeChange.id}`;
+  return `[Determinus] Active change: ${activeChange.id}`;
 }
 function wisdomPromptSection(input) {
   const pending = input.state.pendingWisdomDraftTasks ?? [];
@@ -100535,7 +100545,7 @@ function wisdomPromptSection(input) {
   const taskLines = pending.map(
     (t) => `  - Task "${t.title}" (${t.id}): ${t.count} draft(s) pending review`
   ).join("\n");
-  return `[ADV:WISDOM_DRAFTS] ${totalDrafts} wisdom draft(s) pending review across ${pending.length} task(s).
+  return `[Determinus:WISDOM_DRAFTS] ${totalDrafts} wisdom draft(s) pending review across ${pending.length} task(s).
 ${taskLines}
 Promote via determinus_wisdom_add from_draft_id, or dismiss explicitly. Unreviewed drafts will be auto-dismissed at checkpoint.`;
 }
@@ -100603,7 +100613,7 @@ var DEFAULT_COMPACTION_MAX_BYTES = 8e3;
 function formatSpecsSummary(specs) {
   if (specs.length === 0) return null;
   const lines = [
-    "=== ADV SPECS CONTEXT ===",
+    "=== Determinus SPECS CONTEXT ===",
     `Project has ${specs.length} spec(s):`,
     ...specs.slice(0, 5).map((s) => `- ${s.name}: ${s.title}`),
     specs.length > 5 ? `... and ${specs.length - 5} more` : "",
@@ -100628,7 +100638,7 @@ function formatStaleLedgerRemediation(tasks, gates) {
   const shouldWarn = hasPendingWork && hasTerminalWork || allTasksTerminal;
   if (!shouldWarn) return null;
   return [
-    "=== ADV STALE LEDGER REMEDIATION ===",
+    "=== Determinus STALE LEDGER REMEDIATION ===",
     "\u26A0 No active task remains while execution is incomplete.",
     "Remediation:",
     "- call determinus_change_show with include.snapshot=true and include.readyTasks=true",
@@ -100639,7 +100649,7 @@ function formatStaleLedgerRemediation(tasks, gates) {
 }
 function applyByteBudget(text, maxBytes) {
   if (text.length <= maxBytes) return text;
-  const marker = "\n\n[... ADV compaction truncated for size budget ...]";
+  const marker = "\n\n[... Determinus compaction truncated for size budget ...]";
   return text.slice(0, Math.max(0, maxBytes - marker.length)) + marker;
 }
 function buildCompactionContext(input) {
@@ -100905,7 +100915,7 @@ function evaluateTarget(context3, deps) {
       return {
         decision: "BLOCK",
         targetPath: context3.targetPath,
-        reason: `Trunk write firewall: direct file write to trunk checkout is blocked because git state could not be verified (${context3.targetPath}). Create or use an ADV worktree instead.`
+        reason: `Trunk write firewall: direct file write to trunk checkout is blocked because git state could not be verified (${context3.targetPath}). Create or use an Determinus worktree instead.`
       };
     }
     return { decision: "ALLOW", targetPath: context3.targetPath };
@@ -100916,7 +100926,7 @@ function evaluateTarget(context3, deps) {
     return {
       decision: "BLOCK",
       targetPath: context3.targetPath,
-      reason: `Trunk write firewall: direct file write to trunk checkout is blocked because the default branch could not be verified (${context3.targetPath}). Create or use an ADV worktree instead.`
+      reason: `Trunk write firewall: direct file write to trunk checkout is blocked because the default branch could not be verified (${context3.targetPath}). Create or use an Determinus worktree instead.`
     };
   }
   if (context3.isEligibleWorktree)
@@ -100935,7 +100945,7 @@ function evaluateTarget(context3, deps) {
   return {
     decision: "BLOCK",
     targetPath: context3.targetPath,
-    reason: `Trunk write firewall: direct file write to trunk checkout on default branch is blocked (${context3.targetPath}). Create or use an ADV worktree instead.`
+    reason: `Trunk write firewall: direct file write to trunk checkout on default branch is blocked (${context3.targetPath}). Create or use an Determinus worktree instead.`
   };
 }
 async function checkTrunkWrite(targetPath, deps) {
@@ -101207,7 +101217,7 @@ function evaluateTodoWriteGuard(input) {
   if (input.scope.degraded) {
     return {
       kind: "warn",
-      message: `TodoWrite ADV guard warning: ${input.scope.reason ?? "ADV state unavailable"}`
+      message: `TodoWrite Determinus guard warning: ${input.scope.reason ?? "Determinus state unavailable"}`
     };
   }
   const activeChangeId = input.scope.activeChangeId;
@@ -101226,7 +101236,7 @@ function evaluateTodoWriteGuard(input) {
       if (!task) {
         return {
           kind: "block",
-          message: `TodoWrite references unknown ADV task ${taskId}. Use the ADV task projection for ${activeChangeId}.`
+          message: `TodoWrite references unknown Determinus task ${taskId}. Use the Determinus task projection for ${activeChangeId}.`
         };
       }
       if (task.changeId !== activeChangeId) {
@@ -101238,7 +101248,7 @@ function evaluateTodoWriteGuard(input) {
       if (status === "completed" && task.status !== "done") {
         return {
           kind: "block",
-          message: `TodoWrite cannot mark ${taskId} completed until ADV task state is done.`
+          message: `TodoWrite cannot mark ${taskId} completed until Determinus task state is done.`
         };
       }
     }
@@ -101246,7 +101256,7 @@ function evaluateTodoWriteGuard(input) {
   if (sawNoIdTodo) {
     return {
       kind: "warn",
-      message: "TodoWrite ADV guard warning: entries without tk-* IDs are scratchpad-only during active ADV execution."
+      message: "TodoWrite Determinus guard warning: entries without tk-* IDs are scratchpad-only during active Determinus execution."
     };
   }
   return { kind: "allow" };
@@ -101261,18 +101271,23 @@ async function authorizeMorphWorktree(args2, sessionID, deps) {
   const taskId = typeof args2.taskId === "string" ? args2.taskId : null;
   if (!workdir && !taskId) return;
   if (!workdir || !taskId) {
-    throw new Error("Morph ADV workdir requires both workdir and taskId");
+    throw new Error(
+      "Morph Determinus workdir requires both workdir and taskId"
+    );
   }
   const changeId = await deps.getTaskChangeId(taskId);
   if (!changeId || !await deps.isSetupReady(changeId)) {
-    throw new Error("Morph ADV workdir task is not setup-ready");
+    throw new Error("Morph Determinus workdir task is not setup-ready");
   }
   const expectedRoot = deps.getExpectedRoot(changeId);
-  if (!expectedRoot) throw new Error("Morph ADV workdir has no expected root");
+  if (!expectedRoot)
+    throw new Error("Morph Determinus workdir has no expected root");
   const canonicalRequested = deps.canonicalize(workdir);
   const canonicalExpected = deps.canonicalize(expectedRoot);
   if (canonicalRequested !== canonicalExpected) {
-    throw new Error("Morph ADV workdir does not match its task worktree");
+    throw new Error(
+      "Morph Determinus workdir does not match its task worktree"
+    );
   }
   Object.defineProperty(args2, determinus_MORPH_WORKTREE_CAPABILITY, {
     value: { root: canonicalExpected, taskId, sessionID },
@@ -102318,7 +102333,7 @@ var isProtectedToolType = (toolName) => toolName.length > 0 && PROTECTED_TOOL_TY
 var isRecord3 = (value3) => typeof value3 === "object" && value3 !== null;
 var isDiskChangeReachable = async (changesDir, changeId) => existsSync17(join57(changesDir, changeId, "change.json"));
 var normalizeToolTargetPath = (targetPath, basePath) => isAbsolute8(targetPath) ? targetPath : resolve26(basePath, targetPath);
-var dropToolOutput = (source, text) => `[ADV:OUTPUT_DROPPED] ${source} produced ${text.length} chars. Full content removed from model prompt to keep the session resumable.`;
+var dropToolOutput = (source, text) => `[Determinus:OUTPUT_DROPPED] ${source} produced ${text.length} chars. Full content removed from model prompt to keep the session resumable.`;
 var DEFAULT_FALLBACK_SINK_DIR = "/tmp/opencode";
 var FALLBACK_EXCERPT_CHARS = 500;
 var fallbackSinkDir = () => process.env.determinus_FALLBACK_SINK_DIR ?? DEFAULT_FALLBACK_SINK_DIR;
@@ -102339,7 +102354,7 @@ var fallbackPersistedMarker = (source, content, filePath) => {
   const shown = Math.min(content.length, FALLBACK_EXCERPT_CHARS);
   const elided = content.length - shown;
   const excerpt = content.slice(0, FALLBACK_EXCERPT_CHARS);
-  return `[ADV:FALLBACK_RESULT_PERSISTED] ${source} returned ${content.length} chars (${elided} elided). Full content at ${filePath}. First ${shown} chars: ${excerpt}`;
+  return `[Determinus:FALLBACK_RESULT_PERSISTED] ${source} returned ${content.length} chars (${elided} elided). Full content at ${filePath}. First ${shown} chars: ${excerpt}`;
 };
 var compactToolPart = (part) => {
   if (!isRecord3(part) || part.type !== "tool") return false;
@@ -102428,7 +102443,7 @@ ${banner}` : banner;
     }
   };
 }
-var advancePluginImpl = async (input) => {
+var determinusPluginImpl = async (input) => {
   const { directory, worktree, project, client } = input;
   const gitSession = resolveGitSessionContext(directory, worktree);
   const { isWorktree, isMainCheckout } = gitSession;
@@ -102492,7 +102507,7 @@ var advancePluginImpl = async (input) => {
           `Peer sessions detected: ${peerCount} (PIDs ${peerSessions.map((p) => p.pid).join(", ")})`
         );
         hooksLogger.info(
-          `[ADV:PEER_SESSIONS] ${peerCount} peer session(s) active in this project.`
+          `[Determinus:PEER_SESSIONS] ${peerCount} peer session(s) active in this project.`
         );
       }
       const allCwds = [directory, ...peerSessions.map((p) => p.cwd)];
@@ -102500,7 +102515,7 @@ var advancePluginImpl = async (input) => {
       const sameWorktree = allCwds.filter((cwd) => cwd === myWorktree);
       if (sameWorktree.length > 1) {
         hooksLogger.info(
-          `[ADV:WORKTREE_OCCUPANCY] ${sameWorktree.length} sessions share this worktree. Nominal 1:1 violated; continuing allowed.`
+          `[Determinus:WORKTREE_OCCUPANCY] ${sameWorktree.length} sessions share this worktree. Nominal 1:1 violated; continuing allowed.`
         );
       }
     } catch (err) {
@@ -102512,7 +102527,7 @@ var advancePluginImpl = async (input) => {
     if (staleHead.stale) {
       debugLog3(`Stale HEAD detected: ${staleHead.reason}`);
       hooksLogger.warn(
-        `[ADV:WARN] Stale HEAD: ${staleHead.reason} \xE2\u20AC\u201D ${staleHead.suggestion}`
+        `[Determinus:WARN] Stale HEAD: ${staleHead.reason} \xE2\u20AC\u201D ${staleHead.suggestion}`
       );
     }
   } catch (err) {
@@ -102614,7 +102629,9 @@ var advancePluginImpl = async (input) => {
       const sessionID = typeof input2.sessionID === "string" ? input2.sessionID : "";
       if (!store || !worktreeStateAccess || !resolvedProjectId || !sessionID) {
         if (args2.workdir !== void 0 || args2.taskId !== void 0) {
-          throw new Error("Morph ADV workdir authorization is unavailable");
+          throw new Error(
+            "Morph Determinus workdir authorization is unavailable"
+          );
         }
       } else {
         await authorizeMorphWorktree(args2, sessionID, {
@@ -102765,7 +102782,7 @@ var advancePluginImpl = async (input) => {
         } catch (error51) {
           const message = error51 instanceof Error ? error51.message : String(error51);
           if (message.startsWith("TodoWrite ")) throw error51;
-          debugLog3(`TodoWrite ADV guard warning: ${message}`);
+          debugLog3(`TodoWrite Determinus guard warning: ${message}`);
         }
       }
     }
@@ -103022,19 +103039,19 @@ var advancePluginImpl = async (input) => {
     },
     // Context Injection Hook (Continuation & Wisdom)
     //
-    // Single ordered emit per AC1: assembles the entire ADV system-context
+    // Single ordered emit per AC1: assembles the entire Determinus system-context
     // block in `applyAdvSystemBlock` and writes it to `output.system[0]`.
     // No `output.system.push` calls here â€” multi-block emission breaks the
     // OpenAI-compat provider (assistant-prefilling rejection).
     //
     // Markers composed by `applyAdvSystemBlock` (defined in
     // `utils/system-block.ts`):
-    //   - [ADV:DEGRADED]              (degraded-mode banner)
-    //   - [ADV:SESSION_HEALTH]        (session-health banner)
-    //   - [ADV:PLUGIN_BUNDLE_STALE]   (deployed plugin bundle newer than loaded)
-    //   - [ADV:WORKTREE_SESSION]      (worktree marker)
-    //   - [ADV] Active change         (active change line)
-    //   - [ADV:RECORD_WISDOM]         (wisdom recording prompt â€” append-only)
+    //   - [Determinus:DEGRADED]              (degraded-mode banner)
+    //   - [Determinus:SESSION_HEALTH]        (session-health banner)
+    //   - [Determinus:PLUGIN_BUNDLE_STALE]   (deployed plugin bundle newer than loaded)
+    //   - [Determinus:WORKTREE_SESSION]      (worktree marker)
+    //   - [Determinus] Active change         (active change line)
+    //   - [Determinus:RECORD_WISDOM]         (wisdom recording prompt â€” append-only)
     //
     "determinus.system.turn": async (input2, output) => {
       try {
@@ -103167,7 +103184,8 @@ var advancePluginImpl = async (input) => {
     }
   };
 };
-var AdvancePlugin = advancePluginImpl;
+var DeterminusPlugin = determinusPluginImpl;
+var AdvancePlugin = DeterminusPlugin;
 var src_default = plugin_exports.define({
   id: "determinus",
   setup: async (ctx) => {
@@ -103208,10 +103226,10 @@ var src_default = plugin_exports.define({
     };
     let hooks;
     try {
-      hooks = await advancePluginImpl(shimInput);
+      hooks = await determinusPluginImpl(shimInput);
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
-      debugLog3(`advancePluginImpl threw in v2 wrapper: ${err.message}`);
+      debugLog3(`determinusPluginImpl threw in v2 wrapper: ${err.message}`);
       hooks = buildFactoryFailureHooks(err, directory);
     }
     const toolMap = hooks.tool ?? {};
@@ -103225,7 +103243,7 @@ var src_default = plugin_exports.define({
             name,
             description: def.description ?? name,
             input: inputSchema,
-            // ADV's direct surface is intentionally available through the
+            // Determinus's direct surface is intentionally available through the
             // Code Mode executor as `tools.determinus_change_*`.  Be explicit: the
             // SDK defaults this today, but an omitted option made this
             // migration depend on a host default and left the tools absent
@@ -103512,6 +103530,7 @@ var src_default = plugin_exports.define({
 });
 export {
   AdvancePlugin,
+  DeterminusPlugin,
   compactPromptMessages,
   compactToolPart,
   compactV2ToolResultPart,

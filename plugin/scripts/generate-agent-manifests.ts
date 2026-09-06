@@ -2,10 +2,10 @@
 /**
  * Agent manifest generator.
  *
- * Rewrites the ADV-generated portion of each legacy-managed agent's `tools:`
+ * Rewrites the Determinus-generated portion of each legacy-managed agent's `tools:`
  * YAML frontmatter block from the single source of truth in
  * `AGENT_TOOL_POLICY`. The generator is marker-bounded: it preserves every
- * byte outside the `# >>> ADV-GENERATED ...` / `# <<< ADV-GENERATED ...`
+ * byte outside the `# >>> Determinus-GENERATED ...` / `# <<< Determinus-GENERATED ...`
  * sentinel pair and regenerates only the content between them.
  *
  * Scope: only manifests carrying the sentinel pair are managed. Sentinel-free
@@ -131,7 +131,7 @@ function findMarkerLines(lines: string[]): {
 
   if (startIndexes.length !== 1 || endIndexes.length !== 1) {
     throw new Error(
-      `Incomplete marker pair: expected exactly one ADV-GENERATED marker pair, found ${startIndexes.length} start markers and ${endIndexes.length} end markers`,
+      `Incomplete marker pair: expected exactly one Determinus-GENERATED marker pair, found ${startIndexes.length} start markers and ${endIndexes.length} end markers`,
     );
   }
 
@@ -139,7 +139,7 @@ function findMarkerLines(lines: string[]): {
   const endIndex = endIndexes[0];
   if (startIndex >= endIndex) {
     throw new Error(
-      `Malformed ADV-GENERATED marker pair: start index ${startIndex} is not before end index ${endIndex}`,
+      `Malformed Determinus-GENERATED marker pair: start index ${startIndex} is not before end index ${endIndex}`,
     );
   }
 
@@ -163,7 +163,7 @@ function groupGeneratedBlock(
 }
 
 const GENERATED_COMMENT_LINES = new Set([
-  "  # ADV tool grants (generated from AGENT_TOOL_POLICY — do not edit by hand)",
+  "  # Determinus tool grants (generated from AGENT_TOOL_POLICY — do not edit by hand)",
   "  # Default-deny wildcard",
   "  # Allowed",
   "  # Explicitly blocked",

@@ -3,7 +3,7 @@
  *
  * Purpose-specific append-only audit log for `determinus_change_projection_quarantine`.
  * Every successful quarantine appends one durable audit entry outside the
- * ADV Agenda/planning/gate/backlog/Epic state. The log is read-only for
+ * Determinus Agenda/planning/gate/backlog/Epic state. The log is read-only for
  * operators; it is never consumed by change lifecycle or task selection logic.
  *
  * Mirrors the snapshot-repair-audit pattern: append-only JSONL, file-lock
@@ -48,7 +48,7 @@ export type ChangeProjectionQuarantineOutcome = z.infer<
 export interface ChangeProjectionQuarantineAuditEntry {
   /** Unique audit entry id (cqpq-{nanoid(8)}). */
   id: string;
-  /** ADV project ID that owns the quarantined change projection. */
+  /** Determinus project ID that owns the quarantined change projection. */
   project_id: string;
   /** Change ID whose active projection was quarantined. */
   change_id: string;

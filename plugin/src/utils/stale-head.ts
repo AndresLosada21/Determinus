@@ -8,7 +8,7 @@
  * basis-of-fork or rebase will silently use stale state.
  *
  * **Warn-only.** This module never mutates branch state; the caller emits
- * a `[ADV:WARN]` and proceeds. Recovery is the user's responsibility.
+ * a `[Determinus:WARN]` and proceeds. Recovery is the user's responsibility.
  *
  * Acceptance test #6 (partial). Detection layer here; create-time block
  * lives in T10 (`determinus_worktree_create`) once it lands.

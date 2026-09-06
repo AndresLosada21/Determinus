@@ -76,7 +76,7 @@ function resolveOpencodeBinary(): string | null {
 
 describe("VOLATILE_SENTINEL", () => {
   it("is the documented divider string per AC8 and design F3", () => {
-    expect(VOLATILE_SENTINEL).toBe("--- ADV:VOLATILE ---");
+    expect(VOLATILE_SENTINEL).toBe("--- Determinus:VOLATILE ---");
   });
 });
 
@@ -100,7 +100,9 @@ describe("isInternalCall", () => {
 
   it("returns false for an ordinary system prompt", () => {
     expect(
-      isInternalCall("You are working on ADV change makeFooBar. Use tools."),
+      isInternalCall(
+        "You are working on Determinus change makeFooBar. Use tools.",
+      ),
     ).toBe(false);
   });
 
@@ -128,9 +130,9 @@ describe("isInternalCall", () => {
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
 describe("formatDegradedBanner", () => {
-  it("includes [ADV:DEGRADED] marker and stage text for factory failures", () => {
+  it("includes [Determinus:DEGRADED] marker and stage text for factory failures", () => {
     const banner = formatDegradedBanner(new Error("boom"), "factory");
-    expect(banner).toContain("[ADV:DEGRADED]");
+    expect(banner).toContain("[Determinus:DEGRADED]");
     expect(banner).toContain(
       "Plugin factory threw before initialization completed",
     );
@@ -154,7 +156,7 @@ describe("formatSessionHealthBanner", () => {
       },
       "myChange",
     );
-    expect(banner).toContain("[ADV:SESSION_HEALTH]");
+    expect(banner).toContain("[Determinus:SESSION_HEALTH]");
     expect(banner).toContain("session.error");
     expect(banner).toContain("session crashed");
     expect(banner).toContain("myChange");
@@ -216,7 +218,7 @@ describe("assembleSystemBlock", () => {
         }),
       );
       expect(block).not.toBeNull();
-      expect(block).toContain("[ADV] Active change: c1");
+      expect(block).toContain("[Determinus] Active change: c1");
     });
   });
 
@@ -232,13 +234,13 @@ describe("assembleSystemBlock", () => {
       const block = assembleSystemBlock(
         cleanInput({ initError: new Error("init failed") }),
       );
-      expect(block).toContain("[ADV:DEGRADED]");
+      expect(block).toContain("[Determinus:DEGRADED]");
       expect(block).toContain("init failed");
     });
 
     it("emits degraded banner when storeAvailable is false (no initError)", () => {
       const block = assembleSystemBlock(cleanInput({ storeAvailable: false }));
-      expect(block).toContain("[ADV:DEGRADED]");
+      expect(block).toContain("[Determinus:DEGRADED]");
       expect(block).toContain("Plugin store unavailable");
     });
   });
@@ -256,7 +258,7 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).toContain("[ADV:SESSION_HEALTH]");
+      expect(block).toContain("[Determinus:SESSION_HEALTH]");
       expect(block).toContain("boom");
     });
   });
@@ -271,7 +273,7 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).toContain("[ADV:WORKTREE_SESSION]");
+      expect(block).toContain("[Determinus:WORKTREE_SESSION]");
       expect(block).toContain("myChange");
     });
 
@@ -293,8 +295,8 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).not.toContain("[ADV:WORKTREE_SESSION]");
-      expect(block).toContain("[ADV] Active change: c1");
+      expect(block).not.toContain("[Determinus:WORKTREE_SESSION]");
+      expect(block).toContain("[Determinus] Active change: c1");
     });
   });
 
@@ -307,7 +309,7 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).toContain("[ADV] Active change: c1");
+      expect(block).toContain("[Determinus] Active change: c1");
       expect(block).not.toContain("Objective:");
     });
 
@@ -333,13 +335,13 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).toContain("[ADV:WISDOM_DRAFTS]");
+      expect(block).toContain("[Determinus:WISDOM_DRAFTS]");
       expect(block).toContain("tk-1");
       expect(block).toContain("Implement foo");
       expect(block).toContain("1 draft(s) pending review");
       expect(block).toContain("determinus_wisdom_add from_draft_id");
       // Retired sentinel must NOT appear anymore.
-      expect(block).not.toContain("[ADV:RECORD_WISDOM]");
+      expect(block).not.toContain("[Determinus:RECORD_WISDOM]");
     });
 
     it("aggregates drafts across multiple tasks", () => {
@@ -370,7 +372,7 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).not.toContain("[ADV:WISDOM_DRAFTS]");
+      expect(block).not.toContain("[Determinus:WISDOM_DRAFTS]");
     });
 
     it("does NOT emit when pendingWisdomDraftTasks is undefined (legacy callers)", () => {
@@ -381,10 +383,10 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).not.toContain("[ADV:WISDOM_DRAFTS]");
+      expect(block).not.toContain("[Determinus:WISDOM_DRAFTS]");
     });
 
-    it("retired [ADV:RECORD_WISDOM]: lastCompletedTask no longer drives the nudge", () => {
+    it("retired [Determinus:RECORD_WISDOM]: lastCompletedTask no longer drives the nudge", () => {
       // AC8 retires the old prompt. Even when lastCompletedTask is set,
       // no wisdom-section output fires unless drafts are pending.
       const block = assembleSystemBlock(
@@ -395,8 +397,8 @@ describe("assembleSystemBlock", () => {
           }),
         }),
       );
-      expect(block).not.toContain("[ADV:RECORD_WISDOM]");
-      expect(block).not.toContain("[ADV:WISDOM_DRAFTS]");
+      expect(block).not.toContain("[Determinus:RECORD_WISDOM]");
+      expect(block).not.toContain("[Determinus:WISDOM_DRAFTS]");
     });
   });
 
@@ -414,8 +416,8 @@ describe("assembleSystemBlock", () => {
       expect(block).toContain(VOLATILE_SENTINEL);
       // Stable comes before sentinel
       const sentinelIdx = block!.indexOf(VOLATILE_SENTINEL);
-      const activeIdx = block!.indexOf("[ADV] Active change");
-      const wisdomIdx = block!.indexOf("[ADV:WISDOM_DRAFTS]");
+      const activeIdx = block!.indexOf("[Determinus] Active change");
+      const wisdomIdx = block!.indexOf("[Determinus:WISDOM_DRAFTS]");
       expect(activeIdx).toBeLessThan(sentinelIdx);
       expect(sentinelIdx).toBeLessThan(wisdomIdx);
     });
@@ -446,7 +448,7 @@ describe("assembleSystemBlock", () => {
       );
       // Wisdom prompt fires; no stable content; no sentinel.
       expect(block).not.toBeNull();
-      expect(block).toContain("[ADV:WISDOM_DRAFTS]");
+      expect(block).toContain("[Determinus:WISDOM_DRAFTS]");
       expect(block).not.toContain(VOLATILE_SENTINEL);
     });
   });
@@ -469,13 +471,15 @@ describe("assembleSystemBlock", () => {
       );
       expect(block).not.toBeNull();
       const idx = (s: string) => block!.indexOf(s);
-      expect(idx("[ADV:DEGRADED]")).toBeGreaterThanOrEqual(0);
-      expect(idx("[ADV:DEGRADED]")).toBeLessThan(idx("[ADV:SESSION_HEALTH]"));
-      expect(idx("[ADV:SESSION_HEALTH]")).toBeLessThan(
-        idx("[ADV:WORKTREE_SESSION]"),
+      expect(idx("[Determinus:DEGRADED]")).toBeGreaterThanOrEqual(0);
+      expect(idx("[Determinus:DEGRADED]")).toBeLessThan(
+        idx("[Determinus:SESSION_HEALTH]"),
       );
-      expect(idx("[ADV:WORKTREE_SESSION]")).toBeLessThan(
-        idx("[ADV] Active change"),
+      expect(idx("[Determinus:SESSION_HEALTH]")).toBeLessThan(
+        idx("[Determinus:WORKTREE_SESSION]"),
+      );
+      expect(idx("[Determinus:WORKTREE_SESSION]")).toBeLessThan(
+        idx("[Determinus] Active change"),
       );
     });
   });
@@ -492,7 +496,7 @@ describe("assembleSystemBlock", () => {
       );
       // The two stable sections should be separated by exactly one blank line.
       expect(block).toMatch(
-        /\[ADV:WORKTREE_SESSION\][\s\S]*\n\n\[ADV\] Active change/,
+        /\[Determinus:WORKTREE_SESSION\][\s\S]*\n\n\[Determinus\] Active change/,
       );
     });
   });
@@ -510,7 +514,7 @@ describe("applyAdvSystemBlock", () => {
     });
     expect(result.emitted).toBe(true);
     expect(output.system).toHaveLength(1);
-    expect(output.system[0]).toContain("[ADV] Active change: c1");
+    expect(output.system[0]).toContain("[Determinus] Active change: c1");
   });
 
   it("never grows output.system past one entry across all branches (AC1)", () => {
@@ -544,7 +548,7 @@ describe("applyAdvSystemBlock", () => {
     }
   });
 
-  it("preserves an existing system[0] entry by prefixing the ADV block", () => {
+  it("preserves an existing system[0] entry by prefixing the Determinus block", () => {
     const output = { system: ["You are an agent."] };
     applyAdvSystemBlock(output, {
       state: cleanState({ activeChange: { id: "c1" } }),
@@ -553,9 +557,9 @@ describe("applyAdvSystemBlock", () => {
     });
     expect(output.system).toHaveLength(1);
     expect(output.system[0]).toContain("You are an agent.");
-    expect(output.system[0]).toContain("[ADV] Active change: c1");
+    expect(output.system[0]).toContain("[Determinus] Active change: c1");
     expect(output.system[0].indexOf("You are an agent.")).toBeLessThan(
-      output.system[0].indexOf("[ADV] Active change"),
+      output.system[0].indexOf("[Determinus] Active change"),
     );
   });
 
@@ -585,7 +589,7 @@ describe("applyAdvSystemBlock", () => {
     // AC8 retired the lastCompletedTask-driven nudge but the
     // consumedWisdomPrompt flag still tracks legacy state so callers can
     // clear lastCompletedTask after emission. The flag fires even though
-    // no [ADV:RECORD_WISDOM] section emits anymore.
+    // no [Determinus:RECORD_WISDOM] section emits anymore.
     const output = { system: [] as string[] };
     const result = applyAdvSystemBlock(output, {
       state: cleanState({
@@ -598,7 +602,7 @@ describe("applyAdvSystemBlock", () => {
     expect(result.emitted).toBe(true);
     expect(result.consumedWisdomPrompt).toBe(true);
     // Retired prompt must NOT appear
-    expect(output.system[0]).not.toContain("[ADV:RECORD_WISDOM]");
+    expect(output.system[0]).not.toContain("[Determinus:RECORD_WISDOM]");
   });
 
   it("flags consumedWisdomPrompt when pendingWisdomDraftTasks is non-empty (rq-wisdomAutoSurfacing01)", () => {
@@ -613,7 +617,7 @@ describe("applyAdvSystemBlock", () => {
     });
     expect(result.emitted).toBe(true);
     expect(result.consumedWisdomPrompt).toBe(true);
-    expect(output.system[0]).toContain("[ADV:WISDOM_DRAFTS]");
+    expect(output.system[0]).toContain("[Determinus:WISDOM_DRAFTS]");
   });
 
   it("does NOT flag consumedWisdomPrompt when no task just completed", () => {
@@ -643,7 +647,7 @@ describe("applyAdvSystemBlock", () => {
         storeAvailable: true,
       });
       expect(result.emitted).toBe(true);
-      expect(output.system[0]).toContain("[ADV:SESSION_HEALTH]");
+      expect(output.system[0]).toContain("[Determinus:SESSION_HEALTH]");
       expect(output.system[0]).toContain("message-history");
       expect(result.surfacedMessageHistoryHealth).toBe(true);
     });
@@ -662,7 +666,9 @@ describe("applyAdvSystemBlock", () => {
         initError: null,
         storeAvailable: true,
       });
-      expect(output.system[0] ?? "").not.toContain("[ADV:SESSION_HEALTH]");
+      expect(output.system[0] ?? "").not.toContain(
+        "[Determinus:SESSION_HEALTH]",
+      );
       expect(result.surfacedMessageHistoryHealth).toBe(false);
     });
 
@@ -681,8 +687,8 @@ describe("applyAdvSystemBlock", () => {
         initError: null,
         storeAvailable: true,
       });
-      expect(output.system[0]).toContain("[ADV] Active change: c1");
-      expect(output.system[0]).not.toContain("[ADV:SESSION_HEALTH]");
+      expect(output.system[0]).toContain("[Determinus] Active change: c1");
+      expect(output.system[0]).not.toContain("[Determinus:SESSION_HEALTH]");
     });
 
     it("AC3: session.error banner is sticky — emits even when surfaced=true", () => {
@@ -699,7 +705,7 @@ describe("applyAdvSystemBlock", () => {
         initError: null,
         storeAvailable: true,
       });
-      expect(output.system[0]).toContain("[ADV:SESSION_HEALTH]");
+      expect(output.system[0]).toContain("[Determinus:SESSION_HEALTH]");
       expect(output.system[0]).toContain("session.error");
       // session.error never counts as message-history surfacing
       expect(result.surfacedMessageHistoryHealth).toBe(false);
@@ -718,7 +724,7 @@ describe("applyAdvSystemBlock", () => {
         initError: null,
         storeAvailable: true,
       });
-      expect(output.system[0]).toContain("[ADV:SESSION_HEALTH]");
+      expect(output.system[0]).toContain("[Determinus:SESSION_HEALTH]");
       expect(result.surfacedMessageHistoryHealth).toBe(true);
     });
   });
@@ -731,7 +737,7 @@ describe("applyAdvSystemBlock", () => {
       storeAvailable: false,
     });
     expect(output.system).toHaveLength(1);
-    expect(output.system[0]).toContain("[ADV:DEGRADED]");
+    expect(output.system[0]).toContain("[Determinus:DEGRADED]");
   });
 });
 
@@ -748,7 +754,7 @@ describe("trunkGuardSection", () => {
       }),
     );
     expect(result).not.toBeNull();
-    expect(result).not.toContain("[ADV:TRUNK_GUARD]");
+    expect(result).not.toContain("[Determinus:TRUNK_GUARD]");
     expect(result).toContain("myChange");
   });
 
@@ -761,7 +767,7 @@ describe("trunkGuardSection", () => {
         }),
       }),
     );
-    expect(result).not.toContain("[ADV:TRUNK_GUARD]");
+    expect(result).not.toContain("[Determinus:TRUNK_GUARD]");
   });
 
   it("does not fire when no active change", () => {
@@ -777,7 +783,7 @@ describe("trunkGuardSection", () => {
     if (result === null) {
       expect(result).toBeNull();
     } else {
-      expect(result).not.toContain("[ADV:TRUNK_GUARD]");
+      expect(result).not.toContain("[Determinus:TRUNK_GUARD]");
     }
   });
 
@@ -817,7 +823,7 @@ describe("trunkGuardSection", () => {
       }),
     );
     expect(result).not.toBeNull();
-    expect(result).toBe("[ADV] Active change: myChange");
+    expect(result).toBe("[Determinus] Active change: myChange");
   });
 });
 
@@ -834,12 +840,12 @@ const staleFreshness: PluginBundleFreshness = {
 };
 
 describe("plugin bundle stale section", () => {
-  it("emits [ADV:PLUGIN_BUNDLE_STALE] banner when state is stale", () => {
+  it("emits [Determinus:PLUGIN_BUNDLE_STALE] banner when state is stale", () => {
     const block = assembleSystemBlock(
       cleanInput({ pluginBundleFreshness: staleFreshness }),
     );
     expect(block).not.toBeNull();
-    expect(block).toContain("[ADV:PLUGIN_BUNDLE_STALE]");
+    expect(block).toContain("[Determinus:PLUGIN_BUNDLE_STALE]");
     expect(block).toContain("loaded-gen");
     expect(block).toContain("deployed-gen");
     expect(block).toContain("Restart OpenCode");
@@ -891,10 +897,10 @@ describe("plugin bundle stale section", () => {
       }),
     );
     expect(block).not.toBeNull();
-    expect(block).toContain("[ADV:SESSION_HEALTH]");
-    expect(block).toContain("[ADV:PLUGIN_BUNDLE_STALE]");
-    const healthIdx = block!.indexOf("[ADV:SESSION_HEALTH]");
-    const staleIdx = block!.indexOf("[ADV:PLUGIN_BUNDLE_STALE]");
+    expect(block).toContain("[Determinus:SESSION_HEALTH]");
+    expect(block).toContain("[Determinus:PLUGIN_BUNDLE_STALE]");
+    const healthIdx = block!.indexOf("[Determinus:SESSION_HEALTH]");
+    const staleIdx = block!.indexOf("[Determinus:PLUGIN_BUNDLE_STALE]");
     expect(healthIdx).toBeGreaterThanOrEqual(0);
     expect(staleIdx).toBeGreaterThan(healthIdx);
   });
@@ -904,7 +910,7 @@ describe("plugin bundle stale section", () => {
       cleanInput({ pluginBundleFreshness: staleFreshness }),
     );
     expect(block).not.toBeNull();
-    const matches = block!.match(/\[ADV:PLUGIN_BUNDLE_STALE\]/g);
+    const matches = block!.match(/\[Determinus:PLUGIN_BUNDLE_STALE\]/g);
     expect(matches).toHaveLength(1);
   });
 });

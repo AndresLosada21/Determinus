@@ -186,7 +186,7 @@ export function createBustCollector(
         // observed at step j. Recomputed from scratch on every report call,
         // so late snapshots always correct earlier attributions.
         // Cause heuristics compare step START states: assign the carried
-        // (window-start) dir/toolCount, then advance the carry with the
+        // (window-start) dir/toolCount, then determinus the carry with the
         // window's calls — a move/inventory change inside the drop's own
         // window surfaces as prev≠next. Empty windows inherit (they persist).
         let carryDir: string | undefined;

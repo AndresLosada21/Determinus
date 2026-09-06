@@ -30,7 +30,7 @@ export const RelatedRepoSchema = z
       .string()
       .regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/)
       .optional(),
-    /** Stable ADV repo project ID, when known, for product-linked resolution. */
+    /** Stable Determinus repo project ID, when known, for product-linked resolution. */
     repo_project_id: z
       .string()
       .regex(/^[0-9a-f]{40}$/)
@@ -98,7 +98,7 @@ type _SlopScanConfig = z.infer<typeof SlopScanConfigSchema>;
 
 /**
  * Per-project feature flag overrides.
- * All flags default to current ADV behavior — no behavior change without explicit opt-in.
+ * All flags default to current Determinus behavior — no behavior change without explicit opt-in.
  *
  * Add to project.json under the "features" key:
  * {
@@ -139,7 +139,7 @@ export const FeatureFlagsSchema = z
     /**
      * Whether machine worktree isolation is enforced.
      * Default: true (post-rollout, rq-autoManageAdvWorktrees AC2).
-     * When omitted or true, ADV main-checkout task/gate execution mutations
+     * When omitted or true, Determinus main-checkout task/gate execution mutations
      * and the trunk write firewall are enforced. Explicit `false` preserves
      * legacy permissive behavior for projects that want to keep editing in
      * the main checkout.
@@ -192,7 +192,7 @@ export interface ResolvedProjectFeaturePolicy {
 
 /**
  * Resolve feature flags into typed effective values with provenance.
- * Omitted keys get ADV stability defaults; non-boolean values fall back to
+ * Omitted keys get Determinus stability defaults; non-boolean values fall back to
  * the default with `invalid_fallback` source so callers and diagnostics can
  * surface the discrepancy.
  */
@@ -319,7 +319,7 @@ export const ProjectConfigSchema = z
     auto_push: z.boolean().default(true),
     /** Archive finalization sub-configuration (e.g., PR title policy). */
     archive: ArchiveConfigSchema.default(() => ArchiveConfigSchema.parse({})),
-    /** Per-project feature flag overrides. All flags default to current ADV behavior. */
+    /** Per-project feature flag overrides. All flags default to current Determinus behavior. */
     features: FeatureFlagsSchema.default(() => FeatureFlagsSchema.parse({})),
   })
   .passthrough(); // Allow extra fields for forward/backward compatibility

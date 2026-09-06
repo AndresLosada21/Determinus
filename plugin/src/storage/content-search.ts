@@ -1,5 +1,5 @@
 /**
- * Content Search — substring/prefix matching for ADV changes and wisdom.
+ * Content Search — substring/prefix matching for Determinus changes and wisdom.
  *
  * Strategy: case-insensitive linear scan with on-demand lower-cased lookup.
  * No external dependency, no FTS index, no incremental update path.

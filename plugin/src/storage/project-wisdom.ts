@@ -43,7 +43,7 @@ interface ProjectWisdomEntry {
   product_id?: string;
   /** Product repo id where this entry originated. */
   origin_repo_id?: string;
-  /** Repo-local ADV project id where this entry originated. */
+  /** Repo-local Determinus project id where this entry originated. */
   origin_repo_project_id?: string;
   /** Repo root path where this entry originated. */
   origin_repo_path?: string;

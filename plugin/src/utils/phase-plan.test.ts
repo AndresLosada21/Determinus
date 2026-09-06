@@ -126,7 +126,7 @@ describe("derivePhasePlan — variants (AC1)", () => {
     expect(plan.failClosed).toBe(false);
   });
 
-  it("produces actionable (advance) for an in-progress gate", () => {
+  it("produces actionable (determinus) for an in-progress gate", () => {
     const plan = derivePhasePlanFromState(
       stateWithGateInProgress("design"),
       EPOCH,

@@ -10,7 +10,7 @@
  *     `{projectDir}/.adv/specs/_conformance/`. Easy management,
  *     branch-local versioning, no bootstrap.
  *   - "sibling" (opt-in): conformance source lives at
- *     `{project-parent}/advance-conformance-{project-id}/`. Stronger
+ *     `{project-parent}/determinus-conformance-{project-id}/`. Stronger
  *     physical isolation; user manages a separate repo.
  *
  * State file path:
@@ -40,7 +40,7 @@ import { atomicWriteFile, acquireFileLock } from "../utils/fs";
 
 const CONFORMANCE_FILE = "conformance.json";
 const SUBFOLDER_REL_PATH = join(".adv", "specs", "_conformance");
-const SIBLING_DIR_PREFIX = "advance-conformance-";
+const SIBLING_DIR_PREFIX = "determinus-conformance-";
 
 // =============================================================================
 // Path Resolution
@@ -63,7 +63,7 @@ export const resolveDefaultConformanceRoot = (projectDir: string): string =>
   join(projectDir, SUBFOLDER_REL_PATH);
 
 /**
- * Opt-in sibling-repo location at `{project-parent}/advance-conformance-
+ * Opt-in sibling-repo location at `{project-parent}/determinus-conformance-
  * {project-id}/`. Used when the user wants stronger physical isolation
  * (validator finding #5: "defense-in-depth path").
  */

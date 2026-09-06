@@ -7,7 +7,7 @@
  *   - mode: subagent, hidden: true
  *   - repo/code/docs/test write capability (mirrors determinus-engineer)
  *   - NO nested delegation (task: false)
- *   - NO ADV orchestration mutations (gates/tasks/changes/worktree/agenda)
+ *   - NO Determinus orchestration mutations (gates/tasks/changes/worktree/agenda)
  *   - REVIEWER_REPORT schema with scope_drift + required_main_agent_actions
  *     escalation contract (design Decision 3a)
  *
@@ -102,7 +102,7 @@ function expectPacketAnchors(
 
 // Tool boundary per design Decision 1.
 //
-// ALLOWED — repo writes, code intelligence, web research, ADV reads, evidence,
+// ALLOWED — repo writes, code intelligence, web research, Determinus reads, evidence,
 // wisdom emission. Mirrors determinus-engineer with no orchestration mutators added.
 const REQUIRED_ALLOWED_TOOLS = [
   // Repo writes
@@ -129,14 +129,14 @@ const REQUIRED_ALLOWED_TOOLS = [
   "webfetch",
   // Browser/UI verification
   "playwright_*",
-  // ADV reads
+  // Determinus reads
   "determinus_change_show",
   "determinus_task_list",
   "determinus_gate_status",
   // Evidence + wisdom emission
 ];
 
-// BLOCKED — anything that would give the reviewer ADV orchestration authority,
+// BLOCKED — anything that would give the reviewer Determinus orchestration authority,
 // nested delegation, or worktree control.
 const REQUIRED_BLOCKED_TOOLS = [
   // Nested delegation
@@ -161,7 +161,7 @@ const REQUIRED_BODY_ANCHORS = [
   "scope_drift",
   "required_main_agent_actions",
   "no nested delegation",
-  "no ADV orchestration mutations",
+  "no Determinus orchestration mutations",
   "WORKING DIRECTORY",
   "workdir_used",
   "stop_and_report",
@@ -331,7 +331,7 @@ describe("determinus-reviewer agent asset", () => {
     expect(body).not.toContain("END_REVIEWER_REPORT");
   });
 
-  test("missing ADV packet identity fields are structured defects, not user questions", () => {
+  test("missing Determinus packet identity fields are structured defects, not user questions", () => {
     const { body } = splitFrontmatter(readFileSync(AGENT_PATH, "utf8"));
     const phaseModes =
       body

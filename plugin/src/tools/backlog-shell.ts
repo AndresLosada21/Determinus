@@ -223,7 +223,7 @@ export const backlogShellTools = {
 
   determinus_backlog_promote: {
     description:
-      "Promote a repo backlog item to an ADV change or Epic shell entry. Idempotent on (itemId, targetId). Refuses promotion of archived items.",
+      "Promote a repo backlog item to an Determinus change or Epic shell entry. Idempotent on (itemId, targetId). Refuses promotion of archived items.",
     args: {
       id: z.string().min(1).describe("Backlog item id."),
       kind: z.enum(["change", "epic_shell"]).describe("Promotion target kind."),

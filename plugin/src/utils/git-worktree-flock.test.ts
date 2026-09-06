@@ -33,7 +33,7 @@ function makeGitRepo(prefix: string): string {
     "git",
     [
       "-c",
-      "user.name=ADV test",
+      "user.name=Determinus test",
       "-c",
       "user.email=adv@example.test",
       "commit",
@@ -232,7 +232,7 @@ describe("git worktree repository lease", () => {
     const mainLeaseDir = await resolveGitWorktreeLeaseDir(repo);
     const linkedLeaseDir = await resolveGitWorktreeLeaseDir(linked);
     expect(linkedLeaseDir).toBe(mainLeaseDir);
-    expect(mainLeaseDir).toBe(path.join(repo, ".git", "advance"));
+    expect(mainLeaseDir).toBe(path.join(repo, ".git", "determinus"));
 
     const first = await acquireGitWorktreeProcessLease(mainLeaseDir);
     expect(first.owned).toBe(true);
@@ -242,7 +242,7 @@ describe("git worktree repository lease", () => {
         acquireGitWorktreeProcessLease(linkedLeaseDir),
       ).resolves.toMatchObject({ owned: false });
       expect(first.lockPath).toBe(
-        path.join(repo, ".git", "advance", "git-worktree.lock"),
+        path.join(repo, ".git", "determinus", "git-worktree.lock"),
       );
     } finally {
       await first.terminate("test");

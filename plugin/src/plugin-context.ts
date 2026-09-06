@@ -8,7 +8,7 @@ import { appendDebugLog } from "./utils/debug-log";
 const debugLog = (msg: string): void => appendDebugLog("index", msg);
 
 /**
- * Resolve the ADV state context for the active OpenCode instance.
+ * Resolve the Determinus state context for the active OpenCode instance.
  *
  * Kept outside `src/index.ts` so the plugin entrypoint does not export helper
  * functions. OpenCode invokes every function export from plugin entry modules.

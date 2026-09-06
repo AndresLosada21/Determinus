@@ -9,7 +9,7 @@
  * Host surface is v2-only (see default export below):
  * - ctx.tool.transform / ctx.tool.hook("execute.before"/"execute.after")
  * - ctx.event.subscribe (+ installCacheRuntime)
- * Legacy `advancePluginImpl` below is an internal adapter preserving the
+ * Legacy `determinusPluginImpl` below is an internal adapter preserving the
  * pre-v2 tool/event behavior for tests; its `determinus.system.turn` and
  * `determinus.compaction.turn` entries are served on the v2 host through
  * `ctx.session.hook("context")` (see the setup wrapper), never as legacy
@@ -158,7 +158,7 @@ const normalizeToolTargetPath = (
  * See boundSubAgentReportContract KD1/DC4.
  */
 const dropToolOutput = (source: string, text: string): string =>
-  `[ADV:OUTPUT_DROPPED] ${source} produced ${text.length} chars. ` +
+  `[Determinus:OUTPUT_DROPPED] ${source} produced ${text.length} chars. ` +
   `Full content removed from model prompt to keep the session resumable.`;
 
 /**
@@ -214,7 +214,7 @@ export const fallbackPersistedMarker = (
   const shown = Math.min(content.length, FALLBACK_EXCERPT_CHARS);
   const elided = content.length - shown;
   const excerpt = content.slice(0, FALLBACK_EXCERPT_CHARS);
-  return `[ADV:FALLBACK_RESULT_PERSISTED] ${source} returned ${content.length} chars (${elided} elided). Full content at ${filePath}. First ${shown} chars: ${excerpt}`;
+  return `[Determinus:FALLBACK_RESULT_PERSISTED] ${source} returned ${content.length} chars (${elided} elided). Full content at ${filePath}. First ${shown} chars: ${excerpt}`;
 };
 
 export const compactToolPart = (part: unknown): boolean => {
@@ -264,7 +264,7 @@ export const compactToolPart = (part: unknown): boolean => {
 
 /**
  * OpenCode 2 message shape is `{ role, content }`, not the v1
- * `{ info, parts }` shape used by the original ADV hook.  The compatibility
+ * `{ info, parts }` shape used by the original Determinus hook.  The compatibility
  * adapter used to shallow-cast v2 messages, silently making output compaction
  * a no-op.  Compact the native ToolResultPart in place as well.
  */
@@ -327,7 +327,7 @@ interface PluginState extends StatusFlags {
   /**
    * Tasks on the active change that carry `wisdom_drafts[]` entries in the
    * `suggested` state. Populated by the system.transform producer each turn
-   * (rq-wisdomAutoSurfacing01.10 / AC8) so the [ADV:WISDOM_DRAFTS] prompt
+   * (rq-wisdomAutoSurfacing01.10 / AC8) so the [Determinus:WISDOM_DRAFTS] prompt
    * fires. Recomputed before applyAdvSystemBlock; cleared implicitly when
    * drafts are promoted or auto-dismissed at checkpoint.
    */
@@ -366,7 +366,7 @@ const hooksLogger = createLogger("hooks");
  * before `tryInitStore` can run).
  *
  * Without this, OpenCode catches the factory throw and drops the entire
- * plugin from the session â€” agents see ADV operating protocol but have
+ * plugin from the session â€” agents see Determinus operating protocol but have
  * ZERO `determinus_*` tools in their function schema and no diagnostic of any
  * kind. The pre-flight rule "verify by calling" then becomes mechanically
  * impossible.
@@ -374,7 +374,7 @@ const hooksLogger = createLogger("hooks");
  * The returned hooks expose:
  *   - the same `createDegradedToolMap` stubs used for `tryInitStore`
  *     failures, so any tool call returns `determinus_PLUGIN_INIT_FAILED`
- *   - a `determinus.system.turn` hook that injects an `[ADV:DEGRADED]` banner
+ *   - a `determinus.system.turn` hook that injects an `[Determinus:DEGRADED]` banner
  *     on every turn, so the agent discovers the failure BEFORE making
  *     any tool call
  *   - safe no-ops for all other hooks
@@ -401,7 +401,7 @@ function buildFactoryFailureHooks(error: Error, directory: string): any {
   };
 }
 
-const advancePluginImpl: Plugin = async (input) => {
+const determinusPluginImpl: Plugin = async (input) => {
   const { directory, worktree, project, client } = input;
 
   const gitSession = resolveGitSessionContext(directory, worktree);
@@ -523,7 +523,7 @@ const advancePluginImpl: Plugin = async (input) => {
           `Peer sessions detected: ${peerCount} (PIDs ${peerSessions.map((p) => p.pid).join(", ")})`,
         );
         hooksLogger.info(
-          `[ADV:PEER_SESSIONS] ${peerCount} peer session(s) active in this project.`,
+          `[Determinus:PEER_SESSIONS] ${peerCount} peer session(s) active in this project.`,
         );
       }
 
@@ -535,7 +535,7 @@ const advancePluginImpl: Plugin = async (input) => {
       const sameWorktree = allCwds.filter((cwd) => cwd === myWorktree);
       if (sameWorktree.length > 1) {
         hooksLogger.info(
-          `[ADV:WORKTREE_OCCUPANCY] ${sameWorktree.length} sessions share this worktree. Nominal 1:1 violated; continuing allowed.`,
+          `[Determinus:WORKTREE_OCCUPANCY] ${sameWorktree.length} sessions share this worktree. Nominal 1:1 violated; continuing allowed.`,
         );
       }
     } catch (err) {
@@ -551,7 +551,7 @@ const advancePluginImpl: Plugin = async (input) => {
     if (staleHead.stale) {
       debugLog(`Stale HEAD detected: ${staleHead.reason}`);
       hooksLogger.warn(
-        `[ADV:WARN] Stale HEAD: ${staleHead.reason} â€” ${staleHead.suggestion}`,
+        `[Determinus:WARN] Stale HEAD: ${staleHead.reason} â€” ${staleHead.suggestion}`,
       );
     }
   } catch (err) {
@@ -677,7 +677,7 @@ const advancePluginImpl: Plugin = async (input) => {
     input: Record<string, unknown>,
   ) => {
     // Code-identity guard: once a deployed manifest supersedes this loaded
-    // bundle, refuse ADV traffic before any read can answer from stale code.
+    // bundle, refuse Determinus traffic before any read can answer from stale code.
     // Unknown freshness remains allowed so missing manifests are not conflated
     // with a generation mismatch.
     if (toolName.startsWith("determinus_")) {
@@ -705,7 +705,9 @@ const advancePluginImpl: Plugin = async (input) => {
         typeof input.sessionID === "string" ? input.sessionID : "";
       if (!store || !worktreeStateAccess || !resolvedProjectId || !sessionID) {
         if (args.workdir !== undefined || args.taskId !== undefined) {
-          throw new Error("Morph ADV workdir authorization is unavailable");
+          throw new Error(
+            "Morph Determinus workdir authorization is unavailable",
+          );
         }
       } else {
         await authorizeMorphWorktree(args, sessionID, {
@@ -897,7 +899,7 @@ const advancePluginImpl: Plugin = async (input) => {
           const message =
             error instanceof Error ? error.message : String(error);
           if (message.startsWith("TodoWrite ")) throw error;
-          debugLog(`TodoWrite ADV guard warning: ${message}`);
+          debugLog(`TodoWrite Determinus guard warning: ${message}`);
         }
       }
     }
@@ -950,7 +952,7 @@ const advancePluginImpl: Plugin = async (input) => {
               : undefined;
       if (targetPath) {
         // fixTrunkFirewallRelPath: when session is on main checkout and the
-        // agent has an active change with a registered ADV worktree, resolve
+        // agent has an active change with a registered Determinus worktree, resolve
         // relative paths against the worktree path instead of the session
         // directory. Absolute paths always use the session directory (unchanged
         // behavior). Falls back to session directory when no worktree exists.
@@ -1052,7 +1054,7 @@ const advancePluginImpl: Plugin = async (input) => {
   };
 
   // Cwd-detect: seed active-change pointer from process.cwd() if it matches
-  // the canonical ADV worktree pattern. rq-fixZellijPaneTitles/AC1, AC2.
+  // the canonical Determinus worktree pattern. rq-fixZellijPaneTitles/AC1, AC2.
   // Best-effort: failures are logged and ignored, never blocking init.
   async function cwdDetectAndRepoint(): Promise<void> {
     if (!resolvedProjectId || !store) return;
@@ -1250,19 +1252,19 @@ const advancePluginImpl: Plugin = async (input) => {
 
     // Context Injection Hook (Continuation & Wisdom)
     //
-    // Single ordered emit per AC1: assembles the entire ADV system-context
+    // Single ordered emit per AC1: assembles the entire Determinus system-context
     // block in `applyAdvSystemBlock` and writes it to `output.system[0]`.
     // No `output.system.push` calls here â€” multi-block emission breaks the
     // OpenAI-compat provider (assistant-prefilling rejection).
     //
     // Markers composed by `applyAdvSystemBlock` (defined in
     // `utils/system-block.ts`):
-    //   - [ADV:DEGRADED]              (degraded-mode banner)
-    //   - [ADV:SESSION_HEALTH]        (session-health banner)
-    //   - [ADV:PLUGIN_BUNDLE_STALE]   (deployed plugin bundle newer than loaded)
-    //   - [ADV:WORKTREE_SESSION]      (worktree marker)
-    //   - [ADV] Active change         (active change line)
-    //   - [ADV:RECORD_WISDOM]         (wisdom recording prompt â€” append-only)
+    //   - [Determinus:DEGRADED]              (degraded-mode banner)
+    //   - [Determinus:SESSION_HEALTH]        (session-health banner)
+    //   - [Determinus:PLUGIN_BUNDLE_STALE]   (deployed plugin bundle newer than loaded)
+    //   - [Determinus:WORKTREE_SESSION]      (worktree marker)
+    //   - [Determinus] Active change         (active change line)
+    //   - [Determinus:RECORD_WISDOM]         (wisdom recording prompt â€” append-only)
     //
     "determinus.system.turn": async (input, output): Promise<void> => {
       try {
@@ -1281,7 +1283,7 @@ const advancePluginImpl: Plugin = async (input) => {
 
         // rq-wisdomAutoSurfacing01.10 / AC8 producer: refresh
         // pendingWisdomDraftTasks from the active change's task list so the
-        // [ADV:WISDOM_DRAFTS] nudge reflects the current draft state. The
+        // [Determinus:WISDOM_DRAFTS] nudge reflects the current draft state. The
         // producer is best-effort: any storage failure yields an empty
         // array (no nudge fires). Drafts are advisory-only and never gate.
         state.pendingWisdomDraftTasks = [];
@@ -1326,8 +1328,8 @@ const advancePluginImpl: Plugin = async (input) => {
 
         // Wisdom prompt is volatile. Legacy tracking: clear
         // lastCompletedTask once it has been emitted so the retired
-        // [ADV:RECORD_WISDOM] prompt does not repeat next turn.
-        // The new [ADV:WISDOM_DRAFTS] prompt is driven by
+        // [Determinus:RECORD_WISDOM] prompt does not repeat next turn.
+        // The new [Determinus:WISDOM_DRAFTS] prompt is driven by
         // state.pendingWisdomDraftTasks and naturally clears when drafts
         // are promoted or auto-dismissed at checkpoint.
         if (result.consumedWisdomPrompt) {
@@ -1449,7 +1451,9 @@ const advancePluginImpl: Plugin = async (input) => {
   };
 };
 
-export const AdvancePlugin = advancePluginImpl;
+export const DeterminusPlugin = determinusPluginImpl;
+/** @deprecated Use DeterminusPlugin. Kept for external consumers. */
+export const AdvancePlugin = DeterminusPlugin;
 
 export default Plugin.define({
   id: "determinus",
@@ -1498,10 +1502,10 @@ export default Plugin.define({
 
     let hooks: any;
     try {
-      hooks = await (advancePluginImpl as any)(shimInput);
+      hooks = await (determinusPluginImpl as any)(shimInput);
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
-      debugLog(`advancePluginImpl threw in v2 wrapper: ${err.message}`);
+      debugLog(`determinusPluginImpl threw in v2 wrapper: ${err.message}`);
       hooks = buildFactoryFailureHooks(err, directory);
     }
 
@@ -1518,7 +1522,7 @@ export default Plugin.define({
             name,
             description: (def as any).description ?? name,
             input: inputSchema,
-            // ADV's direct surface is intentionally available through the
+            // Determinus's direct surface is intentionally available through the
             // Code Mode executor as `tools.determinus_change_*`.  Be explicit: the
             // SDK defaults this today, but an omitted option made this
             // migration depend on a host default and left the tools absent

@@ -2,11 +2,11 @@
 /**
  * Compaction Context Builder
  *
- * Pure helper that produces the single text block ADV pushes as compaction
+ * Pure helper that produces the single text block Determinus pushes as compaction
  * context during the `determinus.compaction.turn` (served on the v2 host via
  * `ctx.session.hook("context")` with kind === "compaction"). Replaces
- * the previous hand-rolled blocks (ACTIVE ADV CHANGE / ADV SPECS CONTEXT
- * / ADV TASK CONTEXT) with a uniform composition over:
+ * the previous hand-rolled blocks (ACTIVE Determinus CHANGE / Determinus SPECS CONTEXT
+ * / Determinus TASK CONTEXT) with a uniform composition over:
  *
  *   1. `buildChangeContextSnapshot(...)` for change/gate/task summary
  *      (AC2 — fidelity parity with steady-state live context).
@@ -69,7 +69,7 @@ export const DEFAULT_COMPACTION_MAX_BYTES = 8000;
 function formatSpecsSummary(specs: CompactionSpecLike[]): string | null {
   if (specs.length === 0) return null;
   const lines = [
-    "=== ADV SPECS CONTEXT ===",
+    "=== Determinus SPECS CONTEXT ===",
     `Project has ${specs.length} spec(s):`,
     ...specs.slice(0, 5).map((s) => `- ${s.name}: ${s.title}`),
     specs.length > 5 ? `... and ${specs.length - 5} more` : "",
@@ -106,7 +106,7 @@ function formatStaleLedgerRemediation(
   if (!shouldWarn) return null;
 
   return [
-    "=== ADV STALE LEDGER REMEDIATION ===",
+    "=== Determinus STALE LEDGER REMEDIATION ===",
     "⚠ No active task remains while execution is incomplete.",
     "Remediation:",
     "- call determinus_change_show with include.snapshot=true and include.readyTasks=true",
@@ -120,14 +120,15 @@ function formatStaleLedgerRemediation(
  *  marker so the agent knows context was elided. */
 function applyByteBudget(text: string, maxBytes: number): string {
   if (text.length <= maxBytes) return text;
-  const marker = "\n\n[... ADV compaction truncated for size budget ...]";
+  const marker =
+    "\n\n[... Determinus compaction truncated for size budget ...]";
   return text.slice(0, Math.max(0, maxBytes - marker.length)) + marker;
 }
 
 // ─── Orchestrator ───────────────────────────────────────────────────────────
 
 /**
- * Compose the full ADV compaction block.
+ * Compose the full Determinus compaction block.
  *
  * Order:
  *   1. Change context snapshot (gate row, task counts, current task)

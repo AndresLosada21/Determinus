@@ -1,7 +1,7 @@
 /**
  * Snapshot Health Tool
  *
- * ADV tool wrapper over snapshot-scan.ts. Provides scan (read-only) and
+ * Determinus tool wrapper over snapshot-scan.ts. Provides scan (read-only) and
  * repair (approval-gated) actions. Every successful repair appends a durable
  * audit entry to the purpose-specific snapshot-repair audit log (NOT to the
  * Agenda store) — see retireAgendaWorkflow AC4 and the "Purpose-specific

@@ -338,13 +338,13 @@ export async function saveChange(
   // accumulate via legacy / direct-disk-write code paths that bypass
   // determinus_change_create's tool-layer guard. See utils/synthetic-fixture-detector
   // and the audit at 2026-05-07 (~600 leaked records reaped manually
-  // across 16 ADV project directories before this guard landed).
+  // across 16 Determinus project directories before this guard landed).
   if (isSyntheticValidationDraftPattern(change.id)) {
     throw new Error(
       `Refusing to write change with synthetic-validation-draft ID "${change.id}": ` +
         `matches reserved pattern (changeRoundtrip*, gateParity*, parityLegacy*, ` +
-        `latencyLegacy*, etc). These IDs are reserved for ADV's own validation/parity/` +
-        `latency/roundtrip workflows which must use isolated temp storage, not live ADV ` +
+        `latencyLegacy*, etc). These IDs are reserved for Determinus's own validation/parity/` +
+        `latency/roundtrip workflows which must use isolated temp storage, not live Determinus ` +
         `state. Spec: rq-synthstate01.`,
     );
   }

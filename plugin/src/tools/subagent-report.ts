@@ -70,7 +70,7 @@ const targetArgs = {
     .string()
     .optional()
     .describe(
-      "Optional absolute path to another ADV project. When provided, routes the operation through that project's target store.",
+      "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target store.",
     ),
   target_confirmed: z
     .literal(true)
@@ -226,7 +226,7 @@ function invalidTaskAnchorOutput(input: {
         title: task.title,
       })),
       guidance:
-        "Task-scoped reports must use an existing ADV task ID. Independent review/harden reports must use the change-scoped reviewer variant. Scanner lanes must not call determinus_subagent_report_submit directly.",
+        "Task-scoped reports must use an existing Determinus task ID. Independent review/harden reports must use the change-scoped reviewer variant. Scanner lanes must not call determinus_subagent_report_submit directly.",
     }),
     input.projectContext,
   );
@@ -1172,7 +1172,7 @@ async function executeSubmit(
 export const subagentReportTools = {
   determinus_subagent_report_submit: {
     description:
-      "Submit a typed, Zod-validated sub-agent report and persist it on the owning ADV change/task scope.",
+      "Submit a typed, Zod-validated sub-agent report and persist it on the owning Determinus change/task scope.",
     args: {
       report: ScopedSubagentReportSchema.describe(
         "Typed sub-agent report payload. v1 supports determinus-engineer, determinus-reviewer, determinus-designer, determinus-researcher, determinus-tron, orchestrator-submitted determinus-scanner-bundle reports, and orchestrator-submitted determinus-verification-triage-bundle reports. For canonical REVIEWER_REPORT shapes (READY + CONFLICT), see .opencode/agents/determinus-reviewer.md § REVIEWER_REPORT Payload — discrimination is by `agent` field; each variant has distinct required fields (e.g., determinus-reviewer requires scope, verification, scope_drift, required_main_agent_actions).",
@@ -1185,9 +1185,9 @@ export const subagentReportTools = {
         ),
       ...targetArgs,
     },
-    // OpenCode otherwise rejects the strict report union before ADV can return
+    // OpenCode otherwise rejects the strict report union before Determinus can return
     // nested issue paths. This schema admits only the report object envelope;
-    // canonical args above remain ADV catalog/preflight authority.
+    // canonical args above remain Determinus catalog/preflight authority.
     transportArgs: {
       report: z.record(z.string(), z.unknown()),
       dryRun: z.boolean().optional(),

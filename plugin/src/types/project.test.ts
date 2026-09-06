@@ -106,7 +106,7 @@ describe("resolveProjectFeaturePolicy", () => {
 
 describe("ProjectConfigSchema archive finalization defaults", () => {
   const baseConfig = {
-    name: "advance-test",
+    name: "determinus-test",
   };
 
   test("defaults archive finalization to direct mode with auto-push enabled", () => {
@@ -141,7 +141,7 @@ describe("ProjectConfigSchema archive finalization defaults", () => {
 
 describe("ProjectConfigSchema archive.pr_title_policy", () => {
   const baseConfig = {
-    name: "advance-test",
+    name: "determinus-test",
   };
 
   test("no archive field validates and defaults format to plain", () => {

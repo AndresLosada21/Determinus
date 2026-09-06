@@ -3,7 +3,7 @@
  *
  * Plain-mode-only port from the upstream worktree launch-context helper.
  * The upstream module supports two modes: `plain` (vanilla opencode) and
- * wrapper-managed mode. ADV does not need wrapper mode since it owns the
+ * wrapper-managed mode. Determinus does not need wrapper mode since it owns the
  * launch flow end-to-end via `worktree_create` + plugin init, so we keep
  * the `plain` discriminant only.
  *
@@ -23,7 +23,7 @@
  * Active launch context for a freshly-created worktree session.
  *
  * Discriminant kept as a tagged union (single member for now) so future
- * modes can extend without API churn at call sites. ADV ships only
+ * modes can extend without API churn at call sites. Determinus ships only
  * `plain` mode in v1.
  */
 export type ActiveLaunchContext = { mode: "plain" };
@@ -44,7 +44,7 @@ export function buildSessionLaunchArgv(sessionID: string): string[] {
 /**
  * Parse the active launch context from process env.
  *
- * In v1, ADV always returns `{mode: "plain"}` — env-based wrapper detection
+ * In v1, Determinus always returns `{mode: "plain"}` — env-based wrapper detection
  * is dropped. The `env` parameter is accepted for API parity with
  * upstream and is intentionally unused; future modes may inspect it.
  */

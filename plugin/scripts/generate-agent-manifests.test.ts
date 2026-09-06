@@ -61,7 +61,7 @@ function assertValidAdvBlock(block: string): void {
     ).toBeTruthy();
     expect(
       retained.has(match![1]),
-      `${match![1]} must be a registered ADV tool or wildcard`,
+      `${match![1]} must be a registered Determinus tool or wildcard`,
     ).toBe(true);
   }
 }
@@ -84,7 +84,7 @@ describe("generate-agent-manifests", () => {
     expect(first).toBe(second);
   });
 
-  test("generateAdvToolsBlock emits only registered ADV tool names", () => {
+  test("generateAdvToolsBlock emits only registered Determinus tool names", () => {
     for (const policy of AGENT_TOOL_POLICY) {
       const block = generateAdvToolsBlock(policy.agent);
       assertValidAdvBlock(block);
@@ -104,7 +104,7 @@ describe("generate-agent-manifests", () => {
       "description: test",
       "tools:",
       "  read: true",
-      "  # === ADV role policy ===",
+      "  # === Determinus role policy ===",
       "  adv_*: false",
       "  adv_spec: true",
       "  adv_change_create: false",

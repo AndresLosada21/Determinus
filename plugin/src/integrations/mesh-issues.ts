@@ -2,11 +2,11 @@
  * Agent Mesh Issue Functions
  *
  * Provides createMeshIssue, listMeshIssues, getGhIssue, buildMeshPayload,
- * parseMeshFrontmatter — GH issue operations for the ADV agent mesh protocol.
+ * parseMeshFrontmatter — GH issue operations for the Determinus agent mesh protocol.
  *
  * Design decisions:
  * - Uses execGh adapter (not direct execFile) for testability.
- * - YAML frontmatter in issue body carries ADV metadata.
+ * - YAML frontmatter in issue body carries Determinus metadata.
  * - Body truncation at MAX_BODY_SIZE with truncation notice.
  * - Label management: determinus-mesh + determinus-{relationship} labels.
  */
@@ -83,7 +83,7 @@ export interface MeshFrontmatter {
 // ─── Payload Builder ────────────────────────────────────────────────────────
 
 /**
- * Build a mesh issue body with YAML frontmatter containing ADV metadata.
+ * Build a mesh issue body with YAML frontmatter containing Determinus metadata.
  * Truncates body if it exceeds MAX_BODY_SIZE.
  */
 export function buildMeshPayload(input: MeshIssueInput): string {

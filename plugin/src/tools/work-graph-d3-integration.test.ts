@@ -84,7 +84,7 @@ function makeStore(opts?: { epic?: Partial<Epic>; changes?: Change[] }): Store {
   return {
     paths: {
       root: "/workspace/owner",
-      external: `/tmp/advance/${PID}`,
+      external: `/tmp/determinus/${PID}`,
       changes: "/workspace/owner/.adv/changes",
     },
     changes: {

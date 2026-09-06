@@ -53,7 +53,7 @@ const baseDeps = (overrides: Partial<WarpDeps> = {}): WarpDeps => ({
 describe("workspace-warp", () => {
   // Explicitly clear experimental env vars before each test so the shell
   // environment (which may have OPENCODE_EXPERIMENTAL_WORKSPACES=true set
-  // during ADV development) doesn't leak into tests that assert the
+  // during Determinus development) doesn't leak into tests that assert the
   // off-by-default warpFlagEnabled() behavior. P25 touched-scope fix.
   beforeEach(() => {
     vi.stubEnv("OPENCODE_EXPERIMENTAL", "");
@@ -141,7 +141,7 @@ describe("workspace-warp", () => {
     });
   });
 
-  it("creates an ADV workspace using CreatePayload.extra.directory", async () => {
+  it("creates an Determinus workspace using CreatePayload.extra.directory", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: "ws-abc" }));
 
     await expect(
@@ -361,7 +361,7 @@ describe("workspace-warp", () => {
     });
   });
 
-  it("deletes an ADV workspace by id", async () => {
+  it("deletes an Determinus workspace by id", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(textResponse(""));
 
     await expect(
@@ -436,7 +436,7 @@ describe("workspace-warp", () => {
       );
     });
 
-    it("matches ADV workspace rows by extra.directory when top-level directory is not populated", async () => {
+    it("matches Determinus workspace rows by extra.directory when top-level directory is not populated", async () => {
       vi.stubEnv("OPENCODE_EXPERIMENTAL_WORKSPACES", "true");
       const fetchImpl = vi.fn().mockResolvedValue(
         jsonResponse([
@@ -458,7 +458,7 @@ describe("workspace-warp", () => {
       ).resolves.toEqual({ ok: true, workspace: { workspaceID: "ws-match" } });
     });
 
-    it("ignores non-ADV or metadata-mismatched workspace rows", async () => {
+    it("ignores non-Determinus or metadata-mismatched workspace rows", async () => {
       vi.stubEnv("OPENCODE_EXPERIMENTAL_WORKSPACES", "true");
       const fetchImpl = vi.fn().mockResolvedValue(
         jsonResponse([

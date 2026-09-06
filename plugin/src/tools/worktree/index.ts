@@ -1,7 +1,7 @@
 /// <reference types="bun-types" />
 
 /**
- * ADV Worktree Tools
+ * Determinus Worktree Tools
  *
  * Creates isolated git worktrees for AI development sessions. Runtime support
  * is Linux-first for process-CWD safety checks, with platform-specific graceful
@@ -11,7 +11,7 @@
  * https://github.com/felixAnhalt/opencode-worktree-session
  * License: MIT
  *
- * Adapted for ADV with production-proven worktree patterns.
+ * Adapted for Determinus with production-proven worktree patterns.
  */
 
 // WorktreeStateAccess remains named Database for the existing tool contract.
@@ -576,7 +576,7 @@ export async function advWorktreeCreate(
       error: "BRANCH_IN_USE",
       branch,
       ownerChangeIds,
-      hint: "Branch is already registered by an active ADV change workflow",
+      hint: "Branch is already registered by an active Determinus change workflow",
     };
   }
 
@@ -780,7 +780,7 @@ export async function advWorktreeCreate(
       );
     }
 
-    // Step 6: postCreate hooks (T12 — setup failure blocks ADV routing).
+    // Step 6: postCreate hooks (T12 — setup failure blocks Determinus routing).
     const postCreateHooks = [
       ...worktreeConfig.hooks.postCreate,
       ...(deps.hooks?.postCreate ?? []),
@@ -2292,7 +2292,7 @@ export async function loadWorktreeConfig(
   // Documentation: https://github.com/kdcokenny/ocx
 
   // Worktree session mode:
-  // - "warp" (default): register the ADV worktree as an OpenCode workspace
+  // - "warp" (default): register the Determinus worktree as an OpenCode workspace
   //   and warp this session into it. Requires OPENCODE_EXPERIMENTAL_WORKSPACES=true.
   // - "terminal": stay in this session and use workdir= per tool (legacy inline behavior).
   // - "spawn": open a new terminal with a forked OpenCode session (legacy non-inline behavior).
@@ -2346,7 +2346,7 @@ export async function loadWorktreeConfig(
 }
 
 // =============================================================================
-// ADV WORKTREE CLEANUP (extracted for tool-registry wiring, T24)
+// Determinus WORKTREE CLEANUP (extracted for tool-registry wiring, T24)
 // =============================================================================
 
 /** Default timeout for each pending-delete item during cleanup (ms). */
@@ -2460,7 +2460,7 @@ async function discoverTerminalCleanupCandidates(
 
     if (status !== "archived" && status !== "closed") {
       // Manual cleanup may use GitHub PR evidence to recover squash-merged
-      // orphan worktrees whose ADV state is missing or no longer reachable.
+      // orphan worktrees whose Determinus state is missing or no longer reachable.
       // Hot-path status/archive cleanup stays store-only to avoid surprise
       // network calls and to preserve existing terminal-state semantics.
       if (trigger === "status" || trigger === "archive") continue;

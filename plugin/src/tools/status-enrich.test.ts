@@ -114,7 +114,7 @@ describe("buildNextGateRecommendationFromDirective", () => {
 
 function resolvedChange(id: string, overrides: Partial<Change> = {}): Change {
   return {
-    $schema: "https://advance.dev/schemas/change.v1.json",
+    $schema: "https://determinus.dev/schemas/change.v1.json",
     id,
     title: `Change ${id}`,
     status: "active",
@@ -753,7 +753,7 @@ describe("appendResumeFreshnessRecommendation", () => {
     expect(recs).toHaveLength(1);
     expect(recs[0].source).toBe("resume_freshness");
     expect(recs[0].priority).toBe("high");
-    expect(recs[0].message).toContain("ADV does not auto-execute");
+    expect(recs[0].message).toContain("Determinus does not auto-execute");
     expect(recs[0].message).toContain("determinus_change_close");
     expect(recs[0].message).toContain("supersededBy: currentId");
     expect(recs[0].message).toContain("archivedDup");

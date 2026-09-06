@@ -12,7 +12,7 @@ import {
 
 const PLUGIN_ROOT = resolve(__dirname, "..");
 
-describe("generated ADV JSON schema registry", () => {
+describe("generated Determinus JSON schema registry", () => {
   test("defines the existing public schema artifact set", () => {
     expect(PUBLIC_JSON_SCHEMAS.map((entry) => entry.name).sort()).toEqual([
       "backlog-item",
@@ -30,7 +30,7 @@ describe("generated ADV JSON schema registry", () => {
     ]);
   });
 
-  test("renders non-empty draft-07 schemas with canonical Advance ids", () => {
+  test("renders non-empty draft-07 schemas with canonical Determinus ids", () => {
     for (const entry of PUBLIC_JSON_SCHEMAS) {
       const rendered = renderJsonSchemaFile(entry);
       const parsed = JSON.parse(rendered);

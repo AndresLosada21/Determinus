@@ -2,7 +2,7 @@
  * determinus_store_cleanup — legacy Agenda cleanup tests.
  *
  * Maintenance-only cleanup for legacy Agenda data across discoverable local
- * ADV stores. Reuses shared store-discovery primitives: walkStoreDirs, content
+ * Determinus stores. Reuses shared store-discovery primitives: walkStoreDirs, content
  * hashing, live-lock refusal, ledger-based idempotency, and
  * manifest-before-delete.
  *

@@ -120,7 +120,7 @@ Value score: 8`;
 
   describe("warnings for unrecognized scoring-shaped markers", () => {
     test("warns but does not strip unknown score-shaped lines", () => {
-      // A future ADV scoring metric (e.g., Risk=) we don't currently
+      // A future Determinus scoring metric (e.g., Risk=) we don't currently
       // recognize. Don't auto-strip, but warn for human review.
       const body = `## Issue
 

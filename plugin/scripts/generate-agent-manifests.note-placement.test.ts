@@ -11,7 +11,7 @@ describe("injectTier4InvokeRoutingNote", () => {
       "tools:",
       "  adv_*: false",
       '  adv_change_show: true',
-      "> **Invoke routing:** ADV tools referenced below but not in the manifest frontmatter above are Tier 3 (invoke-only). Dispatch them via `adv_tool_invoke({name, args})` — e.g., `adv_tool_invoke({name: \"adv_subagent_report_submit\", args: {report: ...}})`. Use `adv_tool_catalog` to discover all available tools and `adv_tool_describe` for schemas.",
+      "> **Invoke routing:** Determinus tools referenced below but not in the manifest frontmatter above are Tier 3 (invoke-only). Dispatch them via `adv_tool_invoke({name, args})` — e.g., `adv_tool_invoke({name: \"adv_subagent_report_submit\", args: {report: ...}})`. Use `adv_tool_catalog` to discover all available tools and `adv_tool_describe` for schemas.",
       "---",
       "body text",
     ].join("\n");

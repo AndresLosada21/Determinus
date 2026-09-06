@@ -199,7 +199,7 @@ export const statusTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext.",
         ),
       view: z
         .enum(["summary", "health", "changes", "hygiene"])

@@ -1,5 +1,5 @@
 /**
- * GitHub Project Config — typed storage for ADV's link to a GH Project v2 board.
+ * GitHub Project Config — typed storage for Determinus's link to a GH Project v2 board.
  *
  * Replaces the misuse of `project_metadata['github_project']` for typed
  * config. The legacy summary-string store enforces `summary: max(200)`

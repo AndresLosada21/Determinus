@@ -1,7 +1,7 @@
 /**
- * ADV Command Manifest
+ * Determinus Command Manifest
  *
- * Type-safe workflow manifest defining all ADV commands with their
+ * Type-safe workflow manifest defining all Determinus commands with their
  * phase, gate affinity, prerequisites, and successors.
  * rq-M4n1f3s1: status/workflow recommendations derive from this typed manifest.
  *
@@ -25,11 +25,11 @@ export type Phase =
 
 /** Defines what a command is allowed to create, read, modify, and which gate it owns. */
 export interface CommandScope {
-  /** ADV artifacts this command creates (e.g., 'change', 'tasks') */
+  /** Determinus artifacts this command creates (e.g., 'change', 'tasks') */
   creates: string[];
-  /** ADV artifacts this command reads */
+  /** Determinus artifacts this command reads */
   reads: string[];
-  /** ADV artifacts this command modifies */
+  /** Determinus artifacts this command modifies */
   modifies: string[];
   /** Gate(s) this command is authorized to complete */
   gates: GateId[];
@@ -76,7 +76,7 @@ export const COMMAND_MANIFEST: Record<string, CommandDef> = {
   // ---- Core Workflow ----
   "determinus-status": {
     name: "determinus-status",
-    description: "Show fast ADV status table",
+    description: "Show fast Determinus status table",
     phase: "core",
     requiresChangeId: false,
     prerequisites: [],

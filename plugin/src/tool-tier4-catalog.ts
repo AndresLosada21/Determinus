@@ -1,9 +1,9 @@
 /**
- * Neutral, SDK-free catalog of the ADV Tier-4 read surface.
+ * Neutral, SDK-free catalog of the Determinus Tier-4 read surface.
  *
- * These are the local (unprefixed) tool names exposed by the ADV MCP server.
+ * These are the local (unprefixed) tool names exposed by the Determinus MCP server.
  * They are reachable from Code Mode as `tools.adv.*` and are returned in the
- * ADV handshake payload.
+ * Determinus handshake payload.
  *
  * Keep this module free of any `@opencode-ai/plugin` dependency so it can be
  * imported from SDK-coupled policy modules without pulling in the runtime.

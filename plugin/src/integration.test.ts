@@ -1,5 +1,5 @@
 /**
- * ADV Wisdom Lifecycle Integration Test
+ * Determinus Wisdom Lifecycle Integration Test
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
@@ -63,7 +63,7 @@ describe("Wisdom Lifecycle Integration", () => {
     const transformHook = hooks["determinus.system.turn"]!;
 
     // 1. Initial state - no active change tracked yet.
-    // Filter out the [ADV:DEGRADED] banner, which is injected when this
+    // Filter out the [Determinus:DEGRADED] banner, which is injected when this
     // integration test runs against an environment without the full
     // Temporal-backed init path (createDegradedToolMap is wired but no
     // active change is tracked). The assertion is about active-change
@@ -71,7 +71,7 @@ describe("Wisdom Lifecycle Integration", () => {
     const out1 = { system: [] as string[] };
     await transformHook({ sessionID: "test" } as any, out1 as any);
     const out1Filtered = out1.system.filter(
-      (s) => !s.includes("[ADV:DEGRADED]"),
+      (s) => !s.includes("[Determinus:DEGRADED]"),
     );
     expect(out1Filtered).toHaveLength(0);
 
@@ -84,9 +84,9 @@ describe("Wisdom Lifecycle Integration", () => {
     const out2 = { system: [] as string[] };
     await transformHook({ sessionID: "test" } as any, out2 as any);
     // Dynamic injection removed for prompt caching — no TODO_CONTINUATION
-    expect(out2.system.some((s) => s.includes("[ADV:TODO_CONTINUATION]"))).toBe(
-      false,
-    );
+    expect(
+      out2.system.some((s) => s.includes("[Determinus:TODO_CONTINUATION]")),
+    ).toBe(false);
 
     // 3. Complete a task
     const completeOutput = JSON.stringify({
@@ -98,21 +98,21 @@ describe("Wisdom Lifecycle Integration", () => {
       { args: { taskId, status: "done" }, output: completeOutput } as any,
     );
 
-    // 4. Hook should NOT inject retired [ADV:RECORD_WISDOM] prompt.
+    // 4. Hook should NOT inject retired [Determinus:RECORD_WISDOM] prompt.
     // rq-wisdomAutoSurfacing01.10 / AC8: the generic nudge is retired; the
-    // draft-aware [ADV:WISDOM_DRAFTS] prompt fires only when
+    // draft-aware [Determinus:WISDOM_DRAFTS] prompt fires only when
     // state.pendingWisdomDraftTasks is non-empty, which requires a task with
     // a suggested wisdom_drafts entry. This lifecycle test completes a task
     // without SEMANTIC error_recovery, so no draft is created and no
     // wisdom nudge fires.
     const out3 = { system: [] as string[] };
     await transformHook({ sessionID: "test" } as any, out3 as any);
-    expect(out3.system.some((s) => s.includes("[ADV:RECORD_WISDOM]"))).toBe(
-      false,
-    );
-    expect(out3.system.some((s) => s.includes("[ADV:WISDOM_DRAFTS]"))).toBe(
-      false,
-    );
+    expect(
+      out3.system.some((s) => s.includes("[Determinus:RECORD_WISDOM]")),
+    ).toBe(false);
+    expect(
+      out3.system.some((s) => s.includes("[Determinus:WISDOM_DRAFTS]")),
+    ).toBe(false);
 
     // 5. Add wisdom
     await (hooks.tool as any).determinus_tool_invoke.execute(
@@ -132,7 +132,7 @@ describe("Wisdom Lifecycle Integration", () => {
     const out4 = { system: [] as string[] };
     await transformHook({ sessionID: "test" } as any, out4 as any);
     expect(
-      out4.system.some((s) => s.includes("[ADV:ACCUMULATED_WISDOM]")),
+      out4.system.some((s) => s.includes("[Determinus:ACCUMULATED_WISDOM]")),
     ).toBe(false);
   });
 });
@@ -288,18 +288,18 @@ describe("Active Change Title Update on determinus_change_create", () => {
       out as any,
     );
 
-    // rq-wisdomAutoSurfacing01.10 / AC8: [ADV:RECORD_WISDOM] is retired;
-    // [ADV:WISDOM_DRAFTS] fires only when state.pendingWisdomDraftTasks is
+    // rq-wisdomAutoSurfacing01.10 / AC8: [Determinus:RECORD_WISDOM] is retired;
+    // [Determinus:WISDOM_DRAFTS] fires only when state.pendingWisdomDraftTasks is
     // non-empty. This test completes a task without SEMANTIC error_recovery,
     // so no draft exists and neither nudge fires. (Completed-task tracking
     // still happens internally via state.lastCompletedTask; the public
     // observable here is that the retired nudge no longer appears.)
-    expect(out.system.some((s) => s.includes("[ADV:RECORD_WISDOM]"))).toBe(
-      false,
-    );
-    expect(out.system.some((s) => s.includes("[ADV:WISDOM_DRAFTS]"))).toBe(
-      false,
-    );
+    expect(
+      out.system.some((s) => s.includes("[Determinus:RECORD_WISDOM]")),
+    ).toBe(false);
+    expect(
+      out.system.some((s) => s.includes("[Determinus:WISDOM_DRAFTS]")),
+    ).toBe(false);
   });
 
   test("after determinus_change_create with braces inside path string, activeChangeId is still set", async () => {
@@ -753,7 +753,7 @@ describe("Trunk Write Firewall: tool.execute.before interception", () => {
     ).rejects.toThrow(/Trunk write firewall/);
   }, 30_000);
 
-  test("blocks writes from an ADV worktree back into the main checkout", async () => {
+  test("blocks writes from an Determinus worktree back into the main checkout", async () => {
     const { execSync } = await import("child_process");
     const { mkdirSync, writeFileSync } = await import("fs");
     const { join } = await import("path");
@@ -965,7 +965,7 @@ describe("Trunk Write Firewall: tool.execute.before interception", () => {
 
   // Regression test for change `fixTrunkFirewallRelPath`.
   // When session directory = trunk (not warped) and the active change has
-  // a registered ADV worktree, relative file paths in write/edit/morph_edit
+  // a registered Determinus worktree, relative file paths in write/edit/morph_edit
   // must resolve against the worktree path so the firewall correctly ALLOWs.
   test("REL path allowed when active change has worktree and session is on trunk", async () => {
     const { execSync } = await import("child_process");
@@ -981,7 +981,7 @@ describe("Trunk Write Firewall: tool.execute.before interception", () => {
       cwd: tempDir,
     });
 
-    // Create a worktree at the ADV convention path:
+    // Create a worktree at the Determinus convention path:
     // getWorktreeBase(projectId)/change/{changeId}
     const changeId = "myActiveChange";
     const projectId = await getProjectId(tempDir);

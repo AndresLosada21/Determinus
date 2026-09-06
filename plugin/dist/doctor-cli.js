@@ -15539,7 +15539,7 @@ var init_epics = __esm({
     EpicScopeRepoSchema = external_exports.object({
       /** Product config repo ID. */
       repo_id: external_exports.string(),
-      /** ADV project ID for this repo. */
+      /** Determinus project ID for this repo. */
       repo_project_id: external_exports.string(),
       /** Optional target path for reachable local/cross-project mutation. */
       path: external_exports.string().optional(),
@@ -15551,7 +15551,7 @@ var init_epics = __esm({
     EpicScopeSchema = external_exports.object({
       /** Repo-local Epic or product/multi-project Epic. */
       kind: external_exports.enum(["repo", "product"]),
-      /** ADV project ID that owns the Epic workflow. */
+      /** Determinus project ID that owns the Epic workflow. */
       owner_project_id: external_exports.string(),
       /** Product config repo ID of the owner repo when known. */
       owner_repo_id: external_exports.string().optional(),
@@ -15604,9 +15604,9 @@ var init_epics = __esm({
       updated_at: external_exports.string()
     });
     EpicChangeRefSchema = external_exports.object({
-      /** ADV change ID. */
+      /** Determinus change ID. */
       change_id: external_exports.string(),
-      /** ADV project ID where the child change lives. */
+      /** Determinus project ID where the child change lives. */
       project_id: external_exports.string(),
       /** Product config repo ID when known. */
       repo_id: external_exports.string().optional(),
@@ -15627,9 +15627,9 @@ var init_epics = __esm({
       entry_id: external_exports.string(),
       /** Advisory display order within the Epic roadmap. */
       order: external_exports.number().int().min(0),
-      /** Legacy same-project ADV change ID. */
+      /** Legacy same-project Determinus change ID. */
       change_id: external_exports.string().optional(),
-      /** Project-aware ADV change reference for retrofit/product membership. */
+      /** Project-aware Determinus change reference for retrofit/product membership. */
       change_ref: EpicChangeRefSchema.optional(),
       /** Display title for the linked child entry. */
       title: external_exports.string().optional(),
@@ -15716,7 +15716,7 @@ var init_epics = __esm({
       EpicShellEntrySchema
     ]);
     EpicSchema = external_exports.object({
-      /** Epic ID — same naming convention as ADV changes (camelCase title). */
+      /** Epic ID — same naming convention as Determinus changes (camelCase title). */
       id: external_exports.string(),
       /** Human-readable Epic title. */
       title: external_exports.string(),
@@ -15748,7 +15748,7 @@ var init_epics = __esm({
       title: external_exports.string(),
       /** ISO8601 timestamp when this change was linked to the Epic. */
       linked_at: external_exports.string(),
-      /** ADV project ID that owns the Epic workflow. */
+      /** Determinus project ID that owns the Epic workflow. */
       epic_project_id: external_exports.string().optional(),
       /** Product config repo ID for the child change when known. */
       repo_id: external_exports.string().optional(),
@@ -16021,7 +16021,7 @@ var init_wisdom = __esm({
       product_id: external_exports.string().optional(),
       /** Product repo id where this entry originated. */
       origin_repo_id: external_exports.string().optional(),
-      /** Repo-local ADV project id where this entry originated. */
+      /** Repo-local Determinus project id where this entry originated. */
       origin_repo_project_id: external_exports.string().optional(),
       /** Repo root path where this entry originated. */
       origin_repo_path: external_exports.string().optional()
@@ -17439,7 +17439,7 @@ var init_tasks = __esm({
       structured_output: TaskStructuredOutputSchema.optional(),
       /**
        * Typed, durable sub-agent reports submitted through
-       * determinus_subagent_report_submit. These replace ADV worker fenced-JSON report
+       * determinus_subagent_report_submit. These replace Determinus worker fenced-JSON report
        * extraction while preserving structured_output for legacy callers.
        * Task records intentionally keep the task-scoped report schema; independent
        * review/research/scanner sidecars persist on change.subagent_reports[].
@@ -17992,7 +17992,7 @@ var init_changes = __esm({
     CrossProjectLinkSchema = external_exports.object({
       /** Absolute path to the linked project repository root */
       target_path: external_exports.string().min(1),
-      /** Stable ADV project ID for the linked repository, when known */
+      /** Stable Determinus project ID for the linked repository, when known */
       target_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Change ID in the linked project */
       changeId: external_exports.string().min(1),
@@ -18009,7 +18009,7 @@ var init_changes = __esm({
     ExternalDependencySchema = external_exports.object({
       /** Absolute path to the dependency project repository root */
       target_path: external_exports.string().min(1),
-      /** Stable ADV project ID for the dependency repository, when known */
+      /** Stable Determinus project ID for the dependency repository, when known */
       target_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Change ID in the dependency project */
       changeId: external_exports.string().min(1),
@@ -18076,7 +18076,7 @@ var init_changes = __esm({
     OpsFollowupSourceSchema = external_exports.object({
       /** The change that originated this follow-up. */
       source_change_id: external_exports.string().min(1),
-      /** Stable ADV project ID of the originating project, when known. */
+      /** Stable Determinus project ID of the originating project, when known. */
       source_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Absolute path to the originating project repository, when known. */
       source_path: external_exports.string().min(1).optional(),
@@ -18812,7 +18812,7 @@ var init_project = __esm({
       trusted: external_exports.boolean().default(false),
       /** GitHub repo in owner/name format for GH CLI operations (e.g., "org/backend-api") */
       gh_repo: external_exports.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/).optional(),
-      /** Stable ADV repo project ID, when known, for product-linked resolution. */
+      /** Stable Determinus repo project ID, when known, for product-linked resolution. */
       repo_project_id: external_exports.string().regex(/^[0-9a-f]{40}$/).optional(),
       /** Role this related repo plays in a product-linked topology. */
       product_role: external_exports.enum(["primary", "secondary"]).optional()
@@ -18869,7 +18869,7 @@ var init_project = __esm({
       /**
        * Whether machine worktree isolation is enforced.
        * Default: true (post-rollout, rq-autoManageAdvWorktrees AC2).
-       * When omitted or true, ADV main-checkout task/gate execution mutations
+       * When omitted or true, Determinus main-checkout task/gate execution mutations
        * and the trunk write firewall are enforced. Explicit `false` preserves
        * legacy permissive behavior for projects that want to keep editing in
        * the main checkout.
@@ -18949,7 +18949,7 @@ var init_project = __esm({
       auto_push: external_exports.boolean().default(true),
       /** Archive finalization sub-configuration (e.g., PR title policy). */
       archive: ArchiveConfigSchema.default(() => ArchiveConfigSchema.parse({})),
-      /** Per-project feature flag overrides. All flags default to current ADV behavior. */
+      /** Per-project feature flag overrides. All flags default to current Determinus behavior. */
       features: FeatureFlagsSchema.default(() => FeatureFlagsSchema.parse({}))
     }).passthrough();
     ProjectMetadataEntrySchema = external_exports.object({
@@ -20400,7 +20400,7 @@ async function saveProjectConfig(root, config2) {
 async function saveChange(changesDir, change) {
   if (isSyntheticValidationDraftPattern(change.id)) {
     throw new Error(
-      `Refusing to write change with synthetic-validation-draft ID "${change.id}": matches reserved pattern (changeRoundtrip*, gateParity*, parityLegacy*, latencyLegacy*, etc). These IDs are reserved for ADV's own validation/parity/latency/roundtrip workflows which must use isolated temp storage, not live ADV state. Spec: rq-synthstate01.`
+      `Refusing to write change with synthetic-validation-draft ID "${change.id}": matches reserved pattern (changeRoundtrip*, gateParity*, parityLegacy*, latencyLegacy*, etc). These IDs are reserved for Determinus's own validation/parity/latency/roundtrip workflows which must use isolated temp storage, not live Determinus state. Spec: rq-synthstate01.`
     );
   }
   const changeDir = join4(changesDir, change.id);
@@ -24318,10 +24318,10 @@ async function getProjectId(directory) {
 function unstableIdentityGuidance(repoPath, reason) {
   const cause = reason === "shallow" ? "is a shallow clone (its root commit is a moving shallow-fetch boundary)" : "has commit grafts (its root commit is rewritten parentage)";
   const fix = reason === "shallow" ? `Run \`git fetch --unshallow\` in ${repoPath} and retry.` : `Remove \`.git/info/grafts\` (or migrate to \`git replace\` and un-graft) in ${repoPath}, then run \`git fetch --unshallow\` if the repo is also shallow, and retry.`;
-  return `ADV cannot derive a stable project identity for ${repoPath}: the repository ${cause}. ${fix} No ADV state was created under the unstable identity.`;
+  return `Determinus cannot derive a stable project identity for ${repoPath}: the repository ${cause}. ${fix} No Determinus state was created under the unstable identity.`;
 }
 function invalidIdentityGuidance(repoPath, projectId) {
-  return `ADV cannot derive a valid project identity for ${repoPath}: git returned the invalid candidate "${projectId}". Project identities must be exactly 40 lowercase hexadecimal characters. No ADV state was created under the invalid identity.`;
+  return `Determinus cannot derive a valid project identity for ${repoPath}: git returned the invalid candidate "${projectId}". Project identities must be exactly 40 lowercase hexadecimal characters. No Determinus state was created under the invalid identity.`;
 }
 async function resolveProjectIdentity(directory) {
   let gitDir;
@@ -24791,7 +24791,7 @@ var init_target_project = __esm({
     };
     targetPathSchema = external_exports.object({
       target_path: external_exports.string().optional().describe(
-        "Optional absolute path to another ADV project. When provided, routes the operation through that project's target store."
+        "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target store."
       ),
       target_confirmed: external_exports.literal(true).optional().describe(
         "Required for untrusted target_path mutation. Confirms the target project was explicitly approved."
@@ -24802,7 +24802,7 @@ var init_target_project = __esm({
     });
     epicOwnerTargetPathSchema = {
       epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-        "Optional absolute path to the Epic owner ADV project. When provided, resolves the Epic in that project instead of the current one."
+        "Optional absolute path to the Epic owner Determinus project. When provided, resolves the Epic in that project instead of the current one."
       ),
       epic_owner_target_confirmed: targetPathSchema.shape.target_confirmed.describe(
         "Required for untrusted epic_owner_target_path mutation. Confirms the Epic owner project was explicitly approved."
@@ -28530,7 +28530,7 @@ function createArchivePullRequest(input, deps = {}) {
     "--title",
     title,
     "--body",
-    `ADV Phase 9 archive finalization for ${input.branch}.`
+    `Determinus Phase 9 archive finalization for ${input.branch}.`
   ]);
   if (result.status !== 0) {
     return {
@@ -29542,7 +29542,7 @@ async function finalizeRelease(ctx, deps = {}) {
       pushStatus: "not_attempted",
       blocked: {
         reason: "WORKTREE_PROJECT_MISMATCH",
-        remediation: `Worktree ${ctx.workdir} belongs to ${repoRoot}, expected ${ctx.expectedRepoRoot}. rq-releaseFinalization01 requires finalization inside this ADV project.`
+        remediation: `Worktree ${ctx.workdir} belongs to ${repoRoot}, expected ${ctx.expectedRepoRoot}. rq-releaseFinalization01 requires finalization inside this Determinus project.`
       }
     };
   }
@@ -29860,7 +29860,7 @@ async function finalizeRelease(ctx, deps = {}) {
               prBranch: sourceBranch,
               blocked: {
                 reason: route.reason ?? "PR_MANUAL_REQUIRED",
-                remediation: `Default branch push failed and ADV could not arm auto-merge. Manually open or merge PR for ${sourceBranch}, then rerun archive finalization (rq-releaseFinalization01).`,
+                remediation: `Default branch push failed and Determinus could not arm auto-merge. Manually open or merge PR for ${sourceBranch}, then rerun archive finalization (rq-releaseFinalization01).`,
                 details: [push.reason, ...route.details ?? []]
               }
             };
@@ -31298,7 +31298,7 @@ var changeProjectionQuarantineToolDefinitions = {
     description: "Operator-only quarantine for corrupt or oversized active change projections. Diagnoses via the bounded projection reader, refuses healthy/missing records, refuses to synthesize missing state, and atomically moves the bad change.json to a quarantine directory outside the active read path. Requires approvedByUser:true, non-blank approvalEvidence, and changeId. Use dryRun:true to preview the diagnosis and target path without moving files.",
     args: {
       changeId: external_exports.string().min(1).describe(
-        "ADV change ID whose active projection will be diagnosed and quarantined."
+        "Determinus change ID whose active projection will be diagnosed and quarantined."
       ),
       approvedByUser: external_exports.boolean().optional().describe(
         "Required to execute the quarantine. Must be true after explicit operator approval."
@@ -31353,7 +31353,7 @@ async function executeQuarantine(input) {
       code: "INVALID_CHANGE_ID",
       change_id: changeId,
       reason: "invalid_change_id",
-      details: `changeId '${changeId}' is not a canonical ADV change identifier.`
+      details: `changeId '${changeId}' is not a canonical Determinus change identifier.`
     };
   }
   const sourcePath = join19(changesDir, changeId, "change.json");
@@ -35614,7 +35614,7 @@ import {
 } from "child_process";
 import { dirname as dirname11, join as join25, resolve as resolve4 } from "path";
 var GIT_WORKTREE_LOCK_FILENAME = "git-worktree.lock";
-var GIT_WORKTREE_LEASE_DIRECTORY = "advance";
+var GIT_WORKTREE_LEASE_DIRECTORY = "determinus";
 var LEGACY_GIT_WORKTREE_FLOCK_CONFLICT_EXIT_CODE = 74;
 var LEGACY_LOCK_MAX_BYTES = 4096;
 var LEGACY_REMOVE_SCRIPT = 'test ! -L "$1" && test -f "$1" && mv -- "$1" "$2" && rm -f -- "$2"';
@@ -38076,7 +38076,7 @@ async function loadWorktreeConfig(directory, log) {
   // Documentation: https://github.com/kdcokenny/ocx
 
   // Worktree session mode:
-  // - "warp" (default): register the ADV worktree as an OpenCode workspace
+  // - "warp" (default): register the Determinus worktree as an OpenCode workspace
   //   and warp this session into it. Requires OPENCODE_EXPERIMENTAL_WORKSPACES=true.
   // - "terminal": stay in this session and use workdir= per tool (legacy inline behavior).
   // - "spawn": open a new terminal with a forked OpenCode session (legacy non-inline behavior).
@@ -40040,7 +40040,7 @@ var PLUGIN_BUNDLE_MANIFEST_SCHEMA_VERSION = 1;
 var PLUGIN_BUNDLE_STALE_ADVISORY = "PLUGIN_BUNDLE_STALE";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("b799232cd9e501bb42279a676dc9de09c7c0c802419ac7585c372ea8d5c0a94b") ? "b799232cd9e501bb42279a676dc9de09c7c0c802419ac7585c372ea8d5c0a94b" : null;
+  return /^[0-9a-f]{64}$/.test("eebc420c4af9108fbec21e6bb2437e390cf3090398943fb4ec80ea3abbd5b3f1") ? "eebc420c4af9108fbec21e6bb2437e390cf3090398943fb4ec80ea3abbd5b3f1" : null;
 }
 var LOADED_PLUGIN_BUNDLE_GENERATION = captureLoadedPluginBundleGeneration();
 function getLoadedPluginBundleGeneration() {

@@ -1,7 +1,7 @@
 /**
  * Phantom Sub-Agent Roster Tests
  *
- * Active ADV guidance MUST NOT route work to sub-agents that are not shipped
+ * Active Determinus guidance MUST NOT route work to sub-agents that are not shipped
  * as `.opencode/agents/*.md` assets. This test scans active guidance surfaces
  * for forbidden routing patterns referencing:
  *
@@ -250,7 +250,7 @@ describe("phantom sub-agent roster", () => {
           `${surface} contains ${findings.length} forbidden phantom sub-agent routing reference(s).\n` +
           `Phantoms must be replaced per design Decision 2:\n` +
           `  librarian  → determinus-researcher\n` +
-          `  mechanic   → inline by main ADV agent\n` +
+          `  mechanic   → inline by main Determinus agent\n` +
           `  prioritizer → skill("prioritizer") inline\n\n` +
           `Findings:\n${formatFindings(findings)}`;
         throw new Error(message);

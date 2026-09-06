@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * CI lint script: validate YAML frontmatter in ADV agent/command manifests.
+ * CI lint script: validate YAML frontmatter in Determinus agent/command manifests.
  *
  * - Parses every .md file under .opencode/agents/ and .opencode/command/.
- * - For ADV-policy manifests (those containing the ADV-GENERATED sentinel),
+ * - For Determinus-policy manifests (those containing the Determinus-GENERATED sentinel),
  *   cross-checks the `tools:` map against AGENT_TOOL_POLICY.
  * - Exits 1 on any unparseable frontmatter or policy drift.
  *
@@ -18,7 +18,7 @@ import {
   assertPolicyMatch,
 } from "../src/utils/manifest-frontmatter";
 
-const ADV_GENERATED_SENTINEL = ">>> ADV-GENERATED";
+const DETERMINUS_GENERATED_SENTINEL = ">>> Determinus-GENERATED";
 
 const scriptDir = resolve(fileURLToPath(import.meta.url), "..");
 const repoRoot = resolve(scriptDir, "../..");
@@ -28,8 +28,8 @@ interface Failure {
   error: string;
 }
 
-function isAdvPolicyManifest(text: string): boolean {
-  return text.includes(ADV_GENERATED_SENTINEL);
+function isDeterminusPolicyManifest(text: string): boolean {
+  return text.includes(DETERMINUS_GENERATED_SENTINEL);
 }
 
 function walk(dir: string, failures: Failure[], checked: { count: number }): void {
@@ -67,7 +67,7 @@ function walk(dir: string, failures: Failure[], checked: { count: number }): voi
         continue;
       }
 
-      if (parsed.doc && isAdvPolicyManifest(text)) {
+      if (parsed.doc && isDeterminusPolicyManifest(text)) {
         const agent = entry.replace(/\.md$/, "");
         const policy = assertPolicyMatch(parsed.doc, agent);
         if (!policy.ok) {

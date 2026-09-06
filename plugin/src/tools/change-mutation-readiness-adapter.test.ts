@@ -30,7 +30,7 @@ function passingTemporalState() {
 
 function passingRecoveredChange(): Change {
   return ChangeSchema.parse({
-    $schema: "https://advance.dev/schemas/change.v1.json",
+    $schema: "https://determinus.dev/schemas/change.v1.json",
     id: "gate-ready-change",
     title: "Gate Ready",
     status: "draft",

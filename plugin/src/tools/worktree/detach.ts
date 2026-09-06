@@ -2,7 +2,7 @@
  * Exact-batch directory-only worktree detach (rq-migrateExistingAdvWorktrees).
  *
  * Distinct from terminal cleanup: removes only the worktree directory, preserves
- * the local branch and ADV change record, and writes a durable dematerialize
+ * the local branch and Determinus change record, and writes a durable dematerialize
  * durable local worktree state. Never invoked by reapers, triage,
  * startup cleanup, or migration automation.
  */

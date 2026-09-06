@@ -128,7 +128,7 @@ describe("determinus_conformance action: init", () => {
     const parsed = JSON.parse(result);
     expect(parsed.success).toBe(true);
     expect(parsed.kind).toBe("sibling");
-    expect(parsed.path).toContain("advance-conformance-abc123");
+    expect(parsed.path).toContain("determinus-conformance-abc123");
     const state = await loadConformanceState(externalRoot, projectDir);
     expect(state.conformance_root_kind).toBe("sibling");
   });

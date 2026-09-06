@@ -273,6 +273,6 @@
   "required": [
     "name"
   ],
-  "title": "ADV Project Configuration",
+  "title": "Determinus Project Configuration",
   "type": "object"
 }

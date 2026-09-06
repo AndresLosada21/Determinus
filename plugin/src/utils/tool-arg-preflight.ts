@@ -552,7 +552,7 @@ function asRecord(rawArgs: unknown): Record<string, unknown> {
     : {};
 }
 
-// rq-toolArgPreflight01: reject invalid ADV tool args before timeout safety nets.
+// rq-toolArgPreflight01: reject invalid Determinus tool args before timeout safety nets.
 export function validateToolArgsBeforeExecute(
   toolName: string,
   argsSchema: ToolArgsSchema,

@@ -41,7 +41,7 @@ const MALFORMED_GATES = {
 
 function changeWithMalformedGates(id: string): Change {
   return {
-    $schema: "https://advance.dev/schemas/change.v1.json",
+    $schema: "https://determinus.dev/schemas/change.v1.json",
     id,
     title: `Change ${id}`,
     status: "active",

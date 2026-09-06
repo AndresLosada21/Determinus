@@ -12,7 +12,7 @@ import { detectRepoState } from "./checkpoint.js";
 export type TrunkWriteDecision = "ALLOW" | "BLOCK";
 
 /**
- * rq-trunkArtifactAllowlist01: Generated artifacts that ADV commands write
+ * rq-trunkArtifactAllowlist01: Generated artifacts that Determinus commands write
  * to the trunk checkout at project root on the default branch. These files
  * exist BECAUSE they must live on trunk (e.g. /determinus-triage regenerates
  * `.adv/github-project.json` as a deterministic mirror of the canonical
@@ -279,7 +279,7 @@ function evaluateTarget(
       return {
         decision: "BLOCK",
         targetPath: context.targetPath,
-        reason: `Trunk write firewall: direct file write to trunk checkout is blocked because git state could not be verified (${context.targetPath}). Create or use an ADV worktree instead.`,
+        reason: `Trunk write firewall: direct file write to trunk checkout is blocked because git state could not be verified (${context.targetPath}). Create or use an Determinus worktree instead.`,
       };
     }
     return { decision: "ALLOW", targetPath: context.targetPath };
@@ -290,7 +290,7 @@ function evaluateTarget(
     return {
       decision: "BLOCK",
       targetPath: context.targetPath,
-      reason: `Trunk write firewall: direct file write to trunk checkout is blocked because the default branch could not be verified (${context.targetPath}). Create or use an ADV worktree instead.`,
+      reason: `Trunk write firewall: direct file write to trunk checkout is blocked because the default branch could not be verified (${context.targetPath}). Create or use an Determinus worktree instead.`,
     };
   }
   if (context.isEligibleWorktree)
@@ -317,7 +317,7 @@ function evaluateTarget(
   return {
     decision: "BLOCK",
     targetPath: context.targetPath,
-    reason: `Trunk write firewall: direct file write to trunk checkout on default branch is blocked (${context.targetPath}). Create or use an ADV worktree instead.`,
+    reason: `Trunk write firewall: direct file write to trunk checkout on default branch is blocked (${context.targetPath}). Create or use an Determinus worktree instead.`,
   };
 }
 

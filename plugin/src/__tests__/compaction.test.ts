@@ -1,7 +1,7 @@
 /**
  * Compaction Turn Enrichment Tests
  *
- * Tests for the determinus.compaction.turn's ADV TASK CONTEXT
+ * Tests for the determinus.compaction.turn's Determinus TASK CONTEXT
  * block, progress lines, graceful degradation, and line-length caps.
  *
  * Uses the disk store directly to set up tasks, then tests the compaction
@@ -168,7 +168,7 @@ describe("determinus.compaction.turn enrichment", () => {
     });
 
     // After T4, compaction emits a single combined block via
-    // buildChangeContextSnapshot — the legacy "=== ADV TASK CONTEXT ==="
+    // buildChangeContextSnapshot — the legacy "=== Determinus TASK CONTEXT ==="
     // block was replaced. Verify the new snapshot contains the current
     // task indicator.
     const block = output.join("\n");
@@ -237,7 +237,7 @@ describe("determinus.compaction.turn enrichment", () => {
 
     // No CONTEXT/snapshot block (no active change)
     const hasTaskContext = output.context.some(
-      (c) => c.includes("CONTEXT:") || c.includes("ADV RESUME HINT"),
+      (c) => c.includes("CONTEXT:") || c.includes("Determinus RESUME HINT"),
     );
     expect(hasTaskContext).toBe(false);
   });
@@ -276,7 +276,7 @@ describe("determinus.compaction.turn enrichment", () => {
 
     // After T4 the compaction block is bounded by an explicit byte
     // budget (DEFAULT_COMPACTION_MAX_BYTES = 16_000) instead of a
-    // per-line 80-char cap. The legacy ADV TASK CONTEXT block was
+    // per-line 80-char cap. The legacy Determinus TASK CONTEXT block was
     // replaced by buildChangeContextSnapshot which uses a wider boxed
     // layout (the renderer's box width grows to fit the longest task
     // title; the change-id line is truncated separately). Verify the

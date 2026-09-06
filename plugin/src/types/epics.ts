@@ -54,7 +54,7 @@ export type EpicEntryKind = z.infer<typeof EpicEntryKindSchema>;
 export const EpicScopeRepoSchema = z.object({
   /** Product config repo ID. */
   repo_id: z.string(),
-  /** ADV project ID for this repo. */
+  /** Determinus project ID for this repo. */
   repo_project_id: z.string(),
   /** Optional target path for reachable local/cross-project mutation. */
   path: z.string().optional(),
@@ -74,7 +74,7 @@ export type EpicScopeRepo = z.infer<typeof EpicScopeRepoSchema>;
 export const EpicScopeSchema = z.object({
   /** Repo-local Epic or product/multi-project Epic. */
   kind: z.enum(["repo", "product"]),
-  /** ADV project ID that owns the Epic workflow. */
+  /** Determinus project ID that owns the Epic workflow. */
   owner_project_id: z.string(),
   /** Product config repo ID of the owner repo when known. */
   owner_repo_id: z.string().optional(),
@@ -181,13 +181,13 @@ export type EpicProgressSummary = z.infer<typeof EpicProgressSummarySchema>;
 /**
  * Project-aware child change reference for repo/product Epic membership.
  *
- * rq-epicEntries01 — change entries reference one ADV change.
+ * rq-epicEntries01 — change entries reference one Determinus change.
  * rq-epicProductScope01 — product Epic entries carry project/repo identity.
  */
 export const EpicChangeRefSchema = z.object({
-  /** ADV change ID. */
+  /** Determinus change ID. */
   change_id: z.string(),
-  /** ADV project ID where the child change lives. */
+  /** Determinus project ID where the child change lives. */
   project_id: z.string(),
   /** Product config repo ID when known. */
   repo_id: z.string().optional(),
@@ -217,7 +217,7 @@ export type EpicMembershipStatus = z.infer<typeof EpicMembershipStatusSchema>;
 // Epic Entry
 // =============================================================================
 
-// rq-epicEntries01 — change entries reference one ADV change.
+// rq-epicEntries01 — change entries reference one Determinus change.
 // rq-epicOrderAdvisory01 — order field carries advisory sequencing only.
 const EpicChangeEntrySchema = z
   .object({
@@ -226,9 +226,9 @@ const EpicChangeEntrySchema = z
     entry_id: z.string(),
     /** Advisory display order within the Epic roadmap. */
     order: z.number().int().min(0),
-    /** Legacy same-project ADV change ID. */
+    /** Legacy same-project Determinus change ID. */
     change_id: z.string().optional(),
-    /** Project-aware ADV change reference for retrofit/product membership. */
+    /** Project-aware Determinus change reference for retrofit/product membership. */
     change_ref: EpicChangeRefSchema.optional(),
     /** Display title for the linked child entry. */
     title: z.string().optional(),
@@ -341,7 +341,7 @@ export type EpicEntry = z.infer<typeof EpicEntrySchema>;
  */
 export const EpicSchema = z
   .object({
-    /** Epic ID — same naming convention as ADV changes (camelCase title). */
+    /** Epic ID — same naming convention as Determinus changes (camelCase title). */
     id: z.string(),
     /** Human-readable Epic title. */
     title: z.string(),
@@ -397,7 +397,7 @@ export const EpicMembershipSchema = z.object({
   title: z.string(),
   /** ISO8601 timestamp when this change was linked to the Epic. */
   linked_at: z.string(),
-  /** ADV project ID that owns the Epic workflow. */
+  /** Determinus project ID that owns the Epic workflow. */
   epic_project_id: z.string().optional(),
   /** Product config repo ID for the child change when known. */
   repo_id: z.string().optional(),

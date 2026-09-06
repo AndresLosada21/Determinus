@@ -354,7 +354,7 @@ async function readLightweightTerminalProof(
 /**
  * Git-authoritative, side-effect-free deletion planner.
  *
- * The planner never opens ADV's Store, writes registry/plan state, invokes
+ * The planner never opens Determinus's Store, writes registry/plan state, invokes
  * migration, or mutates Git. Destructive adapters consume its self-contained
  * token in a later task and revalidate every bound fact under their lease.
  */

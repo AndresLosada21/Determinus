@@ -1,7 +1,7 @@
 /**
  * Approval Consequence Context Builder
  *
- * Pure helper that renders the bounded summary an approver (human or ADV
+ * Pure helper that renders the bounded summary an approver (human or Determinus
  * gate) needs before signing off on a change. Enforces a stable 8-category
  * vocabulary, a finite status vocabulary, and evidence pointers for every
  * row. It never emits raw logs, diffs, task lists, or full scanner reports.

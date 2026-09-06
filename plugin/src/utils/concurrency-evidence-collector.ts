@@ -280,7 +280,7 @@ async function buildSnapshot(
 function collectProvenance(snapshot: ConcurrencyEvidenceSnapshot): string[] {
   const provenance = new Set<string>();
   provenance.add(
-    "Historical baseline: 12 total overlapping pokeedge agents, 6 orchestrators, 0 failed sampled ADV queue workflows, worker RSS 314 MB–2.03 GB.",
+    "Historical baseline: 12 total overlapping pokeedge agents, 6 orchestrators, 0 failed sampled Determinus queue workflows, worker RSS 314 MB–2.03 GB.",
   );
   for (const sample of snapshot.sessionSamples) {
     provenance.add(`session_db: ${sample.provenance}`);
@@ -743,7 +743,7 @@ export function createBaselineSnapshot(): ConcurrencyEvidenceSnapshot {
       workerRssMaxMb: HISTORICAL_WORKER_RSS_MAX_MB,
       source: "historical_baseline",
       provenance:
-        "Recorded historical peak: 12 total overlapping pokeedge agents (6 orchestrators), zero failed sampled ADV queue workflows, worker RSS 314 MB–2.03 GB.",
+        "Recorded historical peak: 12 total overlapping pokeedge agents (6 orchestrators), zero failed sampled Determinus queue workflows, worker RSS 314 MB–2.03 GB.",
     },
     limits: [
       "Baseline report uses recorded historical data only.",

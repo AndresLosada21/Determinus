@@ -1,5 +1,5 @@
 /**
- * Advance (ADV) Core Types — Barrel Module
+ * Determinus (Determinus) Core Types — Barrel Module
  *
  * Re-exports every public symbol from the per-domain type modules so that
  * existing import sites (`from "../types"`) continue to resolve unchanged.

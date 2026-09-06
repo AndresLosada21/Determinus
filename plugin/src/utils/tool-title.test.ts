@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { formatAdvToolTitle, hasExplicitAdvToolTitle } from "./tool-title";
 
 describe("formatAdvToolTitle", () => {
-  test("formats representative ADV tool titles", () => {
+  test("formats representative Determinus tool titles", () => {
     expect(
       formatAdvToolTitle("determinus_change_show", { changeId: "addThing" })
         .title,
@@ -23,7 +23,7 @@ describe("formatAdvToolTitle", () => {
       }).title,
     ).toBe("Upsert ops run: run-1");
     expect(formatAdvToolTitle("determinus_status", {}).title).toBe(
-      "Show ADV status",
+      "Show Determinus status",
     );
   });
 

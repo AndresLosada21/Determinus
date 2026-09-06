@@ -19,7 +19,7 @@ import { z } from "zod";
 // Two location modes:
 //   - "subfolder" (default): .adv/specs/_conformance/ inside the main repo.
 //     Easy management, branch-local versioning, no bootstrap.
-//   - "sibling" (opt-in via init mode flag): {project-parent}/advance-
+//   - "sibling" (opt-in via init mode flag): {project-parent}/determinus-
 //     conformance-{project-id}/. Stronger physical isolation; user manages
 //     a separate repo.
 // =============================================================================

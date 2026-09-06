@@ -2,9 +2,9 @@
  * ADV latency benchmark (rq-advLatencyBench01, advance-meta v1.12).
  *
  * Runs against an isolated `createDiskStore` so benchmark state never mutates
- * the operator's real ADV data.
+ * the operator's real Determinus data.
  *
- * The disk substitute exercises the same tool surfaces that ADV agents
+ * The disk substitute exercises the same tool surfaces that Determinus agents
  * hit most often:
  *
  *   - `adv_status view:"summary"`                  (warm default read)
@@ -79,7 +79,7 @@ async function ensureBenchmarkFixture(
   changeId: string,
 ): Promise<{ changeId: string; taskId: string; source: string }> {
   // Disk mode runs under an isolated XDG_DATA_HOME, so fixture creation cannot
-  // mutate real ADV state. Ensure adv_change_show and adv_run_test measure real
+  // mutate real Determinus state. Ensure adv_change_show and adv_run_test measure real
   // non-error tool paths instead of silently skipping missing task evidence.
   try {
     const existing = await store.changes.get(changeId);
@@ -104,7 +104,7 @@ async function ensureBenchmarkFixture(
 
   const created = await store.changes.create("Add latency benchmark fixture", {
     artifacts: {
-      proposal: "# Proposal\n\nSynthetic fixture for ADV latency benchmark.",
+      proposal: "# Proposal\n\nSynthetic fixture for Determinus latency benchmark.",
     },
   });
   const task = await store.tasks.add(
@@ -250,7 +250,7 @@ async function main(): Promise<void> {
     }
 
     const report = renderLatencyReport({
-      title: "ADV Latency Report",
+      title: "Determinus Latency Report",
       metadata: {
         repo_root: args.repoRoot,
         requested_change_id: args.changeId,

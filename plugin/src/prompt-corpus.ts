@@ -1,7 +1,7 @@
 /**
  * Active prompt corpus helpers (rq: updateCodemodeMcpContracts).
  *
- * Derives the active Advance prompt corpus from recursive deployment
+ * Derives the active Determinus prompt corpus from recursive deployment
  * ownership (scripts/deploy-local.sh), parses YAML frontmatter separately
  * from prompt-body prose, assembles effective agent prompts (overlay
  * semantics), and exposes the single mode-neutral external-MCP invocation
@@ -34,7 +34,7 @@ export const MCP_ACTIVE_SURFACE_CONTRACT =
   "Otherwise use direct MCP callables exactly as exposed. " +
   "Never infer availability from prose or normalize identifiers; report an absent capability as unavailable.";
 
-/** External MCP provider prefixes (built-in and ADV plugin tools excluded). */
+/** External MCP provider prefixes (built-in and Determinus plugin tools excluded). */
 export const EXTERNAL_MCP_PREFIXES = [
   "lgrep",
   "searchcode",
@@ -65,7 +65,7 @@ export const ONE_MODE_CLAIM =
 
 /**
  * OpenCode-generated CodeMode catalog signature prose (namespaced catalog
- * paths or catalog machinery). Advance must never duplicate the generated
+ * paths or catalog machinery). Determinus must never duplicate the generated
  * catalog; OpenCode remains sole authority for its syntax.
  */
 export const CATALOG_SIGNATURE = new RegExp(
@@ -264,7 +264,7 @@ const OVERLAY_SPLICED_AGENTS = ["build", "plan"] as const;
  * Effective assembled agent prompts as deployed: repo-owned agents verbatim,
  * shared agents with their determinus_SYNC managed block replaced by the canonical
  * overlay source, and overlay-only surfaces (general) represented by the
- * Advance-authored overlay itself.
+ * Determinus-authored overlay itself.
  */
 export function effectiveAgentPrompts(): EffectivePrompt[] {
   const prompts: EffectivePrompt[] = [];

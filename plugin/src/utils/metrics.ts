@@ -2,7 +2,7 @@
 /**
  * In-Memory Metrics Counters
  *
- * Per JC-1, ADV holds the AC6 counters in process memory only — no
+ * Per JC-1, Determinus holds the AC6 counters in process memory only — no
  * SQLite persistence, no cross-session aggregation. Counters reset on
  * plugin init (matches `state` lifecycle in `index.ts`).
  *

@@ -1,7 +1,7 @@
 /**
  * Events Module
  *
- * Status markers and terminal utilities for ADV plugin.
+ * Status markers and terminal utilities for Determinus plugin.
  */
 
 // Terminal utilities

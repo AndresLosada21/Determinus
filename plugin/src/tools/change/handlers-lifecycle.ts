@@ -1001,7 +1001,7 @@ export const lifecycleChangeTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to the Epic owner ADV project. When provided with epic_id/entry_id/epic_title, seeds Epic membership in a remote-owner Epic instead of the current project.",
+          "Optional absolute path to the Epic owner Determinus project. When provided with epic_id/entry_id/epic_title, seeds Epic membership in a remote-owner Epic instead of the current project.",
         ),
       epic_owner_target_confirmed: z
         .literal(true)
@@ -1138,7 +1138,7 @@ export const lifecycleChangeTools = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, mutates that project's disk-backed store.",
+          "Optional absolute path to another Determinus project. When provided, mutates that project's disk-backed store.",
         ),
       target_confirmed: z
         .literal(true)

@@ -499,7 +499,7 @@ const taskToolDefinitions = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext.",
         ),
     },
     execute: async (
@@ -618,7 +618,7 @@ const taskToolDefinitions = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext.",
         ),
       outputMode: z
         .enum(["compact", "pretty"])
@@ -698,7 +698,7 @@ const taskToolDefinitions = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, reads that project as a disk snapshot and returns _projectContext.",
+          "Optional absolute path to another Determinus project. When provided, reads that project as a disk snapshot and returns _projectContext.",
         ),
       ...includeSnapshotSchema.shape,
     },
@@ -839,7 +839,7 @@ const taskToolDefinitions = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, mutates that project's disk-backed store.",
+          "Optional absolute path to another Determinus project. When provided, mutates that project's disk-backed store.",
         ),
       target_confirmed: z
         .literal(true)

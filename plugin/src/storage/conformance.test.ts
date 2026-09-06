@@ -61,9 +61,9 @@ describe("resolveDefaultConformanceRoot (subfolder mode)", () => {
 });
 
 describe("resolveSiblingConformanceRoot (sibling mode)", () => {
-  test("returns advance-conformance-{projectId} alongside projectDir", () => {
+  test("returns determinus-conformance-{projectId} alongside projectDir", () => {
     const root = resolveSiblingConformanceRoot(projectDir, "abc123");
-    const expected = join(tempDir, "advance-conformance-abc123");
+    const expected = join(tempDir, "determinus-conformance-abc123");
     expect(root).toBe(expected);
   });
 });

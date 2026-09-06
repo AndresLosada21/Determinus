@@ -25,7 +25,7 @@ describe("Command Manifest", () => {
     expect(Object.keys(COMMAND_MANIFEST).length).toBeGreaterThan(0);
   });
 
-  test("contains all 29 ADV commands", () => {
+  test("contains all 29 Determinus commands", () => {
     const expectedCommands = [
       "determinus-status",
       "determinus-idea",

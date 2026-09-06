@@ -2,7 +2,7 @@
  * Worktree Lease Protocol — one-writer-per-worktree coordination.
  *
  * Lease state keyed by canonical worktree path, stored as JSON files
- * in the ADV external state directory under `leases/`.
+ * in the Determinus external state directory under `leases/`.
  *
  * Each lease record tracks: PID, sessionId, acquiredAt, heartbeatAt.
  * Liveness is determined by heartbeat freshness and (optionally) PID existence.

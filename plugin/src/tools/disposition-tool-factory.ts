@@ -94,7 +94,7 @@ const targetArgs = {
     .string()
     .optional()
     .describe(
-      "Optional absolute path to another ADV project. When provided, routes the operation through that project's target store.",
+      "Optional absolute path to another Determinus project. When provided, routes the operation through that project's target store.",
     ),
   target_confirmed: z
     .literal(true)

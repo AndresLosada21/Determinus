@@ -119,7 +119,7 @@ describe("plugin-runtime-info helpers", () => {
   });
 
   describe("buildRecoveryHint", () => {
-    const pluginRoot = "/home/x/advance/plugin";
+    const pluginRoot = "/home/x/determinus/plugin";
 
     it("returns null for fresh", () => {
       const result = buildRecoveryHint("fresh", { pluginRoot });
@@ -162,9 +162,9 @@ describe("plugin-runtime-info helpers", () => {
     it("includes main_checkout path when provided", () => {
       const result = buildRecoveryHint("source_ahead_of_dist", {
         pluginRoot,
-        mainCheckout: "/home/x/advance",
+        mainCheckout: "/home/x/determinus",
       });
-      expect(result!.paths.main_checkout).toBe("/home/x/advance");
+      expect(result!.paths.main_checkout).toBe("/home/x/determinus");
     });
   });
 
@@ -314,7 +314,7 @@ describe("getPluginRuntimeInfo (integration)", () => {
   it("accepts optional RuntimeInfoOptions and threads worktree info", async () => {
     const info = await getPluginRuntimeInfo({
       isWorktree: true,
-      mainCheckoutPath: "/home/x/advance",
+      mainCheckoutPath: "/home/x/determinus",
     });
     // Shape unchanged; options just inform recovery_hint paths
     expect(typeof info.source_dist_freshness).toBe("string");

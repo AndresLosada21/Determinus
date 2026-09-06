@@ -342,7 +342,7 @@ const _getStatusEmoji = (status: StatusMarker): string => {
  * Full cleanup - reset module-level state without touching the pane.
  *
  * The pane identity contract (fixAdvPanelTitles, AC4 / DONT2) preserves
- * the last intentional ADV title across cleanup. Closing or archiving a
+ * the last intentional Determinus title across cleanup. Closing or archiving a
  * change must not clear or replace the existing pane title, so this
  * cleanup does NOT call `resetTitle` / `setTitle("")`.
  */

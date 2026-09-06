@@ -1,5 +1,5 @@
 /**
- * ADV MCP server end-to-end tests.
+ * Determinus MCP server end-to-end tests.
  *
  * Uses the MCP SDK Client + InMemoryTransport to verify the skeleton read
  * surface: serverInfo, tools/list, determinus_handshake, project_context parity, and
@@ -61,7 +61,7 @@ function extractText(result: {
   return result.content[0].text ?? "";
 }
 
-describe("adv mcp server", () => {
+describe("determinus mcp server", () => {
   let tempDir: string;
   let originalCwd: string;
 
@@ -85,12 +85,12 @@ describe("adv mcp server", () => {
     await cleanupTempDir(tempDir);
   });
 
-  it("boots and exposes serverInfo with name adv and plugin version", async () => {
+  it("boots and exposes serverInfo with name determinus and plugin version", async () => {
     const { client, clientTransport, serverTransport } =
       await connectToServer();
 
     expect(client.getServerVersion()).toEqual({
-      name: "adv",
+      name: "determinus",
       version: "1.0.0",
     });
 

@@ -1,7 +1,7 @@
 /**
  * Phase Plan — canonical, versioned, derive-on-read current-action plan.
  *
- * This module is the canonical derivation kernel for ADV orchestration reads:
+ * This module is the canonical derivation kernel for Determinus orchestration reads:
  *   - `directiveCtxFromState(state, epoch)` bridges durable
  *     `ChangeState` into the shared normalized `DirectiveContext`.
  *   - `derivePhasePlan(ctx)` produces the strict, versioned `PhasePlan`
@@ -510,7 +510,7 @@ function actionablePlan(
  * `DirectiveContext`: equal contexts produce structurally equal plans.
  *
  * Precedence: terminal > recovery-required > approval-required > blocked >
- * initial start > advance. Conflicting normalized state (e.g. no open gate
+ * initial start > determinus. Conflicting normalized state (e.g. no open gate
  * while the change can neither archive nor start) throws; tool-layer callers
  * use `derivePhasePlanSafe` to adapt that into a typed degraded plan.
  */
@@ -590,7 +590,7 @@ export function derivePhasePlan(ctx: DirectiveContext): PhasePlan {
     );
   }
 
-  // Default: advance the first open gate with its manifest-owned command.
+  // Default: determinus the first open gate with its manifest-owned command.
   return actionablePlan(ctx, ctx.firstOpenGate, false);
 }
 

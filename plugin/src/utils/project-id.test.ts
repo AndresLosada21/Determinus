@@ -3,7 +3,7 @@
  *
  * Verifies stable project identifier derivation from git root commit hash,
  * AND the test-mode synthetic override that prevents test fixtures from
- * leaking into a real ADV project's external state directory.
+ * leaking into a real Determinus project's external state directory.
  */
 
 import {
@@ -158,7 +158,7 @@ describe("getProjectId — test-mode synthetic override", () => {
   test("hard-fail guardrail: vitest sets VITEST=true and getProjectId returns synthetic ID", async () => {
     // This test guarantees that no future test can accidentally resolve a real
     // git SHA from getProjectId. If this test fails, the synthetic override
-    // is broken and tests may leak fixture state into a real ADV project.
+    // is broken and tests may leak fixture state into a real Determinus project.
     expect(process.env.VITEST).toBe("true");
     const id = await getProjectId(process.cwd());
     expect(id).toMatch(/^[0-9a-f]{40}$/);

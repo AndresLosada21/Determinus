@@ -1,7 +1,7 @@
 /**
  * Epic Tools
  *
- * MCP tools for Advance Epics: create, show, list, update, reorder,
+ * MCP tools for Determinus Epics: create, show, list, update, reorder,
  * add shell, promote shell, link/unlink change.
  *
  * Epic order is advisory — tools warn but never hard-block.
@@ -56,7 +56,9 @@ import { getProjectId } from "../utils/project-id";
 const EPIC_ID_SCHEMA = z
   .string()
   .min(1)
-  .describe("Epic ID using ADV change naming convention (camelCase title).");
+  .describe(
+    "Epic ID using Determinus change naming convention (camelCase title).",
+  );
 
 function epicNotFound(epicId: string) {
   return formatToolOutput({
@@ -1071,7 +1073,7 @@ async function convergeEpicOnShow(
 export const epicTools = {
   determinus_epic_create: {
     description:
-      "Create a new Advance Epic. Epics are durable initiative containers that group ADV changes and lightweight shell entries. Epic order is advisory.",
+      "Create a new Determinus Epic. Epics are durable initiative containers that group Determinus changes and lightweight shell entries. Epic order is advisory.",
     args: {
       epic_id: EPIC_ID_SCHEMA,
       title: z.string().min(1).describe("Human-readable Epic title."),
@@ -1721,7 +1723,7 @@ export const epicTools = {
 
   determinus_epic_promote_shell: {
     description:
-      "Promote an Epic shell entry into a linked ADV change. Replaces the shell row in-place with a change row carrying promotion provenance. Idempotent by shell entry + change ID.",
+      "Promote an Epic shell entry into a linked Determinus change. Replaces the shell row in-place with a change row carrying promotion provenance. Idempotent by shell entry + change ID.",
     args: {
       epic_id: EPIC_ID_SCHEMA,
       entry_id: z.string().min(1).describe("Shell entry ID to promote."),
@@ -1886,10 +1888,13 @@ export const epicTools = {
 
   determinus_epic_link_change: {
     description:
-      "Link an existing ADV change from the current project or a target_path project as a new Epic entry and project compact epic_membership onto the child change.",
+      "Link an existing Determinus change from the current project or a target_path project as a new Epic entry and project compact epic_membership onto the child change.",
     args: {
       epic_id: EPIC_ID_SCHEMA,
-      change_id: z.string().min(1).describe("Existing ADV change ID to link."),
+      change_id: z
+        .string()
+        .min(1)
+        .describe("Existing Determinus change ID to link."),
       title: z
         .string()
         .min(1)
@@ -1909,7 +1914,7 @@ export const epicTools = {
       target_confirmed: targetPathSchema.shape.target_confirmed,
       confirmationEvidence: targetPathSchema.shape.confirmationEvidence,
       epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-        "Optional absolute path to the Epic owner ADV project. When provided, resolves the Epic in that project instead of the current one.",
+        "Optional absolute path to the Epic owner Determinus project. When provided, resolves the Epic in that project instead of the current one.",
       ),
       epic_owner_target_confirmed:
         targetPathSchema.shape.target_confirmed.describe(
@@ -2347,7 +2352,7 @@ export const epicTools = {
       target_confirmed: targetPathSchema.shape.target_confirmed,
       confirmationEvidence: targetPathSchema.shape.confirmationEvidence,
       epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-        "Optional absolute path to the Epic owner ADV project. When provided, resolves the Epic in that project instead of the current one.",
+        "Optional absolute path to the Epic owner Determinus project. When provided, resolves the Epic in that project instead of the current one.",
       ),
       epic_owner_target_confirmed:
         targetPathSchema.shape.target_confirmed.describe(
@@ -2500,7 +2505,7 @@ export const epicTools = {
       target_confirmed: targetPathSchema.shape.target_confirmed,
       confirmationEvidence: targetPathSchema.shape.confirmationEvidence,
       epic_owner_target_path: targetPathSchema.shape.target_path.describe(
-        "Optional absolute path to the Epic owner ADV project. When provided, resolves both source and destination Epics in that project instead of the current one.",
+        "Optional absolute path to the Epic owner Determinus project. When provided, resolves both source and destination Epics in that project instead of the current one.",
       ),
       epic_owner_target_confirmed:
         targetPathSchema.shape.target_confirmed.describe(

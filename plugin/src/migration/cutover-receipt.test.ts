@@ -69,7 +69,7 @@ function passingProofs(overrides: Partial<CutoverProofs> = {}): CutoverProofs {
 function activateArgs(root: string, overrides: Record<string, unknown> = {}) {
   return {
     migrationRoot: root,
-    pluginRoot: "/deploy/Advance/plugin",
+    pluginRoot: "/deploy/Determinus/plugin",
     buildDigest: DIGEST_A,
     proofs: passingProofs(),
     activatedBy: "test-operator",

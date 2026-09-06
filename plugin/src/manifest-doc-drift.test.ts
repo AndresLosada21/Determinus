@@ -303,7 +303,7 @@ describe("Prioritizer protocol docs", () => {
     assertContainsAllSnippets(content, readmeSnippets, "README.md");
   });
 
-  test("ADV instructions include inline-first prioritizer protocol", () => {
+  test("Determinus instructions include inline-first prioritizer protocol", () => {
     const content = readFileSync(determinus_INSTRUCTIONS_PATH, "utf8");
     assertContainsAllSnippets(
       content,

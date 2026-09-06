@@ -1,7 +1,7 @@
 /**
  * Plugin bundle generation manifest.
  *
- * The host-loaded plugin bundle (`dist/index.js`) and the ADV MCP server
+ * The host-loaded plugin bundle (`dist/index.js`) and the Determinus MCP server
  * (`dist/mcp-server.js`) are evaluated by the OpenCode host and Vision's
  * Node process respectively. The build emits a generation *before* bundling,
  * embeds it into the bundles via a tsup `define`, and then records the final
@@ -410,7 +410,7 @@ export async function getPluginBundleFreshness(
  * Narrow release preflight check for the loaded plugin bundle identity.
  *
  * Refuses release only when the loaded bundle generation is strictly older than
- * the deployed manifest generation. The advisory [ADV:PLUGIN_BUNDLE_STALE]
+ * the deployed manifest generation. The advisory [Determinus:PLUGIN_BUNDLE_STALE]
  * banner in system-block/status health is preserved elsewhere; this is a
  * release-time guard, not a replacement for that advisory.
  *
@@ -448,12 +448,12 @@ export async function getPluginBundleReleasePreflightError(
 }
 
 /**
- * Resolve the Advance plugin root directory from the location of this module.
+ * Resolve the Determinus plugin root directory from the location of this module.
  *
  * This module lives at `plugin/src/plugin-bundle-manifest.ts` in source and is
  * bundled into `plugin/dist/index.js` (or a sibling `plugin/dist/chunk-*.js`)
  * at runtime. In both contexts the parent directory of the module's directory
- * is the plugin root (`.../advance/plugin`), never the repo root.
+ * is the plugin root (`.../determinus/plugin`), never the repo root.
  */
 export function getPluginRoot(moduleUrl: string = import.meta.url): string {
   return resolve(dirname(fileURLToPath(moduleUrl)), "..");

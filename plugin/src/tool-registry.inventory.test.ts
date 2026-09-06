@@ -262,7 +262,7 @@ describe("public tool inventory — SC1 baseline/final counts", () => {
     >;
     const baseline = mod.determinus_PUBLIC_TOOL_BASELINE_COUNT;
     // Source baseline recorded at implementation start (2026-07-15): the 80
-    // registered public ADV tools prior to this change's contracted removals.
+    // registered public Determinus tools prior to this change's contracted removals.
     expect(baseline, "recorded SC1 source baseline").toBe(80);
 
     // The current source surface contains 53 tools after the contracted

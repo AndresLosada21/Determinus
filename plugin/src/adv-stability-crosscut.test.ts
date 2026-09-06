@@ -9,7 +9,7 @@ import { createProbeCache } from "./tools/probe-cache";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-describe("ADV stability hardening cross-cutting verification", () => {
+describe("Determinus stability hardening cross-cutting verification", () => {
   test("worktree guard blocks main-checkout mutations but allows worktrees and exemptions", async () => {
     const mainContext = () => ({
       isWorktree: false,

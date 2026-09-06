@@ -1,5 +1,5 @@
 /**
- * Narrow Tier-4 tool factory for the ADV MCP server.
+ * Narrow Tier-4 tool factory for the Determinus MCP server.
  *
  * Lives in the host/server registration path (not the Tier-4 execution path).
  * It imports the global plugin tool registry and projects a map containing

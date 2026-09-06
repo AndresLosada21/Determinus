@@ -21,7 +21,7 @@ async function listSyntheticDirsIn(parent: string): Promise<string[]> {
 
 function syntheticAdvRoots(dataHome: string): string[] {
   return [
-    join(dataHome, "opencode", "plugins", "advance"),
+    join(dataHome, "opencode", "plugins", "determinus"),
     join(dataHome, "opencode", "worktree"),
   ];
 }

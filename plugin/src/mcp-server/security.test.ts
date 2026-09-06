@@ -1,5 +1,5 @@
 /**
- * DDC7 exhaustive rejection tests for the ADV MCP read surface.
+ * DDC7 exhaustive rejection tests for the Determinus MCP read surface.
  *
  * Verifies that every Tier-4 catalog tool (13 HANDSHAKE_TIER4_TOOLS) plus
  * determinus_handshake rejects every mutation-shaped argument with the same typed

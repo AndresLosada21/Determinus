@@ -1,5 +1,5 @@
 /**
- * Read-only, bounded classification of disk-backed ADV store residue.
+ * Read-only, bounded classification of disk-backed Determinus store residue.
  *
  * This module deliberately does not repair, normalize, or create anything.
  * `reconcile-plan.ts` consumes its typed output and later execution tasks own

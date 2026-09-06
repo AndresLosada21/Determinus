@@ -52,7 +52,7 @@ export function defaultDataHomeRoot(): string {
   return dataHome;
 }
 
-/** Enumerate discoverable ADV stores without mutating or requiring them. */
+/** Enumerate discoverable Determinus stores without mutating or requiring them. */
 export async function walkStoreDirs(dataHomeRoot: string): Promise<{
   stores: StoreDirRef[];
   layouts: LayoutWalk[];

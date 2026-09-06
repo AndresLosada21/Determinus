@@ -47,7 +47,7 @@ function fixture(): {
     "git",
     [
       "-c",
-      "user.name=ADV test",
+      "user.name=Determinus test",
       "-c",
       "user.email=adv@example.test",
       "commit",

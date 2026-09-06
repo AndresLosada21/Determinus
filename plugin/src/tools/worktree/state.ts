@@ -548,7 +548,7 @@ export async function getWorktreeRecord(
 }
 
 /**
- * Read-only, side-effect-free probe: does a *setup-ready* ADV worktree exist for
+ * Read-only, side-effect-free probe: does a *setup-ready* Determinus worktree exist for
  * `changeId`? Used by the worktree-isolation guard to ALLOW state-transition
  * mutations from main when isolation already exists (rq-worktreeMutationGuard01.4).
  *

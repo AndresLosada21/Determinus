@@ -231,7 +231,7 @@ export async function ensureWorktreeForMutation(
 
   // Existing-worktree exception (rq-worktreeMutationGuard01.4, AC11-13).
   //
-  // When a setup-ready ADV worktree already exists for the change, ALLOW the
+  // When a setup-ready Determinus worktree already exists for the change, ALLOW the
   // state-transition mutation from main regardless of the worktree_auto_managed
   // marker. Existing-worktree detection over the durable change-workflow
   // `worktrees` map is the structural authority (P33); the marker is only a
@@ -314,7 +314,7 @@ export async function ensureWorktreeForMutation(
 }
 
 /**
- * Resolve whether a setup-ready ADV worktree exists for `changeId`.
+ * Resolve whether a setup-ready Determinus worktree exists for `changeId`.
  *
  * Prefers the `worktreeExists` test seam. Production callers omit the seam and
  * we read the durable change-workflow `worktrees` map via `worktreeExistsForChange`
@@ -418,7 +418,7 @@ function mapResumeFailure(
         mainCheckoutPath,
         errorClass: "WorktreeBranchCollision",
         code: "BRANCH_IN_USE_BY_OTHER_CHANGE",
-        reason: `Branch ${result.branch} is already owned by other ADV change workflow(s): ${result.ownerChangeIds.join(", ")}. ${result.hint}`,
+        reason: `Branch ${result.branch} is already owned by other Determinus change workflow(s): ${result.ownerChangeIds.join(", ")}. ${result.hint}`,
       });
     case "BRANCH_LOCKED":
       return autoCreateFailure({

@@ -35,7 +35,7 @@ vi.mock("fs", async () => {
 // =============================================================================
 // Pane identity contract (fixAdvPanelTitles)
 //
-// Active ADV change identity only. No project fallback, no cleanup clear.
+// Active Determinus change identity only. No project fallback, no cleanup clear.
 // Stable IDs (changeId, epicId), never display labels.
 // =============================================================================
 

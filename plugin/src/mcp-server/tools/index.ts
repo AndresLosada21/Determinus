@@ -76,12 +76,12 @@ export const TIER4_TOOL_DESCRIPTIONS: Record<Tier4ToolName, string> = {
   reflection_list: "List archived change reflections.",
   backlog_list: "List backlog items.",
   backlog_show: "Show a single backlog item.",
-  epic_list: "List ADV epics.",
-  epic_show: "Show a single ADV epic.",
+  epic_list: "List Determinus epics.",
+  epic_show: "Show a single Determinus epic.",
   wip_state: "Aggregated work-in-progress state across active changes.",
-  worktree_triage: "Triage ADV worktrees for the current project.",
-  tool_catalog: "Catalog of all ADV tool names and metadata.",
-  tool_describe: "Describe a single ADV tool by name.",
+  worktree_triage: "Triage Determinus worktrees for the current project.",
+  tool_catalog: "Catalog of all Determinus tool names and metadata.",
+  tool_describe: "Describe a single Determinus tool by name.",
   project_context:
     "Read the project context file (project.md) containing tech stack, conventions, domain knowledge, and constraints.",
 };

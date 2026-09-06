@@ -3,7 +3,7 @@
  *
  * Promotes typed ops/enabler follow-ups from structured sources
  * (required_follow_up in sub-agent reports, sidecar report metadata) into
- * linked ADV child changes with an `ops_followup` profile. Manual fallback
+ * linked Determinus child changes with an `ops_followup` profile. Manual fallback
  * is supported but explicitly secondary to typed sources. retireAgendaWorkflow:
  * new promotions no longer accept Agenda as a source kind; legacy records
  * carrying `source_kind: "agenda"` remain parseable on the persisted
@@ -63,7 +63,7 @@ const targetArgs = {
     .string()
     .optional()
     .describe(
-      "Optional absolute path to another ADV project. When provided, creates the follow-up change in the target project and links it from the source project.",
+      "Optional absolute path to another Determinus project. When provided, creates the follow-up change in the target project and links it from the source project.",
     ),
   target_confirmed: z
     .literal(true)
@@ -565,7 +565,7 @@ async function promoteInStore(
 export const followupTools = {
   determinus_followup_promote: {
     description:
-      "Promote an ops/enabler follow-up into a linked ADV child change with a typed ops_followup profile. " +
+      "Promote an ops/enabler follow-up into a linked Determinus child change with a typed ops_followup profile. " +
       "Prefers structured sources (required_follow_up from sub-agent reports, report metadata) over manual fallback. " +
       "Creates the child change, seeds its ops_followup profile, and records an outbound ops_followup_link on the source change.",
     args: {

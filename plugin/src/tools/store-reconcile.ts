@@ -26,7 +26,7 @@ const StoreReconcileModeSchema = z.enum(["plan", "dry_run", "apply"]);
 const storeReconcileToolDefinitions = {
   determinus_store_reconcile: {
     description:
-      "Reconcile disk-backed ADV store migration residue. The default plan " +
+      "Reconcile disk-backed Determinus store migration residue. The default plan " +
       "mode is read-only and emits the complete plan plus plan_hash; apply " +
       "requires that plan_hash as explicit approval and re-verifies it before mutation. " +
       "This is an operator-only surface; determinus_doctor diagnostics are unchanged.",
@@ -38,7 +38,7 @@ const storeReconcileToolDefinitions = {
         .string()
         .optional()
         .describe(
-          "Optional absolute path to another ADV project. When provided, routes reconciliation through that project's store.",
+          "Optional absolute path to another Determinus project. When provided, routes reconciliation through that project's store.",
         ),
       target_confirmed: z
         .literal(true)

@@ -584,7 +584,7 @@ describe("chat-output-display drift contract", () => {
   test("STATUS_MARKERS.IDLE exists in types/status.ts", () => {
     const typesPath = join(REPO_ROOT, "plugin", "src", "types", "status.ts");
     const content = readFileSync(typesPath, "utf8");
-    expect(content).toMatch(/IDLE:\s*"\[ADV:IDLE\]"/);
+    expect(content).toMatch(/IDLE:\s*"\[Determinus:IDLE\]"/);
   });
 
   test("getStatusEmoji returns ⬜ for IDLE (distinct from ATTN's 🟥)", async () => {
@@ -691,7 +691,9 @@ describe("chat-output-display drift contract", () => {
       (r: any) => r.id === "rq-titleIdentity01",
     );
     expect(titleIdentityRequirement).toBeTruthy();
-    expect(titleIdentityRequirement.body).toContain("active ADV change id");
+    expect(titleIdentityRequirement.body).toContain(
+      "active Determinus change id",
+    );
     expect(titleIdentityRequirement.body).toContain("epicId | changeId");
     expect(titleIdentityRequirement.body).toContain("MUST NOT write");
     expect(titleIdentityRequirement.body).not.toContain("Project: change-id");

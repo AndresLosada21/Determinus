@@ -1,5 +1,5 @@
 // rq-toolTitle01 rq-toolTitle02 rq-toolTitle03
-// ADV tool titles are deterministic display-only metadata. They preserve
+// Determinus tool titles are deterministic display-only metadata. They preserve
 // structural tool names/args as authority and redact/bound display values.
 export type AdvToolTitleKind = "read" | "write" | "execute" | "operator";
 
@@ -39,7 +39,7 @@ const STATIC_TITLES: Record<
 > = {
   determinus_change_list: { title: "List changes", titleKind: "read" },
   determinus_wip_state: { title: "Show WIP state", titleKind: "read" },
-  determinus_status: { title: "Show ADV status", titleKind: "read" },
+  determinus_status: { title: "Show Determinus status", titleKind: "read" },
   determinus_project_context: {
     title: "Show project context",
     titleKind: "read",
@@ -50,10 +50,16 @@ const STATIC_TITLES: Record<
     title: "Clean up worktrees",
     titleKind: "operator",
   },
-  determinus_tool_catalog: { title: "Catalog ADV tools", titleKind: "read" },
-  determinus_tool_describe: { title: "Describe ADV tool", titleKind: "read" },
+  determinus_tool_catalog: {
+    title: "Catalog Determinus tools",
+    titleKind: "read",
+  },
+  determinus_tool_describe: {
+    title: "Describe Determinus tool",
+    titleKind: "read",
+  },
   determinus_tool_invoke: {
-    title: "Invoke ADV tool",
+    title: "Invoke Determinus tool",
     titleKind: "execute",
   },
 };
