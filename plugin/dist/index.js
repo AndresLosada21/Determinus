@@ -51986,7 +51986,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad") ? "9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad" : null;
+  return /^[0-9a-f]{64}$/.test("0654351b362ffa5798457a3c0551d15532b4a34cffdd92e1ba716d200f320b4c") ? "0654351b362ffa5798457a3c0551d15532b4a34cffdd92e1ba716d200f320b4c" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -101572,7 +101572,7 @@ var ContextObserver = class {
     };
   }
 };
-async function installCacheRuntime(ctx) {
+async function installCacheRuntime(ctx, hooks) {
   const registrations = [];
   const locationKey2 = digest(ctx.location.directory).slice(0, 16), diagDir = join56(homedir6(), ".local/share/Determinus/diagnostics"), path3 = join56(diagDir, `cache-${locationKey2}-${process.pid}.json`);
   const state = {
@@ -101604,6 +101604,21 @@ async function installCacheRuntime(ctx) {
     zen: { steps: 0, cacheReadTokens: 0 }
   };
   let lastFlush = 0;
+  const redactLocalPaths = (text) => text.replace(/[A-Za-z]:[\\/][^\s"']*/g, "<workdir>");
+  const projectTopBusts = () => {
+    try {
+      const report = hooks?.getBustReport?.();
+      if (!Array.isArray(report)) return [];
+      return report.slice(0, 5).map((bust) => ({
+        suspect: String(bust?.suspect ?? "unknown").slice(0, 80),
+        cause: String(bust?.cause ?? "unknown").slice(0, 16),
+        evidence: Array.isArray(bust?.evidence) ? bust.evidence.slice(0, 3).map((line) => redactLocalPaths(String(line)).slice(0, 200)) : [],
+        recommendation: String(bust?.recommendation ?? "").slice(0, 200)
+      }));
+    } catch {
+      return [];
+    }
+  };
   const flush = (force = false) => {
     if (!force && Date.now() - lastFlush < 1e3) return;
     try {
@@ -101611,7 +101626,12 @@ async function installCacheRuntime(ctx) {
       writeFileSync6(
         path3 + ".tmp",
         JSON.stringify(
-          { ...state, usageByService, updatedAt: (/* @__PURE__ */ new Date()).toISOString() },
+          {
+            ...state,
+            usageByService,
+            topBusts: projectTopBusts(),
+            updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+          },
           null,
           2
         ),
@@ -101656,6 +101676,17 @@ async function installCacheRuntime(ctx) {
     state.inputTokens += values2[0];
     state.cacheReadTokens += values2[1];
     state.cacheWriteTokens += values2[2];
+    try {
+      hooks?.onUsageStep?.({
+        at: Date.now(),
+        newTokens: values2[0],
+        cachedTokens: values2[1],
+        // Approximation: provider total-input accounting varies; only the
+        // cached series drives bust detection.
+        totalTokens: values2[0] + values2[1] + values2[2]
+      });
+    } catch {
+    }
     flush(true);
   };
   const userAgent = `${ctx.app.name}/${ctx.app.version} Determinus/${CACHE_RELEASE}`.replace(
@@ -101778,6 +101809,192 @@ Full error: ${file2}`;
     await close2();
     throw e;
   }
+}
+
+// src/utils/cache-bust-attribution.ts
+var DEFAULTS = {
+  dropThreshold: 0.5,
+  ttlGapMs: 27e4,
+  largeOutputBytes: 5e4
+};
+function dropFraction(prev, next) {
+  if (prev <= 0) return 0;
+  return (prev - next) / prev;
+}
+function detectBusts(steps, options2 = {}) {
+  const { dropThreshold, ttlGapMs, largeOutputBytes } = {
+    ...DEFAULTS,
+    ...options2
+  };
+  const busts = [];
+  for (let i = 1; i < steps.length; i++) {
+    const prev = steps[i - 1];
+    const next = steps[i];
+    if (dropFraction(prev.cachedTokens, next.cachedTokens) <= dropThreshold) {
+      continue;
+    }
+    const suspect = prev.tool;
+    const evidence = [
+      `cached ${prev.cachedTokens}\u2192${next.cachedTokens} (-${Math.round(
+        dropFraction(prev.cachedTokens, next.cachedTokens) * 100
+      )}%)`
+    ];
+    let cause = "unknown";
+    let recommendation = "Narrow the preceding call (bounded reads, quiet flags) and re-observe.";
+    if (prev.dir !== void 0 && next.dir !== void 0 && prev.dir !== next.dir) {
+      cause = "ours";
+      evidence.push(
+        `cwd ${prev.dir}\u2192${next.dir} (session_move busts the prefix)`
+      );
+      recommendation = "Avoid session_move; pass workdir/target_path per call.";
+    } else if (prev.toolCount !== void 0 && next.toolCount !== void 0 && prev.toolCount !== next.toolCount) {
+      cause = "ours";
+      evidence.push(
+        `tool inventory ${prev.toolCount}\u2192${next.toolCount} (definitions reorder the prefix)`
+      );
+      recommendation = "Stabilize tool registration; avoid dynamic skills mid-session.";
+    } else if (next.at - prev.at >= ttlGapMs) {
+      cause = "host";
+      evidence.push(
+        `idle gap ${Math.round((next.at - prev.at) / 1e3)}s \u2265 TTL window (server expiry, not content)`
+      );
+      recommendation = "Keep the loop tight; batch independent calls per turn.";
+    } else if (prev.bytesOut >= largeOutputBytes) {
+      cause = "ours";
+      evidence.push(
+        `preceding ${suspect} emitted ${prev.bytesOut} bytes (uniquely large payload)`
+      );
+      recommendation = "Bound that call's output (first-N, quiet flags, 2>$null) or split it.";
+    }
+    busts.push({ stepIndex: i, suspect, cause, evidence, recommendation });
+  }
+  return busts;
+}
+
+// src/utils/cache-bust-collector.ts
+var RING_LIMIT = 512;
+var BYTE_MEASURE_CAP = 262144;
+function byteLength(value3) {
+  if (value3 === void 0 || value3 === null) return 0;
+  try {
+    const text = typeof value3 === "string" ? value3 : JSON.stringify(value3);
+    if (!text) return 0;
+    return Math.min(text.length, BYTE_MEASURE_CAP);
+  } catch {
+    return 0;
+  }
+}
+function pendingKey(tool2, callId) {
+  if (callId) return `id:${callId}`;
+  if (tool2) return `tool:${tool2}`;
+  return void 0;
+}
+function createBustCollector(options2 = {}) {
+  const completed = [];
+  const usages = [];
+  const seenTools = /* @__PURE__ */ new Set();
+  const pending = /* @__PURE__ */ new Map();
+  const pushBounded = (list, item) => {
+    list.push(item);
+    if (list.length > RING_LIMIT) list.splice(0, list.length - RING_LIMIT);
+  };
+  return {
+    feedTool(event) {
+      try {
+        if (!event || event.phase !== "before" && event.phase !== "after") {
+          return;
+        }
+        const at = typeof event.at === "number" ? event.at : Date.now();
+        if (event.phase === "before") {
+          const key2 = pendingKey(event.tool, event.callId);
+          if (!key2 || !event.tool) return;
+          seenTools.add(event.tool);
+          pending.set(key2, {
+            tool: event.tool,
+            at,
+            bytesIn: byteLength(event.args),
+            dir: event.dir,
+            toolCount: event.toolCount ?? seenTools.size
+          });
+          if (pending.size > RING_LIMIT) {
+            pending.delete(pending.keys().next().value);
+          }
+          return;
+        }
+        const key = pendingKey(event.tool, event.callId);
+        const open4 = key ? pending.get(key) : void 0;
+        if (key) pending.delete(key);
+        if (!open4) return;
+        pushBounded(completed, {
+          tool: open4.tool,
+          at,
+          bytesIn: open4.bytesIn,
+          bytesOut: byteLength(event.output),
+          dir: event.dir ?? open4.dir,
+          toolCount: event.toolCount ?? open4.toolCount
+        });
+      } catch {
+      }
+    },
+    feedUsage(snapshot2) {
+      try {
+        if (!snapshot2 || ![
+          snapshot2.newTokens,
+          snapshot2.cachedTokens,
+          snapshot2.totalTokens
+        ].every((x) => typeof x === "number" && Number.isFinite(x) && x >= 0)) {
+          return;
+        }
+        pushBounded(usages, {
+          at: typeof snapshot2.at === "number" ? snapshot2.at : Date.now(),
+          newTokens: snapshot2.newTokens,
+          cachedTokens: snapshot2.cachedTokens,
+          totalTokens: snapshot2.totalTokens
+        });
+      } catch {
+      }
+    },
+    completed() {
+      return completed;
+    },
+    snapshots() {
+      return usages;
+    },
+    report(reportOptions) {
+      try {
+        let carryDir;
+        let carryCount;
+        const steps = usages.map((snap, j2) => {
+          const upper = j2 + 1 < usages.length ? usages[j2 + 1].at : Number.POSITIVE_INFINITY;
+          const window = completed.filter(
+            (c) => c.at > snap.at && c.at <= upper
+          );
+          const top = window.reduce(
+            (best, c) => !best || c.bytesOut > best.bytesOut ? c : best,
+            void 0
+          );
+          const last = window[window.length - 1];
+          const step = {
+            tool: top?.tool ?? last?.tool ?? "unknown-idle",
+            bytesIn: top?.bytesIn ?? 0,
+            bytesOut: top?.bytesOut ?? 0,
+            at: snap.at,
+            newTokens: snap.newTokens,
+            cachedTokens: snap.cachedTokens,
+            totalTokens: snap.totalTokens,
+            dir: carryDir,
+            toolCount: carryCount
+          };
+          if (last?.dir !== void 0) carryDir = last.dir;
+          if (last?.toolCount !== void 0) carryCount = last.toolCount;
+          return step;
+        });
+        return detectBusts(steps, { ...options2, ...reportOptions });
+      } catch {
+        return [];
+      }
+    }
+  };
 }
 
 // src/agent-definition.ts
@@ -103074,7 +103291,52 @@ var src_default = plugin_exports.define({
         }
       });
     }
-    const cleanupCache = await installCacheRuntime(ctx);
+    const bustCollector = createBustCollector();
+    const feedBustUsage = (snapshot2) => {
+      try {
+        bustCollector.feedUsage(snapshot2);
+      } catch {
+      }
+    };
+    const cleanupCache = await installCacheRuntime(ctx, {
+      onUsageStep: feedBustUsage,
+      getBustReport: () => {
+        try {
+          return bustCollector.report().slice(0, 5);
+        } catch {
+          return [];
+        }
+      }
+    });
+    try {
+      await ctx.tool.hook("execute.before", (event) => {
+        try {
+          bustCollector.feedTool({
+            phase: "before",
+            tool: event?.tool,
+            at: Date.now(),
+            callId: event?.id,
+            args: event?.input,
+            dir: ctx?.location?.directory
+          });
+        } catch {
+        }
+      });
+      await ctx.tool.hook("execute.after", (event) => {
+        try {
+          bustCollector.feedTool({
+            phase: "after",
+            tool: event?.tool,
+            at: Date.now(),
+            callId: event?.id,
+            output: event?.result
+          });
+        } catch {
+        }
+      });
+    } catch (e) {
+      debugLog3(`bust collector registration failed: ${e}`);
+    }
     let cleanupAgent;
     let cleanupSessionContext;
     try {

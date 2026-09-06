@@ -22985,7 +22985,7 @@ import { basename as basename2, dirname as dirname2, join as join4, resolve as r
 import { fileURLToPath } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad") ? "9c314843baa6e2b5afc4c9d727d9062835d8145c803ae296d35dcd948e0713ad" : null;
+  return /^[0-9a-f]{64}$/.test("0654351b362ffa5798457a3c0551d15532b4a34cffdd92e1ba716d200f320b4c") ? "0654351b362ffa5798457a3c0551d15532b4a34cffdd92e1ba716d200f320b4c" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
