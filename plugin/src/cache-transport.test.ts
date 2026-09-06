@@ -60,7 +60,7 @@ it("forwards bytes, headers, SSE and 429 for Go/Zen on all three APIs and auxili
   const address = backend.address();
   if (!address || typeof address === "string") throw Error("bind");
   const gateway = await createCacheGateway({
-    userAgent: "OpenCode-test/beta Determinus/3.5.0",
+    userAgent: "OpenCode-test/beta Determinus/3.6.0-beta.1",
     record: (x) => samples.push(x),
     upstreamRequest: ((url: URL, opts: any, cb: any) => {
       targets.push(url.toString());
@@ -100,7 +100,7 @@ it("forwards bytes, headers, SSE and 429 for Go/Zen on all three APIs and auxili
           "Bearer fixture-not-a-key",
         );
         expect(seen.at(-1).headers["user-agent"]).toBe(
-          "OpenCode-test/beta Determinus/3.5.0",
+          "OpenCode-test/beta Determinus/3.6.0-beta.1",
         );
       }
     }

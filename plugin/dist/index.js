@@ -51986,7 +51986,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("88e0ee45edff1528a5ee2227a0565598be1c864aa9babf4d83ddf792893f091f") ? "88e0ee45edff1528a5ee2227a0565598be1c864aa9babf4d83ddf792893f091f" : null;
+  return /^[0-9a-f]{64}$/.test("0270ef89e952173a82e290c819d007374881d84816653d38340a971b9b2a13bf") ? "0270ef89e952173a82e290c819d007374881d84816653d38340a971b9b2a13bf" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -101299,7 +101299,7 @@ import {
 } from "http";
 import { request as httpsRequest } from "https";
 import { createHash as createHash20, randomBytes as randomBytes3 } from "crypto";
-var CACHE_RELEASE = "3.5.0";
+var CACHE_RELEASE = "3.6.0-beta.1";
 var BODY_LIMIT = 32 * 1024 * 1024;
 var HOP = /* @__PURE__ */ new Set([
   "host",
@@ -102252,27 +102252,29 @@ var DETERMINUS_TDD_SKILL = {
 var DETERMINUS_INTAKE_SKILL = {
   id: "determinus-intake",
   name: "determinus-intake",
-  description: "Intent intake premise: material user intents become a GitHub EPIC issue first, then stories linked to the change. Adaptable per session.",
+  description: "Intent intake premise: material intents get a durable intake record first, in the backend the session decides. Adaptable per session.",
   slash: false,
   autoinvoke: true,
   content: [
     "# Determinus Intake",
     "",
-    "Premise (default, adaptable): every material user intent becomes a",
-    "GitHub EPIC issue before a change starts. A session instruction may",
-    "adapt or skip it (hotfix, spike, docs-only) \u2014 state the reason in chat.",
+    "Premise (default, adaptable): every material intent gets a durable",
+    "intake record before a change starts. The session decides the backend",
+    "(GitHub issue, repo .md, change proposal, or skip with reason) and",
+    "states the choice in chat.",
     "",
-    "## Flow",
+    "## Record structure",
     "",
-    "intent \u2192 EPIC ([EPIC] title, labels, DoR/DoD body, project) \u2192 stories",
-    "([ST-XX] titles, `Parte de #<epic>`) \u2192 determinus_change_create linked",
-    "via origin/triage or epic_membership. Trivial intents skip with an",
-    "explicit reason.",
+    "title, source intent, scope, non-goals, acceptance criteria, backend,",
+    "backend_ref, story links. Link the record to determinus_change_create",
+    "via origin/triage or epic_membership.",
     "",
-    "## Issue rules",
+    "## Backend profiles",
     "",
-    "Titles `[EPIC]`/`[ST-XX]`; mandatory labels; DoR/DoD body; story links",
-    "`Parte de #<epic>`. Close only with evidence. Never paste secrets."
+    "github: [EPIC]/[ST-XX] titles, mandatory labels, DoR/DoD body,",
+    "`Parte de #<epic>` links, project board, close only with evidence.",
+    "markdown: one file per intent under the session-agreed folder, same",
+    "headings. Never paste secrets in either backend."
   ].join("\n")
 };
 function getDeterminusSkillDefs() {
