@@ -51986,7 +51986,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("0654351b362ffa5798457a3c0551d15532b4a34cffdd92e1ba716d200f320b4c") ? "0654351b362ffa5798457a3c0551d15532b4a34cffdd92e1ba716d200f320b4c" : null;
+  return /^[0-9a-f]{64}$/.test("88e0ee45edff1528a5ee2227a0565598be1c864aa9babf4d83ddf792893f091f") ? "88e0ee45edff1528a5ee2227a0565598be1c864aa9babf4d83ddf792893f091f" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -101813,7 +101813,7 @@ Full error: ${file2}`;
 
 // src/utils/cache-bust-attribution.ts
 var DEFAULTS = {
-  dropThreshold: 0.5,
+  dropThreshold: 0,
   ttlGapMs: 27e4,
   largeOutputBytes: 5e4
 };
@@ -101826,18 +101826,17 @@ function detectBusts(steps, options2 = {}) {
     ...DEFAULTS,
     ...options2
   };
-  const busts = [];
+  const ranked = [];
   for (let i = 1; i < steps.length; i++) {
     const prev = steps[i - 1];
     const next = steps[i];
-    if (dropFraction(prev.cachedTokens, next.cachedTokens) <= dropThreshold) {
+    const frac = dropFraction(prev.cachedTokens, next.cachedTokens);
+    if (frac <= dropThreshold) {
       continue;
     }
     const suspect = prev.tool;
     const evidence = [
-      `cached ${prev.cachedTokens}\u2192${next.cachedTokens} (-${Math.round(
-        dropFraction(prev.cachedTokens, next.cachedTokens) * 100
-      )}%)`
+      `cached ${prev.cachedTokens}\u2192${next.cachedTokens} (-${Math.round(frac * 100)}%)`
     ];
     let cause = "unknown";
     let recommendation = "Narrow the preceding call (bounded reads, quiet flags) and re-observe.";
@@ -101866,9 +101865,12 @@ function detectBusts(steps, options2 = {}) {
       );
       recommendation = "Bound that call's output (first-N, quiet flags, 2>$null) or split it.";
     }
-    busts.push({ stepIndex: i, suspect, cause, evidence, recommendation });
+    ranked.push({
+      bust: { stepIndex: i, suspect, cause, evidence, recommendation },
+      frac
+    });
   }
-  return busts;
+  return ranked.sort((a, b) => b.frac - a.frac).map((entry) => entry.bust);
 }
 
 // src/utils/cache-bust-collector.ts
@@ -102202,7 +102204,16 @@ var DETERMINUS_SDD_SKILL = {
     "## Cost discipline",
     "",
     "Durable state replaces chat replay. Report result, path, command, status",
-    "and next action \u2014 never raw logs, trees, diffs or full test reports."
+    "and next action \u2014 never raw logs, trees, diffs or full test reports.",
+    "",
+    "## Obligations and slices",
+    "",
+    "Every behavior maps to an obligation with an evidence_policy",
+    "(automated_tdd, automated_test, static_check, review, human_acceptance).",
+    "Plan behavior slices first (one independently verifiable behavior each),",
+    "then tasks. A task never marks itself done: determinus_task_checkpoint",
+    "plus the execution gate decide DONE. Load determinus-tdd before execution",
+    "and determinus-intake at intent time."
   ].join("\n")
 };
 var DETERMINUS_TDD_SKILL = {
@@ -102227,15 +102238,45 @@ var DETERMINUS_TDD_SKILL = {
     "",
     "Declare the red oracle in task metadata when the Scenario's expected",
     "failure is known before the run (from /determinus-prep):",
-    "metadata.red_oracle_class (e.g. assertion_failure) and",
-    "metadata.red_oracle_signal (expected substring, e.g. expected 401).",
-    "Checkpoint enforces RED_AMBIGUOUS unless RED matches; absent keys keep",
-    "legacy pass-through. A spec bump after GREEN turns evidence STALE until",
-    "re-proven \u2014 re-run red\u2192green against current documents."
+    "metadata.red_oracle_class (assertion_failure, compile_error,",
+    "missing_behavior, timeout) and metadata.red_oracle_signal (expected",
+    "substring, e.g. expected 401). Checkpoint enforces RED_AMBIGUOUS unless",
+    "RED matches; absent keys keep legacy pass-through.",
+    "",
+    "Never weaken the test to reach GREEN: a changed test fingerprint after",
+    "RED turns evidence STALE until re-proven. A spec bump after GREEN also",
+    "turns evidence STALE \u2014 re-run red\u2192green against current documents.",
+    "GREEN requires a valid RED first, same TestCase, same fingerprint."
+  ].join("\n")
+};
+var DETERMINUS_INTAKE_SKILL = {
+  id: "determinus-intake",
+  name: "determinus-intake",
+  description: "Intent intake premise: material user intents become a GitHub EPIC issue first, then stories linked to the change. Adaptable per session.",
+  slash: false,
+  autoinvoke: true,
+  content: [
+    "# Determinus Intake",
+    "",
+    "Premise (default, adaptable): every material user intent becomes a",
+    "GitHub EPIC issue before a change starts. A session instruction may",
+    "adapt or skip it (hotfix, spike, docs-only) \u2014 state the reason in chat.",
+    "",
+    "## Flow",
+    "",
+    "intent \u2192 EPIC ([EPIC] title, labels, DoR/DoD body, project) \u2192 stories",
+    "([ST-XX] titles, `Parte de #<epic>`) \u2192 determinus_change_create linked",
+    "via origin/triage or epic_membership. Trivial intents skip with an",
+    "explicit reason.",
+    "",
+    "## Issue rules",
+    "",
+    "Titles `[EPIC]`/`[ST-XX]`; mandatory labels; DoR/DoD body; story links",
+    "`Parte de #<epic>`. Close only with evidence. Never paste secrets."
   ].join("\n")
 };
 function getDeterminusSkillDefs() {
-  return [DETERMINUS_SDD_SKILL, DETERMINUS_TDD_SKILL];
+  return [DETERMINUS_SDD_SKILL, DETERMINUS_TDD_SKILL, DETERMINUS_INTAKE_SKILL];
 }
 async function registerDeterminusSkills(ctx) {
   try {
