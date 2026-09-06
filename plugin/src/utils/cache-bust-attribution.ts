@@ -5,8 +5,9 @@
  * snapshots `{tool, bytesIn, bytesOut, at, newTokens, cachedTokens, ...}`
  * and reports probable busts as `{suspect, evidence, cause}`.
  *
- * Drop rule: a step is a bust when cachedTokens fall strictly more than
- * `dropThreshold` (default 50%) versus the previous step's cachedTokens.
+ * Drop rule: any step-over-step cached decrease (fraction strictly greater
+ * than `dropThreshold`, default 0) is a bust. Returned biggest-drop-first so
+ * the bounded `topBusts` projection keeps the most significant busts.
  * Cause ranking (first match wins):
  *   1. `ours(move)` — session directory changed between the steps.
  *   2. `ours(tools)` — tool inventory count changed (definitions reorder the
@@ -44,7 +45,7 @@ export interface BustAttribution {
 }
 
 export interface AttributionOptions {
-  /** Strictly-greater drop fraction. @default 0.5 */
+  /** Strictly-greater drop fraction. @default 0 (any cached decrease) */
   dropThreshold?: number;
   /** Idle gap treated as TTL expiry. @default 270_000 (4.5min) */
   ttlGapMs?: number;
@@ -53,7 +54,7 @@ export interface AttributionOptions {
 }
 
 const DEFAULTS: Required<AttributionOptions> = {
-  dropThreshold: 0.5,
+  dropThreshold: 0,
   ttlGapMs: 270_000,
   largeOutputBytes: 50_000,
 };
@@ -78,18 +79,17 @@ export function detectBusts(
     ...DEFAULTS,
     ...options,
   };
-  const busts: BustAttribution[] = [];
+  const ranked: { bust: BustAttribution; frac: number }[] = [];
   for (let i = 1; i < steps.length; i++) {
     const prev = steps[i - 1];
     const next = steps[i];
-    if (dropFraction(prev.cachedTokens, next.cachedTokens) <= dropThreshold) {
+    const frac = dropFraction(prev.cachedTokens, next.cachedTokens);
+    if (frac <= dropThreshold) {
       continue;
     }
     const suspect = prev.tool;
     const evidence: string[] = [
-      `cached ${prev.cachedTokens}→${next.cachedTokens} (-${Math.round(
-        dropFraction(prev.cachedTokens, next.cachedTokens) * 100,
-      )}%)`,
+      `cached ${prev.cachedTokens}→${next.cachedTokens} (-${Math.round(frac * 100)}%)`,
     ];
     let cause: BustCause = "unknown";
     let recommendation =
@@ -129,7 +129,11 @@ export function detectBusts(
       recommendation =
         "Bound that call's output (first-N, quiet flags, 2>$null) or split it.";
     }
-    busts.push({ stepIndex: i, suspect, cause, evidence, recommendation });
+    ranked.push({
+      bust: { stepIndex: i, suspect, cause, evidence, recommendation },
+      frac,
+    });
   }
-  return busts;
+  // Biggest-drop-first: the bounded topBusts projection keeps the signal.
+  return ranked.sort((a, b) => b.frac - a.frac).map((entry) => entry.bust);
 }

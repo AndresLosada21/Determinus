@@ -47,13 +47,49 @@ describe("cache-bust attribution core (ST-15)", () => {
     expect(busts[0].cause).toBe("host");
   });
 
-  test("no drop means no bust (threshold edge is exclusive)", () => {
+  test("flat or rising cache means no bust", () => {
+    const flat = appendStep(
+      appendStep([], step({ at: 0, cachedTokens: 100_000, tool: "a" })),
+      step({ at: 1000, cachedTokens: 100_000, tool: "b" }),
+    );
+    expect(detectBusts(flat)).toHaveLength(0);
+    const rising = appendStep(
+      appendStep([], step({ at: 0, cachedTokens: 100_000, tool: "a" })),
+      step({ at: 1000, cachedTokens: 120_000, tool: "b" }),
+    );
+    expect(detectBusts(rising)).toHaveLength(0);
+  });
+
+  test("custom threshold still filters small drops (edge exclusive)", () => {
     const steps = appendStep(
       appendStep([], step({ at: 0, cachedTokens: 100_000, tool: "a" })),
-      // Exactly at the 50% default threshold: NOT a bust (strictly greater).
+      // Exactly at the 50% custom threshold: NOT a bust (strictly greater).
       step({ at: 1000, cachedTokens: 50_000, tool: "b" }),
     );
-    expect(detectBusts(steps)).toHaveLength(0);
+    expect(detectBusts(steps, { dropThreshold: 0.5 })).toHaveLength(0);
+  });
+
+  test("tiny drops are tracked by default", () => {
+    const steps = appendStep(
+      appendStep([], step({ at: 0, cachedTokens: 100_000, tool: "a" })),
+      step({ at: 1000, cachedTokens: 97_000, tool: "b" }),
+    );
+    const busts = detectBusts(steps);
+    expect(busts).toHaveLength(1);
+    expect(busts[0].cause).toBe("unknown");
+    expect(busts[0].evidence.join(" ")).toMatch(/-3%/);
+  });
+
+  test("ranking is biggest-drop-first", () => {
+    const steps = [
+      step({ at: 0, cachedTokens: 100_000, tool: "small" }),
+      step({ at: 1000, cachedTokens: 95_000, tool: "mid" }),
+      step({ at: 2000, cachedTokens: 10_000, tool: "big" }),
+    ];
+    const busts = detectBusts(steps);
+    expect(busts).toHaveLength(2);
+    expect(busts[0].stepIndex).toBe(2);
+    expect(busts[1].stepIndex).toBe(1);
   });
 
   test("cwd change attributes ours move", () => {
