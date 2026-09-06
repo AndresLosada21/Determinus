@@ -53,6 +53,8 @@ O código de saída **2**, `DETERMINUS_VALIDATION_PENDING`, significa que falta 
 
 Diagnósticos pequenos ficam em `%USERPROFILE%\.local\share\Determinus\diagnostics\cache-*.json`. Contêm contagens, versão, geração, hashes e presença dos headers; não contêm prompt bruto, chave ou corpo HTTP. Resultados completos de ferramentas ficam separados em `tool-results`, em JSON e texto, e podem conter dados privados do projeto. Para investigar headers, envie apenas a saída do validador e o diagnóstico pequeno relevante.
 
+O diagnóstico também traz `topBusts`: os até 5 maiores cache busts da sessão, cada um com `suspect` (tool call apontada), `cause` (`ours` = nosso conteúdo/movimento, `host` = expiração TTL do provedor, `unknown` = evicção ou reescrita sem sinal), `evidence` (queda de cached, bytes, gap) e `recommendation`. Caminhos locais são redigidos como `<workdir>`. Leitura: `ours(output)` → limitar o output do call; `ours(move)` → evitar `session_move`; `host(ttl)` → adensar o loop; `unknown` → observar de novo antes de otimizar.
+
 ## Desfazer
 
 ```powershell
