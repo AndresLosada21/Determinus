@@ -51986,7 +51986,7 @@ import { basename as basename10, dirname as dirname17, join as join37, resolve a
 import { fileURLToPath as fileURLToPath2 } from "url";
 function captureLoadedPluginBundleGeneration() {
   if (false) return null;
-  return /^[0-9a-f]{64}$/.test("0270ef89e952173a82e290c819d007374881d84816653d38340a971b9b2a13bf") ? "0270ef89e952173a82e290c819d007374881d84816653d38340a971b9b2a13bf" : null;
+  return /^[0-9a-f]{64}$/.test("b799232cd9e501bb42279a676dc9de09c7c0c802419ac7585c372ea8d5c0a94b") ? "b799232cd9e501bb42279a676dc9de09c7c0c802419ac7585c372ea8d5c0a94b" : null;
 }
 function getLoadedPluginBundleGeneration() {
   return LOADED_PLUGIN_BUNDLE_GENERATION;
@@ -101677,13 +101677,16 @@ async function installCacheRuntime(ctx, hooks) {
     state.cacheReadTokens += values2[1];
     state.cacheWriteTokens += values2[2];
     try {
+      const providerID = d.model?.providerID;
+      const modelID = d.model?.id;
       hooks?.onUsageStep?.({
         at: Date.now(),
         newTokens: values2[0],
         cachedTokens: values2[1],
         // Approximation: provider total-input accounting varies; only the
         // cached series drives bust detection.
-        totalTokens: values2[0] + values2[1] + values2[2]
+        totalTokens: values2[0] + values2[1] + values2[2],
+        ...typeof providerID === "string" && typeof modelID === "string" && providerID.length > 0 && modelID.length > 0 ? { model: `${providerID}/${modelID}`.slice(0, 120) } : {}
       });
     } catch {
     }
@@ -101840,7 +101843,13 @@ function detectBusts(steps, options2 = {}) {
     ];
     let cause = "unknown";
     let recommendation = "Narrow the preceding call (bounded reads, quiet flags) and re-observe.";
-    if (prev.dir !== void 0 && next.dir !== void 0 && prev.dir !== next.dir) {
+    if (prev.model !== void 0 && next.model !== void 0 && prev.model !== next.model) {
+      cause = "ours";
+      evidence.push(
+        `model ${prev.model}\u2192${next.model} (switch resets the prefix; context resent as new)`
+      );
+      recommendation = "Stay on one model per session; a switch resends the full context.";
+    } else if (prev.dir !== void 0 && next.dir !== void 0 && prev.dir !== next.dir) {
       cause = "ours";
       evidence.push(
         `cwd ${prev.dir}\u2192${next.dir} (session_move busts the prefix)`
@@ -101951,7 +101960,8 @@ function createBustCollector(options2 = {}) {
           at: typeof snapshot2.at === "number" ? snapshot2.at : Date.now(),
           newTokens: snapshot2.newTokens,
           cachedTokens: snapshot2.cachedTokens,
-          totalTokens: snapshot2.totalTokens
+          totalTokens: snapshot2.totalTokens,
+          model: typeof snapshot2.model === "string" && snapshot2.model.length > 0 ? snapshot2.model.slice(0, 120) : void 0
         });
       } catch {
       }
@@ -101985,7 +101995,8 @@ function createBustCollector(options2 = {}) {
             cachedTokens: snap.cachedTokens,
             totalTokens: snap.totalTokens,
             dir: carryDir,
-            toolCount: carryCount
+            toolCount: carryCount,
+            model: typeof snap.model === "string" ? snap.model : void 0
           };
           if (last?.dir !== void 0) carryDir = last.dir;
           if (last?.toolCount !== void 0) carryCount = last.toolCount;

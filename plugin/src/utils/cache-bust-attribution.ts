@@ -9,12 +9,14 @@
  * than `dropThreshold`, default 0) is a bust. Returned biggest-drop-first so
  * the bounded `topBusts` projection keeps the most significant busts.
  * Cause ranking (first match wins):
- *   1. `ours(move)` — session directory changed between the steps.
- *   2. `ours(tools)` — tool inventory count changed (definitions reorder the
+ *   1. `ours(model)` — model id changed between the steps (weights/prefix
+ *      reset; the full context is resent as new tokens).
+ *   2. `ours(move)` — session directory changed between the steps.
+ *   3. `ours(tools)` — tool inventory count changed (definitions reorder the
  *      cacheable prefix; beta: cache-policy tools→system→messages).
- *   3. `host(ttl)` — idle gap beyond `ttlGapMs` (default 4.5min ≈ 5m EPHEMERAL).
- *   4. `ours(output)` — preceding call emitted a uniquely large payload.
- *   5. `unknown` — none of the above (e.g. server eviction, prefix rewrite).
+ *   4. `host(ttl)` — idle gap beyond `ttlGapMs` (default 4.5min ≈ 5m EPHEMERAL).
+ *   5. `ours(output)` — preceding call emitted a uniquely large payload.
+ *   6. `unknown` — none of the above (e.g. server eviction, prefix rewrite).
  */
 
 export type BustCause = "ours" | "host" | "unknown";
@@ -32,6 +34,8 @@ export interface UsageStep {
   dir?: string;
   /** Tool inventory size observed at the step. */
   toolCount?: number;
+  /** `providerID/modelID` observed at the step (host session.step event). */
+  model?: string;
 }
 
 export interface BustAttribution {
@@ -95,6 +99,17 @@ export function detectBusts(
     let recommendation =
       "Narrow the preceding call (bounded reads, quiet flags) and re-observe.";
     if (
+      prev.model !== undefined &&
+      next.model !== undefined &&
+      prev.model !== next.model
+    ) {
+      cause = "ours";
+      evidence.push(
+        `model ${prev.model}→${next.model} (switch resets the prefix; context resent as new)`,
+      );
+      recommendation =
+        "Stay on one model per session; a switch resends the full context.";
+    } else if (
       prev.dir !== undefined &&
       next.dir !== undefined &&
       prev.dir !== next.dir

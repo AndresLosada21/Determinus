@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "digest": "sha256:89e4ef64130f3b9848a7a6235c26c68b2b1f462076be85cd9cb37d8e7456d981",
+  "digest": "sha256:3b30f605baa1bd36931b86588d1f860a67657a2235271d119b80a66730e3baf1",
   "files": [
     {
       "path": "doctor-cli.d.ts",
@@ -9,7 +9,7 @@
     },
     {
       "path": "doctor-cli.js",
-      "sha256": "a24393c834e14bd5d9caff052658180f5cb2ef26c1cd2eb5ab10f84d739fe6f5",
+      "sha256": "e45ad406df9e4350cd9eb6ae0444578cc53ed0026207badd5d669dd48368da63",
       "bytes": 1574798
     },
     {
@@ -19,8 +19,8 @@
     },
     {
       "path": "index.js",
-      "sha256": "c694685b0d45de4cec6d8dacd604d86a12c79e643233f05c0d6fc68535d60c98",
-      "bytes": 3870907
+      "sha256": "52753d5e94bc48b22c3dfe532bf125252a9195adecb2bde6574108c6ec2fca51",
+      "bytes": 3871703
     },
     {
       "path": "mcp-server.d.ts",
@@ -29,12 +29,12 @@
     },
     {
       "path": "mcp-server.js",
-      "sha256": "8911f49648f3546ed4f29cd2dd7b2b97315414960e0d42aba907162c645e0cd9",
+      "sha256": "38284af795e8b074931d30bbddfab84ffc48a78313aff2ff512fa30087e22082",
       "bytes": 3291302
     },
     {
       "path": "plugin-bundle-manifest.json",
-      "sha256": "845268d76014a79e250205eb908991c87ac0e3bd2bdb8544b2da976db793a94d",
+      "sha256": "fb7f559cca99851873000b4ead1a4c7157163be5ccb10ea3443105829ee11ba6",
       "bytes": 510
     },
     {
@@ -58,6 +58,6 @@
       "bytes": 725867
     }
   ],
-  "computedAt": "2026-09-06T02:32:11.069Z",
+  "computedAt": "2026-09-06T03:07:07.835Z",
   "pluginRoot": "C:\\Users\\carlos\\Desktop\\Projetos\\Opencode-Project\\Determinus\\plugin"
 }

@@ -124,6 +124,8 @@ export async function installCacheRuntime(
       newTokens: number;
       cachedTokens: number;
       totalTokens: number;
+      /** `providerID/modelID` when the step event exposes it. */
+      model?: string;
     }) => void;
     /** ST-15: live bust ranking supplier (fail-soft; capped at projection). */
     getBustReport?: () => Array<{
@@ -259,6 +261,8 @@ export async function installCacheRuntime(
     state.cacheReadTokens += values[1];
     state.cacheWriteTokens += values[2];
     try {
+      const providerID = d.model?.providerID;
+      const modelID = d.model?.id;
       hooks?.onUsageStep?.({
         at: Date.now(),
         newTokens: values[0],
@@ -266,6 +270,12 @@ export async function installCacheRuntime(
         // Approximation: provider total-input accounting varies; only the
         // cached series drives bust detection.
         totalTokens: values[0] + values[1] + values[2],
+        ...(typeof providerID === "string" &&
+        typeof modelID === "string" &&
+        providerID.length > 0 &&
+        modelID.length > 0
+          ? { model: `${providerID}/${modelID}`.slice(0, 120) }
+          : {}),
       });
     } catch {
       /* listener faults must not interrupt inference */

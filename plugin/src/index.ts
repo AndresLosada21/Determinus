@@ -1668,6 +1668,7 @@ export default Plugin.define({
       newTokens: number;
       cachedTokens: number;
       totalTokens: number;
+      model?: unknown;
     }) => {
       try {
         bustCollector.feedUsage(snapshot);

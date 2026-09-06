@@ -119,6 +119,49 @@ describe("bust collector (ST-15)", () => {
     expect(busts[0].evidence.join(" ")).toMatch(/tool inventory/);
   });
 
+  test("model id in usage snapshots attributes ours model on switch", () => {
+    const col = createBustCollector();
+    col.feedUsage({
+      at: 0,
+      newTokens: 1,
+      cachedTokens: 100_000,
+      totalTokens: 100_001,
+      model: "opencode-go/muse-spark-1.3-contributor",
+    });
+    col.feedUsage({
+      at: 1000,
+      newTokens: 90_000,
+      cachedTokens: 10_000,
+      totalTokens: 100_000,
+      model: "opencode-go/omen-alpha",
+    });
+    const busts = col.report();
+    expect(busts).toHaveLength(1);
+    expect(busts[0].cause).toBe("ours");
+    expect(busts[0].evidence.join(" ")).toMatch(/model/);
+  });
+
+  test("non-string model in usage snapshots never throws", () => {
+    const col = createBustCollector();
+    col.feedUsage({
+      at: 0,
+      newTokens: 1,
+      cachedTokens: 100_000,
+      totalTokens: 100_001,
+      model: { id: "x" },
+    });
+    col.feedUsage({
+      at: 1000,
+      newTokens: 1,
+      cachedTokens: 90_000,
+      totalTokens: 90_001,
+      model: 42,
+    });
+    const busts = col.report();
+    expect(busts).toHaveLength(1);
+    expect(busts[0].evidence.join(" ")).not.toMatch(/model .*→/);
+  });
+
   test("realistic host after-shape (content array) measures text bytes", () => {
     const col = createBustCollector();
     col.feedTool({

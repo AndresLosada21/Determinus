@@ -38,6 +38,8 @@ export interface UsageSnapshot {
   newTokens: number;
   cachedTokens: number;
   totalTokens: number;
+  /** `providerID/modelID` when the host exposes it (fail-soft when absent). */
+  model?: unknown;
 }
 
 export interface CompletedCall {
@@ -162,6 +164,10 @@ export function createBustCollector(
           newTokens: snapshot.newTokens,
           cachedTokens: snapshot.cachedTokens,
           totalTokens: snapshot.totalTokens,
+          model:
+            typeof snapshot.model === "string" && snapshot.model.length > 0
+              ? snapshot.model.slice(0, 120)
+              : undefined,
         });
       } catch {
         // Fail-soft by contract.
@@ -206,6 +212,7 @@ export function createBustCollector(
             totalTokens: snap.totalTokens,
             dir: carryDir,
             toolCount: carryCount,
+            model: typeof snap.model === "string" ? snap.model : undefined,
           };
           if (last?.dir !== undefined) carryDir = last.dir;
           if (last?.toolCount !== undefined) carryCount = last.toolCount;

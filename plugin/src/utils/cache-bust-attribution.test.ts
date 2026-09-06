@@ -80,6 +80,60 @@ describe("cache-bust attribution core (ST-15)", () => {
     expect(busts[0].evidence.join(" ")).toMatch(/-3%/);
   });
 
+  test("model switch attributes ours model (regression: spark→omen -97%)", () => {
+    const steps = appendStep(
+      appendStep(
+        [],
+        step({
+          at: 0,
+          cachedTokens: 102_769,
+          model: "opencode-go/muse-spark-1.3-contributor",
+          tool: "shell",
+        }),
+      ),
+      step({
+        at: 1000,
+        cachedTokens: 2_880,
+        model: "opencode-go/omen-alpha",
+        tool: "shell",
+      }),
+    );
+    const busts = detectBusts(steps);
+    expect(busts).toHaveLength(1);
+    expect(busts[0].cause).toBe("ours");
+    expect(busts[0].evidence.join(" ")).toMatch(/model .*→/);
+    expect(busts[0].recommendation).toMatch(/one model per session/i);
+  });
+
+  test("model switch wins over simultaneous tool inventory change", () => {
+    const steps = appendStep(
+      appendStep(
+        [],
+        step({ at: 0, model: "p/a", tool: "shell", toolCount: 10 }),
+      ),
+      step({
+        at: 1000,
+        cachedTokens: 5_000,
+        model: "p/b",
+        tool: "shell",
+        toolCount: 12,
+      }),
+    );
+    const busts = detectBusts(steps);
+    expect(busts).toHaveLength(1);
+    expect(busts[0].evidence.join(" ")).toMatch(/model/);
+  });
+
+  test("same model never triggers the model cause", () => {
+    const steps = appendStep(
+      appendStep([], step({ at: 0, model: "p/a", tool: "shell" })),
+      step({ at: 1000, cachedTokens: 97_000, model: "p/a", tool: "shell" }),
+    );
+    const busts = detectBusts(steps);
+    expect(busts).toHaveLength(1);
+    expect(busts[0].evidence.join(" ")).not.toMatch(/model .*→/);
+  });
+
   test("ranking is biggest-drop-first", () => {
     const steps = [
       step({ at: 0, cachedTokens: 100_000, tool: "small" }),
