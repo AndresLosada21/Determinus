@@ -12,9 +12,9 @@
     "Corrupt real bundle rejected before configuration changes",
     "Compiled rollback restores original configuration"
   ],
-  "realWindowsHostTested": false,
+  "realWindowsHostTested": true,
   "paidProviderRequests": 0,
-  "version": "3.0.4",
+  "version": "3.5.0",
   "unitTests": {
     "cacheTransportContextInstaller": 16,
     "existingRegressionAndPreservation": 258,
@@ -26,37 +26,40 @@
   "publicSDK": "0.0.0-beta-18743",
   "fullRepositorySuiteRun": false,
   "liveWindowsValidation": {
-    "date": "2026-09-05",
+    "date": "2026-09-06",
     "host": "opencode2 v0.0.0-beta-19151 on Windows",
+    "release": "3.5.0",
+    "generation": "0654351b362ffa5798457a3c0551d15532b4a34cffdd92e1ba716d200f320b4c",
+    "identity": "1afef4e6eca26f9d",
+    "installedAt": "2026-09-06T01:02:53.771Z",
+    "target": "C:\\Users\\carlos\\.local\\share\\Determinus\\releases\\3.5.0-1afef4e6eca26f9d",
     "commits": [
-      "5ca54fd",
-      "c160030",
-      "ecb4d4e",
-      "d22e1f2",
-      "73cd578",
-      "283298b",
-      "35e3b7e",
-      "5a7a45a",
-      "94b4da3"
+      "b3f8a52",
+      "072cc80",
+      "757055d",
+      "27d85f2",
+      "52c650f"
     ],
     "installIntegrity": "verified",
     "pluginState": "active",
+    "cliExitCode": 0,
     "goTraffic": {
-      "observed": 8,
-      "valid2xx": 4,
+      "observed": 22,
+      "valid2xx": 14,
       "repeatedSession": true,
       "standalone": 0,
-      "usageSteps": 18,
-      "cacheReadTokens": 301554
+      "usageSteps": 114,
+      "cacheReadTokens": 2996562
     },
+    "compactionAuto": false,
     "result": "DETERMINUS_RUNTIME_AND_CACHE_OBSERVED",
     "notes": [
-      "Host rejects file-path plugin entries; installer registers the plugin directory since 5ca54fd.",
-      "Session system entries must be SystemPart structs; raw strings broke the session drain (fixed 73cd578).",
-      "Bundle generation define name aligned so loaded generation is reported (fixed 35e3b7e); prior reports were dropped with empty generation.",
-      "Live defects fixed during validation: directory entry, stale-entry pruning, struct entries, generation define.",
-      "SDD live smoke 2026-09-05 (change addSmokeProbe, beta-19151): checkpoint bloqueou sem par red→green (TASK_ORDERING_VIOLATION); com red→green o checkpoint commitou; cancel agora transita para cancelled (fix 94b4da3, provado live); execution+acceptance verdes; release delimitado em RELEASE_REQUIRES_TRUNK_MERGE como projetado; probe fechado como cancelled, fila in-flight zerada.",
-      "Post-restart validate na geracao final 1551392a: active, go 8 observed / 4 valid2xx, repeatedSession true, standalone 0, usageSteps 18, cacheReadTokens 301554."
+      "History (3.0.4, 2026-09-05): host rejects file-path plugin entries; installer registers the plugin directory since 5ca54fd. Session system entries must be SystemPart structs (fixed 73cd578). Bundle generation define aligned (fixed 35e3b7e). SDD live smoke (change addSmokeProbe, beta-19151): checkpoint blocked without red-green pair (TASK_ORDERING_VIOLATION); with red-green the checkpoint committed; cancel transitions to cancelled (fix 94b4da3, proven live); execution+acceptance green; release delimited at RELEASE_REQUIRES_TRUNK_MERGE as designed; probe closed as cancelled, in-flight queue zeroed. Post-restart validate at generation 1551392a: active, go 8 observed / 4 valid2xx, repeatedSession true, standalone 0, usageSteps 18, cacheReadTokens 301554.",
+      "3.5.0 live run 2026-09-06 via .\\validate-opencode2.ps1 -Require go -Cli <beta opencode2.exe>: version 3.5.0, installIntegrity verified, pluginState active, cliExitCode 0, go 22 observed / 14 valid2xx, repeatedSession true, standalone 0, usageSteps 114, cacheReadTokens 2996562, result DETERMINUS_RUNTIME_AND_CACHE_OBSERVED. Default CLI lookup (opencode2.exe on PATH) returns ENOENT because only a .cmd shim is on PATH; the real Beta exe must be passed via -Cli.",
+      "compaction.auto confirmed false post-install (installer default true re-applied to false per owner decision).",
+      "Weakening guard proven on 3.5.0 source (plugin/src/validator/tdd-ordering.ts via checkTddOrdering): diverged test_fingerprint red->green refuses TASK_ORDERING_VIOLATION with RED_STALE message; identical fingerprint passes with red/green pair. Source-level proof, not host traffic.",
+      "ST-15 cache-bust attribution observational only: latest diagnostics cache-*.json at generation 0654351b carries topBusts (currently [] = no >50% cached drop in window); advisory, never blocks.",
+      "pnpm --dir plugin run check green on 2026-09-06 (0 errors, 105 any-warnings, prettier clean)."
     ]
   }
 }
