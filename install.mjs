@@ -1469,10 +1469,10 @@ function patchConfig(text, entry) {
     result,
     modify(result, ["plugins"], [...entries, entry.replace(/\\/g, "/")], opts)
   );
-  if (config.compaction?.auto === false || config.compaction?.auto === void 0)
+  if (config.compaction?.auto !== false)
     result = applyEdits(
       result,
-      modify(result, ["compaction", "auto"], true, opts)
+      modify(result, ["compaction", "auto"], false, opts)
     );
   if (config.instructions !== void 0) {
     const items = Array.isArray(config.instructions) ? config.instructions : [config.instructions];
@@ -1768,7 +1768,7 @@ try {
       });
       if (errors.length)
         throw Error("OPENCODE_CONFIG_CONTENT contains invalid JSONC");
-      if (inline?.plugins?.length || inline?.plugin?.length || inline?.compaction?.auto === false)
+      if (inline?.plugins?.length || inline?.plugin?.length || inline?.compaction?.auto === true)
         throw Error(
           "OPENCODE_CONFIG_CONTENT overrides plugins or compaction. Move those settings into opencode.jsonc first. Credentials were not displayed or changed."
         );
